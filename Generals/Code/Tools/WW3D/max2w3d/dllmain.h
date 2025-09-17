@@ -41,6 +41,36 @@
 
 #include <windows.h>
 
+#ifndef GWLP_WNDPROC
+#define GWLP_WNDPROC GWL_WNDPROC
+#endif
+
+#ifndef GWLP_USERDATA
+#define GWLP_USERDATA GWL_USERDATA
+#endif
+
+#ifndef GetWindowLongPtr
+#ifdef _WIN64
+#error "GetWindowLongPtr must be available on 64-bit targets."
+#else
+inline LONG_PTR GetWindowLongPtr(HWND hWnd, int nIndex)
+{
+        return static_cast<LONG_PTR>(::GetWindowLong(hWnd, nIndex));
+}
+#endif
+#endif
+
+#ifndef SetWindowLongPtr
+#ifdef _WIN64
+#error "SetWindowLongPtr must be available on 64-bit targets."
+#else
+inline LONG_PTR SetWindowLongPtr(HWND hWnd, int nIndex, LONG_PTR dwNewLong)
+{
+        return static_cast<LONG_PTR>(::SetWindowLong(hWnd, nIndex, static_cast<LONG>(dwNewLong)));
+}
+#endif
+#endif
+
 extern HINSTANCE AppInstance;
 
 #define MAX_STRING_LENGTH 256

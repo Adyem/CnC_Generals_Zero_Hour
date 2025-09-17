@@ -494,12 +494,12 @@ static BOOL CALLBACK DisplacementMapDlgProc(HWND hwndDlg, UINT msg, WPARAM wPara
 	if (msg == WM_INITDIALOG) {
 		theDlg = (GameMtlDlg*)lParam;
 		theDlg->HwndDisplacementMap = hwndDlg;
-		SetWindowLong(hwndDlg, GWL_USERDATA,lParam);
-	} else {
-		if ((theDlg = (GameMtlDlg *)GetWindowLong(hwndDlg, GWL_USERDATA) ) == NULL) {
-			return FALSE; 
-		}
-	}
+                SetWindowLongPtr(hwndDlg, GWLP_USERDATA, static_cast<LONG_PTR>(lParam));
+        } else {
+                if ((theDlg = reinterpret_cast<GameMtlDlg *>(GetWindowLongPtr(hwndDlg, GWLP_USERDATA))) == NULL) {
+                        return FALSE;
+                }
+        }
 
 	theDlg->IsActive = 1;
 	BOOL res = theDlg->DisplacementMapProc(hwndDlg,msg,wParam,lParam);
@@ -514,12 +514,12 @@ static BOOL CALLBACK SurfaceTypePanelDlgProc(HWND hwndDlg, UINT msg, WPARAM wPar
 	if (msg == WM_INITDIALOG) {
 		theDlg = (GameMtlDlg*)lParam;
 		theDlg->HwndSurfaceType = hwndDlg;
-		SetWindowLong(hwndDlg, GWL_USERDATA,lParam);
-	} else {
-		if ((theDlg = (GameMtlDlg *)GetWindowLong(hwndDlg, GWL_USERDATA) ) == NULL) {
-			return FALSE; 
-		}
-	}
+                SetWindowLongPtr(hwndDlg, GWLP_USERDATA, static_cast<LONG_PTR>(lParam));
+        } else {
+                if ((theDlg = reinterpret_cast<GameMtlDlg *>(GetWindowLongPtr(hwndDlg, GWLP_USERDATA))) == NULL) {
+                        return FALSE;
+                }
+        }
 
 	theDlg->IsActive = 1;
 	BOOL res = theDlg->SurfaceTypeProc(hwndDlg,msg,wParam,lParam);
@@ -534,12 +534,12 @@ static BOOL CALLBACK PassCountPanelDlgProc(HWND hwndDlg, UINT msg, WPARAM wParam
 	if (msg == WM_INITDIALOG) {
 		theDlg = (GameMtlDlg*)lParam;
 		theDlg->HwndPassCount = hwndDlg;
-		SetWindowLong(hwndDlg, GWL_USERDATA,lParam);
-	} else {
-		if ((theDlg = (GameMtlDlg *)GetWindowLong(hwndDlg, GWL_USERDATA) ) == NULL) {
-			return FALSE; 
-		}
-	}
+                SetWindowLongPtr(hwndDlg, GWLP_USERDATA, static_cast<LONG_PTR>(lParam));
+        } else {
+                if ((theDlg = reinterpret_cast<GameMtlDlg *>(GetWindowLongPtr(hwndDlg, GWLP_USERDATA))) == NULL) {
+                        return FALSE;
+                }
+        }
 
 	theDlg->IsActive = 1;
 	BOOL res = theDlg->PassCountProc(hwndDlg,msg,wParam,lParam);
