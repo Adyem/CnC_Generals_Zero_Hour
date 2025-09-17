@@ -184,6 +184,11 @@ static void ShutdownBgfx();
 #if WW3D_BGFX_AVAILABLE
 static void UpdateBgfxDisplayParameters();
 #endif
+#if WW3D_BGFX_AVAILABLE
+static uint32_t ComputeBgfxSamplerFlags(const TextureClass* texture);
+#else
+static uint32_t ComputeBgfxSamplerFlags(const TextureClass*) { return 0; }
+#endif
 
 /*
 ** Registry value names
@@ -511,6 +516,40 @@ static void Set_Default_Global_Render_States_Bgfx()
         DX8Wrapper::Set_DX8_Texture_Stage_State(0, D3DTSS_BUMPENVMAT10,F2DW(0.0f));
         DX8Wrapper::Set_DX8_Texture_Stage_State(0, D3DTSS_BUMPENVMAT11,F2DW(1.0f));
 }
+
+#if WW3D_BGFX_AVAILABLE
+static uint32_t ComputeBgfxSamplerFlags(const TextureClass* texture)
+{
+        if (!texture) {
+                return BGFX_SAMPLER_NONE;
+        }
+
+        uint32_t flags = BGFX_SAMPLER_NONE;
+
+        if (texture->Get_U_Addr_Mode() == TextureClass::TEXTURE_ADDRESS_CLAMP) {
+                flags |= BGFX_SAMPLER_U_CLAMP;
+        }
+
+        if (texture->Get_V_Addr_Mode() == TextureClass::TEXTURE_ADDRESS_CLAMP) {
+                flags |= BGFX_SAMPLER_V_CLAMP;
+        }
+
+        if (texture->Get_Min_Filter() == TextureClass::FILTER_TYPE_NONE) {
+                flags |= BGFX_SAMPLER_MIN_POINT;
+        }
+
+        if (texture->Get_Mag_Filter() == TextureClass::FILTER_TYPE_NONE) {
+                flags |= BGFX_SAMPLER_MAG_POINT;
+        }
+
+        TextureClass::FilterType mip_filter = texture->Get_Mip_Mapping();
+        if ((mip_filter == TextureClass::FILTER_TYPE_NONE) || (mip_filter == TextureClass::FILTER_TYPE_FAST)) {
+                flags |= BGFX_SAMPLER_MIP_POINT;
+        }
+
+        return flags;
+}
+#endif
 void DX8Wrapper::Set_Default_Global_Render_States(void)
 {
         DX8_THREAD_ASSERT();
@@ -575,12 +614,13 @@ void DX8Wrapper::Invalidate_Cached_Render_States(void)
                         {
                                 Textures[a]->Release();
                         }
-                }
-                Textures[a]=NULL;
         }
-	ShaderClass::Invalidate();
-	//Need to explicitly set render_state texture pointers to NULL. MW
-	Release_Render_State();
+        Textures[a]=NULL;
+        }
+        render_state.bgfx = BgfxStateData();
+        ShaderClass::Invalidate();
+        //Need to explicitly set render_state texture pointers to NULL. MW
+        Release_Render_State();
 }
 
 void DX8Wrapper::Do_Onetime_Device_Dependent_Shutdowns(void)
@@ -2191,11 +2231,42 @@ void DX8Wrapper::Draw_Strip(
 
 void DX8Wrapper::Apply_Render_State_Changes()
 {
-	if (!render_state_changed) return;
-	if (render_state_changed&SHADER_CHANGED) {
-		SNAPSHOT_SAY(("DX8 - apply shader\n"));
-		render_state.shader.Apply();
-	}
+        if (!render_state_changed) return;
+        if (Is_Bgfx_Active()) {
+                BgfxStateData& bgfx_state = render_state.bgfx;
+
+                if (render_state_changed&SHADER_CHANGED) {
+                        SNAPSHOT_SAY(("DX8 - apply shader\n"));
+                        render_state.shader.Apply();
+                }
+
+                unsigned mask = TEXTURE0_CHANGED;
+                for (unsigned i = 0; i < MAX_TEXTURE_STAGES; ++i, mask <<= 1) {
+                        if (render_state_changed & mask) {
+                                SNAPSHOT_SAY(("DX8 - apply texture %d\n", i));
+                                TextureClass* texture = render_state.Textures[i];
+                                bgfx_state.textureBindings[i] = texture;
+                                bgfx_state.samplerFlags[i] = ComputeBgfxSamplerFlags(texture);
+                        }
+                }
+
+                if (render_state_changed & MATERIAL_CHANGED) {
+                        SNAPSHOT_SAY(("DX8 - apply material\n"));
+                        VertexMaterialClass* material = const_cast<VertexMaterialClass*>(render_state.material);
+                        if (material) {
+                                material->Apply();
+                        } else {
+                                VertexMaterialClass::Apply_Null();
+                        }
+                }
+
+                render_state_changed &= ((unsigned)WORLD_IDENTITY | (unsigned)VIEW_IDENTITY);
+                return;
+        }
+        if (render_state_changed&SHADER_CHANGED) {
+                SNAPSHOT_SAY(("DX8 - apply shader\n"));
+                render_state.shader.Apply();
+        }
 
 	unsigned mask=TEXTURE0_CHANGED;
 	for (unsigned i=0;i<MAX_TEXTURE_STAGES;++i,mask<<=1) {

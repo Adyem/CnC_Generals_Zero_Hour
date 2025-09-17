@@ -152,28 +152,52 @@ public:
 };
 
 
+struct BgfxStateData
+{
+        uint64_t                                                stateFlags;
+        uint32_t                                                samplerFlags[MAX_TEXTURE_STAGES];
+        TextureClass*                                   textureBindings[MAX_TEXTURE_STAGES];
+        bool                                                    textureEnabled[MAX_TEXTURE_STAGES];
+        uint8_t                                                 uvSource[MAX_TEXTURE_STAGES];
+        Vector4                                         materialAmbient;
+        Vector4                                         materialDiffuse;
+        Vector4                                         materialSpecular;
+        Vector4                                         materialEmissive;
+        float                                                   materialShininess;
+        bool                                                    materialLightingEnabled;
+        unsigned                                        ambientSource;
+        unsigned                                        diffuseSource;
+        unsigned                                        emissiveSource;
+        bool                                                    alphaTestEnabled;
+        uint8_t                                                 alphaFunc;
+        float                                                   alphaReference;
+
+        BgfxStateData();
+};
+
 struct RenderStateStruct
 {
-	ShaderClass shader;
-	VertexMaterialClass* material;
-	TextureClass * Textures[MAX_TEXTURE_STAGES];
-	D3DLIGHT8 Lights[4];
-	bool LightEnable[4];
-	Matrix4 world;
-	Matrix4 view;
-	unsigned vertex_buffer_type;
-	unsigned index_buffer_type;
-	unsigned short vba_offset;
-	unsigned short vba_count;
-	unsigned short iba_offset;
-	VertexBufferClass* vertex_buffer;
-	IndexBufferClass* index_buffer;
-	unsigned short index_base_offset;
+        ShaderClass shader;
+        VertexMaterialClass* material;
+        TextureClass * Textures[MAX_TEXTURE_STAGES];
+        D3DLIGHT8 Lights[4];
+        bool LightEnable[4];
+        Matrix4 world;
+        Matrix4 view;
+        unsigned vertex_buffer_type;
+        unsigned index_buffer_type;
+        unsigned short vba_offset;
+        unsigned short vba_count;
+        unsigned short iba_offset;
+        VertexBufferClass* vertex_buffer;
+        IndexBufferClass* index_buffer;
+        unsigned short index_base_offset;
+        BgfxStateData bgfx;
 
-	RenderStateStruct();
-	~RenderStateStruct();
+        RenderStateStruct();
+        ~RenderStateStruct();
 
-	RenderStateStruct& operator= (const RenderStateStruct& src);
+        RenderStateStruct& operator= (const RenderStateStruct& src);
 };
 
 /** 
@@ -1141,11 +1165,35 @@ WWINLINE void DX8Wrapper::Release_Render_State()
 }
 
 
+WWINLINE BgfxStateData::BgfxStateData()
+        :
+        stateFlags(0),
+        materialAmbient(0.0f,0.0f,0.0f,1.0f),
+        materialDiffuse(0.0f,0.0f,0.0f,1.0f),
+        materialSpecular(0.0f,0.0f,0.0f,1.0f),
+        materialEmissive(0.0f,0.0f,0.0f,1.0f),
+        materialShininess(0.0f),
+        materialLightingEnabled(false),
+        ambientSource(D3DMCS_MATERIAL),
+        diffuseSource(D3DMCS_MATERIAL),
+        emissiveSource(D3DMCS_MATERIAL),
+        alphaTestEnabled(false),
+        alphaFunc(D3DCMP_ALWAYS),
+        alphaReference(0.0f)
+{
+        for (unsigned i = 0; i < MAX_TEXTURE_STAGES; ++i) {
+                samplerFlags[i] = 0;
+                textureBindings[i] = NULL;
+                textureEnabled[i] = false;
+                uvSource[i] = 0;
+        }
+}
+
 WWINLINE RenderStateStruct::RenderStateStruct()
-	:
-	material(0),
-	vertex_buffer(0),
-	index_buffer(0)
+        :
+        material(0),
+        vertex_buffer(0),
+        index_buffer(0)
 {
 	for (unsigned i=0;i<MAX_TEXTURE_STAGES;++i) Textures[i]=0;
 }
@@ -1186,14 +1234,15 @@ WWINLINE RenderStateStruct& RenderStateStruct::operator= (const RenderStateStruc
 	shader=src.shader;
 	world=src.world;
 	view=src.view;
-	vertex_buffer_type=src.vertex_buffer_type;
-	index_buffer_type=src.index_buffer_type;
-	vba_offset=src.vba_offset;
-	vba_count=src.vba_count;
-	iba_offset=src.iba_offset;
-	index_base_offset=src.index_base_offset;
+        vertex_buffer_type=src.vertex_buffer_type;
+        index_buffer_type=src.index_buffer_type;
+        vba_offset=src.vba_offset;
+        vba_count=src.vba_count;
+        iba_offset=src.iba_offset;
+        index_base_offset=src.index_base_offset;
+        bgfx=src.bgfx;
 
-	return *this;
+        return *this;
 }
 
 
