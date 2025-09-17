@@ -49,6 +49,8 @@
 #include "Common/STLTypedefs.h"
 #include "Common/SubsystemInterface.h"
 
+#include <memory>
+
 
 // Forward Declarations
 
@@ -59,6 +61,19 @@ class Drawable;
 class MusicManager;
 class Object;
 class SoundManager;
+
+class VideoSoundBridge;
+
+
+class VideoSoundBridge
+{
+        public:
+                virtual ~VideoSoundBridge() {}
+                virtual Bool initialize() = 0;
+                virtual Bool attach(void* videoHandle) = 0;
+                virtual void detach() = 0;
+                virtual void onFrameDecoded(void* videoHandle) = 0;
+};
 
 
 enum AudioAffect;
@@ -72,6 +87,8 @@ struct MiscAudio;
 typedef std::unordered_map<AsciiString, AudioEventInfo*, rts::hash<AsciiString>, rts::equal_to<AsciiString> > AudioEventInfoHash;
 typedef AudioEventInfoHash::iterator AudioEventInfoHashIt;
 typedef UnsignedInt AudioHandle;
+
+using AudioManagerFactoryFunction = AudioManager* (*)();
 
 
 // Defines
@@ -191,9 +208,11 @@ class AudioManager : public SubsystemInterface
 		// Device Dependent open and close functions
 		virtual void openDevice( void ) = 0;
 		virtual void closeDevice( void ) = 0;
-		virtual void *getDevice( void ) = 0;
+               virtual void *getDevice( void ) = 0;
 
-		// Debice Dependent notification functions
+               virtual std::unique_ptr<VideoSoundBridge> createVideoSoundBridge();
+
+               // Debice Dependent notification functions
 		virtual void notifyOfAudioCompletion( UnsignedInt audioCompleted, UnsignedInt flags ) = 0;
 
 		// Device Dependent enumerate providers functions. It is okay for there to be only 1 provider (Miles provides a maximum of 64.
@@ -373,5 +392,8 @@ class AudioManager : public SubsystemInterface
 };
 
 extern AudioManager *TheAudio;
+
+void SetAudioManagerFactoryOverride(AudioManagerFactoryFunction factory);
+AudioManagerFactoryFunction GetAudioManagerFactoryOverride();
 
 #endif // __COMMON_GAMEAUDIO_H_

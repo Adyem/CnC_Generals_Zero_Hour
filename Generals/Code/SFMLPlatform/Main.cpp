@@ -1,4 +1,5 @@
 #include "WindowSystem.h"
+#include "SfmlAudioManager.h"
 #include "SfmlKeyboardBridge.h"
 #include "SfmlMouseBridge.h"
 
@@ -56,6 +57,7 @@ struct ParsedArguments {
     BackendOption backend = BackendOption::Direct3D8;
     unsigned int bitDepth = 32;
     bool helpRequested = false;
+    bool useLegacyMilesAudio = false;
 };
 
 CriticalSection critSec1;
@@ -75,6 +77,8 @@ std::vector<std::string> toArgumentVector(int argc, char** argv) {
     return args;
 }
 
+AudioManager* CreateSfmlAudioManager() { return NEW SfmlAudioManager; }
+
 void printHelp() {
     std::cout << "Command & Conquer Generals (SFML bootstrap)\n"
               << "Options:\n"
@@ -89,6 +93,7 @@ void printHelp() {
               << "      --opengl         Use the OpenGL renderer\n"
               << "      --d3d            Use the Direct3D 8 renderer (default)\n"
               << "      --bitdepth <n>   Set color bit depth (default 32)\n";
+              << "      --legacy-miles-audio Use legacy Miles audio backend\n";
 }
 
 std::optional<unsigned int> parseUnsigned(const std::string& value) {
@@ -282,6 +287,11 @@ ParsedArguments parseArguments(const std::vector<std::string>& arguments) {
             continue;
         }
 
+        if (argument == "--legacy-miles-audio") {
+            result.useLegacyMilesAudio = true;
+            continue;
+        }
+
         std::cerr << "Unrecognized option: '" << argument << "'\n";
     }
 
@@ -391,6 +401,12 @@ int main(int argc, char** argv) {
 
     SetKeyboardFactoryOverride(sfml_platform::CreateSfmlKeyboard);
     SetMouseFactoryOverride(sfml_platform::CreateSfmlMouse);
+
+    if (parsed.useLegacyMilesAudio) {
+        SetAudioManagerFactoryOverride(NULL);
+    } else {
+        SetAudioManagerFactoryOverride(CreateSfmlAudioManager);
+    }
 
     try {
         GameMain(static_cast<int>(argvPointers.size()), argvPointers.data());

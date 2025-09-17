@@ -92,6 +92,18 @@ static const Int TheSpeakerTypesCount = sizeof(TheSpeakerTypes) / sizeof(TheSpea
 static void parseSpeakerType( INI *ini, void *instance, void *store, const void *userData );
 
 // Field Parse table for Audio Settings ///////////////////////////////////////////////////////////
+namespace {
+AudioManagerFactoryFunction g_audioManagerFactoryOverride = NULL;
+}
+
+void SetAudioManagerFactoryOverride(AudioManagerFactoryFunction factory) {
+        g_audioManagerFactoryOverride = factory;
+}
+
+AudioManagerFactoryFunction GetAudioManagerFactoryOverride() {
+        return g_audioManagerFactoryOverride;
+}
+
 static const FieldParse audioSettingsFieldParseTable[] =
 {
 	{ "AudioRoot",						INI::parseAsciiString,							NULL,							offsetof( AudioSettings, m_audioRoot) },
@@ -202,14 +214,19 @@ AudioManager::~AudioManager()
 	delete m_sound;
 	m_sound = NULL;
 	
-	delete m_miscAudio;
-	m_miscAudio = NULL;
+        delete m_miscAudio;
+        m_miscAudio = NULL;
 
-	delete m_audioSettings;
-	m_audioSettings = NULL;
+        delete m_audioSettings;
+        m_audioSettings = NULL;
 
-	if (m_savedValues) 
-		delete [] m_savedValues;
+        if (m_savedValues)
+                delete [] m_savedValues;
+}
+
+std::unique_ptr<VideoSoundBridge> AudioManager::createVideoSoundBridge()
+{
+        return std::unique_ptr<VideoSoundBridge>();
 }
 
 //-------------------------------------------------------------------------------------------------
