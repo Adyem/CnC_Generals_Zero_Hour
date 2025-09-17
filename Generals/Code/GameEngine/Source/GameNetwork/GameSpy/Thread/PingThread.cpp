@@ -31,6 +31,7 @@
 #include <winsock.h>	// This one has to be here. Prevents collisions with windsock2.h
 
 #include "GameNetwork/GameSpy/PingThread.h"
+#include "GameNetwork/addressresolver.h"
 #include "mutex.h"
 #include "thread.h"
 
@@ -263,34 +264,40 @@ void PingThreadClass::Thread_Function()
 		if (ThePinger->getRequest(req))
 		{
 			// resolve the hostname
-			const char *hostnameBuffer = req.hostname.c_str();
-			UnsignedInt IP = 0xFFFFFFFF;
-			if (isdigit(hostnameBuffer[0]))
-			{
-				IP = inet_addr(hostnameBuffer);
-				in_addr hostNode;
-				hostNode.s_addr = IP;
-				DEBUG_LOG(("pinging %s - IP = %s\n", hostnameBuffer, inet_ntoa(hostNode) ));
-			}
-			else
-			{
-				HOSTENT *hostStruct;
-				in_addr *hostNode;
-				hostStruct = gethostbyname(hostnameBuffer);
-				if (hostStruct == NULL)
-				{
-					DEBUG_LOG(("pinging %s - host lookup failed\n", hostnameBuffer));
-					
-					// Even though this failed to resolve IP, still need to send a
-					//   callback.
-					IP = 0xFFFFFFFF;   // flag for IP resolve failed
-				}
-				hostNode = (in_addr *) hostStruct->h_addr;
-				IP = hostNode->s_addr;
-				DEBUG_LOG(("pinging %s IP = %s\n", hostnameBuffer, inet_ntoa(*hostNode) ));
-			}
+                        const char *hostnameBuffer = req.hostname.c_str();
+                        UnsignedInt IP = 0xFFFFFFFF;
 
-			// do ping
+                        ResolverRequest request;
+                        request.m_host = hostnameBuffer;
+                        request.m_service = nullptr;
+                        request.m_family = AF_UNSPEC;
+                        request.m_sockType = SOCK_STREAM;
+                        request.m_protocol = IPPROTO_TCP;
+                        request.m_flags = 0;
+
+                        ResolvedNetAddress resolvedAddress;
+                        Int resolveError = 0;
+                        if (ResolveFirstUsableAddress(request, resolvedAddress, &resolveError))
+                        {
+                                if (resolvedAddress.m_family == AF_INET)
+                                {
+                                        const sockaddr_in *ipv4Address = reinterpret_cast<const sockaddr_in *>(resolvedAddress.getSockaddr());
+                                        IP = ipv4Address->sin_addr.s_addr;
+                                        in_addr hostNode;
+                                        hostNode.s_addr = IP;
+                                        DEBUG_LOG(("pinging %s IP = %s\n", hostnameBuffer, inet_ntoa(hostNode) ));
+                                }
+                                else
+                                {
+                                        DEBUG_LOG(("pinging %s - unsupported address family %d\n", hostnameBuffer, resolvedAddress.m_family));
+                                }
+                        }
+                        else
+                        {
+                                DEBUG_LOG(("pinging %s - host lookup failed (error %d)\n", hostnameBuffer, resolveError));
+                        }
+
+                        // do ping
 			Int totalPing = 0;
 			Int goodReps = 0;
 			Int reps = req.repetitions;

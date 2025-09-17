@@ -25,6 +25,9 @@
 #include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
 
 #include "GameNetwork/IPEnumeration.h"
+#include "GameNetwork/addressresolver.h"
+
+#include <ws2tcpip.h>
 
 IPEnumeration::IPEnumeration( void )
 {
@@ -80,76 +83,80 @@ EnumeratedIP * IPEnumeration::getAddresses( void )
 	}
 	DEBUG_LOG(("Hostname is '%s'\n", hostname));
 	
-	// get host information from the host name
-	HOSTENT* hostEnt = gethostbyname(hostname);
-	if (hostEnt == NULL)
-	{
-		DEBUG_LOG(("Failed call to gethostnyname; WSAGetLastError returned %d\n", WSAGetLastError()));
-		return NULL;
-	}
-	
-	// sanity-check the length of the IP adress
-	if (hostEnt->h_length != 4)
-	{
-		DEBUG_LOG(("gethostbyname returns oddly-sized IP addresses!\n"));
-		return NULL;
-	}
-	
-	// construct a list of addresses
-	int numAddresses = 0;
-	char *entry;
-	while ( (entry = hostEnt->h_addr_list[numAddresses++]) != 0 )
-	{
-		EnumeratedIP *newIP = newInstance(EnumeratedIP);
+        ResolverRequest request;
+        request.m_host = hostname;
+        request.m_service = nullptr;
+        request.m_family = AF_UNSPEC;
+        request.m_sockType = 0;
+        request.m_protocol = 0;
+        request.m_flags = 0;
 
-		AsciiString str;
-		str.format("%d.%d.%d.%d", (unsigned char)entry[0], (unsigned char)entry[1], (unsigned char)entry[2], (unsigned char)entry[3]);
+        addrinfo *hostInfo = nullptr;
+        Int resolveError = 0;
+        if (!ResolveAddressList(request, &hostInfo, &resolveError))
+        {
+                DEBUG_LOG(("Failed call to ResolveAddressList; error %d\n", resolveError));
+                return NULL;
+        }
 
-		UnsignedInt testIP = *((UnsignedInt *)entry);
-		UnsignedInt ip = ntohl(testIP);
+        // construct a list of addresses
+        for (addrinfo *entry = hostInfo; entry != nullptr; entry = entry->ai_next)
+        {
+                if (entry->ai_family != AF_INET)
+                {
+                        continue;
+                }
 
-		/*
-		ip = *entry++;
-		ip <<= 8;
-		ip += *entry++;
-		ip <<= 8;
-		ip += *entry++;
-		ip <<= 8;
-		ip += *entry++;
-		*/
+                if ((entry->ai_addrlen < sizeof(sockaddr_in)) || (entry->ai_addr == nullptr))
+                {
+                        continue;
+                }
 
-		newIP->setIPstring(str);
-		newIP->setIP(ip);
+                const sockaddr_in *ipv4Address = reinterpret_cast<const sockaddr_in *>(entry->ai_addr);
+                const unsigned char *addrBytes = reinterpret_cast<const unsigned char *>(&ipv4Address->sin_addr);
 
-		DEBUG_LOG(("IP: 0x%8.8X / 0x%8.8X (%s)\n", testIP, ip, str.str()));
+                EnumeratedIP *newIP = newInstance(EnumeratedIP);
 
-		// Add the IP to the list in ascending order
-		if (!m_IPlist)
-		{
-			m_IPlist = newIP;
-			newIP->setNext(NULL);
-		}
-		else
-		{
-			if (newIP->getIP() < m_IPlist->getIP())
-			{
-				newIP->setNext(m_IPlist);
-				m_IPlist = newIP;
-			}
-			else
-			{
-				EnumeratedIP *p = m_IPlist;
-				while (p->getNext() && p->getNext()->getIP() < newIP->getIP())
-				{
-					p = p->getNext();
-				}
-				newIP->setNext(p->getNext());
-				p->setNext(newIP);
-			}
-		}
-	}
+                AsciiString str;
+                str.format("%d.%d.%d.%d", addrBytes[0], addrBytes[1], addrBytes[2], addrBytes[3]);
 
-	return m_IPlist;
+                UnsignedInt testIP = ipv4Address->sin_addr.s_addr;
+                UnsignedInt ip = ntohl(testIP);
+
+                newIP->setIPstring(str);
+                newIP->setIP(ip);
+
+                DEBUG_LOG(("IP: 0x%8.8X / 0x%8.8X (%s)\n", testIP, ip, str.str()));
+
+                // Add the IP to the list in ascending order
+                if (!m_IPlist)
+                {
+                        m_IPlist = newIP;
+                        newIP->setNext(NULL);
+                }
+                else
+                {
+                        if (newIP->getIP() < m_IPlist->getIP())
+                        {
+                                newIP->setNext(m_IPlist);
+                                m_IPlist = newIP;
+                        }
+                        else
+                        {
+                                EnumeratedIP *p = m_IPlist;
+                                while (p->getNext() && p->getNext()->getIP() < newIP->getIP())
+                                {
+                                        p = p->getNext();
+                                }
+                                newIP->setNext(p->getNext());
+                                p->setNext(newIP);
+                        }
+                }
+        }
+
+        freeaddrinfo(hostInfo);
+
+        return m_IPlist;
 }
 
 AsciiString IPEnumeration::getMachineName( void )

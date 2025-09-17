@@ -41,6 +41,7 @@
 #include "GameNetwork/GameSpy/PeerDefs.h"
 #include "GameNetwork/GameSpy/PersistentStorageThread.h"
 #include "GameNetwork/GameSpy/GSConfig.h"
+#include "GameNetwork/addressresolver.h"
 
 #ifdef _INTERNAL
 // for occasional debugging...
@@ -811,22 +812,39 @@ void NAT::sendMangledSourcePort() {
 	// get the address of the mangler we need to talk to.
 	Char manglerName[256];
 	FirewallHelperClass::getManglerName(1, manglerName);
-	DEBUG_LOG(("NAT::sendMangledSourcePort - about to call gethostbyname for mangler at %s\n", manglerName));
-	struct hostent *hostInfo = gethostbyname(manglerName);
+        DEBUG_LOG(("NAT::sendMangledSourcePort - about to resolve mangler at %s\n", manglerName));
 
-	if (hostInfo == NULL) {
-		DEBUG_LOG(("NAT::sendMangledSourcePort - gethostbyname failed for mangler address %s\n", manglerName));
-		// can't find the mangler, we're screwed so just send the source port.
-		sendMangledPortNumberToTarget(sourcePort, targetSlot);
-		m_sourcePorts[m_targetNodeNumber] = sourcePort;
-		setConnectionState(m_localNodeNumber, NATCONNECTIONSTATE_WAITINGFORMANGLEDPORT);
-		return;
-	}
+        ResolverRequest request;
+        request.m_host = manglerName;
+        request.m_service = nullptr;
+        request.m_family = AF_UNSPEC;
+        request.m_sockType = SOCK_DGRAM;
+        request.m_protocol = 0;
+        request.m_flags = 0;
 
-	memcpy(&m_manglerAddress, &(hostInfo->h_addr_list[0][0]), 4);
-	m_manglerAddress = ntohl(m_manglerAddress);
-	DEBUG_LOG(("NAT::sendMangledSourcePort - mangler %s address is %d.%d.%d.%d\n", manglerName, 
-							m_manglerAddress >> 24, (m_manglerAddress >> 16) & 0xff, (m_manglerAddress >> 8) & 0xff, m_manglerAddress & 0xff));
+        ResolvedNetAddress resolvedAddress;
+        Int resolveError = 0;
+        if (!ResolveFirstUsableAddress(request, resolvedAddress, &resolveError)) {
+                DEBUG_LOG(("NAT::sendMangledSourcePort - failed to resolve mangler address %s (error %d)\n", manglerName, resolveError));
+                // can't find the mangler, we're screwed so just send the source port.
+                sendMangledPortNumberToTarget(sourcePort, targetSlot);
+                m_sourcePorts[m_targetNodeNumber] = sourcePort;
+                setConnectionState(m_localNodeNumber, NATCONNECTIONSTATE_WAITINGFORMANGLEDPORT);
+                return;
+        }
+
+        if (resolvedAddress.m_family != AF_INET) {
+                DEBUG_LOG(("NAT::sendMangledSourcePort - mangler resolved to unsupported family %d\n", resolvedAddress.m_family));
+                sendMangledPortNumberToTarget(sourcePort, targetSlot);
+                m_sourcePorts[m_targetNodeNumber] = sourcePort;
+                setConnectionState(m_localNodeNumber, NATCONNECTIONSTATE_WAITINGFORMANGLEDPORT);
+                return;
+        }
+
+        const sockaddr_in *ipv4Address = reinterpret_cast<const sockaddr_in *>(resolvedAddress.getSockaddr());
+        m_manglerAddress = ntohl(ipv4Address->sin_addr.s_addr);
+        DEBUG_LOG(("NAT::sendMangledSourcePort - mangler %s address is %d.%d.%d.%d\n", manglerName,
+                                                        m_manglerAddress >> 24, (m_manglerAddress >> 16) & 0xff, (m_manglerAddress >> 8) & 0xff, m_manglerAddress & 0xff));
 
 	DEBUG_LOG(("NAT::sendMangledSourcePort - NAT behavior = 0x%08x\n", fwType));
 

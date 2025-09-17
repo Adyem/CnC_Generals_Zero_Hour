@@ -55,6 +55,7 @@
 #include "GameNetwork/udp.h"
 #include "GameNetwork/NetworkDefs.h"
 #include "GameNetwork/GameSpy/GSConfig.h"
+#include "GameNetwork/addressresolver.h"
 
 #ifdef _INTERNAL
 // for occasional debugging...
@@ -658,7 +659,7 @@ Bool FirewallHelperClass::detectionBeginUpdate() {
 
 	m_timeoutStart = timeGetTime();
 	m_timeoutLength = 5000;
-	DEBUG_LOG(("About to call gethostbyname for the mangler address\n"));
+        DEBUG_LOG(("About to resolve the mangler address\n"));
 	int namenum = 0;
 
 	do {
@@ -686,34 +687,51 @@ Bool FirewallHelperClass::detectionBeginUpdate() {
 		/*
 		** Do the lookup.
 		*/
-		char temp_name[256];
-		strcpy(temp_name, mangler_name_ptr);
-		struct hostent *host_info = gethostbyname(temp_name);
+                char temp_name[256];
+                strcpy(temp_name, mangler_name_ptr);
 
-		if (!host_info) {
-			DEBUG_LOG(("gethostbyname failed! Error code %d\n", WSAGetLastError()));
-			break;
-		}
+                ResolverRequest request;
+                request.m_host = temp_name;
+                request.m_service = nullptr;
+                request.m_family = AF_UNSPEC;
+                request.m_sockType = SOCK_DGRAM;
+                request.m_protocol = 0;
+                request.m_flags = 0;
 
-		/*
-		** See if we already have that address in the list.
-		*/
-		Bool found = FALSE;
-		for (Int i=0 ; i<m_numManglers; i++) {
-			if (memcmp(mangler_addresses[i], &host_info->h_addr_list[0][0], 4) == 0) {
-				found = TRUE;
-				break;
-			}
-		}
-		/*
-		** Add the address in if we didn't find it.
-		*/
-		if (!found) {
-			Int m = m_numManglers++;
-			memcpy(&mangler_addresses[m][0], &host_info->h_addr_list[0][0], 4);
-			ntohl((UnsignedInt)mangler_addresses[m]);
-			DEBUG_LOG(("Found mangler address at %d.%d.%d.%d\n", mangler_addresses[m][0], mangler_addresses[m][1], mangler_addresses[m][2], mangler_addresses[m][3]));
-		}
+                ResolvedNetAddress resolvedAddress;
+                Int resolveError = 0;
+                if (!ResolveFirstUsableAddress(request, resolvedAddress, &resolveError)) {
+                        DEBUG_LOG(("ResolveFirstUsableAddress failed! Error code %d\n", resolveError));
+                        break;
+                }
+
+                if (resolvedAddress.m_family != AF_INET) {
+                        DEBUG_LOG(("ResolveFirstUsableAddress returned unsupported family %d\n", resolvedAddress.m_family));
+                        break;
+                }
+
+                const sockaddr_in *ipv4Address = reinterpret_cast<const sockaddr_in *>(resolvedAddress.getSockaddr());
+                const unsigned char *addrBytes = reinterpret_cast<const unsigned char *>(&ipv4Address->sin_addr);
+
+                /*
+                ** See if we already have that address in the list.
+                */
+                Bool found = FALSE;
+                for (Int i=0 ; i<m_numManglers; i++) {
+                        if (memcmp(mangler_addresses[i], addrBytes, 4) == 0) {
+                                found = TRUE;
+                                break;
+                        }
+                }
+                /*
+                ** Add the address in if we didn't find it.
+                */
+                if (!found) {
+                        Int m = m_numManglers++;
+                        memcpy(&mangler_addresses[m][0], addrBytes, 4);
+                        ntohl((UnsignedInt)mangler_addresses[m]);
+                        DEBUG_LOG(("Found mangler address at %d.%d.%d.%d\n", mangler_addresses[m][0], mangler_addresses[m][1], mangler_addresses[m][2], mangler_addresses[m][3]));
+                }
 
 	} while ((m_numManglers < MAX_NUM_MANGLERS) && ((timeGetTime() - m_timeoutStart) < m_timeoutLength));
 

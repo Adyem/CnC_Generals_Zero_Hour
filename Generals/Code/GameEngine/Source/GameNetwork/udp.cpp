@@ -34,6 +34,7 @@
 #include "Common/GameEngine.h"
 //#include "GameNetwork/NetworkInterface.h"
 #include "GameNetwork/udp.h"
+#include "GameNetwork/addressresolver.h"
 
 #ifdef _INTERNAL
 // for occasional debugging...
@@ -132,20 +133,42 @@ UDP::~UDP()
 
 Int UDP::Bind(const char *Host,UnsignedShort port)
 {
-  char hostName[100];
-  struct hostent *hostStruct;
-  struct in_addr *hostNode;
+        if ((Host == NULL) || (Host[0] == '\0'))
+        {
+                return Bind(0, port);
+        }
 
-  if (isdigit(Host[0]))
-    return ( Bind( ntohl(inet_addr(Host)), port) );
+        ResolvedNetAddress resolvedAddress;
+        char serviceBuffer[6];
+        _snprintf(serviceBuffer, sizeof(serviceBuffer), "%hu", port);
+        serviceBuffer[sizeof(serviceBuffer) - 1] = '\0';
 
-  strcpy(hostName, Host);
+        ResolverRequest request;
+        request.m_host = Host;
+        request.m_service = serviceBuffer;
+        request.m_family = AF_UNSPEC;
+        request.m_sockType = SOCK_DGRAM;
+        request.m_protocol = DEFAULT_PROTOCOL;
+        request.m_flags = 0;
 
-  hostStruct = gethostbyname(Host);
-  if (hostStruct == NULL)
-    return (0);
-  hostNode = (struct in_addr *) hostStruct->h_addr;
-  return ( Bind(ntohl(hostNode->s_addr),port) );
+        Int errorCode = 0;
+        if (!ResolveFirstUsableAddress(request, resolvedAddress, &errorCode))
+        {
+                m_lastError = errorCode;
+                return 0;
+        }
+
+        if (resolvedAddress.m_family != AF_INET)
+        {
+                DEBUG_LOG(("UDP::Bind() - unsupported address family %d for host %s\n", resolvedAddress.m_family, Host));
+                m_lastError = WSAEAFNOSUPPORT;
+                return 0;
+        }
+
+        const sockaddr_in *ipv4Address = reinterpret_cast<const sockaddr_in *>(resolvedAddress.getSockaddr());
+        UnsignedInt ip = ntohl(ipv4Address->sin_addr.s_addr);
+        UnsignedShort resolvedPort = ntohs(ipv4Address->sin_port);
+        return Bind(ip, resolvedPort);
 }
 
 // You must call bind, implicit binding is for sissies
@@ -158,6 +181,8 @@ Int UDP::Bind(UnsignedInt IP,UnsignedShort Port)
   IP=htonl(IP);
   Port=htons(Port);
 
+  sockaddr_in addr;
+  memset(&addr, 0, sizeof(addr));
   addr.sin_family=AF_INET;
   addr.sin_port=Port;
   addr.sin_addr.s_addr=IP;
@@ -185,11 +210,12 @@ Int UDP::Bind(UnsignedInt IP,UnsignedShort Port)
     return(status);
   }
 
-  int namelen=sizeof(addr);
-  getsockname(fd, (struct sockaddr *)&addr, &namelen); 
+  sockaddr_in boundAddress;
+  int namelen=sizeof(boundAddress);
+  getsockname(fd, (struct sockaddr *)&boundAddress, &namelen);
 
-  myIP=ntohl(addr.sin_addr.s_addr);
-  myPort=ntohs(addr.sin_port);
+  myIP=ntohl(boundAddress.sin_addr.s_addr);
+  myPort=ntohs(boundAddress.sin_port);
 
   retval=SetBlocking(FALSE);
   if (retval==-1)

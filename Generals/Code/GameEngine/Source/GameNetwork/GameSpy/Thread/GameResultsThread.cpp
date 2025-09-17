@@ -31,6 +31,7 @@
 #include <winsock.h>	// This one has to be here. Prevents collisions with winsock2.h
 
 #include "GameNetwork/GameSpy/GameResultsThread.h"
+#include "GameNetwork/addressresolver.h"
 #include "mutex.h"
 #include "thread.h"
 
@@ -243,34 +244,40 @@ void GameResultsThreadClass::Thread_Function()
 		if (TheGameResultsQueue && TheGameResultsQueue->getRequest(req))
 		{
 			// resolve the hostname
-			const char *hostnameBuffer = req.hostname.c_str();
-			UnsignedInt IP = 0xFFFFFFFF;
-			if (isdigit(hostnameBuffer[0]))
-			{
-				IP = inet_addr(hostnameBuffer);
-				in_addr hostNode;
-				hostNode.s_addr = IP;
-				DEBUG_LOG(("sending game results to %s - IP = %s\n", hostnameBuffer, inet_ntoa(hostNode) ));
-			}
-			else
-			{
-				HOSTENT *hostStruct;
-				in_addr *hostNode;
-				hostStruct = gethostbyname(hostnameBuffer);
-				if (hostStruct == NULL)
-				{
-					DEBUG_LOG(("sending game results to %s - host lookup failed\n", hostnameBuffer));
-					
-					// Even though this failed to resolve IP, still need to send a
-					//   callback.
-					IP = 0xFFFFFFFF;   // flag for IP resolve failed
-				}
-				hostNode = (in_addr *) hostStruct->h_addr;
-				IP = hostNode->s_addr;
-				DEBUG_LOG(("sending game results to %s IP = %s\n", hostnameBuffer, inet_ntoa(*hostNode) ));
-			}
+                        const char *hostnameBuffer = req.hostname.c_str();
+                        UnsignedInt IP = 0xFFFFFFFF;
 
-			int result = sendGameResults( IP, req.port, req.results );
+                        ResolverRequest request;
+                        request.m_host = hostnameBuffer;
+                        request.m_service = nullptr;
+                        request.m_family = AF_UNSPEC;
+                        request.m_sockType = SOCK_STREAM;
+                        request.m_protocol = IPPROTO_TCP;
+                        request.m_flags = 0;
+
+                        ResolvedNetAddress resolvedAddress;
+                        Int resolveError = 0;
+                        if (ResolveFirstUsableAddress(request, resolvedAddress, &resolveError))
+                        {
+                                if (resolvedAddress.m_family == AF_INET)
+                                {
+                                        const sockaddr_in *ipv4Address = reinterpret_cast<const sockaddr_in *>(resolvedAddress.getSockaddr());
+                                        IP = ipv4Address->sin_addr.s_addr;
+                                        in_addr hostNode;
+                                        hostNode.s_addr = IP;
+                                        DEBUG_LOG(("sending game results to %s IP = %s\n", hostnameBuffer, inet_ntoa(hostNode) ));
+                                }
+                                else
+                                {
+                                        DEBUG_LOG(("sending game results to %s - unsupported address family %d\n", hostnameBuffer, resolvedAddress.m_family));
+                                }
+                        }
+                        else
+                        {
+                                DEBUG_LOG(("sending game results to %s - host lookup failed (error %d)\n", hostnameBuffer, resolveError));
+                        }
+
+                        int result = sendGameResults( IP, req.port, req.results );
 			GameResultsResponse resp;
 			resp.hostname = req.hostname;
 			resp.port = req.port;
