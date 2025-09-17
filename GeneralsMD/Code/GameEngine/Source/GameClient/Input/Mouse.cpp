@@ -56,8 +56,20 @@
 // PUBLIC DATA ////////////////////////////////////////////////////////////////////////////////////
 Mouse *TheMouse = NULL;
 
+static MouseFactoryFunction g_mouseFactoryOverride = NULL;
+
+void SetMouseFactoryOverride( MouseFactoryFunction factory )
+{
+        g_mouseFactoryOverride = factory;
+}
+
+MouseFactoryFunction GetMouseFactoryOverride()
+{
+        return g_mouseFactoryOverride;
+}
+
 const char *Mouse::RedrawModeName[RM_MAX] = {
-	"Mouse:Windows",
+        "Mouse:Windows",
 	"Mouse:W3D",
 	"Mouse:Poly",
 	"Mouse:DX8",
