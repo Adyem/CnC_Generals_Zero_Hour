@@ -55,6 +55,7 @@ enum
 //         Includes                                                      
 //-----------------------------------------------------------------------------
 #include "W3DDevice/GameClient/W3DTreeBuffer.h"
+#include "WWMath/D3DXCompat.h"
 
 #include <stdio.h>
 #include <string.h>

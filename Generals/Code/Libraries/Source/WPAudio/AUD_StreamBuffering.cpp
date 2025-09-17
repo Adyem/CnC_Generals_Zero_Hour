@@ -43,7 +43,7 @@
 **            Includes                                                      **
 *****************************************************************************/
 
-#include <memory.h>
+#include <cstring>
 
 #include <wpaudio/altypes.h>
 #include <wpaudio/list.h>
@@ -785,13 +785,13 @@ int			STM_AccessTransfer( STM_ACCESS* access, void *data, int bytes )
 		{
 			case vSTM_ACCESS_ID_IN:
 			{
-				memcpy (  access->Block.Data, data8, transfer );
+				std::memcpy(access->Block.Data, data8, transfer);
 				break;
 			}
 			case vSTM_ACCESS_ID_OUT:
 			default:		/* all accessor default to out */
 			{
-				memcpy ( data8, access->Block.Data, transfer );
+				std::memcpy(data8, access->Block.Data, transfer);
 				break;
 			}
 		}

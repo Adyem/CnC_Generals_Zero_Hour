@@ -1,5 +1,5 @@
 /*
-**	Command & Conquer Generals Zero Hour(tm)
+**	Command & Conquer Generals(tm)
 **	Copyright 2025 Electronic Arts Inc.
 **
 **	This program is free software: you can redistribute it and/or modify
@@ -44,7 +44,7 @@
 
 #pragma warning (push, 3)
 #pragma warning (disable: 4018 4146 4284 4503)
-#include <strstream>
+#include <sstream>
 #include <string>
 #pragma warning (pop)
 

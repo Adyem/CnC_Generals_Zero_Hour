@@ -21,7 +21,7 @@
 // RC4 encryption / decryption
 //
 #include "rc4.h"
-#include <memory.h>
+#include <cstring>
 
 static unsigned char RC4_Temp_Byte;
 #define RC4_SWAP_BYTE(a,b) RC4_Temp_Byte=a; a=b; b=RC4_Temp_Byte
@@ -31,7 +31,7 @@ static unsigned char RC4_Temp_Byte;
 //
 RC4Class::RC4Class()
 {
-	memset(Key.State, 0, 256);
+	std::memset(Key.State, 0, 256);
 	Key.X=0;
 	Key.Y=0;
 }

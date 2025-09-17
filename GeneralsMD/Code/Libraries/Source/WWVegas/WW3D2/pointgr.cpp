@@ -80,6 +80,7 @@
 #include "vector.h"
 #include "vp.h"
 #include "matrix4.h"
+#include "WWMath/D3DXCompat.h"
 #include "dx8wrapper.h"
 #include "dx8vertexbuffer.h"
 #include "dx8indexbuffer.h"

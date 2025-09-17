@@ -1,5 +1,5 @@
 /*
-**	Command & Conquer Generals Zero Hour(tm)
+**	Command & Conquer Generals(tm)
 **	Copyright 2025 Electronic Arts Inc.
 **
 **	This program is free software: you can redistribute it and/or modify
@@ -30,7 +30,6 @@
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
-#include <strstream>
 
 #ifdef _UNIX
 using namespace std;

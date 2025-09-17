@@ -1,5 +1,5 @@
 /*
-**	Command & Conquer Generals Zero Hour(tm)
+**	Command & Conquer Generals(tm)
 **	Copyright 2025 Electronic Arts Inc.
 **
 **	This program is free software: you can redistribute it and/or modify
@@ -58,11 +58,9 @@ will you be ready to leave grasshopper.
 #include "wstypes.h"
 
 #ifdef _WINDOWS
-#include <iostream.h>
-#include <strstrea.h>
-#else
-#include <iostream>
+#include <windows.h>
 #endif
+#include <iostream>
 
 #ifdef USE_SEM
 #include "sem4.h"
@@ -103,7 +101,7 @@ now.FormatTime(timebuf, "mm/dd/yy hh:mm:ss"); \
 MYDEBUGLOCK; \
 if (MyMsgManager::paranoidStream()) \
 (*(MyMsgManager::paranoidStream())) << "HACK " << timebuf << " [" << \
-__FILE__ <<  " " << __LINE__ << "] " << X << endl; \
+__FILE__ <<  " " << __LINE__ << "] " << X << std::endl; \
 MYDEBUGUNLOCK; \
 }
 
@@ -132,7 +130,7 @@ public:
 
 	static void                enableParanoid(int flag);
 
-	static ostream            *paranoidStream(void);
+        static std::ostream       *paranoidStream(void);
 };
 
 #endif

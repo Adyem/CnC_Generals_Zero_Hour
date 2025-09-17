@@ -70,7 +70,7 @@ enum DrawableID;
 
 #include <algorithm>
 #include <bitset>
-#include <hash_map>
+#include <unordered_map>
 #include <list>
 #include <map>
 #include <queue>
@@ -112,7 +112,7 @@ typedef std::vector<Bool>::iterator												BoolVectorIterator;
 typedef std::map< NameKeyType, Real, std::less<NameKeyType> > ProductionChangeMap;
 typedef std::map< NameKeyType, VeterancyLevel, std::less<NameKeyType> > ProductionVeterancyMap;
 
-// Some useful, common hash and equal_to functors for use with hash_map
+// Some useful, common hash and equal_to functors for use with unordered_map
 namespace rts 
 {
 	

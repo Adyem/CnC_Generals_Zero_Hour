@@ -43,7 +43,7 @@
 **            Includes                                                      **
 *****************************************************************************/
 
-#include <memory.h>
+#include <cstring>
 #include <stdio.h>
 #include <string.h>
 
@@ -365,7 +365,7 @@ void		AudioFormatInit ( AudioFormat *format )
 
 	DBG_ASSERT ( format != NULL );
 
-	memset ( format, 0, sizeof ( AudioFormat));
+	std::memset(format, 0, sizeof(AudioFormat));
 
 	DBG_SET_TYPE ( format, AudioFormat );
 }

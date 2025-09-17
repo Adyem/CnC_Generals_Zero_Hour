@@ -44,7 +44,7 @@
 #include	"straw.h"
 #include	<assert.h>
 #include	<limits.h>
-#include	<memory.h>
+#include	<cstring>
 
 #ifdef __BORLANDC__
 #pragma warn -inl
@@ -143,7 +143,7 @@ class Int {
 		/*
 		**	Comparison binary operators.
 		*/
-		int operator == (const Int &b) const {return (memcmp(&reg[0], &b.reg[0], (MAX_BIT_PRECISION/CHAR_BIT))==0);}
+		int operator == (const Int &b) const {return (std::memcmp(&reg[0], &b.reg[0], (MAX_BIT_PRECISION/CHAR_BIT)) == 0);}
 		int operator != (const Int& b) const {return !(*this == b);}
 		int operator > (const Int & number) const {return(XMP_Compare(&reg[0], number, PRECISION) > 0);}
 		int operator >= (const Int & number) const {return(XMP_Compare(&reg[0], number, PRECISION) >= 0);}

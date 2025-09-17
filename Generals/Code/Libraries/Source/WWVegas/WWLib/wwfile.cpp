@@ -36,7 +36,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
-#include <memory.h>
+#include <cstring>
 #include "wwfile.h"
 
 #pragma warning(disable : 4514)
@@ -69,7 +69,7 @@ int FileClass::Printf_Indented(unsigned depth, char *str, ...)
 	if(depth > PRINTF_BUFFER_SIZE) 
 		depth = PRINTF_BUFFER_SIZE;
 
-	memset(text, '\t', depth);
+	std::memset(text, '\t', depth);
 
 	int length;
 	if(depth < PRINTF_BUFFER_SIZE) 

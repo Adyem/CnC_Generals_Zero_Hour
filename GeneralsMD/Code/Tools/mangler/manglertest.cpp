@@ -1,5 +1,5 @@
 /*
-**	Command & Conquer Generals Zero Hour(tm)
+**	Command & Conquer Generals(tm)
 **	Copyright 2025 Electronic Arts Inc.
 **
 **	This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 */
 
 
-#include <iostream.h>
+#include <iostream>
 #include <signal.h>
 #ifdef _WINDOWS
 #include <process.h> // *MUST* be included before ANY Wnet/Wlib headers if _REENTRANT is defined
@@ -69,7 +69,7 @@ unsigned long ResolveIP(char *Server)
 
 void DisplayHelp(const char *prog)
 {
-	cout << "Usage: " << prog << " <config file>" << endl;
+        std::cout << "Usage: " << prog << " <config file>" << std::endl;
 	exit(0);
 }
 
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 	{
 		// No args - use a default config file
 		if ((conf = fopen("manglertest.cfg", "r")) == NULL) {
-			cout << "Cannot open mangler.cfg for reading." << endl;
+                        std::cout << "Cannot open mangler.cfg for reading." << std::endl;
 			DisplayHelp(argv[0]);
 		}
 		config.readFile(conf);
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 	{
 		// Use a user-supplied config file
 		if ((conf = fopen(argv[1], "r")) == NULL) {
-			cout << "Cannot open " << argv[1] << " for reading." << endl;
+                        std::cout << "Cannot open " << argv[1] << " for reading." << std::endl;
 			DisplayHelp(argv[0]);
 		}
 		config.readFile(conf);

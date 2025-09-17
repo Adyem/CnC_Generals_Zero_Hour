@@ -30,7 +30,6 @@
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
-#include <strstream>
 
 #ifdef _UNIX
 using namespace std;

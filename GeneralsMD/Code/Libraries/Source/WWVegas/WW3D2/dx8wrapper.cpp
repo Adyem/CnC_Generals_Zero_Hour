@@ -55,6 +55,7 @@
 #include "camera.h"
 #include "wwstring.h"
 #include "matrix4.h"
+#include "WWMath/D3DXCompat.h"
 #include "vertmaterial.h"
 #include "rddesc.h"
 #include "lightenvironment.h"

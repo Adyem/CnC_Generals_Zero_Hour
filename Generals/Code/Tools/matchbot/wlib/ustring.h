@@ -21,7 +21,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <iostream.h>
 #include <string>
 
 // Windows headers have a tendency to redefine IN
