@@ -164,6 +164,12 @@ protected:
 
 };  // end Keyboard
 
+typedef Keyboard *(*KeyboardFactoryFunction)();
+
+void SetKeyboardFactoryOverride( KeyboardFactoryFunction factory );
+KeyboardFactoryFunction GetKeyboardFactoryOverride();
+
+
 // INLINING ///////////////////////////////////////////////////////////////////
 
 // EXTERNALS //////////////////////////////////////////////////////////////////

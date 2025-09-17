@@ -49,6 +49,8 @@
 #ifndef __WIN32DIKEYBOARD_H_
 #define __WIN32DIKEYBOARD_H_
 
+#ifdef ENABLE_LEGACY_DIRECTINPUT
+
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 #ifndef DIRECTINPUT_VERSION
 #	define DIRECTINPUT_VERSION	0x800
@@ -101,6 +103,8 @@ protected:
 // INLINING ///////////////////////////////////////////////////////////////////
 
 // EXTERNALS //////////////////////////////////////////////////////////////////
+
+#endif // ENABLE_LEGACY_DIRECTINPUT
 
 #endif // __WIN32DIKEYBOARD_H_
 

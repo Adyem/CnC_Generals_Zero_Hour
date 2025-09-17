@@ -1,5 +1,7 @@
 #include "WindowSystem.h"
 
+#include "SfmlKeyboardBridge.h"
+
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/VideoMode.hpp>
 #include <SFML/Window/WindowStyle.hpp>
@@ -61,6 +63,10 @@ void WindowSystem::run(const UpdateHandler& update, const RenderHandler& render,
     while (m_running && m_window.isOpen()) {
         sf::Event event{};
         while (m_window.pollEvent(event)) {
+            if (auto* keyboard = GetActiveKeyboardBridge()) {
+                keyboard->handleEvent(event);
+            }
+
             if (event.type == sf::Event::Closed) {
                 m_window.close();
             }

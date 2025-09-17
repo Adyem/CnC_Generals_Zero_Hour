@@ -44,6 +44,7 @@
 #include "Common/RandomValue.h"
 #include "Common/GlobalData.h"
 #include "Common/GameLOD.h"
+#include "Common/Debug.h"
 #include "GameClient/Drawable.h"
 #include "GameClient/GameClient.h"
 #include "GameClient/ParticleSys.h"
@@ -72,6 +73,26 @@ W3DGameClient::~W3DGameClient()
 {
 
 }  // end ~W3DGameClient
+
+Keyboard *W3DGameClient::createKeyboard( void )
+{
+	KeyboardFactoryFunction factory = GetKeyboardFactoryOverride();
+	if( factory )
+	{
+		Keyboard *keyboard = factory();
+		if( keyboard )
+		{
+			return keyboard;
+		}
+	}
+
+#if defined(ENABLE_LEGACY_DIRECTINPUT)
+	return NEW DirectInputKeyboard;
+#else
+	DEBUG_FATAL(( "No keyboard factory registered and legacy DirectInput support disabled." ));
+	return NULL;
+#endif
+}
 
 //-------------------------------------------------------------------------------------------------
 /** Initialize resources for the w3d game client */
