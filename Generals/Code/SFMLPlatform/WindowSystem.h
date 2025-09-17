@@ -1,0 +1,34 @@
+#pragma once
+
+#include "WindowConfig.h"
+
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <functional>
+
+namespace sfml_platform {
+
+class WindowSystem {
+public:
+    using EventHandler = std::function<void(const sf::Event&)>;
+    using UpdateHandler = std::function<void(sf::RenderWindow&, float)>;
+    using RenderHandler = std::function<void(sf::RenderWindow&)>;
+
+    WindowSystem();
+    ~WindowSystem();
+
+    bool initialize(const WindowConfig& config);
+    void run(const UpdateHandler& update, const RenderHandler& render, const EventHandler& onEvent);
+    void shutdown();
+
+    sf::RenderWindow& window();
+    const sf::RenderWindow& window() const;
+
+private:
+    void configureRenderSettings(const WindowConfig& config);
+
+    WindowConfig m_config;
+    sf::RenderWindow m_window;
+    bool m_running = false;
+};
+
+} // namespace sfml_platform

@@ -76,20 +76,6 @@
 //#pragma message("************************************** WARNING, optimization disabled for debugging purposes")
 #endif
 
-// GLOBALS ////////////////////////////////////////////////////////////////////
-HINSTANCE ApplicationHInstance = NULL;  ///< our application instance
-HWND ApplicationHWnd = NULL;  ///< our application window handle
-HDC ApplicationHDC = NULL;  ///< device context for OpenGL rendering
-HGLRC ApplicationHGLRC = NULL; ///< OpenGL rendering context
-Bool ApplicationIsWindowed = false;
-GraphicsBackend ApplicationGraphicsBackend = GRAPHICS_BACKEND_DIRECT3D8;
-Win32Mouse *TheWin32Mouse= NULL;  ///< for the WndProc() only
-DWORD TheMessageTime = 0;	///< For getting the time that a message was posted from Windows.
-
-const Char *g_strFile = "data\\Generals.str";
-const Char *g_csfFile = "data\\%s\\Generals.csf";
-char *gAppPrefix = ""; /// So WB can have a different debug log file name.
-
 static HANDLE GeneralsMutex = NULL;
 #define GENERALS_GUID "685EAFF2-3216-4265-B047-251C5F4B82F3"
 #define DEFAULT_XRESOLUTION 800
@@ -1211,10 +1197,12 @@ Int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		}
 #endif
 
-		DEBUG_LOG(("CRC message is %d\n", GameMessage::MSG_LOGIC_CRC));
+                DEBUG_LOG(("CRC message is %d\n", GameMessage::MSG_LOGIC_CRC));
 
-		// run the game main loop
-		GameMain(argc, argv);
+                gInitialEngineActiveState = isWinMainActive;
+
+                // run the game main loop
+                GameMain(argc, argv);
 
 #ifdef DO_COPY_PROTECTION
 		// Clean up copy protection
@@ -1253,19 +1241,3 @@ Int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	return 0;
 
 }  // end WinMain
-
-// CreateGameEngine ===========================================================
-/** Create the Win32 game engine we're going to use */
-//=============================================================================
-GameEngine *CreateGameEngine( void )
-{
-	Win32GameEngine *engine;
-
-	engine = NEW Win32GameEngine;
-	//game engine may not have existed when app got focus so make sure it
-	//knows about current focus state.
-	engine->setIsActive(isWinMainActive);
-
-	return engine;
-
-}  // end CreateGameEngine
