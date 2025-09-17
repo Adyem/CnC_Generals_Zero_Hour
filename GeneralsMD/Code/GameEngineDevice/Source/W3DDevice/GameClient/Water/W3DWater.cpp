@@ -41,6 +41,7 @@
 #include "assetmgr.h"
 #include "rinfo.h"
 #include "camera.h"
+#include "WWMath/D3DXCompat.h"
 #include "scene.h"
 #include "dx8wrapper.h"
 #include "light.h"

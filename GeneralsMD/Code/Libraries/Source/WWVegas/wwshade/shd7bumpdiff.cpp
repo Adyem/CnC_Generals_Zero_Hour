@@ -45,6 +45,7 @@
 #include "shdbumpdiff.h"
 #include "shd7bumpdiff.h"
 #include "shd7bumpdiff_constants.h"
+#include "WWMath/D3DXCompat.h"
 #include "shdclassids.h"
 
 // shader code declarations

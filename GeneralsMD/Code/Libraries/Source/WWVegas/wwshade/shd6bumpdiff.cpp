@@ -44,6 +44,7 @@
 
 #include "shdbumpdiff.h"
 #include "shd6bumpdiff.h"
+#include "WWMath/D3DXCompat.h"
 #include "shd6bumpdiff_constants.h"
 #include "shdclassids.h"
 

@@ -1,5 +1,5 @@
 /*
-**	Command & Conquer Generals Zero Hour(tm)
+**	Command & Conquer Generals(tm)
 **	Copyright 2025 Electronic Arts Inc.
 **
 **	This program is free software: you can redistribute it and/or modify
@@ -19,11 +19,10 @@
 #ifndef STREAMER_HEADER
 #define STREAMER_HEADER
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <iostream.h>
-#include <string.h>
+#include <cstddef>
+#include <iosfwd>
+#include <streambuf>
+#include <string>
 
 // Windows headers have a tendency to redefine IN
 #ifdef IN
@@ -42,25 +41,24 @@
 
 
 // Provide a streambuf interface for a class that can 'print'
-class Streamer : public streambuf
+class Streamer : public std::streambuf
 {
  public:
-               Streamer();
-    virtual   ~Streamer();
+              Streamer();
+   virtual   ~Streamer();
 
     int        setOutputDevice(OutputDevice *output_device);
 
  protected:
     // Virtual methods from streambuf
-    int       xsputn(const char* s, int n); // buffer some characters
-    int       overflow(int = EOF);          // flush buffer and make more room
-    int       underflow(void);              // Does nothing
-    int       sync();
+    std::streamsize xsputn(const char_type* s, std::streamsize n) override; // buffer characters
+    int_type        overflow(int_type ch = traits_type::eof()) override;    // flush buffer and make more room
+    int             sync() override;
 
-    int       doallocate();                 // allocate a buffer
+    void            flushBuffer();
 
-
-    OutputDevice  *Output_Device;
+    OutputDevice   *Output_Device;
+    std::string     Buffer;
 };
 
 #endif

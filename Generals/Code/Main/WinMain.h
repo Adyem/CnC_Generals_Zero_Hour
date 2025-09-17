@@ -42,6 +42,16 @@
 // EXTERNAL ///////////////////////////////////////////////////////////////////
 extern HINSTANCE ApplicationHInstance;  ///< our application instance
 extern HWND ApplicationHWnd;  ///< our application window handle
+extern HDC ApplicationHDC;  ///< device context for the primary window (OpenGL)
+extern HGLRC ApplicationHGLRC; ///< OpenGL rendering context
+
+enum GraphicsBackend
+{
+        GRAPHICS_BACKEND_DIRECT3D8 = 0,
+        GRAPHICS_BACKEND_OPENGL
+};
+
+extern GraphicsBackend ApplicationGraphicsBackend; ///< active rendering backend
 extern Win32Mouse *TheWin32Mouse;  ///< global for win32 mouse only!
 
 #endif  // end __WINMAIN_H_

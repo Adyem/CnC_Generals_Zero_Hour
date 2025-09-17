@@ -27,7 +27,7 @@
 #include "Common/BezierSegment.h"
 #include "Common/BezFwdIterator.h"
 
-#include <D3DX8Math.h>
+#include "WWMath/D3DXCompat.h"
 
 //-------------------------------------------------------------------------------------------------
 BezierSegment::BezierSegment()
@@ -239,8 +239,8 @@ void BezierSegment::splitSegmentAtT(Real tValue, BezierSegment &outSeg1, BezierS
 //-------------------------------------------------------------------------------------------------
 // The Basis Matrix for a bezier segment
 const D3DXMATRIX BezierSegment::s_bezBasisMatrix(
-	-1.0f,  3.0f, -3.0f,  1.0f,
-	 3.0f, -6.0f,  3.0f,  0.0f,
-	-3.0f,  3.0f,  0.0f,  0.0f,
-	 1.0f,  0.0f,  0.0f,  0.0f
+        Vector4(-1.0f, 3.0f, -3.0f, 1.0f),
+        Vector4(3.0f, -6.0f, 3.0f, 0.0f),
+        Vector4(-3.0f, 3.0f, 0.0f, 0.0f),
+        Vector4(1.0f, 0.0f, 0.0f, 0.0f)
 );

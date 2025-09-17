@@ -21,7 +21,7 @@
 // RC4 encryption / decryption
 //
 #include "rc4.h"
-#include <memory.h>
+#include <cstring>
 #include <stdio.h>
 
 static unsigned char RC4_Temp_Byte;
@@ -94,7 +94,7 @@ static unsigned char RC4_Table_Init[]={
 //
 RC4Class::RC4Class()
 {
-	memset(Key.State, 0, 256);
+	std::memset(Key.State, 0, 256);
 	Key.X=0;
 	Key.Y=0;
 }

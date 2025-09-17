@@ -77,7 +77,7 @@
 #include <dos.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <fstream.h>
+#include <fstream>
 #include <io.h>
 #include <locale.h>
 #include <math.h>
@@ -87,7 +87,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <strstrea.h>
 #include <sys\stat.h>
 #include <time.h>
 #include <winuser.h>
@@ -5290,14 +5289,14 @@ unsigned int LaunchObjectClass::Launch ( void )
 void Debug_Date_And_Time_Stamp ( void )
 {
 	//-------------------------------------------------------------------------
-	//	tm_sec	- Seconds after minute (0 – 59)
-	//	tm_min	- Minutes after hour (0 – 59)
-	//	tm_hour	- Hours after midnight (0 – 23)
-	//	tm_mday	- Day of month (1 – 31)
-	//	tm_mon	- Month (0 – 11; January = 0)
+	//	tm_sec	- Seconds after minute (0 Â– 59)
+	//	tm_min	- Minutes after hour (0 Â– 59)
+	//	tm_hour	- Hours after midnight (0 Â– 23)
+	//	tm_mday	- Day of month (1 Â– 31)
+	//	tm_mon	- Month (0 Â– 11; January = 0)
 	//	tm_year	- Year (current year minus 1900)
-	//	tm_wday	- Day of week (0 – 6; Sunday = 0)
-	//	tm_yday	- Day of year (0 – 365; January 1 = 0)
+	//	tm_wday	- Day of week (0 Â– 6; Sunday = 0)
+	//	tm_yday	- Day of year (0 Â– 365; January 1 = 0)
 	//-------------------------------------------------------------------------
 	static char *Month_Strings[ 12 ] = {
 		"January",

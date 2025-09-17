@@ -51,6 +51,7 @@
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 #include <windows.h>
 #include <commctrl.h>
+#include <unordered_map>
 
 // USER INCLUDES //////////////////////////////////////////////////////////////
 #include "Lib/BaseType.h"
@@ -152,7 +153,7 @@ protected:
  		}
  	};
  
- 	typedef std::hash_map< ConstGameWindowPtr, HTREEITEM, hashConstGameWindowPtr, std::equal_to<ConstGameWindowPtr> > TreeHash;
+        typedef std::unordered_map< ConstGameWindowPtr, HTREEITEM, hashConstGameWindowPtr, std::equal_to<ConstGameWindowPtr> > TreeHash;
  
  	TreeHash 		m_treeHash;	///< Speed up the search with a nice hash.
 #endif

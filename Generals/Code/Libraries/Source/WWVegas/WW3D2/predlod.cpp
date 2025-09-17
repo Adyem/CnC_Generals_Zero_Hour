@@ -39,7 +39,6 @@
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #include "predlod.h"
-#include <memory.h>
 
 /* NOTE: The LODHeapNode and LODHeap classes are defined here for use in the
  * Optimize_LODs() member function. */

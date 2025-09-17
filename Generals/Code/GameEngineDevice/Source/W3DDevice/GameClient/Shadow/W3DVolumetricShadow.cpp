@@ -43,6 +43,7 @@
 #include "WW3D2/Camera.h"
 #include "WW3D2/Light.h"
 #include "WW3D2/DX8Wrapper.h"
+#include "WWMath/D3DXCompat.h"
 #include "WW3D2/HLod.h"
 #include "WW3D2/mesh.h"
 #include "WW3D2/meshmdl.h"

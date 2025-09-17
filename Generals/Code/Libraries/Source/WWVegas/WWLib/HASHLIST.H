@@ -53,7 +53,7 @@
 #pragma warning (disable: 4786)
 																  
 #include "listnode.h"
-#include <memory.h>
+#include <cstring>
 
 #ifndef NULL
 #define NULL (0L)
@@ -312,7 +312,7 @@ class HashListClass : protected HashNodeFriendClass<T,U>
 		HashListClass() : 
 			List(),NumRecords(0), UsedValues(0)
 		{
-			memset(HashTable, 0, sizeof(HashTable));
+		std::memset(HashTable, 0, sizeof(HashTable));
 		}
 		~HashListClass() {Delete();}
 									 
