@@ -62,6 +62,7 @@ class FVFInfoClass;
 struct IDirect3DVertexBuffer8;
 class VertexBufferClass;
 struct VertexFormatXYZNDUV2;
+struct DX8VertexBufferBgfxData;
 
 class VertexBufferLockClass
 {
@@ -225,6 +226,9 @@ public:
 
 	IDirect3DVertexBuffer8* Get_DX8_Vertex_Buffer() { return VertexBuffer; }
 
+	void* Lock(unsigned offset_bytes, unsigned size_bytes, unsigned flags);
+	void Unlock();
+
 	void Copy(const Vector3* loc, unsigned first_vertex, unsigned count);
 	void Copy(const Vector3* loc, const Vector2* uv, unsigned first_vertex, unsigned count);
 	void Copy(const Vector3* loc, const Vector3* norm, unsigned first_vertex, unsigned count);
@@ -234,6 +238,7 @@ public:
 
 protected:
 	IDirect3DVertexBuffer8*		VertexBuffer;
+	DX8VertexBufferBgfxData*		m_bgfxData;
 
 	void Create_Vertex_Buffer(UsageType usage);
 };

@@ -79,6 +79,7 @@ static void drawFramerateBar(void);
 #include "W3DDevice/GameClient/W3DShaderManager.h"
 #include "W3DDevice/GameClient/W3DDebugDisplay.h"
 #include "W3DDevice/GameClient/W3DProjectedShadow.h"
+#include "WW3D2/dx8wrapper.h"
 #include "W3DDevice/GameClient/W3DShroud.h"
 #include "WWMath/WWMath.h"
 #include "WWLib/Registry.h"
@@ -93,6 +94,7 @@ static void drawFramerateBar(void);
 #include "WW3D2/SortingRenderer.h"
 #include "WW3D2/Textureloader.h"
 #include "WW3D2/DX8WebBrowser.h"
+#include "W3DDevice/GameClient/RenderBackend.h"
 #include "WW3D2/Mesh.h"
 #include "WW3D2/HLOD.h"
 #include "WW3D2/Meshmatdesc.h"
@@ -466,6 +468,8 @@ W3DDisplay::~W3DDisplay()
 	delete TheW3DFileSystem;
 	TheW3DFileSystem = NULL;
 
+	SetRenderBackend(NULL);
+
 }  // end ~W3DDisplay
 
 #define MIN_DISPLAY_RESOLUTION_X	800
@@ -548,36 +552,49 @@ void W3DDisplay::setGamma(Real gamma, Real bright, Real contrast, Bool calibrate
 	DX8Wrapper::Set_Gamma(gamma,bright,contrast,calibrate, false);
 }
 
-/*Giant hack in order to keep the game from getting stuck when alt-tabbing*/
-void Reset_D3D_Device(bool active)
+class Dx8RenderBackend : public IRenderBackend
 {
-	if (TheDisplay && WW3D::Is_Initted() && !TheDisplay->getWindowed())
-	{
-		if (active)
-		{	
-			//switch back to desired mode when user alt-tabs back into game
-			WW3D::Set_Render_Device( WW3D::Get_Render_Device(),TheDisplay->getWidth(),TheDisplay->getHeight(),TheDisplay->getBitDepth(),TheDisplay->getWindowed(),true, true);
-			OSVERSIONINFO	osvi;
-			osvi.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
-			if (GetVersionEx(&osvi))
-			{	//check if we're running Win9x variant since they have buggy alt-tab that requires
-				//reloading all textures.
-				if (osvi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
-				{	//only do this on Win9x boxes because it makes alt-tab very slow.
+public:
+        virtual void HandleFocusChange(bool isActive)
+        {
+		if (TheDisplay && WW3D::Is_Initted() && !TheDisplay->getWindowed())
+		{
+			if (isActive)
+			{
+				WW3D::Set_Render_Device(WW3D::Get_Render_Device(), TheDisplay->getWidth(), TheDisplay->getHeight(),
+					TheDisplay->getBitDepth(), TheDisplay->getWindowed(), true, true);
+				OSVERSIONINFO osvi;
+				osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+				if (GetVersionEx(&osvi))
+				{
+					if (osvi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
+					{
 						WW3D::_Invalidate_Textures();
+					}
 				}
 			}
-		}
-		else
-		{
-			//switch to windowed mode whenever the user alt-tabs out of game. Don't restore assets after reset since we'll do it when returning.
-			WW3D::Set_Render_Device( WW3D::Get_Render_Device(),TheDisplay->getWidth(),TheDisplay->getHeight(),TheDisplay->getBitDepth(),TheDisplay->getWindowed(),true, true, false);
+			else
+			{
+				WW3D::Set_Render_Device(WW3D::Get_Render_Device(), TheDisplay->getWidth(), TheDisplay->getHeight(),
+					TheDisplay->getBitDepth(), TheDisplay->getWindowed(), true, true, false);
+			}
 		}
 	}
-}
+};
 
-/** Set resolution of display */
-//=============================================================================
+static Dx8RenderBackend g_dx8RenderBackend;
+
+class BgfxRenderBackend : public IRenderBackend
+{
+public:
+        virtual void HandleFocusChange(bool)
+        {
+                // No focus handling is required for the bgfx backend yet.
+        }
+};
+
+static BgfxRenderBackend g_bgfxRenderBackend;
+
 Bool W3DDisplay::setDisplayMode( UnsignedInt xres, UnsignedInt yres, UnsignedInt bitdepth, Bool windowed )
 {
 	if (WW3D_ERROR_OK == WW3D::Set_Device_Resolution(xres,yres,bitdepth,windowed,true))
@@ -730,6 +747,16 @@ void W3DDisplay::init( void )
 	{
 		SortingRendererClass::SetMinVertexBufferSize(1);
 	}
+	DX8Wrapper::Set_Active_Backend(ApplicationGraphicsBackend);
+	if (ApplicationGraphicsBackend == GRAPHICS_BACKEND_BGFX)
+	{
+		SetRenderBackend(&g_bgfxRenderBackend);
+	}
+	else
+	{
+		SetRenderBackend(&g_dx8RenderBackend);
+	}
+
 	if (WW3D::Init( ApplicationHWnd ) != WW3D_ERROR_OK)
 		throw ERROR_INVALID_D3D;	//failed to initialize.  User probably doesn't have DX 8.1
 

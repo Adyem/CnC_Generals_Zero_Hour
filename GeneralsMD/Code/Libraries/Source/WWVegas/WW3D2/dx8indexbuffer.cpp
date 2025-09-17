@@ -45,7 +45,41 @@
 #include "thread.h"
 #include "wwmemlog.h"
 
+#if __has_include(<bgfx/bgfx.h>)
+#define WW3D_BGFX_INDEX_AVAILABLE 1
+#include <bgfx/bgfx.h>
+#include <vector>
+#else
+#define WW3D_BGFX_INDEX_AVAILABLE 0
+#endif
+
 #define DEFAULT_IB_SIZE 5000
+
+#if WW3D_BGFX_INDEX_AVAILABLE
+struct DX8IndexBufferBgfxData
+{
+	DX8IndexBufferBgfxData(bool is_dynamic, unsigned int index_count)
+		: dynamic(is_dynamic),
+		  lock_active(false),
+		  index_count(index_count),
+		  lock_offset(0),
+		  lock_size(0),
+		  data(index_count)
+	{
+		dynamic_handle.idx = bgfx::kInvalidHandle;
+		static_handle.idx = bgfx::kInvalidHandle;
+	}
+
+	bool dynamic;
+	bool lock_active;
+	unsigned int index_count;
+	unsigned int lock_offset;
+	unsigned int lock_size;
+	std::vector<unsigned short> data;
+	bgfx::DynamicIndexBufferHandle dynamic_handle;
+	bgfx::IndexBufferHandle static_handle;
+};
+#endif
 
 static bool _DynamicSortingIndexArrayInUse=false;
 static SortingIndexBufferClass* _DynamicSortingIndexArray;
@@ -191,11 +225,10 @@ IndexBufferClass::WriteLockClass::WriteLockClass(IndexBufferClass* index_buffer_
 	switch (index_buffer->Type()) {
 	case BUFFER_TYPE_DX8:
 		DX8_Assert();
-		DX8_ErrorCode(static_cast<DX8IndexBufferClass*>(index_buffer)->Get_DX8_Index_Buffer()->Lock(
+		indices = static_cast<DX8IndexBufferClass*>(index_buffer)->Lock(
 			0,
 			index_buffer->Get_Index_Count()*sizeof(WORD),
-			(unsigned char**)&indices,
-			flags));
+			flags);
 		break;
 	case BUFFER_TYPE_SORTING:
 		indices=static_cast<SortingIndexBufferClass*>(index_buffer)->index_buffer;
@@ -217,7 +250,7 @@ IndexBufferClass::WriteLockClass::~WriteLockClass()
 	switch (index_buffer->Type()) {
 	case BUFFER_TYPE_DX8:
 		DX8_Assert();
-		DX8_ErrorCode(static_cast<DX8IndexBufferClass*>(index_buffer)->index_buffer->Unlock());
+		static_cast<DX8IndexBufferClass*>(index_buffer)->Unlock();
 		break;
 	case BUFFER_TYPE_SORTING:
 		break;
@@ -242,11 +275,10 @@ IndexBufferClass::AppendLockClass::AppendLockClass(IndexBufferClass* index_buffe
 	switch (index_buffer->Type()) {
 	case BUFFER_TYPE_DX8:
 		DX8_Assert();
-		DX8_ErrorCode(static_cast<DX8IndexBufferClass*>(index_buffer)->index_buffer->Lock(
+		indices = static_cast<DX8IndexBufferClass*>(index_buffer)->Lock(
 			start_index*sizeof(unsigned short),
 			index_range*sizeof(unsigned short),
-			(unsigned char**)&indices,
-			0));
+			0);
 		break;
 	case BUFFER_TYPE_SORTING:
 		indices=static_cast<SortingIndexBufferClass*>(index_buffer)->index_buffer+start_index;
@@ -265,7 +297,7 @@ IndexBufferClass::AppendLockClass::~AppendLockClass()
 	switch (index_buffer->Type()) {
 	case BUFFER_TYPE_DX8:
 		DX8_Assert();
-		DX8_ErrorCode(static_cast<DX8IndexBufferClass*>(index_buffer)->index_buffer->Unlock());
+		static_cast<DX8IndexBufferClass*>(index_buffer)->Unlock();
 		break;
 	case BUFFER_TYPE_SORTING:
 		break;
@@ -283,56 +315,205 @@ IndexBufferClass::AppendLockClass::~AppendLockClass()
 // ----------------------------------------------------------------------------
 
 DX8IndexBufferClass::DX8IndexBufferClass(unsigned short index_count_,UsageType usage)
-	:
-	IndexBufferClass(BUFFER_TYPE_DX8,index_count_)
+        :
+        IndexBufferClass(BUFFER_TYPE_DX8,index_count_),
+        index_buffer(NULL),
+        m_bgfxData(NULL)
 {
-	DX8_THREAD_ASSERT();
-	WWASSERT(index_count);
-	unsigned usage_flags=
-		D3DUSAGE_WRITEONLY|
-		((usage&USAGE_DYNAMIC) ? D3DUSAGE_DYNAMIC : 0)|
-		((usage&USAGE_NPATCHES) ? D3DUSAGE_NPATCHES : 0)|
-		((usage&USAGE_SOFTWAREPROCESSING) ? D3DUSAGE_SOFTWAREPROCESSING : 0);
-	if (!DX8Wrapper::Get_Current_Caps()->Support_TnL()) {
-		usage_flags|=D3DUSAGE_SOFTWAREPROCESSING;
-	}
+        DX8_THREAD_ASSERT();
+        WWASSERT(index_count);
 
-	HRESULT ret=DX8Wrapper::_Get_D3D_Device8()->CreateIndexBuffer(
-		sizeof(WORD)*index_count,
-		usage_flags,
-		D3DFMT_INDEX16,
-		(usage&USAGE_DYNAMIC) ? D3DPOOL_DEFAULT : D3DPOOL_MANAGED,
-		&index_buffer);
+#if WW3D_BGFX_INDEX_AVAILABLE
+        if (DX8Wrapper::Is_Bgfx_Active())
+        {
+                m_bgfxData = W3DNEW DX8IndexBufferBgfxData((usage & USAGE_DYNAMIC) != 0, index_count);
+                if (m_bgfxData->dynamic)
+                {
+                        m_bgfxData->dynamic_handle = bgfx::createDynamicIndexBuffer(index_count);
+                }
+                return;
+        }
+#endif
 
-	if (SUCCEEDED(ret)) {
-		return;
-	}
+        unsigned usage_flags=
+                D3DUSAGE_WRITEONLY|
+                ((usage&USAGE_DYNAMIC) ? D3DUSAGE_DYNAMIC : 0)|
+                ((usage&USAGE_NPATCHES) ? D3DUSAGE_NPATCHES : 0)|
+                ((usage&USAGE_SOFTWAREPROCESSING) ? D3DUSAGE_SOFTWAREPROCESSING : 0);
+        if (!DX8Wrapper::Get_Current_Caps()->Support_TnL()) {
+                usage_flags|=D3DUSAGE_SOFTWAREPROCESSING;
+        }
 
-	WWDEBUG_SAY(("Index buffer creation failed, trying to release assets...\n"));
+        HRESULT ret=DX8Wrapper::_Get_D3D_Device8()->CreateIndexBuffer(
+                sizeof(WORD)*index_count,
+                usage_flags,
+                D3DFMT_INDEX16,
+                (usage&USAGE_DYNAMIC) ? D3DPOOL_DEFAULT : D3DPOOL_MANAGED,
+                &index_buffer);
 
-	// Vertex buffer creation failed, so try releasing least used textures and flushing the mesh cache.
+        if (SUCCEEDED(ret)) {
+                return;
+        }
 
-	// Free all textures that haven't been used in the last 5 seconds
-	TextureClass::Invalidate_Old_Unused_Textures(5000);
+        WWDEBUG_SAY(("Index buffer creation failed, trying to release assets...
+"));
 
-	// Invalidate the mesh cache
-	WW3D::_Invalidate_Mesh_Cache();
+        // Vertex buffer creation failed, so try releasing least used textures and flushing the mesh cache.
 
-	// Try again...
-	ret=DX8Wrapper::_Get_D3D_Device8()->CreateIndexBuffer(
-		sizeof(WORD)*index_count,
-		usage_flags,
-		D3DFMT_INDEX16,
-		(usage&USAGE_DYNAMIC) ? D3DPOOL_DEFAULT : D3DPOOL_MANAGED,
-		&index_buffer);
+        // Free all textures that haven't been used in the last 5 seconds
+        TextureClass::Invalidate_Old_Unused_Textures(5000);
 
-	if (SUCCEEDED(ret)) {
-		WWDEBUG_SAY(("...Index buffer creation succesful\n"));
-	}
+        // Invalidate the mesh cache
+        WW3D::_Invalidate_Mesh_Cache();
 
-	// If it still fails it is fatal
-	DX8_ErrorCode(ret);
+        // Try again...
+        ret=DX8Wrapper::_Get_D3D_Device8()->CreateIndexBuffer(
+                sizeof(WORD)*index_count,
+                usage_flags,
+                D3DFMT_INDEX16,
+                (usage&USAGE_DYNAMIC) ? D3DPOOL_DEFAULT : D3DPOOL_MANAGED,
+                &index_buffer);
+
+        if (SUCCEEDED(ret)) {
+                WWDEBUG_SAY(("...Index buffer creation succesful
+"));
+        }
+
+        // If it still fails it is fatal
+        DX8_ErrorCode(ret);
 }
+
+// ----------------------------------------------------------------------------
+
+DX8IndexBufferClass::~DX8IndexBufferClass()
+{
+#if WW3D_BGFX_INDEX_AVAILABLE
+        if (m_bgfxData)
+        {
+                if (m_bgfxData->dynamic)
+                {
+                        if (bgfx::isValid(m_bgfxData->dynamic_handle))
+                        {
+                                bgfx::destroy(m_bgfxData->dynamic_handle);
+                        }
+                }
+                else if (bgfx::isValid(m_bgfxData->static_handle))
+                {
+                        bgfx::destroy(m_bgfxData->static_handle);
+                }
+                delete m_bgfxData;
+                m_bgfxData = NULL;
+        }
+#endif
+        if (index_buffer)
+        {
+                index_buffer->Release();
+                index_buffer = NULL;
+        }
+}
+
+// ----------------------------------------------------------------------------
+
+unsigned short* DX8IndexBufferClass::Lock(unsigned offset_bytes, unsigned size_bytes, unsigned flags)
+{
+#if WW3D_BGFX_INDEX_AVAILABLE
+        (void)flags;
+        if (m_bgfxData)
+        {
+                const unsigned int total_indices = m_bgfxData->index_count;
+                const unsigned int total_bytes = total_indices * sizeof(unsigned short);
+                if (offset_bytes >= total_bytes)
+                {
+                        m_bgfxData->lock_offset = total_indices;
+                        m_bgfxData->lock_size = 0;
+                        m_bgfxData->lock_active = true;
+                        return m_bgfxData->data.data() + total_indices;
+                }
+
+                unsigned int range_bytes = size_bytes;
+                if (!range_bytes || (offset_bytes + range_bytes) > total_bytes)
+                {
+                        range_bytes = total_bytes - offset_bytes;
+                }
+
+                WWASSERT((offset_bytes % sizeof(unsigned short)) == 0);
+                WWASSERT((range_bytes % sizeof(unsigned short)) == 0);
+
+                const unsigned int offset_indices = offset_bytes / sizeof(unsigned short);
+                const unsigned int count = range_bytes / sizeof(unsigned short);
+
+                m_bgfxData->lock_offset = offset_indices;
+                m_bgfxData->lock_size = count;
+                m_bgfxData->lock_active = true;
+
+                return m_bgfxData->data.data() + offset_indices;
+        }
+#endif
+
+        unsigned short* indices = NULL;
+        if (index_buffer)
+        {
+                DX8_ErrorCode(index_buffer->Lock(offset_bytes, size_bytes, reinterpret_cast<unsigned char**>(&indices), flags));
+        }
+        return indices;
+}
+
+// ----------------------------------------------------------------------------
+
+void DX8IndexBufferClass::Unlock()
+{
+#if WW3D_BGFX_INDEX_AVAILABLE
+        if (m_bgfxData)
+        {
+                if (m_bgfxData->lock_active)
+                {
+                        const unsigned int total_indices = m_bgfxData->index_count;
+                        unsigned int offset = m_bgfxData->lock_offset;
+                        unsigned int count = m_bgfxData->lock_size;
+                        if (!count && offset < total_indices)
+                        {
+                                count = total_indices - offset;
+                        }
+                        if (count && offset < total_indices)
+                        {
+                                if (m_bgfxData->dynamic)
+                                {
+                                        if (!bgfx::isValid(m_bgfxData->dynamic_handle))
+                                        {
+                                                m_bgfxData->dynamic_handle = bgfx::createDynamicIndexBuffer(total_indices);
+                                        }
+                                        if (bgfx::isValid(m_bgfxData->dynamic_handle))
+                                        {
+                                                const bgfx::Memory* memory = bgfx::copy(reinterpret_cast<const unsigned char*>(m_bgfxData->data.data() + offset), count * sizeof(unsigned short));
+                                                bgfx::update(m_bgfxData->dynamic_handle, offset, memory);
+                                        }
+                                }
+                                else
+                                {
+                                        const bgfx::Memory* memory = bgfx::copy(reinterpret_cast<const unsigned char*>(m_bgfxData->data.data()), total_indices * sizeof(unsigned short));
+                                        if (bgfx::isValid(m_bgfxData->static_handle))
+                                        {
+                                                bgfx::destroy(m_bgfxData->static_handle);
+                                        }
+                                        m_bgfxData->static_handle = bgfx::createIndexBuffer(memory);
+                                }
+                        }
+
+                        m_bgfxData->lock_active = false;
+                        m_bgfxData->lock_offset = 0;
+                        m_bgfxData->lock_size = 0;
+                }
+                return;
+        }
+#endif
+
+        if (index_buffer)
+        {
+                DX8_ErrorCode(index_buffer->Unlock());
+        }
+}
+
+// ----------------------------------------------------------------------------
 
 // ----------------------------------------------------------------------------
 
@@ -430,12 +611,10 @@ DynamicIBAccessClass::WriteLockClass::WriteLockClass(DynamicIBAccessClass* ib_ac
 		WWASSERT(DynamicIBAccess);
 //		WWASSERT(!dynamic_dx8_index_buffer->Engine_Refs());
 		DX8_Assert();
-		DX8_ErrorCode(
-			static_cast<DX8IndexBufferClass*>(DynamicIBAccess->IndexBuffer)->Get_DX8_Index_Buffer()->Lock(
+		Indices = static_cast<DX8IndexBufferClass*>(DynamicIBAccess->IndexBuffer)->Lock(
 			DynamicIBAccess->IndexBufferOffset*sizeof(WORD),
 			DynamicIBAccess->Get_Index_Count()*sizeof(WORD),
-			(unsigned char**)&Indices,
-			!DynamicIBAccess->IndexBufferOffset ? D3DLOCK_DISCARD : D3DLOCK_NOOVERWRITE));
+			!DynamicIBAccess->IndexBufferOffset ? D3DLOCK_DISCARD : D3DLOCK_NOOVERWRITE);
 		break;
 	case BUFFER_TYPE_DYNAMIC_SORTING:
 		Indices=static_cast<SortingIndexBufferClass*>(DynamicIBAccess->IndexBuffer)->index_buffer;
@@ -453,7 +632,7 @@ DynamicIBAccessClass::WriteLockClass::~WriteLockClass()
 	switch (DynamicIBAccess->Get_Type()) {
 	case BUFFER_TYPE_DYNAMIC_DX8:
 		DX8_Assert();
-		DX8_ErrorCode(static_cast<DX8IndexBufferClass*>(DynamicIBAccess->IndexBuffer)->Get_DX8_Index_Buffer()->Unlock());
+		static_cast<DX8IndexBufferClass*>(DynamicIBAccess->IndexBuffer)->Unlock();
 		break;
 	case BUFFER_TYPE_DYNAMIC_SORTING:
 		break;
