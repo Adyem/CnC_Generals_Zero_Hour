@@ -53,6 +53,12 @@ enum GraphicsBackend
 
 extern GraphicsBackend ApplicationGraphicsBackend; ///< active rendering backend
 extern Win32Mouse *TheWin32Mouse;  ///< global for win32 mouse only!
+extern DWORD TheMessageTime;       ///< For getting the time that a message was posted from Windows.
+extern Bool gInitialEngineActiveState;
+
+#ifdef _WIN32
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+#endif
 
 #endif  // end __WINMAIN_H_
 
