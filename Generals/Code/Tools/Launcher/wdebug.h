@@ -20,11 +20,11 @@
 wdebug                        Neal Kettler
 
 MT-LEVEL
-    MT-UnSafe! (UNIX version is safe though)
+    MT-Safe
 
 The debugging module is pretty good for debugging and it has some message
 printing stuff as well.  The basic idea is that you write a class that
-inherits from OutputDevice (severall are provided) and assign that output
+inherits from OutputDevice (several are provided) and assign that output
 device to a stream.  There are seperate streams for debugging, information,
 warning, and error messages.  Each one can have a seperate output device,
 or they can all have the same one.  Debugging messages only get compiled
@@ -53,66 +53,118 @@ will you be ready to leave grasshopper.
 #ifndef WDEBUG_HEADER
 #define WDEBUG_HEADER
 
-#include <iostream.h>
+#define USE_DEBUG_SEM
+
+#include "wstypes.h"
+
+#ifdef _WINDOWS
+#include <windows.h>
+#endif
+#include <iostream>
+#include <sstream>
+#include <string>
+
+// Windows headers have a tendency to redefine IN
+#ifdef IN
+#undef IN
+#endif
+#define IN const
+
+#ifdef USE_DEBUG_SEM
+#include "sem4.h"
+#else
+#include "critsec.h"
+#endif
 #include "odevice.h"
 #include "streamer.h"
-#include <time.h>
+#include "xtime.h"
+#include "timezone.h" // MDC
+#include "filed.h"
 
+// This is needed because the streams return a pointer.  Every time you
+//  change the output device the old stream is deleted, and a new one
+//  is created.
+// MDC: Added a macro to switch between semaphores & critsecs to debug a
+//  problem in Win32.
 
+#ifdef USE_DEBUG_SEM
+extern Sem4 DebugLibSemaphore;
+#define DEBUGLOCK DebugLibSemaphore.Wait()
+#define DEBUGUNLOCK DebugLibSemaphore.Post()
+#else
+extern CritSec DebugLibSemaphore;
+#define DEBUGLOCK DebugLibSemaphore.lock()
+#define DEBUGUNLOCK DebugLibSemaphore.unlock()
+#endif
 
 // Print an information message
 #define INFMSG(X)\
 {\
   char     timebuf[40]; \
-  time_t   clock=time(NULL); \
-  cftime(timebuf,"%D %T",&clock); \
+  Xtime now; \
+  now -= TimezoneOffset(); \
+  now.FormatTime(timebuf, "mm/dd/yy hh:mm:ss"); \
+  DEBUGLOCK; \
   if (MsgManager::infoStream()) \
     (*(MsgManager::infoStream())) << "INF " << timebuf << " [" << \
-        __FILE__ <<  " " << __LINE__ << "] " << X << endl; \
+        __FILE__ <<  " " << __LINE__ << "] " << X << std::endl; \
+  DEBUGUNLOCK; \
 }
 
 // Print a warning message
 #define WRNMSG(X)\
 {\
   char     timebuf[40]; \
-  time_t   clock=time(NULL); \
-  cftime(timebuf,"%D %T",&clock); \
+  Xtime now; \
+  now -= TimezoneOffset(); \
+  now.FormatTime(timebuf, "mm/dd/yy hh:mm:ss"); \
+  DEBUGLOCK; \
   if (MsgManager::warnStream()) \
     (*(MsgManager::warnStream())) << "WRN " << timebuf << " [" << \
-        __FILE__ <<  " " << __LINE__ << "] " << X << endl; \
+        __FILE__ <<  " " << __LINE__ << "] " << X << std::endl; \
+  DEBUGUNLOCK; \
 }
 
 // Print an error message
 #define ERRMSG(X)\
 {\
   char     timebuf[40]; \
-  time_t   clock=time(NULL); \
-  strcpy(timebuf,ctime(&clock)); \
+  Xtime now; \
+  now -= TimezoneOffset(); \
+  now.FormatTime(timebuf, "mm/dd/yy hh:mm:ss"); \
+  DEBUGLOCK; \
   if (MsgManager::errorStream()) \
     (*(MsgManager::errorStream())) << "ERR " << timebuf << " [" << \
-        __FILE__ <<  " " << __LINE__ << "] " << X << endl; \
+        __FILE__ <<  " " << __LINE__ << "] " << X << std::endl; \
+  DEBUGUNLOCK; \
 }
 
 
 // Just get a stream to the information device, no extra junk
 #define INFSTREAM(X)\
 {\
+  DEBUGLOCK; \
   if (MsgManager::infoStream()) \
     (*(MsgManager::infoStream())) << X;\
+  DEBUGUNLOCK; \
 }    
 
 // Just get a stream to the warning device, no extra junk
 #define WRNSTREAM(X)\
 {\
+  DEBUGLOCK; \
   if (MsgManager::warnStream()) \
     (*(MsgManager::warnStream())) << X;\
+  DEBUGUNLOCK; \
 }    
 
 // Just get a stream to the error device, no extra junk
 #define ERRSTREAM(X)\
 {\
+  DEBUGLOCK; \
   if (MsgManager::errorStream()) \
     (*(MsgManager::errorStream())) << X;\
+  DEBUGUNLOCK; \
 }    
 
 #ifndef DEBUG
@@ -133,39 +185,113 @@ will you be ready to leave grasshopper.
 // Execute only if in debugging mode
 #define DBG(X) X
 
+// In Windows, send a copy to the debugger window
+#ifdef _WINDOWS
+
 // Print a variable
 #define PVAR(v) \
 { \
+  DEBUGLOCK; \
   if (MsgManager::debugStream()) \
     (*(MsgManager::debugStream())) << __FILE__ << "[" << __LINE__ << \
-       "]: " << ##V << " = " << V << endl; \
+       "]: " << ##V << " = " << V << std::endl; \
+  std::ostringstream __s;\
+  __s << __FILE__ << "[" << __LINE__ << \
+       "]: " << ##V << " = " << V << '\n';\
+  const std::string __message = __s.str();\
+  OutputDebugStringA(__message.c_str());\
+  DEBUGUNLOCK; \
 }
 
 
 #define DBGMSG(X)\
 {\
+  DEBUGLOCK; \
   if (MsgManager::debugStream()) \
     (*(MsgManager::debugStream())) << "DBG [" << __FILE__ <<  \
-    " " << __LINE__ << "] " << X << endl;\
+    " " << __LINE__ << "] " << X << std::endl;\
+  std::ostringstream __s;\
+  __s << "DBG [" << __FILE__ <<  \
+    " " << __LINE__ << "] " << X << '\n';\
+  const std::string __message = __s.str();\
+  OutputDebugStringA(__message.c_str());\
+  DEBUGUNLOCK; \
 }
 
 // Just get a stream to the debugging device, no extra junk
 #define DBGSTREAM(X)\
 {\
+  DEBUGLOCK; \
   if (MsgManager::debugStream()) \
     (*(MsgManager::debugStream())) << X;\
+  std::ostringstream __s;\
+  __s << X;\
+  const std::string __message = __s.str();\
+  OutputDebugStringA(__message.c_str());\
+  DEBUGUNLOCK; \
 }    
 
 // Verbosely execute a statement
 #define VERBOSE(X)\
 { \
+  DEBUGLOCK; \
   if (MsgManager::debugStream()) \
     (*(DebugManager::debugStream())) << __FILE__ << "[" << __LINE__ << \
-     "]: " << ##X << endl; X \
+     "]: " << ##X << std::endl; X \
+  std::ostringstream __s;\
+  __s  << __FILE__ << "[" << __LINE__ << \
+     "]: " << ##X << '\n';\
+  const std::string __message = __s.str();\
+  OutputDebugStringA(__message.c_str());\
+  DEBUGUNLOCK; \
 }
+
+#else // _WINDOWS
+
+// Print a variable
+#define PVAR(v) \
+{ \
+  DEBUGLOCK; \
+  if (MsgManager::debugStream()) \
+    (*(MsgManager::debugStream())) << __FILE__ << "[" << __LINE__ << \
+       "]: " << ##V << " = " << V << std::endl; \
+  DEBUGUNLOCK; \
+}
+
+
+#define DBGMSG(X)\
+{\
+  DEBUGLOCK; \
+  if (MsgManager::debugStream()) \
+    (*(MsgManager::debugStream())) << "DBG [" << __FILE__ <<  \
+    " " << __LINE__ << "] " << X << std::endl;\
+  DEBUGUNLOCK; \
+}
+
+// Just get a stream to the debugging device, no extra junk
+#define DBGSTREAM(X)\
+{\
+  DEBUGLOCK; \
+  if (MsgManager::debugStream()) \
+    (*(MsgManager::debugStream())) << X;\
+  DEBUGUNLOCK; \
+}    
+
+// Verbosely execute a statement
+#define VERBOSE(X)\
+{ \
+  DEBUGLOCK; \
+  if (MsgManager::debugStream()) \
+    (*(DebugManager::debugStream())) << __FILE__ << "[" << __LINE__ << \
+     "]: " << ##X << std::endl; X \
+  DEBUGUNLOCK; \
+}
+#endif // _WINDOWS
 
 #endif  // DEBUG
 
+//#undef DEBUGLOCK
+//#undef DEBUGUNLOCK
 
 class MsgManager
 {
@@ -174,6 +300,7 @@ class MsgManager
 
  public:
    static int                 setAllStreams(OutputDevice *device);
+   static int                 ReplaceAllStreams(FileD *output_device, IN char *device_filename, IN char *copy_filename);
    static int                 setDebugStream(OutputDevice *device);
    static int                 setInfoStream(OutputDevice *device);
    static int                 setWarnStream(OutputDevice *device);
@@ -184,10 +311,10 @@ class MsgManager
    static void                enableWarn(int flag);
    static void                enableError(int flag);
 
-   static ostream            *debugStream(void);
-   static ostream            *infoStream(void);
-   static ostream            *warnStream(void);
-   static ostream            *errorStream(void);
+   static std::ostream       *debugStream(void);
+   static std::ostream       *infoStream(void);
+   static std::ostream       *warnStream(void);
+   static std::ostream       *errorStream(void);
 };
 
 #endif

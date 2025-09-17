@@ -64,9 +64,8 @@
 #ifndef TGA_USES_WWLIB_FILE_CLASSES
 #include <stdio.h>
 #endif
-#include <malloc.h>
-#include <memory.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #ifdef TGA_USES_WWLIB_FILE_CLASSES
 #include "wwfile.h"
 #include "ffactory.h"
@@ -105,8 +104,8 @@ Targa::Targa(void)
 	Clear_File();
 	mAccess = TGA_READMODE;
 	mFlags = 0;
-	memset(&Header, 0, sizeof(TGAHeader));
-	memset(&mExtension, 0, sizeof(TGA2Extension));
+	std::memset(&Header, 0, sizeof(TGAHeader));
+	std::memset(&mExtension, 0, sizeof(TGA2Extension));
 	}
 
 
@@ -137,11 +136,11 @@ Targa::~Targa(void)
 
 	/* Free the palette buffer if we allocated it. */
 	if ((mPalette != NULL) && (mFlags & TGAF_PAL))
-		free(mPalette);
+		std::free(mPalette);
 
 	/* Free the image buffer if we allocated it. */
 	if ((mImage != NULL) && (mFlags & TGAF_IMAGE))
-		free(mImage);
+		std::free(mImage);
 }
 
 
@@ -202,7 +201,7 @@ long Targa::Open(const char* name, long mode)
 						error = TGAERR_READ;
 					} else {
 						/* If this a 2.0 file with an extension? */
-						if (strncmp(footer.Signature, TGA2_SIGNATURE, 16) == 0) {
+                                            if (std::strncmp(footer.Signature, TGA2_SIGNATURE, 16) == 0) {
 							if (footer.Extension != 0) {
 								mFlags |= TGAF_TGA2;
 							}
@@ -498,7 +497,7 @@ long Targa::Load(const char* name, long flags, bool invert_image)
 
 			/* Dispose of any previous palette. */
 			if ((mPalette != NULL) && (mFlags & TGAF_PAL)) {
-				free(mPalette);
+            		std::free(mPalette);
 				mPalette = NULL;
 				mFlags &= ~TGAF_PAL;
 			}
@@ -511,7 +510,7 @@ long Targa::Load(const char* name, long flags, bool invert_image)
 
 				if (size != 0) {
 					/* Allocate memory for the palette. */
-					if ((mPalette = (char *)malloc(size)) != NULL) {
+                                    if ((mPalette = static_cast<char *>(std::malloc(size))) != NULL) {
 						mFlags |= TGAF_PAL; /* We allocated the palette. */
 					} else {
 						error = TGAERR_NOMEM;
@@ -525,7 +524,7 @@ long Targa::Load(const char* name, long flags, bool invert_image)
 
 			/* Dispose of any previous image. */
 			if ((mImage != NULL) && (mFlags & TGAF_IMAGE)) {
-				free(mImage);
+            		std::free(mImage);
 				mImage = NULL;
 				mFlags &= ~TGAF_IMAGE;
 			}
@@ -537,7 +536,7 @@ long Targa::Load(const char* name, long flags, bool invert_image)
 				size = ((Header.Width * Header.Height) * TGA_BytesPerPixel(Header.PixelDepth));
 				if (size != 0) {
 					/* Allocate memory for the image. */
-					if ((mImage = (char *)malloc(size)) != NULL) {
+                                    if ((mImage = static_cast<char *>(std::malloc(size))) != NULL) {
 						mFlags |= TGAF_IMAGE; /* We allocated the image. */
 					} else {
 						error = TGAERR_NOMEM;
@@ -641,9 +640,9 @@ long Targa::Save(const char* name, long flags, bool addextension)
 			size = (Header.CMapLength * depth);
 
 			/* Allocate temporary buffer for palette manipulation. */
-			if ((temppal = (char *)malloc(size)) != NULL)
+                    if ((temppal = static_cast<char *>(std::malloc(size))) != NULL)
 				{
-				memcpy(temppal, palette, size);
+                            std::memcpy(temppal, palette, size);
 				ptr = temppal;
 
 				#if(0)
@@ -664,7 +663,7 @@ long Targa::Save(const char* name, long flags, bool addextension)
 					error = TGAERR_WRITE;
 
 				/* Free temporary palette buffer. */
-				free(temppal);
+            		std::free(temppal);
 				}
 			else
 				error = TGAERR_NOMEM;
@@ -711,7 +710,7 @@ long Targa::Save(const char* name, long flags, bool addextension)
 			if (!error) {
 
 				mExtension.ExtSize = 495;
-				strncpy(mExtension.SoftID, "Denzil's Targa Code", 41);
+                            std::strncpy(mExtension.SoftID, "Denzil's Targa Code", 41);
 				mExtension.SoftVer.Number = (1 * 100);
 				mExtension.SoftVer.Letter = 0;
 
@@ -733,7 +732,7 @@ long Targa::Save(const char* name, long flags, bool addextension)
 		if (!error)
 			{
 			footer.Developer = 0;
-			strncpy(footer.Signature, TGA2_SIGNATURE, 16);
+                    std::strncpy(footer.Signature, TGA2_SIGNATURE, 16);
 			footer.RsvdChar = '.';
 			footer.BZST = 0;
 
@@ -884,7 +883,7 @@ char *Targa::SetImage(char *buffer)
 	/* Free any image buffer before assigning another. */
 	if ((mImage != NULL) && (mFlags & TGAF_IMAGE))
 	{
-		free(mImage);
+            std::free(mImage);
 		mImage = NULL;
 		mFlags &= ~TGAF_IMAGE;
 	}
@@ -927,7 +926,7 @@ char *Targa::SetPalette(char *buffer)
 	/* Free any image buffer before assigning another. */
 	if ((mPalette != NULL) && (mFlags & TGAF_PAL))
 	{
-		free(mPalette);
+            std::free(mPalette);
 		mPalette = NULL;
 		mFlags &= ~TGAF_PAL;
 	}
@@ -1114,7 +1113,7 @@ long Targa::EncodeImage()
 	depth = TGA_BytesPerPixel(Header.PixelDepth);
 
 	/* Allocate packet buffer to hold maximum encoded data run. */
-	if ((packet = (char *)malloc(128 * depth)) != NULL)
+   if ((packet = static_cast<char *>(std::malloc(128 * depth))) != NULL)
 		{
 		pixels = Header.Width * Header.Height;
 		start = mImage;
@@ -1211,7 +1210,7 @@ long Targa::EncodeImage()
 			}
 
 		/* Free the packet buffer. */
-		free(packet);
+           std::free(packet);
 		}
 	else
 		error = TGAERR_NOMEM;

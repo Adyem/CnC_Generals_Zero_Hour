@@ -40,7 +40,7 @@
 #include "matrix4.h"
 #include "wwdebug.h"
 #include "cpudetect.h"
-#include <memory.h>
+#include <cstring>
 
 #define SHUFFLE(x, y, z, w)	(((x)&3)<< 6|((y)&3)<<4|((z)&3)<< 2|((w)&3))
 #define	BROADCAST(XMM, INDEX)	__asm	shufps	XMM,XMM,(((INDEX)&3)<< 6|((INDEX)&3)<<4|((INDEX)&3)<< 2|((INDEX)&3))
@@ -324,25 +324,25 @@ void VectorProcessorClass::Transform(Vector4* dst,const Vector3 *src, const Matr
 void VectorProcessorClass::Copy(Vector2 *dst, const Vector2 *src, int count)
 {
 	if (count<=0) return;
-	memcpy(dst,src,sizeof(Vector2)*count);
+	std::memcpy(dst,src,sizeof(Vector2)*count);
 }
 
 void VectorProcessorClass::Copy(unsigned *dst, const unsigned *src, int count)
 {
 	if (count<=0) return;
-	memcpy(dst,src,sizeof(unsigned)*count);
+	std::memcpy(dst,src,sizeof(unsigned)*count);
 }
 
 void VectorProcessorClass::Copy(Vector3 *dst, const Vector3 *src, int count)
 {
 	if (count<=0) return;
-	memcpy(dst,src,sizeof(Vector3)*count);
+	std::memcpy(dst,src,sizeof(Vector3)*count);
 }
 
 void VectorProcessorClass::Copy(Vector4 *dst, const Vector4 *src, int count)
 {
 	if (count<=0) return;
-	memcpy(dst,src,sizeof(Vector4)*count);
+	std::memcpy(dst,src,sizeof(Vector4)*count);
 }
 
 void VectorProcessorClass::Copy(Vector4 *dst,const Vector3 *src, const float * srca, const int count)
@@ -477,7 +477,7 @@ void VectorProcessorClass::Clamp(Vector4 *dst,const Vector4 *src, const float mi
 void VectorProcessorClass::Clear(Vector3*dst, const int count)
 {
 	if (count<=0) return;
-	memset(dst,0,sizeof(Vector3)*count);
+	std::memset(dst,0,sizeof(Vector3)*count);
 }
 
 

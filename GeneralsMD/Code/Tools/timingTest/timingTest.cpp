@@ -1,5 +1,5 @@
 /*
-**	Command & Conquer Generals Zero Hour(tm)
+**	Command & Conquer Generals(tm)
 **	Copyright 2025 Electronic Arts Inc.
 **
 **	This program is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <mmsystem.h>
-#include <iostream.h>
+#include <iostream>
 #include <string.h>
 
 double s_ticksPerSec = 0.0f;
@@ -50,7 +50,7 @@ void InitPrecisionTimer()
 	INT64	TotalTicks = 0;
 	static int TESTS = 10;
 
-	cout << "Starting tests..." << flush;
+        std::cout << "Starting tests..." << std::flush;
 	
 	for (int i = 0; i < TESTS; ++i) 
 	{
@@ -76,14 +76,14 @@ void InitPrecisionTimer()
 		totalTime += (TimeStop - TimeStart);
 	}
 
-	cout << "...completed" << endl;
+        std::cout << "...completed" << std::endl;
 	s_ticksPerMSec = 1.0 * TotalTicks / totalTime;
 	s_ticksPerSec = s_ticksPerMSec * 1000.0f;
 
 	sprintf(buffer, "Ticks per sec: %.2f\n", s_ticksPerSec);
-	cout << buffer;
+        std::cout << buffer;
 	sprintf(buffer, "Ticks per msec: %.2f\n", s_ticksPerMSec);
-	cout << buffer;
+        std::cout << buffer;
 }
 
 int main(int argc, char* argv[])
@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
 	INT64 startTime, endTime, totalTime = 0;
 	InitPrecisionTimer();
 	FILE *out = fopen("output.txt", "w");
-	cout << "Beginning Looping tests: " << endl;
+        std::cout << "Beginning Looping tests: " << std::endl;
 	
 	const int TESTCOUNT = 60;
 
@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
 		sprintf(buffer, "%.8f,\t", avgPerFrame / s_ticksPerMSec );	
 		fwrite(buffer, strlen(buffer), 1, out);
 		fflush(out);
-		cout << buffer << endl;
+                std::cout << buffer << std::endl;
 		totalTime = 0;
 	}
 	fclose(out);

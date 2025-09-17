@@ -63,6 +63,7 @@
 #include "W3DDevice/GameClient/HeightMap.h"
 #include "W3DDevice/GameClient/W3DCustomScene.h"
 #include "GameClient/view.h"
+#include "WWMath/D3DXCompat.h"
 #include "GameClient/CommandXlat.h"
 #include "GameClient/display.h"
 #include "GameClient/Water.h"

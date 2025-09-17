@@ -62,7 +62,7 @@
 #include "matrix3.h"
 #include "matrix4.h"
 #include "quat.h"
-#include "D3dx8math.h"
+#include "WWMath/D3DXCompat.h"
 
 // some static matrices which are sometimes useful
 const Matrix3D Matrix3D::Identity

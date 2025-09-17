@@ -44,7 +44,7 @@
 *****************************************************************************/
 
 #include <string.h>
-#include <memory.h>
+#include <cstring>
 
 #include <wpaudio/altypes.h>						//  always include this header first 
 #include <wpaudio/memory.h>
@@ -439,7 +439,7 @@ AudioCacheItem*		AudioCacheLoadItem ( AudioCache *cache, const char *name )
 	#endif
 
 	//  update the format structure 
-	memcpy ( &item->format, &cache->assetFormat, sizeof ( AudioFormat) );
+	std::memcpy(&item->format, &cache->assetFormat, sizeof(AudioFormat));
 
 
 	ListNodeAppend ( &cache->items, &item->nd );

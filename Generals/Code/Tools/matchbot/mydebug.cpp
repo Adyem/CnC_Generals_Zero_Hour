@@ -16,7 +16,9 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
+
 #include "mydebug.h"
 #include "streamer.h"
 #include "odevice.h"
@@ -25,7 +27,7 @@
 // static MyMsgManager         *msg_manager=NULL;
 
 // static int                paranoid_enabled=0;
-static ostream           *paranoid_ostream=NULL;
+static std::ostream      *paranoid_ostream=NULL;
 static Streamer           paranoid_streamer;
 
 // Don't dare touch this semaphore in application code!
@@ -42,9 +44,9 @@ int MyMsgManager::setAllStreams(OutputDevice *device)
 		return(1);
 
 	MYDEBUGLOCK;
-	paranoid_streamer.setOutputDevice(device);
-	delete(paranoid_ostream);
-	paranoid_ostream=new ostream(&paranoid_streamer);
+        paranoid_streamer.setOutputDevice(device);
+        delete(paranoid_ostream);
+        paranoid_ostream=new std::ostream(&paranoid_streamer);
 
 	MYDEBUGUNLOCK;
 
@@ -58,9 +60,9 @@ int MyMsgManager::setParanoidStream(OutputDevice *device)
 		return(1);
 
 	MYDEBUGLOCK;
-	paranoid_streamer.setOutputDevice(device);
-	delete(paranoid_ostream);
-	paranoid_ostream=new ostream(&paranoid_streamer);
+        paranoid_streamer.setOutputDevice(device);
+        delete(paranoid_ostream);
+        paranoid_ostream=new std::ostream(&paranoid_streamer);
 	MYDEBUGUNLOCK;
 
 	return(0);
@@ -69,7 +71,7 @@ int MyMsgManager::setParanoidStream(OutputDevice *device)
 
 
 
-ostream *MyMsgManager::paranoidStream(void)
+std::ostream *MyMsgManager::paranoidStream(void)
 {
 	return(paranoid_ostream);
 }
@@ -92,8 +94,8 @@ int MyMsgManager::ReplaceAllStreams(FileD * output_device, char *device_filename
 	//      FileD new_device(device_filename);
 	output_device = new FileD(device_filename);
 
-	paranoid_streamer.setOutputDevice(output_device);
-	paranoid_ostream = new ostream(&paranoid_streamer);
+        paranoid_streamer.setOutputDevice(output_device);
+        paranoid_ostream = new std::ostream(&paranoid_streamer);
 
 	MYDEBUGUNLOCK;
 

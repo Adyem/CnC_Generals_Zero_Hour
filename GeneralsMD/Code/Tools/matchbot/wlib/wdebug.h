@@ -1,5 +1,5 @@
 /*
-**	Command & Conquer Generals Zero Hour(tm)
+**	Command & Conquer Generals(tm)
 **	Copyright 2025 Electronic Arts Inc.
 **
 **	This program is free software: you can redistribute it and/or modify
@@ -58,18 +58,17 @@ will you be ready to leave grasshopper.
 #include "wstypes.h"
 
 #ifdef _WINDOWS
-#include <iostream.h>
-#include <strstrea.h>
-#else
+#include <windows.h>
+#endif
 #include <iostream>
+#include <sstream>
+#include <string>
 
 // Windows headers have a tendency to redefine IN
 #ifdef IN
 #undef IN
 #endif
 #define IN const
-
-#endif
 
 #ifdef USE_DEBUG_SEM
 #include "sem4.h"
@@ -108,7 +107,7 @@ extern CritSec DebugLibSemaphore;
   DEBUGLOCK; \
   if (MsgManager::infoStream()) \
     (*(MsgManager::infoStream())) << "INF " << timebuf << " [" << \
-        __FILE__ <<  " " << __LINE__ << "] " << X << endl; \
+        __FILE__ <<  " " << __LINE__ << "] " << X << std::endl; \
   DEBUGUNLOCK; \
 }
 
@@ -122,7 +121,7 @@ extern CritSec DebugLibSemaphore;
   DEBUGLOCK; \
   if (MsgManager::warnStream()) \
     (*(MsgManager::warnStream())) << "WRN " << timebuf << " [" << \
-        __FILE__ <<  " " << __LINE__ << "] " << X << endl; \
+        __FILE__ <<  " " << __LINE__ << "] " << X << std::endl; \
   DEBUGUNLOCK; \
 }
 
@@ -136,7 +135,7 @@ extern CritSec DebugLibSemaphore;
   DEBUGLOCK; \
   if (MsgManager::errorStream()) \
     (*(MsgManager::errorStream())) << "ERR " << timebuf << " [" << \
-        __FILE__ <<  " " << __LINE__ << "] " << X << endl; \
+        __FILE__ <<  " " << __LINE__ << "] " << X << std::endl; \
   DEBUGUNLOCK; \
 }
 
@@ -195,11 +194,12 @@ extern CritSec DebugLibSemaphore;
   DEBUGLOCK; \
   if (MsgManager::debugStream()) \
     (*(MsgManager::debugStream())) << __FILE__ << "[" << __LINE__ << \
-       "]: " << ##V << " = " << V << endl; \
-  strstream __s;\
+       "]: " << ##V << " = " << V << std::endl; \
+  std::ostringstream __s;\
   __s << __FILE__ << "[" << __LINE__ << \
-       "]: " << ##V << " = " << V << '\n' << '\0';\
-  OutputDebugString(__s.str());\
+       "]: " << ##V << " = " << V << '\n';\
+  const std::string __message = __s.str();\
+  OutputDebugStringA(__message.c_str());\
   DEBUGUNLOCK; \
 }
 
@@ -209,11 +209,12 @@ extern CritSec DebugLibSemaphore;
   DEBUGLOCK; \
   if (MsgManager::debugStream()) \
     (*(MsgManager::debugStream())) << "DBG [" << __FILE__ <<  \
-    " " << __LINE__ << "] " << X << endl;\
-  strstream __s;\
+    " " << __LINE__ << "] " << X << std::endl;\
+  std::ostringstream __s;\
   __s << "DBG [" << __FILE__ <<  \
-    " " << __LINE__ << "] " << X << '\n' << '\0';\
-  OutputDebugString(__s.str());\
+    " " << __LINE__ << "] " << X << '\n';\
+  const std::string __message = __s.str();\
+  OutputDebugStringA(__message.c_str());\
   DEBUGUNLOCK; \
 }
 
@@ -223,9 +224,10 @@ extern CritSec DebugLibSemaphore;
   DEBUGLOCK; \
   if (MsgManager::debugStream()) \
     (*(MsgManager::debugStream())) << X;\
-  strstream __s;\
-  __s << X << '\0';\
-  OutputDebugString(__s.str());\
+  std::ostringstream __s;\
+  __s << X;\
+  const std::string __message = __s.str();\
+  OutputDebugStringA(__message.c_str());\
   DEBUGUNLOCK; \
 }    
 
@@ -235,11 +237,12 @@ extern CritSec DebugLibSemaphore;
   DEBUGLOCK; \
   if (MsgManager::debugStream()) \
     (*(DebugManager::debugStream())) << __FILE__ << "[" << __LINE__ << \
-     "]: " << ##X << endl; X \
-  strstream __s;\
+     "]: " << ##X << std::endl; X \
+  std::ostringstream __s;\
   __s  << __FILE__ << "[" << __LINE__ << \
-     "]: " << ##X << '\n' << '\0';\
-  OutputDebugString(__s.str());\
+     "]: " << ##X << '\n';\
+  const std::string __message = __s.str();\
+  OutputDebugStringA(__message.c_str());\
   DEBUGUNLOCK; \
 }
 
@@ -251,7 +254,7 @@ extern CritSec DebugLibSemaphore;
   DEBUGLOCK; \
   if (MsgManager::debugStream()) \
     (*(MsgManager::debugStream())) << __FILE__ << "[" << __LINE__ << \
-       "]: " << ##V << " = " << V << endl; \
+       "]: " << ##V << " = " << V << std::endl; \
   DEBUGUNLOCK; \
 }
 
@@ -261,7 +264,7 @@ extern CritSec DebugLibSemaphore;
   DEBUGLOCK; \
   if (MsgManager::debugStream()) \
     (*(MsgManager::debugStream())) << "DBG [" << __FILE__ <<  \
-    " " << __LINE__ << "] " << X << endl;\
+    " " << __LINE__ << "] " << X << std::endl;\
   DEBUGUNLOCK; \
 }
 
@@ -280,7 +283,7 @@ extern CritSec DebugLibSemaphore;
   DEBUGLOCK; \
   if (MsgManager::debugStream()) \
     (*(DebugManager::debugStream())) << __FILE__ << "[" << __LINE__ << \
-     "]: " << ##X << endl; X \
+     "]: " << ##X << std::endl; X \
   DEBUGUNLOCK; \
 }
 #endif // _WINDOWS
@@ -308,10 +311,10 @@ class MsgManager
    static void                enableWarn(int flag);
    static void                enableError(int flag);
 
-   static ostream            *debugStream(void);
-   static ostream            *infoStream(void);
-   static ostream            *warnStream(void);
-   static ostream            *errorStream(void);
+   static std::ostream       *debugStream(void);
+   static std::ostream       *infoStream(void);
+   static std::ostream       *warnStream(void);
+   static std::ostream       *errorStream(void);
 };
 
 #endif

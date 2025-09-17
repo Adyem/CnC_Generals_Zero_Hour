@@ -50,7 +50,7 @@
 #include "random.h"
 #include <math.h>
 #include <assert.h>
-#include <memory.h>
+#include <cstring>
 
 Random4Class Random;
 
@@ -92,7 +92,7 @@ RegularSamplingClass::RegularSamplingClass(unsigned int dimensions,unsigned char
 
 void RegularSamplingClass::Reset()
 {
-	memset(index,0,sizeof(unsigned char)*Dimensions);
+	std::memset(index, 0, sizeof(unsigned char) * Dimensions);
 }
 
 RegularSamplingClass::~RegularSamplingClass()
@@ -148,7 +148,7 @@ StratifiedSamplingClass::StratifiedSamplingClass(unsigned int dimensions,unsigne
 
 void StratifiedSamplingClass::Reset()
 {
-	memset(index,0,sizeof(unsigned char)*Dimensions);
+	std::memset(index, 0, sizeof(unsigned char) * Dimensions);
 }
 
 StratifiedSamplingClass::~StratifiedSamplingClass()

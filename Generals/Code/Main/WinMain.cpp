@@ -38,6 +38,11 @@
 #include <eh.h>
 #include <ole2.h>
 #include <dbt.h>
+#include <GL/gl.h>
+
+#ifdef _MSC_VER
+#pragma comment(lib, "opengl32.lib")
+#endif
 
 // USER INCLUDES //////////////////////////////////////////////////////////////
 #include "WinMain.h"
@@ -74,7 +79,10 @@
 // GLOBALS ////////////////////////////////////////////////////////////////////
 HINSTANCE ApplicationHInstance = NULL;  ///< our application instance
 HWND ApplicationHWnd = NULL;  ///< our application window handle
+HDC ApplicationHDC = NULL;  ///< device context for OpenGL rendering
+HGLRC ApplicationHGLRC = NULL; ///< OpenGL rendering context
 Bool ApplicationIsWindowed = false;
+GraphicsBackend ApplicationGraphicsBackend = GRAPHICS_BACKEND_DIRECT3D8;
 Win32Mouse *TheWin32Mouse= NULL;  ///< for the WndProc() only
 DWORD TheMessageTime = 0;	///< For getting the time that a message was posted from Windows.
 
@@ -91,9 +99,120 @@ extern void Reset_D3D_Device(bool active);
 
 static Bool gInitializing = false;
 static Bool gDoPaint = true;
-static Bool isWinMainActive = false; 
+static Bool isWinMainActive = false;
 
 static HBITMAP gLoadScreenBitmap = NULL;
+
+typedef BOOL (APIENTRY *PFNWGLSWAPINTERVALEXTPROC)(int interval);
+
+struct GraphicsDeviceSettings
+{
+        Int width;
+        Int height;
+        Int bitDepth;
+        Bool windowed;
+        Bool vsyncEnabled;
+        GraphicsBackend backend;
+};
+
+static GraphicsDeviceSettings gRequestedGraphicsSettings =
+{
+        DEFAULT_XRESOLUTION,
+        DEFAULT_YRESOLUTION,
+        32,
+        false,
+        true,
+        GRAPHICS_BACKEND_DIRECT3D8
+};
+
+static void ResetRequestedGraphicsSettings(void)
+{
+        gRequestedGraphicsSettings.width = DEFAULT_XRESOLUTION;
+        gRequestedGraphicsSettings.height = DEFAULT_YRESOLUTION;
+        gRequestedGraphicsSettings.bitDepth = 32;
+        gRequestedGraphicsSettings.windowed = ApplicationIsWindowed;
+        gRequestedGraphicsSettings.vsyncEnabled = true;
+        gRequestedGraphicsSettings.backend = ApplicationGraphicsBackend;
+}
+
+static Bool initializeOpenGLContext(HWND hWnd, const GraphicsDeviceSettings &settings)
+{
+        ApplicationHDC = GetDC(hWnd);
+        if (ApplicationHDC == NULL)
+        {
+                return false;
+        }
+
+        PIXELFORMATDESCRIPTOR pixelFormatDescriptor;
+        ZeroMemory(&pixelFormatDescriptor, sizeof(pixelFormatDescriptor));
+        pixelFormatDescriptor.nSize = sizeof(pixelFormatDescriptor);
+        pixelFormatDescriptor.nVersion = 1;
+        pixelFormatDescriptor.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+        pixelFormatDescriptor.iPixelType = PFD_TYPE_RGBA;
+        pixelFormatDescriptor.cColorBits = (BYTE)settings.bitDepth;
+        pixelFormatDescriptor.cDepthBits = 24;
+        pixelFormatDescriptor.cStencilBits = 8;
+        pixelFormatDescriptor.iLayerType = PFD_MAIN_PLANE;
+
+        int chosenFormat = ChoosePixelFormat(ApplicationHDC, &pixelFormatDescriptor);
+        if (chosenFormat == 0)
+        {
+                ReleaseDC(hWnd, ApplicationHDC);
+                ApplicationHDC = NULL;
+                return false;
+        }
+
+        if (SetPixelFormat(ApplicationHDC, chosenFormat, &pixelFormatDescriptor) == FALSE)
+        {
+                ReleaseDC(hWnd, ApplicationHDC);
+                ApplicationHDC = NULL;
+                return false;
+        }
+
+        ApplicationHGLRC = wglCreateContext(ApplicationHDC);
+        if (ApplicationHGLRC == NULL)
+        {
+                ReleaseDC(hWnd, ApplicationHDC);
+                ApplicationHDC = NULL;
+                return false;
+        }
+
+        if (wglMakeCurrent(ApplicationHDC, ApplicationHGLRC) == FALSE)
+        {
+                wglDeleteContext(ApplicationHGLRC);
+                ApplicationHGLRC = NULL;
+                ReleaseDC(hWnd, ApplicationHDC);
+                ApplicationHDC = NULL;
+                return false;
+        }
+
+        if (settings.vsyncEnabled)
+        {
+                PFNWGLSWAPINTERVALEXTPROC swapInterval = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+                if (swapInterval != NULL)
+                {
+                        swapInterval(1);
+                }
+        }
+
+        return true;
+}
+
+static void shutdownOpenGLContext(void)
+{
+        if (ApplicationHGLRC != NULL)
+        {
+                wglMakeCurrent(NULL, NULL);
+                wglDeleteContext(ApplicationHGLRC);
+                ApplicationHGLRC = NULL;
+        }
+
+        if (ApplicationHDC != NULL && ApplicationHWnd != NULL)
+        {
+                ReleaseDC(ApplicationHWnd, ApplicationHDC);
+                ApplicationHDC = NULL;
+        }
+}
 
 //#define DEBUG_WINDOWS_MESSAGES
 
@@ -656,81 +775,104 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message,
 // initializeAppWindows =======================================================
 /** Register windows class and create application windows. */
 //=============================================================================
-static Bool initializeAppWindows( HINSTANCE hInstance, Int nCmdShow, Bool runWindowed )
+static Bool initializeAppWindows( HINSTANCE hInstance, Int nCmdShow, const GraphicsDeviceSettings &settings )
 {
-	DWORD windowStyle;
-	Int startWidth = DEFAULT_XRESOLUTION,
-			startHeight = DEFAULT_YRESOLUTION;
+        DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+        DWORD windowExStyle = 0;
+        Int startWidth = settings.width;
+        Int startHeight = settings.height;
 
-	// register the window class
+        // register the window class
+        WNDCLASS wndClass = { CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS | CS_OWNDC, WndProc, 0, 0, hInstance,
+                              LoadIcon (hInstance, MAKEINTRESOURCE(IDI_ApplicationIcon)),
+                              NULL/*LoadCursor(NULL, IDC_ARROW)*/,
+                              (HBRUSH)GetStockObject(BLACK_BRUSH), NULL,
+                              TEXT("Game Window") };
+        if (!RegisterClass(&wndClass))
+        {
+                DWORD lastError = GetLastError();
+                if (lastError != ERROR_CLASS_ALREADY_EXISTS)
+                {
+                        return false;
+                }
+        }
 
-  WNDCLASS wndClass = { CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS, WndProc, 0, 0, hInstance,
-                       LoadIcon (hInstance, MAKEINTRESOURCE(IDI_ApplicationIcon)),
-                       NULL/*LoadCursor(NULL, IDC_ARROW)*/, 
-                       (HBRUSH)GetStockObject(BLACK_BRUSH), NULL,
-	                     TEXT("Game Window") };
-  RegisterClass( &wndClass );
+        if (settings.windowed)
+        {
+                windowStyle |= WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+        }
+        else
+        {
+                windowStyle |= WS_POPUP;
+                windowExStyle |= WS_EX_TOPMOST;
+        }
 
-   // Create our main window
-	windowStyle =  WS_POPUP|WS_VISIBLE;
-	if (runWindowed) 
-		windowStyle |= WS_DLGFRAME | WS_CAPTION | WS_SYSMENU;
-	else
-		windowStyle |= WS_EX_TOPMOST | WS_SYSMENU;
+        RECT rect = { 0, 0, startWidth, startHeight };
+        AdjustWindowRectEx(&rect, windowStyle, FALSE, windowExStyle);
 
-	RECT rect;
-	rect.left = 0;
-	rect.top = 0;
-	rect.right = startWidth;
-	rect.bottom = startHeight;
-	AdjustWindowRect (&rect, windowStyle, FALSE);
-	if (runWindowed) {
-		// Makes the normal debug 800x600 window center in the screen.
-		startWidth = DEFAULT_XRESOLUTION;
-		startHeight= DEFAULT_YRESOLUTION;
-	}
+        Int windowWidth = rect.right - rect.left;
+        Int windowHeight = rect.bottom - rect.top;
 
-	gInitializing = true;
+        Int windowPosX = settings.windowed ? ((GetSystemMetrics(SM_CXSCREEN) - windowWidth) / 2) : 0;
+        Int windowPosY = settings.windowed ? ((GetSystemMetrics(SM_CYSCREEN) - windowHeight) / 2) : 0;
 
-  HWND hWnd = CreateWindow( TEXT("Game Window"),
-                            TEXT("Command and Conquer Generals"),
-                            windowStyle, 
-														(GetSystemMetrics( SM_CXSCREEN ) / 2) - (startWidth / 2), // original position X
-														(GetSystemMetrics( SM_CYSCREEN ) / 2) - (startHeight / 2),// original position Y
-														// Lorenzen nudged the window higher
-														// so the constantdebug report would 
-														// not get obliterated by assert windows, thank you.
-														//(GetSystemMetrics( SM_CXSCREEN ) / 2) - (startWidth / 2),   //this works with any screen res
-														//(GetSystemMetrics( SM_CYSCREEN ) / 25) - (startHeight / 25),//this works with any screen res
-														rect.right-rect.left,
-														rect.bottom-rect.top,
-														0L, 
-														0L, 
-														hInstance, 
-														0L );
+        gInitializing = true;
 
+        HWND hWnd = CreateWindowEx( windowExStyle,
+                                                                TEXT("Game Window"),
+                                                                TEXT("Command and Conquer Generals"),
+                                                                windowStyle,
+                                                                windowPosX,
+                                                                windowPosY,
+                                                                windowWidth,
+                                                                windowHeight,
+                                                                0L,
+                                                                0L,
+                                                                hInstance,
+                                                                0L );
 
-	if (!runWindowed)
-	{	SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0,SWP_NOSIZE |SWP_NOMOVE);
-	}
-	else 
-		SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0,SWP_NOSIZE |SWP_NOMOVE);
+        if (hWnd == NULL)
+        {
+                gInitializing = false;
+                return false;
+        }
 
-	SetFocus(hWnd);
+        if (settings.backend == GRAPHICS_BACKEND_OPENGL)
+        {
+                if (!initializeOpenGLContext(hWnd, settings))
+                {
+                        DestroyWindow(hWnd);
+                        gInitializing = false;
+                        return false;
+                }
+        }
 
-	SetForegroundWindow(hWnd);
-	ShowWindow( hWnd, nCmdShow );
-	UpdateWindow( hWnd );
+        if (!settings.windowed)
+        {
+                SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+        }
+        else
+        {
+                SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+        }
 
-	// save our application instance and window handle for future use
-	ApplicationHInstance = hInstance;
-	ApplicationHWnd = hWnd;
-	gInitializing = false;
-	if (!runWindowed) {
-		gDoPaint = false;
-	}
+        SetFocus(hWnd);
+        SetForegroundWindow(hWnd);
+        ShowWindow(hWnd, nCmdShow);
+        UpdateWindow(hWnd);
 
-	return true;  // success
+        // save our application instance and window handle for future use
+        ApplicationHInstance = hInstance;
+        ApplicationHWnd = hWnd;
+        ApplicationIsWindowed = settings.windowed;
+        ApplicationGraphicsBackend = settings.backend;
+        gInitializing = false;
+        if (!settings.windowed)
+        {
+                gDoPaint = false;
+        }
+
+        return true;  // success
 
 }  // end initializeAppWindows
 
@@ -890,19 +1032,73 @@ Int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		/*
 		** Convert WinMain arguments to simple main argc and argv
 		*/
-		int argc = 1;
-		char * argv[20];
-		argv[0] = NULL;
+                int argc = 1;
+                char * argv[20];
+                argv[0] = NULL;
+
+                ResetRequestedGraphicsSettings();
 
 		char *token;
-		token = nextParam(lpCmdLine, "\" ");
-		while (argc < 20 && token != NULL) {
-			argv[argc++] = strtrim(token);
-			//added a preparse step for this flag because it affects window creation style
-			if (stricmp(token,"-win")==0)
-				ApplicationIsWindowed=true;
-			token = nextParam(NULL, "\" ");	   
-		}
+                token = nextParam(lpCmdLine, "\" ");
+                while (argc < 20 && token != NULL) {
+                        argv[argc++] = strtrim(token);
+                        if (stricmp(token,"-win")==0 || stricmp(token,"-windowed")==0) {
+                                ApplicationIsWindowed = true;
+                                gRequestedGraphicsSettings.windowed = true;
+                        } else if (stricmp(token,"-nowin")==0 || stricmp(token,"-fullscreen")==0) {
+                                ApplicationIsWindowed = false;
+                                gRequestedGraphicsSettings.windowed = false;
+                        }
+                        token = nextParam(NULL, "\" ");
+                }
+
+                for (int argIndex = 1; argIndex < argc; ++argIndex) {
+                        const char *argument = argv[argIndex];
+                        if (argument == NULL) {
+                                continue;
+                        }
+
+                        if (stricmp(argument, "-opengl") == 0) {
+                                gRequestedGraphicsSettings.backend = GRAPHICS_BACKEND_OPENGL;
+                        } else if (stricmp(argument, "-direct3d") == 0 || stricmp(argument, "-d3d") == 0) {
+                                gRequestedGraphicsSettings.backend = GRAPHICS_BACKEND_DIRECT3D8;
+                        } else if (stricmp(argument, "-win") == 0 || stricmp(argument, "-windowed") == 0) {
+                                gRequestedGraphicsSettings.windowed = true;
+                        } else if (stricmp(argument, "-nowin") == 0 || stricmp(argument, "-fullscreen") == 0) {
+                                gRequestedGraphicsSettings.windowed = false;
+                        } else if ((stricmp(argument, "-xres") == 0 || stricmp(argument, "-width") == 0) && (argIndex + 1) < argc) {
+                                ++argIndex;
+                                gRequestedGraphicsSettings.width = atoi(argv[argIndex]);
+                        } else if ((stricmp(argument, "-yres") == 0 || stricmp(argument, "-height") == 0) && (argIndex + 1) < argc) {
+                                ++argIndex;
+                                gRequestedGraphicsSettings.height = atoi(argv[argIndex]);
+                        } else if ((stricmp(argument, "-bpp") == 0 || stricmp(argument, "-bitdepth") == 0) && (argIndex + 1) < argc) {
+                                ++argIndex;
+                                gRequestedGraphicsSettings.bitDepth = atoi(argv[argIndex]);
+                        } else if (stricmp(argument, "-novsync") == 0) {
+                                gRequestedGraphicsSettings.vsyncEnabled = false;
+                        } else if (stricmp(argument, "-vsync") == 0) {
+                                gRequestedGraphicsSettings.vsyncEnabled = true;
+                        }
+                }
+
+                ApplicationIsWindowed = gRequestedGraphicsSettings.windowed;
+                if (gRequestedGraphicsSettings.width <= 0)
+                {
+                        gRequestedGraphicsSettings.width = DEFAULT_XRESOLUTION;
+                }
+                if (gRequestedGraphicsSettings.height <= 0)
+                {
+                        gRequestedGraphicsSettings.height = DEFAULT_YRESOLUTION;
+                }
+                if (gRequestedGraphicsSettings.bitDepth != 16 &&
+                        gRequestedGraphicsSettings.bitDepth != 24 &&
+                        gRequestedGraphicsSettings.bitDepth != 32)
+                {
+                        gRequestedGraphicsSettings.bitDepth = 32;
+                }
+
+                ApplicationGraphicsBackend = gRequestedGraphicsSettings.backend;
 
 		if (argc>2 && strcmp(argv[1],"-DX")==0) {  
 			Int i;
@@ -940,8 +1136,8 @@ Int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
  		gLoadScreenBitmap = (HBITMAP)LoadImage(hInstance, "Install_Final.bmp",	IMAGE_BITMAP, 0, 0, LR_SHARED|LR_LOADFROMFILE);
 
 		// register windows class and create application window
-		if( initializeAppWindows( hInstance, nCmdShow, ApplicationIsWindowed) == false )
-			return 0;
+                if( initializeAppWindows( hInstance, nCmdShow, gRequestedGraphicsSettings) == false )
+                        return 0;
 
 		if (gLoadScreenBitmap!=NULL) {
 			::DeleteObject(gLoadScreenBitmap);
@@ -1047,7 +1243,9 @@ Int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	
 	}
 
-	TheAsciiStringCriticalSection = NULL;
+        shutdownOpenGLContext();
+
+        TheAsciiStringCriticalSection = NULL;
 	TheUnicodeStringCriticalSection = NULL;
 	TheDmaCriticalSection = NULL;
 	TheMemoryPoolCriticalSection = NULL;
