@@ -75,16 +75,13 @@
 #include "bound.h"
 #include "dx8webbrowser.h"
 
-#if defined(__has_include)
-#if __has_include(<bgfx/bgfx.h>)
-#include <bgfx/bgfx.h>
-#include <bgfx/platform.h>
-#define WW3D_BGFX_AVAILABLE 1
-#else
+#ifndef WW3D_BGFX_AVAILABLE
 #define WW3D_BGFX_AVAILABLE 0
 #endif
-#else
-#define WW3D_BGFX_AVAILABLE 0
+
+#if WW3D_BGFX_AVAILABLE
+#include <bgfx/bgfx.h>
+#include <bgfx/platform.h>
 #endif
 
 #define WW3D_DEVTYPE D3DDEVTYPE_HAL

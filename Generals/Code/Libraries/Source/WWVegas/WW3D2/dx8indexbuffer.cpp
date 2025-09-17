@@ -43,7 +43,11 @@
 #include "dx8caps.h"
 #include "sphere.h"
 #include "thread.h"
-#if __has_include(<bgfx/bgfx.h>)
+#ifndef WW3D_BGFX_AVAILABLE
+#define WW3D_BGFX_AVAILABLE 0
+#endif
+
+#if WW3D_BGFX_AVAILABLE
 #define WW3D_BGFX_INDEX_AVAILABLE 1
 #include <bgfx/bgfx.h>
 #include <vector>

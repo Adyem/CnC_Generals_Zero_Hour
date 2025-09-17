@@ -47,6 +47,18 @@
 #include "wwmemlog.h"
 #include <D3dx8core.h>
 
+#ifndef WW3D_BGFX_AVAILABLE
+#define WW3D_BGFX_AVAILABLE 0
+#endif
+
+#if WW3D_BGFX_AVAILABLE
+#define WW3D_BGFX_VERTEX_AVAILABLE 1
+#include <bgfx/bgfx.h>
+#include <vector>
+#else
+#define WW3D_BGFX_VERTEX_AVAILABLE 0
+#endif
+
 #define DEFAULT_VB_SIZE 5000
 
 static bool _DynamicSortingVertexArrayInUse=false;

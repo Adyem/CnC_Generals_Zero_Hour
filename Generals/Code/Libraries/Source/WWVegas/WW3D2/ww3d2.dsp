@@ -44,8 +44,8 @@ RSC=rc.exe
 # PROP Output_Dir "Release"
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /G6 /MD /W3 /WX /GX /O2 /Ob2 /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /I "..\wwsaveload" /I "..\wwaudio" /I "..\miles6\include" /D WINVER=0x400 /D "_WINDOWS" /D "WIN32_LEAN_AND_MEAN" /D "NDEBUG" /D "WIN32" /D "IG_DEBUG_STACKTRACE" /Fr /YX /FD /c
+# ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c /I "..\..\..\bgfx\include" /I "..\..\..\bx\include" /I "..\..\..\bimg\include" /D "WW3D_BGFX_AVAILABLE=1"
+# ADD CPP /nologo /G6 /MD /W3 /WX /GX /O2 /Ob2 /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /I "..\wwsaveload" /I "..\wwaudio" /I "..\miles6\include" /D WINVER=0x400 /D "_WINDOWS" /D "WIN32_LEAN_AND_MEAN" /D "NDEBUG" /D "WIN32" /D "IG_DEBUG_STACKTRACE" /Fr /YX /FD /c /I "..\..\..\bgfx\include" /I "..\..\..\bx\include" /I "..\..\..\bimg\include" /D "WW3D_BGFX_AVAILABLE=1"
 # ADD BASE RSC /l 0x409
 # ADD RSC /l 0x409
 BSC32=bscmake.exe
@@ -67,8 +67,8 @@ LIB32=link.exe -lib
 # PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /GX /Z7 /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /G6 /MDd /W3 /WX /Gi /GX /Zi /O2 /Ob2 /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /I "..\wwsaveload" /I "..\wwaudio" /I "..\miles6\include" /D "_DEBUG" /D WINVER=0x400 /D "_WINDOWS" /D "WIN32_LEAN_AND_MEAN" /D "WIN32" /Fr /YX /FD /c
+# ADD BASE CPP /nologo /W3 /GX /Z7 /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /FD /c /I "..\..\..\bgfx\include" /I "..\..\..\bx\include" /I "..\..\..\bimg\include" /D "WW3D_BGFX_AVAILABLE=1"
+# ADD CPP /nologo /G6 /MDd /W3 /WX /Gi /GX /Zi /O2 /Ob2 /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /I "..\wwsaveload" /I "..\wwaudio" /I "..\miles6\include" /D "_DEBUG" /D WINVER=0x400 /D "_WINDOWS" /D "WIN32_LEAN_AND_MEAN" /D "WIN32" /Fr /YX /FD /c /I "..\..\..\bgfx\include" /I "..\..\..\bx\include" /I "..\..\..\bimg\include" /D "WW3D_BGFX_AVAILABLE=1"
 # ADD BASE RSC /l 0x409
 # ADD RSC /l 0x409
 BSC32=bscmake.exe
@@ -90,8 +90,8 @@ LIB32=link.exe -lib
 # PROP Output_Dir "Profile"
 # PROP Intermediate_Dir "Profile"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MD /W3 /GX /O2 /I "..\srsdk\include" /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /WX /GX /Zi /O2 /Ob2 /I "..\srsdk1x\include" /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /I "..\wwsaveload" /I "..\wwaudio" /I "..\miles6\include" /D "NDEBUG" /D "WWDEBUG" /D WINVER=0x400 /D "_WINDOWS" /D "WIN32_LEAN_AND_MEAN" /D "WIN32" /YX /FD /c
+# ADD BASE CPP /nologo /MD /W3 /GX /O2 /I "..\srsdk\include" /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c /I "..\..\..\bgfx\include" /I "..\..\..\bx\include" /I "..\..\..\bimg\include" /D "WW3D_BGFX_AVAILABLE=1"
+# ADD CPP /nologo /MD /W3 /WX /GX /Zi /O2 /Ob2 /I "..\srsdk1x\include" /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /I "..\wwsaveload" /I "..\wwaudio" /I "..\miles6\include" /D "NDEBUG" /D "WWDEBUG" /D WINVER=0x400 /D "_WINDOWS" /D "WIN32_LEAN_AND_MEAN" /D "WIN32" /YX /FD /c /I "..\..\..\bgfx\include" /I "..\..\..\bx\include" /I "..\..\..\bimg\include" /D "WW3D_BGFX_AVAILABLE=1"
 # SUBTRACT CPP /Fr
 # ADD BASE RSC /l 0x409
 # ADD RSC /l 0x409
@@ -114,8 +114,8 @@ LIB32=link.exe -lib
 # PROP Output_Dir "ProfileE"
 # PROP Intermediate_Dir "ProfileE"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MD /W3 /Gm /Gi /GX /Zi /O2 /I "..\srsdk1x\include" /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /I "..\wwsaveload" /D "NDEBUG" /D "WWDEBUG" /D WINVER=0x400 /D "_WINDOWS" /D "WIN32_LEAN_AND_MEAN" /D "WIN32" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /WX /Gm /Gi /GX /Zi /O2 /I "..\srsdk1x\include" /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /I "..\wwsaveload" /I "..\wwaudio" /I "..\miles6\include" /D "NDEBUG" /D "WWDEBUG" /D WINVER=0x400 /D "_WINDOWS" /D "WIN32_LEAN_AND_MEAN" /D "WIN32" /D "PARAM_EDITING_ON" /YX /FD /c
+# ADD BASE CPP /nologo /MD /W3 /Gm /Gi /GX /Zi /O2 /I "..\srsdk1x\include" /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /I "..\wwsaveload" /D "NDEBUG" /D "WWDEBUG" /D WINVER=0x400 /D "_WINDOWS" /D "WIN32_LEAN_AND_MEAN" /D "WIN32" /YX /FD /c /I "..\..\..\bgfx\include" /I "..\..\..\bx\include" /I "..\..\..\bimg\include" /D "WW3D_BGFX_AVAILABLE=1"
+# ADD CPP /nologo /MD /W3 /WX /Gm /Gi /GX /Zi /O2 /I "..\srsdk1x\include" /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /I "..\wwsaveload" /I "..\wwaudio" /I "..\miles6\include" /D "NDEBUG" /D "WWDEBUG" /D WINVER=0x400 /D "_WINDOWS" /D "WIN32_LEAN_AND_MEAN" /D "WIN32" /D "PARAM_EDITING_ON" /YX /FD /c /I "..\..\..\bgfx\include" /I "..\..\..\bx\include" /I "..\..\..\bimg\include" /D "WW3D_BGFX_AVAILABLE=1"
 # SUBTRACT CPP /Fr
 # ADD BASE RSC /l 0x409
 # ADD RSC /l 0x409
@@ -138,8 +138,8 @@ LIB32=link.exe -lib
 # PROP Output_Dir "DebugE"
 # PROP Intermediate_Dir "DebugE"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MDd /W4 /Gm /Gi /GX /ZI /Od /I "..\srsdk1x\include" /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /I "..\wwsaveload" /D "_DEBUG" /D "WWDEBUG" /D WINVER=0x400 /D "_WINDOWS" /D "WIN32_LEAN_AND_MEAN" /D "WIN32" /Fr /YX /FD /c
-# ADD CPP /nologo /MDd /W3 /WX /Gm /Gi /GX /ZI /Od /I "..\srsdk1x\include" /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /I "..\wwsaveload" /I "..\wwaudio" /I "..\miles6\include" /D "_DEBUG" /D "WWDEBUG" /D WINVER=0x400 /D "_WINDOWS" /D "WIN32_LEAN_AND_MEAN" /D "WIN32" /D "PARAM_EDITING_ON" /YX /FD /c
+# ADD BASE CPP /nologo /MDd /W4 /Gm /Gi /GX /ZI /Od /I "..\srsdk1x\include" /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /I "..\wwsaveload" /D "_DEBUG" /D "WWDEBUG" /D WINVER=0x400 /D "_WINDOWS" /D "WIN32_LEAN_AND_MEAN" /D "WIN32" /Fr /YX /FD /c /I "..\..\..\bgfx\include" /I "..\..\..\bx\include" /I "..\..\..\bimg\include" /D "WW3D_BGFX_AVAILABLE=1"
+# ADD CPP /nologo /MDd /W3 /WX /Gm /Gi /GX /ZI /Od /I "..\srsdk1x\include" /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /I "..\wwsaveload" /I "..\wwaudio" /I "..\miles6\include" /D "_DEBUG" /D "WWDEBUG" /D WINVER=0x400 /D "_WINDOWS" /D "WIN32_LEAN_AND_MEAN" /D "WIN32" /D "PARAM_EDITING_ON" /YX /FD /c /I "..\..\..\bgfx\include" /I "..\..\..\bx\include" /I "..\..\..\bimg\include" /D "WW3D_BGFX_AVAILABLE=1"
 # SUBTRACT CPP /Fr
 # ADD BASE RSC /l 0x409
 # ADD RSC /l 0x409
@@ -162,9 +162,9 @@ LIB32=link.exe -lib
 # PROP Output_Dir "Internal"
 # PROP Intermediate_Dir "Internal"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MD /W3 /GR /GX /Zi /O2 /Ob2 /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /I "..\wwsaveload" /I "..\wwaudio" /I "..\miles6\include" /D "NDEBUG" /D WINVER=0x400 /D "_WINDOWS" /D "WIN32_LEAN_AND_MEAN" /D "WIN32" /YX /FD /c
+# ADD BASE CPP /nologo /MD /W3 /GR /GX /Zi /O2 /Ob2 /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /I "..\wwsaveload" /I "..\wwaudio" /I "..\miles6\include" /D "NDEBUG" /D WINVER=0x400 /D "_WINDOWS" /D "WIN32_LEAN_AND_MEAN" /D "WIN32" /YX /FD /c /I "..\..\..\bgfx\include" /I "..\..\..\bx\include" /I "..\..\..\bimg\include" /D "WW3D_BGFX_AVAILABLE=1"
 # SUBTRACT BASE CPP /Fr
-# ADD CPP /nologo /G6 /MD /W3 /WX /GX /Zi /O2 /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /I "..\wwsaveload" /I "..\wwaudio" /I "..\miles6\include" /D "NDEBUG" /D WINVER=0x400 /D "_WINDOWS" /D "WIN32_LEAN_AND_MEAN" /D "WIN32" /D "_INTERNAL" /Fr /YX /FD /c
+# ADD CPP /nologo /G6 /MD /W3 /WX /GX /Zi /O2 /I "..\wwlib" /I "..\wwmath" /I "..\wwdebug" /I "..\wwcpuid" /I "..\wwsaveload" /I "..\wwaudio" /I "..\miles6\include" /D "NDEBUG" /D WINVER=0x400 /D "_WINDOWS" /D "WIN32_LEAN_AND_MEAN" /D "WIN32" /D "_INTERNAL" /Fr /YX /FD /c /I "..\..\..\bgfx\include" /I "..\..\..\bx\include" /I "..\..\..\bimg\include" /D "WW3D_BGFX_AVAILABLE=1"
 # ADD BASE RSC /l 0x409
 # ADD RSC /l 0x409
 BSC32=bscmake.exe
@@ -582,7 +582,7 @@ SOURCE=.\visrasterizer.cpp
 # Begin Source File
 
 SOURCE=.\w3d_dep.cpp
-# ADD CPP /GX
+# ADD CPP /GX /I "..\..\..\bgfx\include" /I "..\..\..\bx\include" /I "..\..\..\bimg\include" /D "WW3D_BGFX_AVAILABLE=1"
 # End Source File
 # Begin Source File
 

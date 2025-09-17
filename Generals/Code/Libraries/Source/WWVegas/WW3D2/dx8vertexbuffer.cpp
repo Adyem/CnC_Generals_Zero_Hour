@@ -45,7 +45,11 @@
 #include "thread.h"
 #include <D3dx8core.h>
 
-#if __has_include(<bgfx/bgfx.h>)
+#ifndef WW3D_BGFX_AVAILABLE
+#define WW3D_BGFX_AVAILABLE 0
+#endif
+
+#if WW3D_BGFX_AVAILABLE
 #define WW3D_BGFX_VERTEX_AVAILABLE 1
 #include <bgfx/bgfx.h>
 #include <vector>
