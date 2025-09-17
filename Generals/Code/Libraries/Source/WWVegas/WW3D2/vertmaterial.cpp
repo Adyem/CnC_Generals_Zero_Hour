@@ -900,9 +900,31 @@ WW3DErrorType VertexMaterialClass::Save_W3D(ChunkSaveClass & csave)
 
 void VertexMaterialClass::Apply(void) const
 {
-	int i;
+        int i;
 
-	DX8Wrapper::Set_DX8_Material(Material);
+        if (DX8Wrapper::Is_Bgfx_Active())
+        {
+                BgfxStateData& bgfx_state = DX8Wrapper::render_state.bgfx;
+                const D3DMATERIAL8& mat = *Material;
+                bgfx_state.materialAmbient.Set(mat.Ambient.r, mat.Ambient.g, mat.Ambient.b, mat.Ambient.a);
+                bgfx_state.materialDiffuse.Set(mat.Diffuse.r, mat.Diffuse.g, mat.Diffuse.b, mat.Diffuse.a);
+                bgfx_state.materialSpecular.Set(mat.Specular.r, mat.Specular.g, mat.Specular.b, 1.0f);
+                bgfx_state.materialEmissive.Set(mat.Emissive.r, mat.Emissive.g, mat.Emissive.b, 1.0f);
+                bgfx_state.materialShininess = mat.Power;
+                bgfx_state.materialLightingEnabled = (!WW3D::Is_Coloring_Enabled()) && UseLighting;
+                bgfx_state.ambientSource = AmbientColorSource;
+                bgfx_state.diffuseSource = DiffuseColorSource;
+                bgfx_state.emissiveSource = EmissiveColorSource;
+
+                unsigned stage_count = (MAX_TEXTURE_STAGES < MeshBuilderClass::MAX_STAGES) ? MAX_TEXTURE_STAGES : MeshBuilderClass::MAX_STAGES;
+                for (unsigned stage = 0; stage < stage_count; ++stage) {
+                        bgfx_state.uvSource[stage] = static_cast<uint8_t>(UVSource[stage]);
+                }
+
+                return;
+        }
+
+        DX8Wrapper::Set_DX8_Material(Material);
 
 	if (WW3D::Is_Coloring_Enabled())
 		DX8Wrapper::Set_DX8_Render_State(D3DRS_LIGHTING,FALSE);
@@ -925,46 +947,49 @@ void VertexMaterialClass::Apply(void) const
 
 void VertexMaterialClass::Apply_Null(void)
 {
-	int i;
-	static D3DMATERIAL8 default_settings = 
-	{
-		{ 1.0f, 1.0f, 1.0f, 1.0f },	// diffuse
-		{ 1.0f, 1.0f, 1.0f, 1.0f },	// ambient
-		{ 0.0f, 0.0f, 0.0f, 0.0f },	// specular
-		{ 0.0f, 0.0f, 0.0f, 0.0f },	// emissive
-		1.0f									// power
-	};
+        int i;
+        static D3DMATERIAL8 default_settings =
+        {
+                { 1.0f, 1.0f, 1.0f, 1.0f },     // diffuse
+                { 1.0f, 1.0f, 1.0f, 1.0f },     // ambient
+                { 0.0f, 0.0f, 0.0f, 0.0f },     // specular
+                { 0.0f, 0.0f, 0.0f, 0.0f },     // emissive
+                1.0f                                                                    // power
+        };
 
-	DX8Wrapper::Set_DX8_Render_State(D3DRS_LIGHTING,FALSE);
-	DX8Wrapper::Set_DX8_Material(&default_settings);
+        if (DX8Wrapper::Is_Bgfx_Active())
+        {
+                BgfxStateData& bgfx_state = DX8Wrapper::render_state.bgfx;
+                bgfx_state.materialAmbient.Set(1.0f, 1.0f, 1.0f, 1.0f);
+                bgfx_state.materialDiffuse.Set(1.0f, 1.0f, 1.0f, 1.0f);
+                bgfx_state.materialSpecular.Set(0.0f, 0.0f, 0.0f, 0.0f);
+                bgfx_state.materialEmissive.Set(0.0f, 0.0f, 0.0f, 0.0f);
+                bgfx_state.materialShininess = 1.0f;
+                bgfx_state.materialLightingEnabled = false;
+                bgfx_state.ambientSource = D3DMCS_MATERIAL;
+                bgfx_state.diffuseSource = D3DMCS_MATERIAL;
+                bgfx_state.emissiveSource = D3DMCS_MATERIAL;
 
-	DX8Wrapper::Set_DX8_Render_State(D3DRS_AMBIENTMATERIALSOURCE,D3DMCS_MATERIAL);
-	DX8Wrapper::Set_DX8_Render_State(D3DRS_DIFFUSEMATERIALSOURCE,D3DMCS_MATERIAL);
-	DX8Wrapper::Set_DX8_Render_State(D3DRS_EMISSIVEMATERIALSOURCE,D3DMCS_MATERIAL);
+                for (unsigned stage = 0; stage < MAX_TEXTURE_STAGES; ++stage) {
+                        bgfx_state.uvSource[stage] = static_cast<uint8_t>(stage);
+                }
 
-	// set to default values if no mappers
-	for (i=0; i<MeshBuilderClass::MAX_STAGES; i++) {
-		DX8Wrapper::Set_DX8_Texture_Stage_State(i,D3DTSS_TEXCOORDINDEX,D3DTSS_TCI_PASSTHRU | i);	
-		DX8Wrapper::Set_DX8_Texture_Stage_State(i,D3DTSS_TEXTURETRANSFORMFLAGS,D3DTTFF_DISABLE);		
-	}
+                return;
+        }
+
+        DX8Wrapper::Set_DX8_Render_State(D3DRS_LIGHTING,FALSE);
+        DX8Wrapper::Set_DX8_Material(&default_settings);
+
+        DX8Wrapper::Set_DX8_Render_State(D3DRS_AMBIENTMATERIALSOURCE,D3DMCS_MATERIAL);
+        DX8Wrapper::Set_DX8_Render_State(D3DRS_DIFFUSEMATERIALSOURCE,D3DMCS_MATERIAL);
+        DX8Wrapper::Set_DX8_Render_State(D3DRS_EMISSIVEMATERIALSOURCE,D3DMCS_MATERIAL);
+
+        // set to default values if no mappers
+        for (i=0; i<MeshBuilderClass::MAX_STAGES; i++) {
+                DX8Wrapper::Set_DX8_Texture_Stage_State(i,D3DTSS_TEXCOORDINDEX,D3DTSS_TCI_PASSTHRU | i);
+                DX8Wrapper::Set_DX8_Texture_Stage_State(i,D3DTSS_TEXTURETRANSFORMFLAGS,D3DTTFF_DISABLE);
+        }
 }
-
-
-/***********************************************************************************************
- * Init -- init code                                                                           *
- *                                                                                             *
- *                                                                                             *
- *                                                                                             *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   2/14/2001  hy : Created.                                                                  *
- *=============================================================================================*/
 void VertexMaterialClass::Init()
 {
 	int i;

@@ -45,11 +45,48 @@
 #include "wwdebug.h"
 #include "Dx8Wrapper.h"
 #include "dx8caps.h"
+#if WW3D_BGFX_AVAILABLE
+#include <bgfx/bgfx.h>
+#endif
 
 
 bool ShaderClass::ShaderDirty=true;
 unsigned long ShaderClass::CurrentShader=0;
 unsigned long _PolygonCullMode = D3DCULL_CW;
+
+#if WW3D_BGFX_AVAILABLE
+static uint64_t Convert_Blend_Factor_To_Bgfx(D3DBLEND blend)
+{
+        switch (blend) {
+        case D3DBLEND_ZERO: return BGFX_STATE_BLEND_ZERO;
+        case D3DBLEND_ONE: return BGFX_STATE_BLEND_ONE;
+        case D3DBLEND_SRCCOLOR: return BGFX_STATE_BLEND_SRC_COLOR;
+        case D3DBLEND_INVSRCCOLOR: return BGFX_STATE_BLEND_INV_SRC_COLOR;
+        case D3DBLEND_SRCALPHA: return BGFX_STATE_BLEND_SRC_ALPHA;
+        case D3DBLEND_INVSRCALPHA: return BGFX_STATE_BLEND_INV_SRC_ALPHA;
+        case D3DBLEND_DESTCOLOR: return BGFX_STATE_BLEND_DST_COLOR;
+        case D3DBLEND_INVDESTCOLOR: return BGFX_STATE_BLEND_INV_DST_COLOR;
+        case D3DBLEND_DESTALPHA: return BGFX_STATE_BLEND_DST_ALPHA;
+        case D3DBLEND_INVDESTALPHA: return BGFX_STATE_BLEND_INV_DST_ALPHA;
+        default: return BGFX_STATE_BLEND_ONE;
+        }
+}
+
+static uint64_t Convert_Depth_Compare_To_Bgfx(ShaderClass::DepthCompareType compare)
+{
+        switch (compare) {
+        case ShaderClass::PASS_NEVER: return BGFX_STATE_DEPTH_TEST_NEVER;
+        case ShaderClass::PASS_LESS: return BGFX_STATE_DEPTH_TEST_LESS;
+        case ShaderClass::PASS_EQUAL: return BGFX_STATE_DEPTH_TEST_EQUAL;
+        case ShaderClass::PASS_LEQUAL: return BGFX_STATE_DEPTH_TEST_LEQUAL;
+        case ShaderClass::PASS_GREATER: return BGFX_STATE_DEPTH_TEST_GREATER;
+        case ShaderClass::PASS_NOTEQUAL: return BGFX_STATE_DEPTH_TEST_NOTEQUAL;
+        case ShaderClass::PASS_GEQUAL: return BGFX_STATE_DEPTH_TEST_GEQUAL;
+        case ShaderClass::PASS_ALWAYS: return BGFX_STATE_DEPTH_TEST_ALWAYS;
+        default: return BGFX_STATE_DEPTH_TEST_LEQUAL;
+        }
+}
+#endif
 
 
 /*
@@ -415,12 +452,86 @@ void ShaderClass::Apply()
 	if(!diff) return;
 
 
-	CurrentShader=ShaderBits;
-	ShaderDirty=false;
-	// COLOR MASK
+        CurrentShader=ShaderBits;
+        ShaderDirty=false;
+#if WW3D_BGFX_AVAILABLE
+        if (DX8Wrapper::Is_Bgfx_Active())
+        {
+                BgfxStateData& bgfx_state = DX8Wrapper::render_state.bgfx;
+                uint64_t state = 0;
 
-	if(diff & (ShaderClass::MASK_COLORMASK | ShaderClass::MASK_SRCBLEND | ShaderClass::MASK_DSTBLEND | ShaderClass::MASK_ALPHATEST))
-	{
+                if (Get_Color_Mask() == ShaderClass::COLOR_WRITE_ENABLE) {
+                        state |= BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
+                }
+
+                if (Get_Depth_Mask() == ShaderClass::DEPTH_WRITE_ENABLE) {
+                        state |= BGFX_STATE_WRITE_Z;
+                }
+
+                state |= Convert_Depth_Compare_To_Bgfx(Get_Depth_Compare());
+
+                if (Get_Cull_Mode() == ShaderClass::CULL_MODE_ENABLE) {
+                        if (_PolygonCullMode == D3DCULL_CW) {
+                                state |= BGFX_STATE_CULL_CW;
+                        } else if (_PolygonCullMode == D3DCULL_CCW) {
+                                state |= BGFX_STATE_CULL_CCW;
+                        }
+                }
+
+                D3DBLEND sf;
+                D3DBLEND df;
+                if (Get_Color_Mask() != ShaderClass::COLOR_WRITE_ENABLE) {
+                        sf = D3DBLEND_ZERO;
+                        df = D3DBLEND_ONE;
+                } else {
+                        sf = srcBlendLUT[int(Get_Src_Blend_Func())].func;
+                        df = dstBlendLUT[int(Get_Dst_Blend_Func())].func;
+                }
+
+                if ((sf != D3DBLEND_ONE) || (df != D3DBLEND_ZERO)) {
+                        state |= BGFX_STATE_BLEND_FUNC(Convert_Blend_Factor_To_Bgfx(sf), Convert_Blend_Factor_To_Bgfx(df));
+                }
+
+                bgfx_state.alphaTestEnabled = false;
+                bgfx_state.alphaReference = 0.0f;
+                bgfx_state.alphaFunc = D3DCMP_ALWAYS;
+                if (Get_Alpha_Test() == ShaderClass::ALPHATEST_ENABLE) {
+                        uint8_t alpha_reference = 0x60;
+                        uint8_t alpha_func = D3DCMP_GREATEREQUAL;
+                        if (sf == D3DBLEND_INVSRCALPHA) {
+                                alpha_reference = 0xff - alpha_reference;
+                                alpha_func = D3DCMP_LESSEQUAL;
+                        }
+
+                        bgfx_state.alphaTestEnabled = true;
+                        bgfx_state.alphaReference = static_cast<float>(alpha_reference) / 255.0f;
+                        bgfx_state.alphaFunc = alpha_func;
+                        state |= BGFX_STATE_ALPHA_REF(alpha_reference);
+                }
+
+                for (unsigned stage = 0; stage < MAX_TEXTURE_STAGES; ++stage) {
+                        bgfx_state.textureEnabled[stage] = false;
+                }
+
+                if (MAX_TEXTURE_STAGES > 0) {
+                        bgfx_state.textureEnabled[0] = (Get_Texturing() == ShaderClass::TEXTURING_ENABLE);
+                }
+
+                if (MAX_TEXTURE_STAGES > 1) {
+                        bool use_post_detail = (Get_Texturing() == ShaderClass::TEXTURING_ENABLE) &&
+                                ((Get_Post_Detail_Color_Func() != ShaderClass::DETAILCOLOR_DISABLE) ||
+                                 (Get_Post_Detail_Alpha_Func() != ShaderClass::DETAILALPHA_DISABLE));
+                        bgfx_state.textureEnabled[1] = use_post_detail;
+                }
+
+                bgfx_state.stateFlags = state;
+                return;
+        }
+#endif
+        // COLOR MASK
+
+        if(diff & (ShaderClass::MASK_COLORMASK | ShaderClass::MASK_SRCBLEND | ShaderClass::MASK_DSTBLEND | ShaderClass::MASK_ALPHATEST))
+        {
 		ULONG planeMask = 0xffffff;
 
 		if(Get_Color_Mask() != ShaderClass::COLOR_WRITE_ENABLE)
