@@ -60,6 +60,12 @@
 #include "vertmaterial.h"
 #include "Main/GraphicsBackend.h"
 
+#include <string.h>
+
+#if WW3D_BGFX_AVAILABLE
+#include <bgfx/bgfx.h>
+#endif
+
 const unsigned MAX_TEXTURE_STAGES=2;
 
 enum {
@@ -154,26 +160,93 @@ public:
 
 struct RenderStateStruct
 {
-	ShaderClass shader;
-	VertexMaterialClass* material;
-	TextureClass * Textures[MAX_TEXTURE_STAGES];
-	D3DLIGHT8 Lights[4];
-	bool LightEnable[4];
-	Matrix4 world;
-	Matrix4 view;
-	unsigned vertex_buffer_type;
-	unsigned index_buffer_type;
-	unsigned short vba_offset;
-	unsigned short vba_count;
-	unsigned short iba_offset;
-	VertexBufferClass* vertex_buffer;
-	IndexBufferClass* index_buffer;
-	unsigned short index_base_offset;
+        ShaderClass shader;
+        VertexMaterialClass* material;
+        TextureClass * Textures[MAX_TEXTURE_STAGES];
+        D3DLIGHT8 Lights[4];
+        bool LightEnable[4];
+        Matrix4 world;
+        Matrix4 view;
+        unsigned vertex_buffer_type;
+        unsigned index_buffer_type;
+        unsigned short vba_offset;
+        unsigned short vba_count;
+        unsigned short iba_offset;
+        VertexBufferClass* vertex_buffer;
+        IndexBufferClass* index_buffer;
+        unsigned short index_base_offset;
 
-	RenderStateStruct();
-	~RenderStateStruct();
+#if WW3D_BGFX_AVAILABLE
+        struct BgfxUniformCache
+        {
+                BgfxUniformCache()
+                {
+                        Reset();
+                }
 
-	RenderStateStruct& operator= (const RenderStateStruct& src);
+                void Reset()
+                {
+                        ::memset(shaderParams, 0, sizeof(shaderParams));
+                        ::memset(materialAmbient, 0, sizeof(materialAmbient));
+                        ::memset(materialDiffuse, 0, sizeof(materialDiffuse));
+                        ::memset(materialSpecular, 0, sizeof(materialSpecular));
+                        ::memset(materialEmissive, 0, sizeof(materialEmissive));
+                        ::memset(materialParams, 0, sizeof(materialParams));
+                        shaderParamsValid = false;
+                        materialParamsValid = false;
+                }
+
+                float shaderParams[4];
+                float materialAmbient[4];
+                float materialDiffuse[4];
+                float materialSpecular[4];
+                float materialEmissive[4];
+                float materialParams[4];
+                bool shaderParamsValid;
+                bool materialParamsValid;
+        };
+
+        struct BgfxTextureBinding
+        {
+                BgfxTextureBinding() : texture(NULL), samplerFlags(BGFX_SAMPLER_NONE) {}
+
+                TextureClass* texture;
+                uint32_t samplerFlags;
+        };
+
+        struct BgfxCachedState
+        {
+                BgfxCachedState() : stateFlags(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z)
+                {
+                        for (unsigned stage = 0; stage < MAX_TEXTURE_STAGES; ++stage)
+                        {
+                                textures[stage] = BgfxTextureBinding();
+                        }
+                        uniforms.Reset();
+                }
+
+                void Reset()
+                {
+                        stateFlags = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z;
+                        for (unsigned stage = 0; stage < MAX_TEXTURE_STAGES; ++stage)
+                        {
+                                textures[stage] = BgfxTextureBinding();
+                        }
+                        uniforms.Reset();
+                }
+
+                uint64_t stateFlags;
+                BgfxTextureBinding textures[MAX_TEXTURE_STAGES];
+                BgfxUniformCache uniforms;
+        };
+
+        BgfxCachedState bgfx;
+#endif
+
+        RenderStateStruct();
+        ~RenderStateStruct();
+
+        RenderStateStruct& operator= (const RenderStateStruct& src);
 };
 
 /** 
@@ -971,10 +1044,14 @@ WWINLINE void DX8Wrapper::Get_Shader(ShaderClass& shader)
 
 WWINLINE void DX8Wrapper::Set_Texture(unsigned stage,TextureClass* texture)
 {
-	WWASSERT(stage<MAX_TEXTURE_STAGES);
-	if (texture==render_state.Textures[stage]) return;
-	REF_PTR_SET(render_state.Textures[stage],texture);
-	render_state_changed|=(TEXTURE0_CHANGED<<stage);
+        WWASSERT(stage<MAX_TEXTURE_STAGES);
+        if (texture==render_state.Textures[stage]) return;
+        REF_PTR_SET(render_state.Textures[stage],texture);
+#if WW3D_BGFX_AVAILABLE
+        render_state.bgfx.textures[stage].texture = texture;
+        render_state.bgfx.textures[stage].samplerFlags = BGFX_SAMPLER_NONE;
+#endif
+        render_state_changed|=(TEXTURE0_CHANGED<<stage);
 }
 
 WWINLINE void DX8Wrapper::Set_Material(const VertexMaterialClass* material)
@@ -1142,17 +1219,20 @@ WWINLINE void DX8Wrapper::Release_Render_State()
 
 
 WWINLINE RenderStateStruct::RenderStateStruct()
-	:
-	material(0),
-	vertex_buffer(0),
-	index_buffer(0)
+        :
+        material(0),
+        vertex_buffer(0),
+        index_buffer(0)
 {
-	for (unsigned i=0;i<MAX_TEXTURE_STAGES;++i) Textures[i]=0;
+        for (unsigned i=0;i<MAX_TEXTURE_STAGES;++i) Textures[i]=0;
+#if WW3D_BGFX_AVAILABLE
+        bgfx.Reset();
+#endif
 }
 
 WWINLINE RenderStateStruct::~RenderStateStruct()
 {
-	REF_PTR_RELEASE(material);
+        REF_PTR_RELEASE(material);
 	REF_PTR_RELEASE(vertex_buffer);
 	REF_PTR_RELEASE(index_buffer);
 	for (unsigned i=0;i<MAX_TEXTURE_STAGES;++i) REF_PTR_RELEASE(Textures[i]);
@@ -1161,10 +1241,10 @@ WWINLINE RenderStateStruct::~RenderStateStruct()
 
 WWINLINE RenderStateStruct& RenderStateStruct::operator= (const RenderStateStruct& src)
 {
-	REF_PTR_SET(material,src.material);
-	REF_PTR_SET(vertex_buffer,src.vertex_buffer);
-	REF_PTR_SET(index_buffer,src.index_buffer);
-	for (unsigned i=0;i<MAX_TEXTURE_STAGES;++i) REF_PTR_SET(Textures[i],src.Textures[i]);
+        REF_PTR_SET(material,src.material);
+        REF_PTR_SET(vertex_buffer,src.vertex_buffer);
+        REF_PTR_SET(index_buffer,src.index_buffer);
+        for (unsigned i=0;i<MAX_TEXTURE_STAGES;++i) REF_PTR_SET(Textures[i],src.Textures[i]);
 
 	LightEnable[0]=src.LightEnable[0];
 	LightEnable[1]=src.LightEnable[1];
@@ -1189,11 +1269,15 @@ WWINLINE RenderStateStruct& RenderStateStruct::operator= (const RenderStateStruc
 	vertex_buffer_type=src.vertex_buffer_type;
 	index_buffer_type=src.index_buffer_type;
 	vba_offset=src.vba_offset;
-	vba_count=src.vba_count;
-	iba_offset=src.iba_offset;
-	index_base_offset=src.index_base_offset;
+        vba_count=src.vba_count;
+        iba_offset=src.iba_offset;
+        index_base_offset=src.index_base_offset;
 
-	return *this;
+#if WW3D_BGFX_AVAILABLE
+        bgfx = src.bgfx;
+#endif
+
+        return *this;
 }
 
 

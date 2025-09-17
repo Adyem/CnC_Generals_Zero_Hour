@@ -900,15 +900,47 @@ WW3DErrorType VertexMaterialClass::Save_W3D(ChunkSaveClass & csave)
 
 void VertexMaterialClass::Apply(void) const
 {
-	int i;
+        int i;
 
-	DX8Wrapper::Set_DX8_Material(Material);
+        DX8Wrapper::Set_DX8_Material(Material);
 
-	if (WW3D::Is_Coloring_Enabled())
-		DX8Wrapper::Set_DX8_Render_State(D3DRS_LIGHTING,FALSE);
-	else
-		DX8Wrapper::Set_DX8_Render_State(D3DRS_LIGHTING,UseLighting);
-	DX8Wrapper::Set_DX8_Render_State(D3DRS_AMBIENTMATERIALSOURCE,AmbientColorSource);
+#if WW3D_BGFX_AVAILABLE
+        if (DX8Wrapper::Is_Bgfx_Active())
+        {
+                RenderStateStruct::BgfxUniformCache& cache = DX8Wrapper::render_state.bgfx.uniforms;
+                cache.materialAmbient[0] = Material->Ambient.r;
+                cache.materialAmbient[1] = Material->Ambient.g;
+                cache.materialAmbient[2] = Material->Ambient.b;
+                cache.materialAmbient[3] = Material->Ambient.a;
+
+                cache.materialDiffuse[0] = Material->Diffuse.r;
+                cache.materialDiffuse[1] = Material->Diffuse.g;
+                cache.materialDiffuse[2] = Material->Diffuse.b;
+                cache.materialDiffuse[3] = Material->Diffuse.a;
+
+                cache.materialSpecular[0] = Material->Specular.r;
+                cache.materialSpecular[1] = Material->Specular.g;
+                cache.materialSpecular[2] = Material->Specular.b;
+                cache.materialSpecular[3] = Material->Specular.a;
+
+                cache.materialEmissive[0] = Material->Emissive.r;
+                cache.materialEmissive[1] = Material->Emissive.g;
+                cache.materialEmissive[2] = Material->Emissive.b;
+                cache.materialEmissive[3] = Material->Emissive.a;
+
+                cache.materialParams[0] = Material->Power;
+                cache.materialParams[1] = Material->Diffuse.a;
+                cache.materialParams[2] = UseLighting ? 1.0f : 0.0f;
+                cache.materialParams[3] = Opacity;
+                cache.materialParamsValid = true;
+        }
+#endif
+
+        if (WW3D::Is_Coloring_Enabled())
+                DX8Wrapper::Set_DX8_Render_State(D3DRS_LIGHTING,FALSE);
+        else
+                DX8Wrapper::Set_DX8_Render_State(D3DRS_LIGHTING,UseLighting);
+        DX8Wrapper::Set_DX8_Render_State(D3DRS_AMBIENTMATERIALSOURCE,AmbientColorSource);
 	DX8Wrapper::Set_DX8_Render_State(D3DRS_DIFFUSEMATERIALSOURCE,DiffuseColorSource);
 	DX8Wrapper::Set_DX8_Render_State(D3DRS_EMISSIVEMATERIALSOURCE,EmissiveColorSource);
 
@@ -925,9 +957,9 @@ void VertexMaterialClass::Apply(void) const
 
 void VertexMaterialClass::Apply_Null(void)
 {
-	int i;
-	static D3DMATERIAL8 default_settings = 
-	{
+        int i;
+        static D3DMATERIAL8 default_settings =
+        {
 		{ 1.0f, 1.0f, 1.0f, 1.0f },	// diffuse
 		{ 1.0f, 1.0f, 1.0f, 1.0f },	// ambient
 		{ 0.0f, 0.0f, 0.0f, 0.0f },	// specular
@@ -940,13 +972,45 @@ void VertexMaterialClass::Apply_Null(void)
 
 	DX8Wrapper::Set_DX8_Render_State(D3DRS_AMBIENTMATERIALSOURCE,D3DMCS_MATERIAL);
 	DX8Wrapper::Set_DX8_Render_State(D3DRS_DIFFUSEMATERIALSOURCE,D3DMCS_MATERIAL);
-	DX8Wrapper::Set_DX8_Render_State(D3DRS_EMISSIVEMATERIALSOURCE,D3DMCS_MATERIAL);
+        DX8Wrapper::Set_DX8_Render_State(D3DRS_EMISSIVEMATERIALSOURCE,D3DMCS_MATERIAL);
 
-	// set to default values if no mappers
-	for (i=0; i<MeshBuilderClass::MAX_STAGES; i++) {
-		DX8Wrapper::Set_DX8_Texture_Stage_State(i,D3DTSS_TEXCOORDINDEX,D3DTSS_TCI_PASSTHRU | i);	
-		DX8Wrapper::Set_DX8_Texture_Stage_State(i,D3DTSS_TEXTURETRANSFORMFLAGS,D3DTTFF_DISABLE);		
-	}
+        // set to default values if no mappers
+        for (i=0; i<MeshBuilderClass::MAX_STAGES; i++) {
+                DX8Wrapper::Set_DX8_Texture_Stage_State(i,D3DTSS_TEXCOORDINDEX,D3DTSS_TCI_PASSTHRU | i);
+                DX8Wrapper::Set_DX8_Texture_Stage_State(i,D3DTSS_TEXTURETRANSFORMFLAGS,D3DTTFF_DISABLE);
+        }
+
+#if WW3D_BGFX_AVAILABLE
+        if (DX8Wrapper::Is_Bgfx_Active())
+        {
+                RenderStateStruct::BgfxUniformCache& cache = DX8Wrapper::render_state.bgfx.uniforms;
+                cache.materialAmbient[0] = default_settings.Ambient.r;
+                cache.materialAmbient[1] = default_settings.Ambient.g;
+                cache.materialAmbient[2] = default_settings.Ambient.b;
+                cache.materialAmbient[3] = default_settings.Ambient.a;
+
+                cache.materialDiffuse[0] = default_settings.Diffuse.r;
+                cache.materialDiffuse[1] = default_settings.Diffuse.g;
+                cache.materialDiffuse[2] = default_settings.Diffuse.b;
+                cache.materialDiffuse[3] = default_settings.Diffuse.a;
+
+                cache.materialSpecular[0] = default_settings.Specular.r;
+                cache.materialSpecular[1] = default_settings.Specular.g;
+                cache.materialSpecular[2] = default_settings.Specular.b;
+                cache.materialSpecular[3] = default_settings.Specular.a;
+
+                cache.materialEmissive[0] = default_settings.Emissive.r;
+                cache.materialEmissive[1] = default_settings.Emissive.g;
+                cache.materialEmissive[2] = default_settings.Emissive.b;
+                cache.materialEmissive[3] = default_settings.Emissive.a;
+
+                cache.materialParams[0] = default_settings.Power;
+                cache.materialParams[1] = default_settings.Diffuse.a;
+                cache.materialParams[2] = 0.0f;
+                cache.materialParams[3] = 1.0f;
+                cache.materialParamsValid = true;
+        }
+#endif
 }
 
 

@@ -64,6 +64,12 @@
 #include "vertmaterial.h"
 #include "Main/GraphicsBackend.h"
 
+#include <string.h>
+
+#if WW3D_BGFX_AVAILABLE
+#include <bgfx/bgfx.h>
+#endif
+
 /*
 ** Registry value names
 */

@@ -183,6 +183,56 @@ static bool InitializeBgfx(void* hwnd);
 static void ShutdownBgfx();
 #if WW3D_BGFX_AVAILABLE
 static void UpdateBgfxDisplayParameters();
+
+static bgfx::UniformHandle s_bgfxMaterialColorUniform = BGFX_INVALID_HANDLE;
+static bgfx::UniformHandle s_bgfxMaterialParamsUniform = BGFX_INVALID_HANDLE;
+static bgfx::UniformHandle s_bgfxShaderParamsUniform = BGFX_INVALID_HANDLE;
+
+static void Destroy_Bgfx_Uniform(bgfx::UniformHandle& handle)
+{
+        if (bgfx::isValid(handle))
+        {
+                bgfx::destroy(handle);
+                handle = BGFX_INVALID_HANDLE;
+        }
+}
+
+static void Ensure_Bgfx_Uniforms()
+{
+        if (!bgfx::isValid(s_bgfxMaterialColorUniform))
+        {
+                s_bgfxMaterialColorUniform = bgfx::createUniform("u_materialColor", bgfx::UniformType::Vec4, 4);
+        }
+
+        if (!bgfx::isValid(s_bgfxMaterialParamsUniform))
+        {
+                s_bgfxMaterialParamsUniform = bgfx::createUniform("u_materialParams", bgfx::UniformType::Vec4);
+        }
+
+        if (!bgfx::isValid(s_bgfxShaderParamsUniform))
+        {
+                s_bgfxShaderParamsUniform = bgfx::createUniform("u_shaderParams", bgfx::UniformType::Vec4);
+        }
+}
+
+static void Destroy_Bgfx_Uniforms()
+{
+        Destroy_Bgfx_Uniform(s_bgfxMaterialColorUniform);
+        Destroy_Bgfx_Uniform(s_bgfxMaterialParamsUniform);
+        Destroy_Bgfx_Uniform(s_bgfxShaderParamsUniform);
+}
+
+static void Copy_Matrix_To_Bgfx(const Matrix4& source, float* destination)
+{
+        Matrix4 matrix = source.Transpose();
+        for (int row = 0; row < 4; ++row)
+        {
+                for (int column = 0; column < 4; ++column)
+                {
+                        destination[row * 4 + column] = matrix[row][column];
+                }
+        }
+}
 #endif
 
 /*
@@ -336,6 +386,8 @@ static void ShutdownBgfx()
                 bgfx::shutdown();
                 g_bgfxState.initialized = false;
         }
+
+        Destroy_Bgfx_Uniforms();
 #endif
 
         _RenderDeviceNameTable.Clear();
@@ -578,9 +630,12 @@ void DX8Wrapper::Invalidate_Cached_Render_States(void)
                 }
                 Textures[a]=NULL;
         }
-	ShaderClass::Invalidate();
-	//Need to explicitly set render_state texture pointers to NULL. MW
-	Release_Render_State();
+        ShaderClass::Invalidate();
+        //Need to explicitly set render_state texture pointers to NULL. MW
+        Release_Render_State();
+#if WW3D_BGFX_AVAILABLE
+        render_state.bgfx.Reset();
+#endif
 }
 
 void DX8Wrapper::Do_Onetime_Device_Dependent_Shutdowns(void)
@@ -2191,11 +2246,75 @@ void DX8Wrapper::Draw_Strip(
 
 void DX8Wrapper::Apply_Render_State_Changes()
 {
-	if (!render_state_changed) return;
-	if (render_state_changed&SHADER_CHANGED) {
-		SNAPSHOT_SAY(("DX8 - apply shader\n"));
-		render_state.shader.Apply();
-	}
+        if (!render_state_changed) return;
+#if WW3D_BGFX_AVAILABLE
+        if (Is_Bgfx_Active())
+        {
+                if (render_state_changed & SHADER_CHANGED)
+                {
+                        SNAPSHOT_SAY(("DX8 - apply shader\n"));
+                        render_state.shader.Apply();
+                }
+
+                if (render_state_changed & MATERIAL_CHANGED)
+                {
+                        SNAPSHOT_SAY(("DX8 - apply material\n"));
+                        VertexMaterialClass* material = const_cast<VertexMaterialClass*>(render_state.material);
+                        if (material)
+                        {
+                                material->Apply();
+                        }
+                        else
+                        {
+                                VertexMaterialClass::Apply_Null();
+                        }
+                }
+
+                Ensure_Bgfx_Uniforms();
+
+                bgfx::setState(render_state.bgfx.stateFlags);
+
+                if (render_state_changed & WORLD_CHANGED)
+                {
+                        SNAPSHOT_SAY(("DX8 - apply world matrix\n"));
+                        float worldMatrix[16];
+                        Copy_Matrix_To_Bgfx(render_state.world, worldMatrix);
+                        bgfx::setTransform(worldMatrix);
+                }
+
+                if (render_state_changed & VIEW_CHANGED)
+                {
+                        SNAPSHOT_SAY(("DX8 - apply view matrix\n"));
+                        float viewMatrix[16];
+                        Copy_Matrix_To_Bgfx(render_state.view, viewMatrix);
+                        bgfx::setViewTransform(0, viewMatrix);
+                }
+
+                RenderStateStruct::BgfxUniformCache& cache = render_state.bgfx.uniforms;
+                if (cache.materialParamsValid)
+                {
+                        float colorData[16];
+                        ::memcpy(colorData + 0, cache.materialAmbient, sizeof(float) * 4);
+                        ::memcpy(colorData + 4, cache.materialDiffuse, sizeof(float) * 4);
+                        ::memcpy(colorData + 8, cache.materialSpecular, sizeof(float) * 4);
+                        ::memcpy(colorData + 12, cache.materialEmissive, sizeof(float) * 4);
+                        bgfx::setUniform(s_bgfxMaterialColorUniform, colorData, 4);
+                        bgfx::setUniform(s_bgfxMaterialParamsUniform, cache.materialParams);
+                }
+
+                if (cache.shaderParamsValid)
+                {
+                        bgfx::setUniform(s_bgfxShaderParamsUniform, cache.shaderParams);
+                }
+
+                render_state_changed &= ((unsigned)WORLD_IDENTITY | (unsigned)VIEW_IDENTITY);
+                return;
+        }
+#endif
+        if (render_state_changed&SHADER_CHANGED) {
+                SNAPSHOT_SAY(("DX8 - apply shader\n"));
+                render_state.shader.Apply();
+        }
 
 	unsigned mask=TEXTURE0_CHANGED;
 	for (unsigned i=0;i<MAX_TEXTURE_STAGES;++i,mask<<=1) {

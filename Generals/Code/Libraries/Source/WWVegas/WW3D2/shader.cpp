@@ -46,6 +46,29 @@
 #include "Dx8Wrapper.h"
 #include "dx8caps.h"
 
+#if WW3D_BGFX_AVAILABLE
+#include <bgfx/bgfx.h>
+
+static uint64_t Convert_Blend_Factor(D3DBLEND blend)
+{
+        switch (blend)
+        {
+        case D3DBLEND_ZERO:             return BGFX_STATE_BLEND_ZERO;
+        case D3DBLEND_ONE:              return BGFX_STATE_BLEND_ONE;
+        case D3DBLEND_SRCCOLOR:         return BGFX_STATE_BLEND_SRC_COLOR;
+        case D3DBLEND_INVSRCCOLOR:      return BGFX_STATE_BLEND_INV_SRC_COLOR;
+        case D3DBLEND_SRCALPHA:         return BGFX_STATE_BLEND_SRC_ALPHA;
+        case D3DBLEND_INVSRCALPHA:      return BGFX_STATE_BLEND_INV_SRC_ALPHA;
+        case D3DBLEND_DESTALPHA:        return BGFX_STATE_BLEND_DST_ALPHA;
+        case D3DBLEND_INVDESTALPHA:     return BGFX_STATE_BLEND_INV_DST_ALPHA;
+        case D3DBLEND_DESTCOLOR:        return BGFX_STATE_BLEND_DST_COLOR;
+        case D3DBLEND_INVDESTCOLOR:     return BGFX_STATE_BLEND_INV_DST_COLOR;
+        case D3DBLEND_SRCALPHASAT:      return BGFX_STATE_BLEND_SRC_ALPHA_SAT;
+        default:                        return BGFX_STATE_BLEND_ONE;
+        }
+}
+#endif
+
 
 bool ShaderClass::ShaderDirty=true;
 unsigned long ShaderClass::CurrentShader=0;
@@ -399,15 +422,107 @@ const Blend dstBlendLUT[ShaderClass::DSTBLEND_MAX] =
  *=============================================================================================*/
 void ShaderClass::Apply()
 {
-	unsigned long diff;
+        unsigned long diff;
 
-	unsigned int TextureOpCaps=DX8Caps::Get_Default_Caps().TextureOpCaps;
+        unsigned int TextureOpCaps=DX8Caps::Get_Default_Caps().TextureOpCaps;
 
-	if (ShaderDirty)
-	{
-		diff=0xffffffff;
-	}
-	else
+#if WW3D_BGFX_AVAILABLE
+        if (DX8Wrapper::Is_Bgfx_Active())
+        {
+                if (ShaderDirty)
+                {
+                        diff = 0xffffffff;
+                }
+                else
+                {
+                        diff = CurrentShader ^ ShaderBits;
+                }
+
+                if (!diff)
+                {
+                        return;
+                }
+
+                CurrentShader = ShaderBits;
+                ShaderDirty = false;
+
+                uint64_t stateFlags = 0;
+
+                if (Get_Color_Mask() == ShaderClass::COLOR_WRITE_ENABLE)
+                {
+                        stateFlags |= BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
+                }
+
+                if (Get_Depth_Mask() == ShaderClass::DEPTH_WRITE_ENABLE)
+                {
+                        stateFlags |= BGFX_STATE_WRITE_Z;
+                }
+
+                switch (Get_Depth_Compare())
+                {
+                case ShaderClass::PASS_NEVER:      stateFlags |= BGFX_STATE_DEPTH_TEST_NEVER; break;
+                case ShaderClass::PASS_LESS:       stateFlags |= BGFX_STATE_DEPTH_TEST_LESS; break;
+                case ShaderClass::PASS_EQUAL:      stateFlags |= BGFX_STATE_DEPTH_TEST_EQUAL; break;
+                case ShaderClass::PASS_LEQUAL:     stateFlags |= BGFX_STATE_DEPTH_TEST_LEQUAL; break;
+                case ShaderClass::PASS_GREATER:    stateFlags |= BGFX_STATE_DEPTH_TEST_GREATER; break;
+                case ShaderClass::PASS_NOTEQUAL:   stateFlags |= BGFX_STATE_DEPTH_TEST_NOTEQUAL; break;
+                case ShaderClass::PASS_GEQUAL:     stateFlags |= BGFX_STATE_DEPTH_TEST_GEQUAL; break;
+                case ShaderClass::PASS_ALWAYS:     stateFlags |= BGFX_STATE_DEPTH_TEST_ALWAYS; break;
+                default: break;
+                }
+
+                ULONG planeMask = (Get_Color_Mask() == ShaderClass::COLOR_WRITE_ENABLE) ? 0xffffff : 0;
+
+                D3DBLEND sf = D3DBLEND_ONE;
+                D3DBLEND df = D3DBLEND_ZERO;
+
+                if (!planeMask)
+                {
+                        sf = D3DBLEND_ZERO;
+                        df = D3DBLEND_ONE;
+                }
+                else
+                {
+                        sf = srcBlendLUT[int(Get_Src_Blend_Func())].func;
+                        df = dstBlendLUT[int(Get_Dst_Blend_Func())].func;
+                }
+
+                if (sf != D3DBLEND_ONE || df != D3DBLEND_ZERO)
+                {
+                        stateFlags |= BGFX_STATE_BLEND_FUNC(Convert_Blend_Factor(sf), Convert_Blend_Factor(df));
+                }
+
+                if (Get_Cull_Mode() == ShaderClass::CULL_MODE_ENABLE)
+                {
+                        stateFlags |= (_PolygonCullMode == D3DCULL_CCW) ? BGFX_STATE_CULL_CCW : BGFX_STATE_CULL_CW;
+                }
+
+                float alphaReference = 0.0f;
+                BOOL alphaTest = FALSE;
+
+                if (Get_Alpha_Test() == ShaderClass::ALPHATEST_ENABLE)
+                {
+                        alphaReference = (float)0x60 / 255.0f;
+                        alphaTest = TRUE;
+                }
+
+                RenderStateStruct::BgfxUniformCache& cache = DX8Wrapper::render_state.bgfx.uniforms;
+                cache.shaderParams[0] = alphaTest ? 1.0f : 0.0f;
+                cache.shaderParams[1] = alphaReference;
+                cache.shaderParams[2] = (Get_Texturing() == ShaderClass::TEXTURING_ENABLE) ? 1.0f : 0.0f;
+                cache.shaderParams[3] = (planeMask != 0) ? 1.0f : 0.0f;
+                cache.shaderParamsValid = true;
+
+                DX8Wrapper::render_state.bgfx.stateFlags = stateFlags;
+                return;
+        }
+#endif
+
+        if (ShaderDirty)
+        {
+                diff=0xffffffff;
+        }
+        else
 	{
 		diff=CurrentShader^ShaderBits;
 	}
