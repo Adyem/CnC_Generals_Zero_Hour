@@ -181,6 +181,9 @@ static BgfxDeviceState g_bgfxState = { false, NULL };
 static void PopulateBgfxDeviceDescriptions();
 static bool InitializeBgfx(void* hwnd);
 static void ShutdownBgfx();
+#if WW3D_BGFX_AVAILABLE
+static void UpdateBgfxDisplayParameters();
+#endif
 
 /*
 ** Registry value names
@@ -236,6 +239,9 @@ void Non_Fatal_Log_DX8_ErrorCode(unsigned res,const char * file,int line)
 static void PopulateBgfxDeviceDescriptions()
 {
         StringClass device_name = "bgfx";
+        _RenderDeviceNameTable.Clear();
+        _RenderDeviceShortNameTable.Clear();
+        _RenderDeviceDescriptionTable.Clear();
         _RenderDeviceNameTable.Add(device_name);
         _RenderDeviceShortNameTable.Add(device_name);
 
@@ -312,6 +318,7 @@ static bool InitializeBgfx(void* hwnd)
 
         IsInitted = true;
         g_bgfxState.initialized = true;
+        UpdateBgfxDisplayParameters();
         Set_Default_Global_Render_States();
         return true;
 #else
@@ -337,6 +344,26 @@ static void ShutdownBgfx()
         IsInitted = false;
         _Hwnd = NULL;
 }
+
+#if WW3D_BGFX_AVAILABLE
+static void UpdateBgfxDisplayParameters()
+{
+        if (!g_bgfxState.initialized)
+        {
+                return;
+        }
+
+        const uint32_t resetFlags = BGFX_RESET_VSYNC;
+        bgfx::reset(static_cast<uint32_t>(DX8Wrapper::ResolutionWidth),
+                static_cast<uint32_t>(DX8Wrapper::ResolutionHeight),
+                resetFlags);
+        bgfx::setViewRect(0,
+                0,
+                0,
+                static_cast<uint16_t>(DX8Wrapper::ResolutionWidth),
+                static_cast<uint16_t>(DX8Wrapper::ResolutionHeight));
+}
+#endif
 
 
 bool DX8Wrapper::Init(void * hwnd)
@@ -710,12 +737,13 @@ void DX8Wrapper::Release_Device(void)
 
 void DX8Wrapper::Enumerate_Devices()
 {
-        DX8_Assert();
-
         if (g_activeBackend == GRAPHICS_BACKEND_BGFX)
         {
+                PopulateBgfxDeviceDescriptions();
                 return;
         }
+
+        DX8_Assert();
 
         int adapter_count = D3DInterface->GetAdapterCount();
 	for (int adapter_index=0; adapter_index<adapter_count; adapter_index++) {
@@ -949,8 +977,23 @@ bool DX8Wrapper::Set_Render_Device(int dev, int width, int height, int bits, int
 		}
 	}
 #endif
-	//must be either resetting existing device or creating a new one.
-	WWASSERT(reset_device || D3DDevice == NULL);
+        if (Is_Bgfx_Active())
+        {
+#if WW3D_BGFX_AVAILABLE
+                if (!g_bgfxState.initialized)
+                {
+                        return false;
+                }
+
+                UpdateBgfxDisplayParameters();
+                Set_Default_Global_Render_States();
+                return true;
+#else
+                return false;
+#endif
+        }
+        //must be either resetting existing device or creating a new one.
+        WWASSERT(reset_device || D3DDevice == NULL);
 	
 	/*
 	** Initialize values for D3DPRESENT_PARAMETERS members. 	
@@ -1184,11 +1227,80 @@ const char * DX8Wrapper::Get_Render_Device_Name(int device_index)
 
 bool DX8Wrapper::Set_Device_Resolution(int width,int height,int bits,int windowed, bool resize_window)
 {
-	if (D3DDevice != NULL) {
+        if (Is_Bgfx_Active())
+        {
+                if (width != -1)
+                {
+                        ResolutionWidth = width;
+                }
+                if (height != -1)
+                {
+                        ResolutionHeight = height;
+                }
+                if (bits != -1)
+                {
+                        BitDepth = bits;
+                }
+                if (windowed != -1)
+                {
+                        IsWindowed = (windowed != 0);
+                        DX8Wrapper_IsWindowed = IsWindowed;
+                }
 
-		if (width != -1) {
-			_PresentParameters.BackBufferWidth = ResolutionWidth = width;
-		}
+                Render2DClass::Set_Screen_Resolution(RectClass(0, 0, ResolutionWidth, ResolutionHeight));
+
+#ifdef _WINDOWS
+                if (resize_window)
+                {
+                        RECT rect = { 0 };
+                        ::GetClientRect(_Hwnd, &rect);
+
+                        if ((rect.right - rect.left) != ResolutionWidth ||
+                                (rect.bottom - rect.top) != ResolutionHeight)
+                        {
+                                rect.left = 0;
+                                rect.top = 0;
+                                rect.right = ResolutionWidth;
+                                rect.bottom = ResolutionHeight;
+                                DWORD dwstyle = ::GetWindowLong(_Hwnd, GWL_STYLE);
+                                AdjustWindowRect(&rect, dwstyle, FALSE);
+
+                                if (!IsWindowed)
+                                {
+                                        ::SetWindowPos(_Hwnd, HWND_TOPMOST, 0, 0,
+                                                rect.right - rect.left, rect.bottom - rect.top,
+                                                SWP_NOSIZE | SWP_NOMOVE);
+                                }
+                                else
+                                {
+                                        ::SetWindowPos(_Hwnd,
+                                                NULL,
+                                                0,
+                                                0,
+                                                rect.right - rect.left,
+                                                rect.bottom - rect.top,
+                                                SWP_NOZORDER | SWP_NOMOVE);
+                                }
+                        }
+                }
+#endif
+
+#if WW3D_BGFX_AVAILABLE
+                if (g_bgfxState.initialized)
+                {
+                        UpdateBgfxDisplayParameters();
+                        Set_Default_Global_Render_States();
+                        return true;
+                }
+#endif
+                return false;
+        }
+
+        if (D3DDevice != NULL) {
+
+                if (width != -1) {
+                        _PresentParameters.BackBufferWidth = ResolutionWidth = width;
+                }
 		if (height != -1) {
 			_PresentParameters.BackBufferHeight = ResolutionHeight = height;
 		}
@@ -1601,60 +1713,103 @@ void DX8_Assert()
 
 void DX8Wrapper::Begin_Scene(void)
 {
-	DX8_THREAD_ASSERT();
-	DX8CALL(BeginScene());
+        DX8_THREAD_ASSERT();
 
-	DX8WebBrowser::Update();
+        if (Is_Bgfx_Active())
+        {
+#if WW3D_BGFX_AVAILABLE
+                bgfx::touch(0);
+#endif
+                DX8WebBrowser::Update();
+                return;
+        }
+
+        DX8CALL(BeginScene());
+
+        DX8WebBrowser::Update();
 }
 
 void DX8Wrapper::End_Scene(bool flip_frames)
 {
-	DX8_THREAD_ASSERT();
-	DX8CALL(EndScene());
+        DX8_THREAD_ASSERT();
+        bool processed_frame = false;
 
-	DX8WebBrowser::Render(0);
-
-	if (flip_frames) {
-		DX8_Assert();
-		HRESULT hr=_Get_D3D_Device8()->Present(NULL, NULL, NULL, NULL);
-		number_of_DX8_calls++;
-
-		if (SUCCEEDED(hr)) {
-#ifdef EXTENDED_STATS
-			if (stats.m_sleepTime) {
-				::Sleep(stats.m_sleepTime);
-			}
+        if (Is_Bgfx_Active())
+        {
+                DX8WebBrowser::Render(0);
+#if WW3D_BGFX_AVAILABLE
+                if (flip_frames && g_bgfxState.initialized)
+                {
+                        bgfx::frame();
+                        processed_frame = true;
+                }
 #endif
-			FrameCount++;
-		}
+        }
+        else
+        {
+                DX8CALL(EndScene());
 
-		// If the device was lost we need to check for cooperative level and possibly reset the device
-		if (hr==D3DERR_DEVICELOST) {
-			hr=_Get_D3D_Device8()->TestCooperativeLevel();
-			if (hr==D3DERR_DEVICENOTRESET) {
-				Reset_Device();
-			}
-		}
-		else {
-			DX8_ErrorCode(hr);
-		}
-	}
+                DX8WebBrowser::Render(0);
 
-	// Each frame, release all of the buffers and textures.
-	Set_Vertex_Buffer(NULL);
-	Set_Index_Buffer(NULL,0);
-	for (unsigned i=0;i<MAX_TEXTURE_STAGES;++i) Set_Texture(i,NULL);
+                if (flip_frames) {
+                        DX8_Assert();
+                        HRESULT hr=_Get_D3D_Device8()->Present(NULL, NULL, NULL, NULL);
+                        number_of_DX8_calls++;
+
+                        if (SUCCEEDED(hr)) {
+#ifdef EXTENDED_STATS
+                                if (stats.m_sleepTime) {
+                                        ::Sleep(stats.m_sleepTime);
+                                }
+#endif
+                                processed_frame = true;
+                        }
+
+                        // If the device was lost we need to check for cooperative level and possibly reset the device
+                        if (hr==D3DERR_DEVICELOST) {
+                                hr=_Get_D3D_Device8()->TestCooperativeLevel();
+                                if (hr==D3DERR_DEVICENOTRESET) {
+                                        Reset_Device();
+                                }
+                        }
+                        else {
+                                DX8_ErrorCode(hr);
+                        }
+                }
+        }
+
+        if (processed_frame)
+        {
+                FrameCount++;
+        }
+
+        // Each frame, release all of the buffers and textures.
+        Set_Vertex_Buffer(NULL);
+        Set_Index_Buffer(NULL,0);
+        for (unsigned i=0;i<MAX_TEXTURE_STAGES;++i) Set_Texture(i,NULL);
 	Set_Material(NULL);
 }
 
 
 void DX8Wrapper::Flip_To_Primary(void)
 {
-	// If we are fullscreen and the current frame is odd then we need
-	// to force a page flip to ensure that the first buffer in the flipping
-	// chain is the one visible.
-	if (!IsWindowed) {
-		DX8_Assert();
+        if (Is_Bgfx_Active())
+        {
+#if WW3D_BGFX_AVAILABLE
+                if (g_bgfxState.initialized)
+                {
+                        bgfx::frame();
+                        FrameCount++;
+                }
+#endif
+                return;
+        }
+
+        // If we are fullscreen and the current frame is odd then we need
+        // to force a page flip to ensure that the first buffer in the flipping
+        // chain is the one visible.
+        if (!IsWindowed) {
+                DX8_Assert();
 
 		int numBuffers = (_PresentParameters.BackBufferCount + 1);
 		int visibleBuffer = (FrameCount % numBuffers);
