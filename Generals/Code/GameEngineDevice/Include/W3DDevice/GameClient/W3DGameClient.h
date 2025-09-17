@@ -41,6 +41,7 @@
 
 // USER INCLUDES //////////////////////////////////////////////////////////////
 #include "GameClient/GameClient.h"
+#include "GameClient/Keyboard.h"
 #include "W3DDevice/GameClient/W3DParticleSys.h"
 #include "W3DDevice/GameClient/W3DDisplay.h"
 #include "W3DDevice/GameClient/W3DInGameUI.h"
@@ -49,7 +50,9 @@
 #include "W3DDevice/GameClient/W3DGameFont.h"
 #include "W3DDevice/GameClient/W3DDisplayStringManager.h"
 #include "VideoDevice/Bink/BinkVideoPlayer.h"
+#if defined(ENABLE_LEGACY_DIRECTINPUT)
 #include "Win32Device/GameClient/Win32DIKeyboard.h"
+#endif
 #include "Win32Device/GameClient/Win32DIMouse.h"
 #include "Win32Device/GameClient/Win32Mouse.h"
 #include "W3DDevice/GameClient/W3DMouse.h"
@@ -118,7 +121,6 @@ protected:
 
 };  // end class W3DGameClient
 
-inline Keyboard *W3DGameClient::createKeyboard( void ) { return NEW DirectInputKeyboard; }
 inline Mouse *W3DGameClient::createMouse( void )
 {
 	//return new DirectInputMouse;

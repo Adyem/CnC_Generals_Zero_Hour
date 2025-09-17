@@ -28,6 +28,8 @@
 //						using Microsoft Direct Input
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef ENABLE_LEGACY_DIRECTINPUT
+
 #include <windows.h>
 #include <assert.h>
 
@@ -423,3 +425,5 @@ Bool DirectInputKeyboard::getCapsState( void )
 	return BitTest( GetKeyState( VK_CAPITAL ), 0X01);
 
 }  // end getCapsState
+
+#endif // ENABLE_LEGACY_DIRECTINPUT

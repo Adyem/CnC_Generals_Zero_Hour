@@ -1,10 +1,12 @@
 #include "WindowSystem.h"
+#include "SfmlKeyboardBridge.h"
 
 #include <Common/CriticalSection.h>
 #include <Common/Debug.h>
 #include <Common/GameMemory.h>
 #include <Common/StackDump.h>
 #include <Common/Version.h>
+#include <GameClient/Keyboard.h>
 #include <Common/GameEngine.h>
 #include <Win32Device/Common/Win32GameEngine.h>
 
@@ -290,6 +292,8 @@ int main(int argc, char** argv) {
 #ifdef _WIN32
     _set_se_translator(DumpExceptionInfo);
 #endif
+
+    SetKeyboardFactoryOverride(sfml_platform::CreateSfmlKeyboard);
 
     try {
         GameMain(static_cast<int>(argvPointers.size()), argvPointers.data());
