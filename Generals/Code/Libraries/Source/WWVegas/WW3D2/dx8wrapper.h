@@ -60,6 +60,14 @@
 #include "vertmaterial.h"
 #include "Main/GraphicsBackend.h"
 
+#ifndef WW3D_BGFX_AVAILABLE
+#define WW3D_BGFX_AVAILABLE 0
+#endif
+
+#if WW3D_BGFX_AVAILABLE
+#include <bgfx/bgfx.h>
+#endif
+
 const unsigned MAX_TEXTURE_STAGES=2;
 
 enum {
@@ -171,6 +179,9 @@ struct BgfxStateData
         bool                                                    alphaTestEnabled;
         uint8_t                                                 alphaFunc;
         float                                                   alphaReference;
+#if WW3D_BGFX_AVAILABLE
+        bgfx::ProgramHandle                             program;
+#endif
 
         BgfxStateData();
 };
@@ -1181,6 +1192,9 @@ WWINLINE BgfxStateData::BgfxStateData()
         alphaFunc(D3DCMP_ALWAYS),
         alphaReference(0.0f)
 {
+#if WW3D_BGFX_AVAILABLE
+        program.idx = bgfx::kInvalidHandle;
+#endif
         for (unsigned i = 0; i < MAX_TEXTURE_STAGES; ++i) {
                 samplerFlags[i] = 0;
                 textureBindings[i] = NULL;

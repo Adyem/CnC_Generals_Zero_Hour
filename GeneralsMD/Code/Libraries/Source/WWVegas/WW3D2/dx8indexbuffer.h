@@ -48,6 +48,14 @@
 #include "refcount.h"
 #include "sphere.h"
 
+#ifndef WW3D_BGFX_AVAILABLE
+#define WW3D_BGFX_AVAILABLE 0
+#endif
+
+#if WW3D_BGFX_AVAILABLE
+#include <bgfx/bgfx.h>
+#endif
+
 class DX8Wrapper;
 class SortingRendererClass;
 struct IDirect3DIndexBuffer8;
@@ -181,6 +189,14 @@ public:
 	void Copy(unsigned short* indices,unsigned start_index,unsigned index_count);
 
 	inline IDirect3DIndexBuffer8* Get_DX8_Index_Buffer()	{ return index_buffer; }
+	
+#if WW3D_BGFX_AVAILABLE
+	bool Has_Bgfx_Index_Buffer() const;
+	bool Uses_Bgfx_Dynamic_Buffer() const;
+	bgfx::IndexBufferHandle Get_Bgfx_Index_Handle();
+	bgfx::DynamicIndexBufferHandle Get_Bgfx_Dynamic_Index_Handle();
+	uint32_t Get_Bgfx_Index_Count() const;
+#endif
 	
 	unsigned short* Lock(unsigned offset_bytes, unsigned size_bytes, unsigned flags);
 	void Unlock();
