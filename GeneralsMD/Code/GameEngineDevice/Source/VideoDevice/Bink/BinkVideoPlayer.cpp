@@ -130,7 +130,7 @@ void	BinkVideoPlayer::init( void )
 	// Need to load the stuff from the ini file.
 	VideoPlayer::init();
 
-	initializeBinkWithMiles();
+        initializeBinkAudio();
 }
 
 //============================================================================
@@ -139,8 +139,13 @@ void	BinkVideoPlayer::init( void )
 
 void BinkVideoPlayer::deinit( void )
 {
-	TheAudio->releaseHandleForBink();
-	VideoPlayer::deinit();
+        TheAudio->releaseHandleForBink();
+        if (m_audioBridge)
+        {
+                m_audioBridge->detach();
+                m_audioBridge.reset();
+        }
+        VideoPlayer::deinit();
 }
 
 //============================================================================
@@ -197,10 +202,25 @@ VideoStreamInterface* BinkVideoPlayer::createStream( HBINK handle )
 	if ( stream )
 	{
 
-		stream->m_handle = handle;
-		stream->m_next = m_firstStream;
-		stream->m_player = this;
-		m_firstStream = stream;
+                stream->m_handle = handle;
+                stream->m_next = m_firstStream;
+                stream->m_player = this;
+                m_firstStream = stream;
+
+                if (m_audioBridge)
+                {
+                        m_audioBridge->detach();
+                        if (!m_audioBridge->attach(handle))
+                        {
+                                m_audioBridge->detach();
+                                m_audioBridge.reset();
+                                BinkSetSoundTrack(0, 0);
+                        }
+                }
+                else
+                {
+                        BinkSetSoundTrack(0, 0);
+                }
 
 		// never let volume go to 0, as Bink will interpret that as "play at full volume".
 		Int mod = (Int) ((TheAudio->getVolume(AudioAffect_Speech) * 0.8f) * 100) + 1;
@@ -270,29 +290,40 @@ VideoStreamInterface*	BinkVideoPlayer::load( AsciiString movieTitle )
 //============================================================================
 void BinkVideoPlayer::notifyVideoPlayerOfNewProvider( Bool nowHasValid )
 {
-	if (!nowHasValid) {
-		TheAudio->releaseHandleForBink();
-		BinkSetSoundTrack(0, 0);
-	} else {
-		initializeBinkWithMiles();
-	}
+        if (!nowHasValid) {
+                TheAudio->releaseHandleForBink();
+                if (m_audioBridge)
+                {
+                        m_audioBridge->detach();
+                        m_audioBridge.reset();
+                }
+                BinkSetSoundTrack(0, 0);
+        } else {
+                initializeBinkAudio();
+        }
 }
 
 //============================================================================
 //============================================================================
-void BinkVideoPlayer::initializeBinkWithMiles()
+void BinkVideoPlayer::initializeBinkAudio()
 {
-	Int retVal = 0;
-	void *driver = TheAudio->getHandleForBink();	
-	
-	if ( driver )
-	{
-		retVal = BinkSoundUseDirectSound(driver);
-	}
-	if( !driver || retVal == 0)
-	{
-		BinkSetSoundTrack ( 0,0 );
-	}
+        if (!m_audioBridge)
+        {
+                m_audioBridge = TheAudio->createVideoSoundBridge();
+        }
+
+        if (m_audioBridge)
+        {
+                if (!m_audioBridge->initialize())
+                {
+                        m_audioBridge.reset();
+                        BinkSetSoundTrack(0, 0);
+                }
+        }
+        else
+        {
+                BinkSetSoundTrack(0, 0);
+        }
 }
 
 //============================================================================
@@ -311,11 +342,15 @@ BinkVideoStream::BinkVideoStream()
 
 BinkVideoStream::~BinkVideoStream()
 {
-	if ( m_handle != NULL )
-	{
-		BinkClose( m_handle );
-		m_handle = NULL;
-	}
+        if ( m_handle != NULL )
+        {
+                if (m_player && m_player->getAudioBridge())
+                {
+                        m_player->getAudioBridge()->detach();
+                }
+                BinkClose( m_handle );
+                m_handle = NULL;
+        }
 }
 
 //============================================================================
@@ -342,7 +377,11 @@ Bool BinkVideoStream::isFrameReady( void )
 
 void BinkVideoStream::frameDecompress( void )
 {
-		BinkDoFrame( m_handle );
+                BinkDoFrame( m_handle );
+                if (m_player && m_player->getAudioBridge())
+                {
+                        m_player->getAudioBridge()->onFrameDecoded(m_handle);
+                }
 }
 
 //============================================================================

@@ -41,6 +41,7 @@
 #include <dsound.h>
 #include "Lib/Basetype.h"
 #include "MilesAudioDevice/MilesAudioManager.h"
+#include "bink.h"
 
 #include "Common/AudioAffect.h"
 #include "Common/AudioHandleSpecialValues.h"
@@ -82,6 +83,62 @@ static U32 AILCALLBACK streamingFileOpen(char const *fileName, U32 *file_handle)
 static void AILCALLBACK streamingFileClose(U32 fileHandle);
 static S32 AILCALLBACK streamingFileSeek(U32 fileHandle, S32 offset, U32 type);
 static U32 AILCALLBACK streamingFileRead(U32 fileHandle, void *buffer, U32 bytes);
+
+class MilesVideoSoundBridge : public VideoSoundBridge
+{
+        public:
+                explicit MilesVideoSoundBridge(MilesAudioManager& manager)
+                        : m_manager(manager), m_initialized(FALSE) {}
+
+                virtual ~MilesVideoSoundBridge()
+                {
+                        detach();
+                }
+
+                virtual Bool initialize() override
+                {
+                        if (m_initialized)
+                                return TRUE;
+
+                        void *driver = m_manager.getHandleForBink();
+                        if (!driver) {
+                                BinkSetSoundTrack(0, 0);
+                                return FALSE;
+                        }
+
+                        if (BinkSoundUseDirectSound(driver)) {
+                                m_initialized = TRUE;
+                                return TRUE;
+                        }
+
+                        m_manager.releaseHandleForBink();
+                        BinkSetSoundTrack(0, 0);
+                        return FALSE;
+                }
+
+                virtual Bool attach(void*) override
+                {
+                        if (!m_initialized)
+                        {
+                                return initialize();
+                        }
+                        return TRUE;
+                }
+
+                virtual void detach() override
+                {
+                        if (m_initialized) {
+                                m_manager.releaseHandleForBink();
+                                m_initialized = FALSE;
+                        }
+                }
+
+                virtual void onFrameDecoded(void*) override {}
+
+        private:
+                MilesAudioManager& m_manager;
+                Bool m_initialized;
+};
 
 //-------------------------------------------------------------------------------------------------
 MilesAudioManager::MilesAudioManager() :
@@ -2938,10 +2995,15 @@ void *MilesAudioManager::getHandleForBink( void )
 //-------------------------------------------------------------------------------------------------
 void MilesAudioManager::releaseHandleForBink( void )
 {
-	if (m_binkHandle) {
-		releasePlayingAudio(m_binkHandle);
-		m_binkHandle = NULL;
-	}
+        if (m_binkHandle) {
+                releasePlayingAudio(m_binkHandle);
+                m_binkHandle = NULL;
+        }
+}
+
+std::unique_ptr<VideoSoundBridge> MilesAudioManager::createVideoSoundBridge()
+{
+        return std::unique_ptr<VideoSoundBridge>(new MilesVideoSoundBridge(*this));
 }
 
 //-------------------------------------------------------------------------------------------------

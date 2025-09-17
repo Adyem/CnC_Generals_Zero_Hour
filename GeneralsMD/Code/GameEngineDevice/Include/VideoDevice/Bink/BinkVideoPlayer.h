@@ -52,11 +52,14 @@
 #include "GameClient/VideoPlayer.h"
 #include "bink.h"
 
+#include <memory>
+
 //----------------------------------------------------------------------------
 //           Forward References
 //----------------------------------------------------------------------------
 
 class BinkVideoPlayer;
+class VideoSoundBridge;
 
 //----------------------------------------------------------------------------
 //           Type Defines
@@ -131,7 +134,12 @@ class BinkVideoPlayer : public VideoPlayer
 		virtual VideoStreamInterface*	load( AsciiString movieTitle );	///< Load video file in to memory for playback
 
 		virtual void notifyVideoPlayerOfNewProvider( Bool nowHasValid );
-		virtual void initializeBinkWithMiles( void );
+		virtual void initializeBinkAudio( void );
+
+		VideoSoundBridge* getAudioBridge() const { return m_audioBridge.get(); }
+
+        private:
+		std::unique_ptr<VideoSoundBridge> m_audioBridge;
 };
 
 

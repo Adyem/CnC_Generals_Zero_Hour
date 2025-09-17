@@ -186,8 +186,10 @@ class MilesAudioManager : public AudioManager
 		virtual void setSpeakerType( UnsignedInt speakerType );
 		virtual UnsignedInt getSpeakerType( void );
 
- 		virtual void *getHandleForBink( void );
- 		virtual void releaseHandleForBink( void );
+		virtual void *getHandleForBink( void );
+		virtual void releaseHandleForBink( void );
+
+		virtual std::unique_ptr<VideoSoundBridge> createVideoSoundBridge() override;
 
 		virtual void friend_forcePlayAudioEventRTS(const AudioEventRTS* eventToPlay);
 
