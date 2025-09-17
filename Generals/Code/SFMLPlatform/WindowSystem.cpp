@@ -1,6 +1,7 @@
 #include "WindowSystem.h"
 
 #include "SfmlKeyboardBridge.h"
+#include "SfmlMouseBridge.h"
 
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/VideoMode.hpp>
@@ -65,6 +66,19 @@ void WindowSystem::run(const UpdateHandler& update, const RenderHandler& render,
         while (m_window.pollEvent(event)) {
             if (auto* keyboard = GetActiveKeyboardBridge()) {
                 keyboard->handleEvent(event);
+            }
+
+            if (auto* mouse = GetActiveMouseBridge()) {
+                mouse->handleEvent(event);
+
+                if (event.type == sf::Event::LostFocus) {
+                    mouse->lostFocus(TRUE);
+                } else if (event.type == sf::Event::GainedFocus) {
+                    mouse->lostFocus(FALSE);
+                    mouse->refreshCursor();
+                } else if (event.type == sf::Event::MouseEntered) {
+                    mouse->refreshCursor();
+                }
             }
 
             if (event.type == sf::Event::Closed) {

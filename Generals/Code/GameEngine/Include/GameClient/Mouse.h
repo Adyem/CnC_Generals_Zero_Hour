@@ -370,6 +370,11 @@ protected:
 
 };  // end class Mouse
 
+typedef Mouse *(*MouseFactoryFunction)();
+
+void SetMouseFactoryOverride( MouseFactoryFunction factory );
+MouseFactoryFunction GetMouseFactoryOverride();
+
 // INLINING ///////////////////////////////////////////////////////////////////
 
 // EXTERNALS //////////////////////////////////////////////////////////////////

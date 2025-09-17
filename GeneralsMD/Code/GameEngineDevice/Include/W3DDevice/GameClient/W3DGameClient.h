@@ -126,10 +126,20 @@ protected:
 inline Keyboard *W3DGameClient::createKeyboard( void ) { return NEW DirectInputKeyboard; }
 inline Mouse *W3DGameClient::createMouse( void )
 {
-	//return new DirectInputMouse;
-	Win32Mouse * mouse = NEW W3DMouse;
-	TheWin32Mouse = mouse;   ///< global cheat for the WndProc()
-	return mouse;
+        MouseFactoryFunction factory = GetMouseFactoryOverride();
+        if( factory )
+        {
+                Mouse *mouse = factory();
+                if( mouse )
+                {
+                        TheWin32Mouse = dynamic_cast< Win32Mouse * >( mouse );
+                        return mouse;
+                }
+        }
+
+        Win32Mouse *mouse = NEW W3DMouse;
+        TheWin32Mouse = mouse;   ///< global cheat for the WndProc()
+        return mouse;
 }
 
 #endif  // end __W3DGAMEINTERFACE_H_

@@ -86,8 +86,11 @@ protected:
 
 
 protected:
-	UINT m_previousErrorMode;
+        UINT m_previousErrorMode;
 };  // end Win32GameEngine
+
+typedef void (*WindowsMessagePumpOverride)();
+void SetWindowsMessagePumpOverride( WindowsMessagePumpOverride pump );
 
 // INLINE -----------------------------------------------------------------------------------------
 inline GameLogic *Win32GameEngine::createGameLogic( void ) { return NEW W3DGameLogic; }

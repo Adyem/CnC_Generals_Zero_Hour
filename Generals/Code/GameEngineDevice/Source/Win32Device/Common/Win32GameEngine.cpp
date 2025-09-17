@@ -37,6 +37,18 @@
 
 extern DWORD TheMessageTime;
 
+namespace
+{
+
+WindowsMessagePumpOverride g_messagePumpOverride = NULL;
+
+}
+
+void SetWindowsMessagePumpOverride( WindowsMessagePumpOverride pump )
+{
+        g_messagePumpOverride = pump;
+}
+
 //-------------------------------------------------------------------------------------------------
 /** Constructor for Win32GameEngine */
 //-------------------------------------------------------------------------------------------------
@@ -126,7 +138,13 @@ void Win32GameEngine::update( void )
 //-------------------------------------------------------------------------------------------------
 void Win32GameEngine::serviceWindowsOS( void )
 {
-	MSG msg;
+        if( g_messagePumpOverride )
+        {
+                g_messagePumpOverride();
+                return;
+        }
+
+        MSG msg;
   Int returnValue;
 
 	//
