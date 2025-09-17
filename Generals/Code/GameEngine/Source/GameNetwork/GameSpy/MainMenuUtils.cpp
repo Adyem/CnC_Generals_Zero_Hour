@@ -38,6 +38,7 @@
 #include "Common/Version.h"
 #include "GameClient/GameText.h"
 #include "GameClient/MessageBox.h"
+#include "GameNetwork/addressresolver.h"
 #include "GameClient/Shell.h"
 #include "GameLogic/ScriptEngine.h"
 
@@ -725,19 +726,21 @@ void CheckNumPlayersOnline( void )
 
 DWORD WINAPI asyncGethostbynameThreadFunc( void * szName )
 {
-	HOSTENT *he = gethostbyname( (const char *)szName );
+        ResolverRequest request;
+        request.m_host = reinterpret_cast<const char *>(szName);
+        request.m_service = nullptr;
+        request.m_family = AF_UNSPEC;
+        request.m_sockType = SOCK_STREAM;
+        request.m_protocol = IPPROTO_TCP;
+        request.m_flags = 0;
 
-	if (he)
-	{
-		s_asyncDNSThreadSucceeded = TRUE;
-	}
-	else
-	{
-		s_asyncDNSThreadSucceeded = FALSE;
-	}
+        ResolvedNetAddress resolvedAddress;
+        Int resolveError = 0;
+        Bool success = ResolveFirstUsableAddress(request, resolvedAddress, &resolveError);
+        s_asyncDNSThreadSucceeded = success;
 
-	s_asyncDNSThreadDone = TRUE;
-	return 0;
+        s_asyncDNSThreadDone = TRUE;
+        return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////

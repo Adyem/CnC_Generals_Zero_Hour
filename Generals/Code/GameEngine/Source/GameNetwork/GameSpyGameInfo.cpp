@@ -41,6 +41,7 @@
 #include "GameNetwork/NetworkUtil.h"
 #include "GameNetwork/NetworkDefs.h"
 #include "GameNetwork/NAT.h"
+#include "GameNetwork/addressresolver.h"
 #include "GameLogic/GameLogic.h"
 #include "GameLogic/VictoryConditions.h"
 
@@ -166,18 +167,33 @@ Bool GetLocalChatConnectionAddress(AsciiString serverName, UnsignedShort serverP
 	/*
 	** Get the address of the chat server.
 	*/
-	DEBUG_LOG( ("About to call gethostbyname\n"));
-	struct hostent *host_info = gethostbyname(serverName.str());
+        DEBUG_LOG(("About to resolve chat server\n"));
 
-	if (!host_info) {
-		DEBUG_LOG( ("gethostbyname failed! Error code %d\n", WSAGetLastError()));
-		return(false);
-	}
+        ResolverRequest request;
+        request.m_host = serverName.str();
+        request.m_service = nullptr;
+        request.m_family = AF_UNSPEC;
+        request.m_sockType = SOCK_STREAM;
+        request.m_protocol = IPPROTO_TCP;
+        request.m_flags = 0;
 
-	memcpy(serverAddress, &host_info->h_addr_list[0][0], 4);
-	unsigned long temp = *((unsigned long*)(&serverAddress[0]));
-	temp = ntohl(temp);
-	*((unsigned long*)(&serverAddress[0])) = temp;
+        ResolvedNetAddress resolvedAddress;
+        Int resolveError = 0;
+        if (!ResolveFirstUsableAddress(request, resolvedAddress, &resolveError)) {
+                DEBUG_LOG(("ResolveFirstUsableAddress failed! Error code %d\n", resolveError));
+                return(false);
+        }
+
+        if (resolvedAddress.m_family != AF_INET) {
+                DEBUG_LOG(("Chat server resolved to unsupported family %d\n", resolvedAddress.m_family));
+                return(false);
+        }
+
+        const sockaddr_in *ipv4Address = reinterpret_cast<const sockaddr_in *>(resolvedAddress.getSockaddr());
+        memcpy(serverAddress, &ipv4Address->sin_addr, sizeof(in_addr));
+        unsigned long temp = *((unsigned long*)(&serverAddress[0]));
+        temp = ntohl(temp);
+        *((unsigned long*)(&serverAddress[0])) = temp;
 
 	DEBUG_LOG(("Host address is %d.%d.%d.%d\n", serverAddress[3], serverAddress[2], serverAddress[1], serverAddress[0]));
 

@@ -26,6 +26,9 @@
 #include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
 
 #include "GameNetwork/NetworkUtil.h"
+#include "GameNetwork/addressresolver.h"
+
+#include <winsock2.h>
 
 Int MAX_FRAMES_AHEAD = 128;
 Int MIN_RUNAHEAD = 10;
@@ -78,30 +81,32 @@ void dumpBufferToLog(const void *vBuf, Int len, const char *fname, Int line)
  */
 UnsignedInt ResolveIP(AsciiString host)
 {
-  struct hostent *hostStruct;
-  struct in_addr *hostNode;
+        if (host.getLength() == 0)
+        {
+                DEBUG_LOG(("ResolveIP(): Can't resolve NULL\n"));
+                return 0;
+        }
 
-  if (host.getLength() == 0)
-  {
-	  DEBUG_LOG(("ResolveIP(): Can't resolve NULL\n"));
-	  return 0;
-  }
+        ResolvedNetAddress resolvedAddress;
+        Int errorCode = 0;
+        if (!ResolveFirstUsableAddress(host, 0, 0, 0, 0, resolvedAddress, &errorCode))
+        {
+                WSASetLastError(errorCode);
+                DEBUG_LOG(("ResolveIP(): Can't resolve %s (error %d)\n", host.str(), errorCode));
+                return 0;
+        }
 
-  // String such as "127.0.0.1"
-  if (isdigit(host.getCharAt(0)))
-  {
-    return ( ntohl(inet_addr(host.str())) );
-  }
+        if (resolvedAddress.m_family != AF_INET)
+        {
+                WSASetLastError(WSAEAFNOSUPPORT);
+                DEBUG_LOG(("ResolveIP(): Unsupported address family %d for host %s\n", resolvedAddress.m_family, host.str()));
+                return 0;
+        }
 
-  // String such as "localhost"
-  hostStruct = gethostbyname(host.str());
-  if (hostStruct == NULL)
-  {
-	  DEBUG_LOG(("ResolveIP(): Can't resolve %s\n", host.str()));
-	  return 0;
-  }
-  hostNode = (struct in_addr *) hostStruct->h_addr;
-  return ( ntohl(hostNode->s_addr) );
+        const sockaddr_in *ipv4Address = reinterpret_cast<const sockaddr_in *>(resolvedAddress.getSockaddr());
+        UnsignedInt address = ntohl(ipv4Address->sin_addr.s_addr);
+        WSASetLastError(0);
+        return address;
 }
 
 /**
