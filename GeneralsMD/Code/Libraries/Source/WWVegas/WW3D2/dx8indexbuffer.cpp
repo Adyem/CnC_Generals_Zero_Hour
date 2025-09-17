@@ -192,6 +192,56 @@ void IndexBufferClass::Copy(unsigned int* indices,unsigned first_index,unsigned 
 	}
 }
 
+#if WW3D_BGFX_INDEX_AVAILABLE
+bool DX8IndexBufferClass::Has_Bgfx_Index_Buffer() const
+{
+	return (m_bgfxData != NULL);
+}
+
+bool DX8IndexBufferClass::Uses_Bgfx_Dynamic_Buffer() const
+{
+	return m_bgfxData && m_bgfxData->dynamic;
+}
+
+bgfx::IndexBufferHandle DX8IndexBufferClass::Get_Bgfx_Index_Handle()
+{
+	bgfx::IndexBufferHandle handle = { bgfx::kInvalidHandle };
+	if (!m_bgfxData || m_bgfxData->dynamic)
+	{
+		return handle;
+	}
+
+	if (!bgfx::isValid(m_bgfxData->static_handle) && m_bgfxData->index_count)
+	{
+		const bgfx::Memory* memory = bgfx::copy(reinterpret_cast<const unsigned char*>(m_bgfxData->data.data()), m_bgfxData->index_count * sizeof(unsigned short));
+		m_bgfxData->static_handle = bgfx::createIndexBuffer(memory);
+	}
+
+	return m_bgfxData->static_handle;
+}
+
+bgfx::DynamicIndexBufferHandle DX8IndexBufferClass::Get_Bgfx_Dynamic_Index_Handle()
+{
+	bgfx::DynamicIndexBufferHandle handle = { bgfx::kInvalidHandle };
+	if (!m_bgfxData || !m_bgfxData->dynamic)
+	{
+		return handle;
+	}
+
+	if (!bgfx::isValid(m_bgfxData->dynamic_handle))
+	{
+		m_bgfxData->dynamic_handle = bgfx::createDynamicIndexBuffer(m_bgfxData->index_count);
+	}
+
+	return m_bgfxData->dynamic_handle;
+}
+
+uint32_t DX8IndexBufferClass::Get_Bgfx_Index_Count() const
+{
+	return m_bgfxData ? m_bgfxData->index_count : 0;
+}
+#endif
+
 // ----------------------------------------------------------------------------
 
 void IndexBufferClass::Copy(unsigned short* indices,unsigned first_index,unsigned count)

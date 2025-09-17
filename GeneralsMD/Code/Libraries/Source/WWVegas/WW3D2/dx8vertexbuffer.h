@@ -49,6 +49,14 @@
 #include "refcount.h"
 #include "dx8fvf.h"
 
+#ifndef WW3D_BGFX_AVAILABLE
+#define WW3D_BGFX_AVAILABLE 0
+#endif
+
+#if WW3D_BGFX_AVAILABLE
+#include <bgfx/bgfx.h>
+#endif
+
 const unsigned dynamic_fvf_type=D3DFVF_XYZ|D3DFVF_NORMAL|D3DFVF_TEX2|D3DFVF_DIFFUSE;
 
 class DX8Wrapper;
@@ -222,12 +230,21 @@ public:
 	DX8VertexBufferClass(const Vector3* vertices, const Vector3* normals, const Vector2* tex_coords, unsigned short VertexCount,UsageType usage=USAGE_DEFAULT);
 	DX8VertexBufferClass(const Vector3* vertices, const Vector3* normals, const Vector4* diffuse, const Vector2* tex_coords, unsigned short VertexCount,UsageType usage=USAGE_DEFAULT);
 	DX8VertexBufferClass(const Vector3* vertices, const Vector4* diffuse, const Vector2* tex_coords, unsigned short VertexCount,UsageType usage=USAGE_DEFAULT);
-	DX8VertexBufferClass(const Vector3* vertices, const Vector2* tex_coords, unsigned short VertexCount,UsageType usage=USAGE_DEFAULT);
+        DX8VertexBufferClass(const Vector3* vertices, const Vector2* tex_coords, unsigned short VertexCount,UsageType usage=USAGE_DEFAULT);
 
-	IDirect3DVertexBuffer8* Get_DX8_Vertex_Buffer() { return VertexBuffer; }
+        IDirect3DVertexBuffer8* Get_DX8_Vertex_Buffer() { return VertexBuffer; }
 
-	void* Lock(unsigned offset_bytes, unsigned size_bytes, unsigned flags);
-	void Unlock();
+#if WW3D_BGFX_AVAILABLE
+        bool Has_Bgfx_Vertex_Buffer() const;
+        bool Uses_Bgfx_Dynamic_Buffer() const;
+        bgfx::VertexBufferHandle Get_Bgfx_Vertex_Handle();
+        bgfx::DynamicVertexBufferHandle Get_Bgfx_Dynamic_Vertex_Handle();
+        const bgfx::VertexLayout* Get_Bgfx_Vertex_Layout() const;
+        uint32_t Get_Bgfx_Vertex_Count() const;
+#endif
+
+        void* Lock(unsigned offset_bytes, unsigned size_bytes, unsigned flags);
+        void Unlock();
 
 	void Copy(const Vector3* loc, unsigned first_vertex, unsigned count);
 	void Copy(const Vector3* loc, const Vector2* uv, unsigned first_vertex, unsigned count);

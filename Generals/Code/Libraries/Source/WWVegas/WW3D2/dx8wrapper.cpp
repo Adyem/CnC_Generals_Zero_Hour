@@ -2106,24 +2106,166 @@ void DX8Wrapper::Draw(
 
 	SNAPSHOT_SAY(("DX8 - draw %s polygons (%d vertices)\n",polygon_count,vertex_count));
 
-	if (vertex_count<3) {
-		min_vertex_index=0;
-		switch (render_state.vertex_buffer_type) {
-		case BUFFER_TYPE_DX8:
-		case BUFFER_TYPE_SORTING:
-			vertex_count=render_state.vertex_buffer->Get_Vertex_Count()-render_state.index_base_offset-render_state.vba_offset-min_vertex_index;
-			break;
-		case BUFFER_TYPE_DYNAMIC_DX8:
-		case BUFFER_TYPE_DYNAMIC_SORTING:
-			vertex_count=render_state.vba_count;
-			break;
-		}
-	}
+        if (vertex_count<3) {
+                min_vertex_index=0;
+                switch (render_state.vertex_buffer_type) {
+                case BUFFER_TYPE_DX8:
+                case BUFFER_TYPE_SORTING:
+                        vertex_count=render_state.vertex_buffer->Get_Vertex_Count()-render_state.index_base_offset-render_state.vba_offset-min_vertex_index;
+                        break;
+                case BUFFER_TYPE_DYNAMIC_DX8:
+                case BUFFER_TYPE_DYNAMIC_SORTING:
+                        vertex_count=render_state.vba_count;
+                        break;
+                }
+        }
 
-	switch (render_state.vertex_buffer_type) {
-	case BUFFER_TYPE_DX8:
-	case BUFFER_TYPE_DYNAMIC_DX8:
-		switch (render_state.index_buffer_type) {
+#if WW3D_BGFX_AVAILABLE
+        if (Is_Bgfx_Active())
+        {
+                bool submitted = false;
+                uint32_t firstIndex = static_cast<uint32_t>(start_index) + render_state.iba_offset;
+                uint32_t baseVertex = static_cast<uint32_t>(render_state.index_base_offset) + render_state.vba_offset + min_vertex_index;
+                uint32_t drawIndexCount = 0;
+                uint32_t drawVertexCount = vertex_count;
+                uint64_t state = render_state.bgfx.stateFlags;
+                const uint64_t primitiveMask = BGFX_STATE_PT_TRISTRIP | BGFX_STATE_PT_LINES | BGFX_STATE_PT_POINTS;
+                uint64_t primitiveState = 0;
+
+                switch (primitive_type) {
+                case D3DPT_TRIANGLELIST:
+                        drawIndexCount = static_cast<uint32_t>(polygon_count) * 3u;
+                        primitiveState = 0;
+                        break;
+                case D3DPT_TRIANGLESTRIP:
+                        drawIndexCount = static_cast<uint32_t>(polygon_count) + 2u;
+                        primitiveState = BGFX_STATE_PT_TRISTRIP;
+                        break;
+                case D3DPT_LINELIST:
+                        drawIndexCount = static_cast<uint32_t>(polygon_count) * 2u;
+                        primitiveState = BGFX_STATE_PT_LINES;
+                        break;
+                case D3DPT_LINESTRIP:
+                        drawIndexCount = static_cast<uint32_t>(polygon_count) + 1u;
+                        primitiveState = BGFX_STATE_PT_LINES;
+                        break;
+                case D3DPT_POINTLIST:
+                        drawIndexCount = static_cast<uint32_t>(polygon_count);
+                        primitiveState = BGFX_STATE_PT_POINTS;
+                        break;
+                default:
+                        drawIndexCount = 0;
+                        break;
+                }
+
+                DX8VertexBufferClass* vb = NULL;
+                if (render_state.vertex_buffer &&
+                        (render_state.vertex_buffer_type == BUFFER_TYPE_DX8 || render_state.vertex_buffer_type == BUFFER_TYPE_DYNAMIC_DX8)) {
+                        vb = static_cast<DX8VertexBufferClass*>(render_state.vertex_buffer);
+                }
+
+                DX8IndexBufferClass* ib = NULL;
+                if (render_state.index_buffer &&
+                        (render_state.index_buffer_type == BUFFER_TYPE_DX8 || render_state.index_buffer_type == BUFFER_TYPE_DYNAMIC_DX8)) {
+                        ib = static_cast<DX8IndexBufferClass*>(render_state.index_buffer);
+                }
+
+                if (vb && ib && drawIndexCount)
+                {
+                        uint32_t availableVertices = 0;
+                        if (render_state.vertex_buffer_type == BUFFER_TYPE_DYNAMIC_DX8) {
+                                if (render_state.vba_count > min_vertex_index) {
+                                        availableVertices = static_cast<uint32_t>(render_state.vba_count - min_vertex_index);
+                                }
+                        } else {
+                                uint32_t totalVertices = vb->Get_Bgfx_Vertex_Count();
+                                if (totalVertices > baseVertex) {
+                                        availableVertices = totalVertices - baseVertex;
+                                }
+                        }
+
+                        if (!drawVertexCount || drawVertexCount > availableVertices) {
+                                drawVertexCount = availableVertices;
+                        }
+
+                        if (drawVertexCount)
+                        {
+                                bool vertexBound = false;
+                                if (render_state.vertex_buffer_type == BUFFER_TYPE_DYNAMIC_DX8 && vb->Uses_Bgfx_Dynamic_Buffer()) {
+                                        bgfx::DynamicVertexBufferHandle handle = vb->Get_Bgfx_Dynamic_Vertex_Handle();
+                                        if (bgfx::isValid(handle)) {
+                                                bgfx::setVertexBuffer(0, handle, baseVertex, drawVertexCount);
+                                                vertexBound = true;
+                                        }
+                                } else if (vb->Has_Bgfx_Vertex_Buffer()) {
+                                        bgfx::VertexBufferHandle handle = vb->Get_Bgfx_Vertex_Handle();
+                                        if (bgfx::isValid(handle)) {
+                                                bgfx::setVertexBuffer(0, handle, baseVertex, drawVertexCount);
+                                                vertexBound = true;
+                                        }
+                                }
+
+                                if (vertexBound)
+                                {
+                                        uint32_t availableIndices = ib->Get_Bgfx_Index_Count();
+                                        if (availableIndices > firstIndex) {
+                                                availableIndices -= firstIndex;
+                                        } else {
+                                                availableIndices = 0;
+                                        }
+
+                                        if (drawIndexCount > availableIndices) {
+                                                drawIndexCount = availableIndices;
+                                        }
+
+                                        if (drawIndexCount)
+                                        {
+                                                bool indexBound = false;
+                                                if (render_state.index_buffer_type == BUFFER_TYPE_DYNAMIC_DX8 && ib->Uses_Bgfx_Dynamic_Buffer()) {
+                                                        bgfx::DynamicIndexBufferHandle handle = ib->Get_Bgfx_Dynamic_Index_Handle();
+                                                        if (bgfx::isValid(handle)) {
+                                                                bgfx::setIndexBuffer(handle, firstIndex, drawIndexCount);
+                                                                indexBound = true;
+                                                        }
+                                                } else if (ib->Has_Bgfx_Index_Buffer()) {
+                                                        bgfx::IndexBufferHandle handle = ib->Get_Bgfx_Index_Handle();
+                                                        if (bgfx::isValid(handle)) {
+                                                                bgfx::setIndexBuffer(handle, firstIndex, drawIndexCount);
+                                                                indexBound = true;
+                                                        }
+                                                }
+
+                                                if (indexBound && bgfx::isValid(render_state.bgfx.program))
+                                                {
+                                                        state &= ~primitiveMask;
+                                                        state |= primitiveState;
+
+                                                        bgfx::setState(state);
+                                                        bgfx::submit(0, render_state.bgfx.program);
+
+                                                        if (drawVertexCount > 0xffffu) {
+                                                                drawVertexCount = 0xffffu;
+                                                        }
+                                                        vertex_count = static_cast<unsigned short>(drawVertexCount);
+                                                        submitted = true;
+                                                }
+                                        }
+                                }
+                        }
+                }
+
+                if (submitted)
+                {
+                        DX8_RECORD_RENDER(polygon_count, vertex_count, render_state.shader);
+                        return;
+                }
+        }
+#endif
+
+        switch (render_state.vertex_buffer_type) {
+        case BUFFER_TYPE_DX8:
+        case BUFFER_TYPE_DYNAMIC_DX8:
+                switch (render_state.index_buffer_type) {
 		case BUFFER_TYPE_DX8:
 		case BUFFER_TYPE_DYNAMIC_DX8:
 			{
@@ -2258,6 +2400,62 @@ void DX8Wrapper::Apply_Render_State_Changes()
                         } else {
                                 VertexMaterialClass::Apply_Null();
                         }
+                }
+
+                if (render_state_changed & VERTEX_BUFFER_CHANGED) {
+#if WW3D_BGFX_AVAILABLE
+                        if (render_state.vertex_buffer) {
+                                switch (render_state.vertex_buffer_type) {
+                                case BUFFER_TYPE_DX8:
+                                case BUFFER_TYPE_DYNAMIC_DX8:
+                                        {
+                                                DX8VertexBufferClass* vb = static_cast<DX8VertexBufferClass*>(render_state.vertex_buffer);
+                                                if (vb->Uses_Bgfx_Dynamic_Buffer()) {
+                                                        bgfx::DynamicVertexBufferHandle handle = vb->Get_Bgfx_Dynamic_Vertex_Handle();
+                                                        if (bgfx::isValid(handle)) {
+                                                                bgfx::setVertexBuffer(0, handle);
+                                                        }
+                                                } else if (vb->Has_Bgfx_Vertex_Buffer()) {
+                                                        bgfx::VertexBufferHandle handle = vb->Get_Bgfx_Vertex_Handle();
+                                                        if (bgfx::isValid(handle)) {
+                                                                bgfx::setVertexBuffer(0, handle);
+                                                        }
+                                                }
+                                        }
+                                        break;
+                                default:
+                                        break;
+                                }
+                        }
+#endif
+                }
+
+                if (render_state_changed & INDEX_BUFFER_CHANGED) {
+#if WW3D_BGFX_AVAILABLE
+                        if (render_state.index_buffer) {
+                                switch (render_state.index_buffer_type) {
+                                case BUFFER_TYPE_DX8:
+                                case BUFFER_TYPE_DYNAMIC_DX8:
+                                        {
+                                                DX8IndexBufferClass* ib = static_cast<DX8IndexBufferClass*>(render_state.index_buffer);
+                                                if (ib->Uses_Bgfx_Dynamic_Buffer()) {
+                                                        bgfx::DynamicIndexBufferHandle handle = ib->Get_Bgfx_Dynamic_Index_Handle();
+                                                        if (bgfx::isValid(handle)) {
+                                                                bgfx::setIndexBuffer(handle);
+                                                        }
+                                                } else if (ib->Has_Bgfx_Index_Buffer()) {
+                                                        bgfx::IndexBufferHandle handle = ib->Get_Bgfx_Index_Handle();
+                                                        if (bgfx::isValid(handle)) {
+                                                                bgfx::setIndexBuffer(handle);
+                                                        }
+                                                }
+                                        }
+                                        break;
+                                default:
+                                        break;
+                                }
+                        }
+#endif
                 }
 
                 render_state_changed &= ((unsigned)WORLD_IDENTITY | (unsigned)VIEW_IDENTITY);

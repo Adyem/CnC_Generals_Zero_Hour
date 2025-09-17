@@ -647,8 +647,8 @@ void* DX8VertexBufferClass::Lock(unsigned offset_bytes, unsigned size_bytes, uns
 void DX8VertexBufferClass::Unlock()
 {
 #if WW3D_BGFX_VERTEX_AVAILABLE
-	if (m_bgfxData)
-	{
+        if (m_bgfxData)
+        {
 		const uint32_t total_size = static_cast<uint32_t>(m_bgfxData->data.size());
 		uint32_t offset = m_bgfxData->lock_offset;
 		uint32_t range = m_bgfxData->lock_size ? m_bgfxData->lock_size : (total_size - offset);
@@ -690,8 +690,63 @@ void DX8VertexBufferClass::Unlock()
 #endif
 
 	DX8_Assert();
-	DX8_ErrorCode(VertexBuffer->Unlock());
+        DX8_ErrorCode(VertexBuffer->Unlock());
 }
+
+#if WW3D_BGFX_VERTEX_AVAILABLE
+bool DX8VertexBufferClass::Has_Bgfx_Vertex_Buffer() const
+{
+        return (m_bgfxData != NULL);
+}
+
+bool DX8VertexBufferClass::Uses_Bgfx_Dynamic_Buffer() const
+{
+        return m_bgfxData && m_bgfxData->dynamic;
+}
+
+bgfx::VertexBufferHandle DX8VertexBufferClass::Get_Bgfx_Vertex_Handle()
+{
+        bgfx::VertexBufferHandle handle = { bgfx::kInvalidHandle };
+        if (!m_bgfxData || m_bgfxData->dynamic)
+        {
+                return handle;
+        }
+
+        if (!bgfx::isValid(m_bgfxData->static_handle) && !m_bgfxData->data.empty())
+        {
+                const bgfx::Memory* memory = bgfx::copy(m_bgfxData->data.data(), static_cast<uint32_t>(m_bgfxData->data.size()));
+                m_bgfxData->static_handle = bgfx::createVertexBuffer(memory, m_bgfxData->layout);
+        }
+
+        return m_bgfxData->static_handle;
+}
+
+bgfx::DynamicVertexBufferHandle DX8VertexBufferClass::Get_Bgfx_Dynamic_Vertex_Handle()
+{
+        bgfx::DynamicVertexBufferHandle handle = { bgfx::kInvalidHandle };
+        if (!m_bgfxData || !m_bgfxData->dynamic)
+        {
+                return handle;
+        }
+
+        if (!bgfx::isValid(m_bgfxData->dynamic_handle))
+        {
+                m_bgfxData->dynamic_handle = bgfx::createDynamicVertexBuffer(m_bgfxData->vertex_count, m_bgfxData->layout);
+        }
+
+        return m_bgfxData->dynamic_handle;
+}
+
+const bgfx::VertexLayout* DX8VertexBufferClass::Get_Bgfx_Vertex_Layout() const
+{
+        return m_bgfxData ? &m_bgfxData->layout : NULL;
+}
+
+uint32_t DX8VertexBufferClass::Get_Bgfx_Vertex_Count() const
+{
+        return m_bgfxData ? m_bgfxData->vertex_count : 0;
+}
+#endif
 
 // ----------------------------------------------------------------------------
 
