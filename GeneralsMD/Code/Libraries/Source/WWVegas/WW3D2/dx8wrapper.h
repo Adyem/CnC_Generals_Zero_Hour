@@ -62,6 +62,7 @@
 #include "dx8vertexbuffer.h"
 #include "dx8indexbuffer.h"
 #include "vertmaterial.h"
+#include "Main/GraphicsBackend.h"
 
 /*
 ** Registry value names
@@ -252,11 +253,15 @@ class DX8Wrapper
 
 public:
 #ifdef EXTENDED_STATS
-	static DX8_Stats stats;
+        static DX8_Stats stats;
 #endif
 
-	static bool Init(void * hwnd, bool lite = false);
-	static void Shutdown(void);
+        static void Set_Active_Backend(GraphicsBackend backend);
+        static GraphicsBackend Get_Active_Backend();
+        static bool Is_Bgfx_Active();
+
+        static bool Init(void * hwnd, bool lite = false);
+        static void Shutdown(void);
 
 	static void SetCleanupHook(DX8_CleanupHook *pCleanupHook) {m_pCleanupHook = pCleanupHook;};
 	/*
@@ -848,27 +853,49 @@ WWINLINE void DX8Wrapper::Set_Ambient(const Vector3& color)
 
 WWINLINE void DX8Wrapper::Set_DX8_Material(const D3DMATERIAL8* mat)
 {
-	DX8_RECORD_MATERIAL_CHANGE();
-	WWASSERT(mat);
-	SNAPSHOT_SAY(("DX8 - SetMaterial\n"));
-	DX8CALL(SetMaterial(mat));
+        if (Is_Bgfx_Active())
+        {
+                DX8_RECORD_MATERIAL_CHANGE();
+                return;
+        }
+
+        DX8_RECORD_MATERIAL_CHANGE();
+        WWASSERT(mat);
+        SNAPSHOT_SAY(("DX8 - SetMaterial\n"));
+        DX8CALL(SetMaterial(mat));
 }
 
 WWINLINE void DX8Wrapper::Set_DX8_Light(int index, D3DLIGHT8* light)
 {
-	if (light) {
-		DX8_RECORD_LIGHT_CHANGE();
-		DX8CALL(SetLight(index,light));
-		DX8CALL(LightEnable(index,TRUE));
-		CurrentDX8LightEnables[index]=true;
-		SNAPSHOT_SAY(("DX8 - SetLight %d\n",index));
-	}
-	else if (CurrentDX8LightEnables[index]) {
-		DX8_RECORD_LIGHT_CHANGE();
-		CurrentDX8LightEnables[index]=false;
-		DX8CALL(LightEnable(index,FALSE));
-		SNAPSHOT_SAY(("DX8 - DisableLight %d\n",index));
-	}
+        if (light) {
+                if (Is_Bgfx_Active())
+                {
+                        DX8_RECORD_LIGHT_CHANGE();
+                        CurrentDX8LightEnables[index]=true;
+                        SNAPSHOT_SAY(("DX8 - SetLight %d\n",index));
+                        return;
+                }
+
+                DX8_RECORD_LIGHT_CHANGE();
+                DX8CALL(SetLight(index,light));
+                DX8CALL(LightEnable(index,TRUE));
+                CurrentDX8LightEnables[index]=true;
+                SNAPSHOT_SAY(("DX8 - SetLight %d\n",index));
+        }
+        else if (CurrentDX8LightEnables[index]) {
+                if (Is_Bgfx_Active())
+                {
+                        DX8_RECORD_LIGHT_CHANGE();
+                        CurrentDX8LightEnables[index]=false;
+                        SNAPSHOT_SAY(("DX8 - DisableLight %d\n",index));
+                        return;
+                }
+
+                DX8_RECORD_LIGHT_CHANGE();
+                CurrentDX8LightEnables[index]=false;
+                DX8CALL(LightEnable(index,FALSE));
+                SNAPSHOT_SAY(("DX8 - DisableLight %d\n",index));
+        }
 }
 
 WWINLINE void DX8Wrapper::Set_DX8_Render_State(D3DRENDERSTATETYPE state, unsigned value)
@@ -886,14 +913,25 @@ WWINLINE void DX8Wrapper::Set_DX8_Render_State(D3DRENDERSTATETYPE state, unsigne
 	}
 #endif
 
-	RenderStates[state]=value;
-	DX8CALL(SetRenderState( state, value ));
-	DX8_RECORD_RENDER_STATE_CHANGE();
+        RenderStates[state]=value;
+        if (Is_Bgfx_Active())
+        {
+                DX8_RECORD_RENDER_STATE_CHANGE();
+                return;
+        }
+
+        DX8CALL(SetRenderState( state, value ));
+        DX8_RECORD_RENDER_STATE_CHANGE();
 }
 
 WWINLINE void DX8Wrapper::Set_DX8_Clip_Plane(DWORD Index, CONST float* pPlane)
 {
-	DX8CALL(SetClipPlane( Index, pPlane ));
+        if (Is_Bgfx_Active())
+        {
+                return;
+        }
+
+        DX8CALL(SetClipPlane( Index, pPlane ));
 }
 
 WWINLINE void DX8Wrapper::Set_DX8_Texture_Stage_State(unsigned stage, D3DTEXTURESTAGESTATETYPE state, unsigned value)
@@ -916,9 +954,15 @@ WWINLINE void DX8Wrapper::Set_DX8_Texture_Stage_State(unsigned stage, D3DTEXTURE
 	}
 #endif
 
-	TextureStageStates[stage][(unsigned int)state]=value;
-	DX8CALL(SetTextureStageState( stage, state, value ));
-	DX8_RECORD_TEXTURE_STAGE_STATE_CHANGE();
+        TextureStageStates[stage][(unsigned int)state]=value;
+        if (Is_Bgfx_Active())
+        {
+                DX8_RECORD_TEXTURE_STAGE_STATE_CHANGE();
+                return;
+        }
+
+        DX8CALL(SetTextureStageState( stage, state, value ));
+        DX8_RECORD_TEXTURE_STAGE_STATE_CHANGE();
 }
 
 WWINLINE void DX8Wrapper::Set_DX8_Texture(unsigned int stage, IDirect3DBaseTexture8* texture)
@@ -928,15 +972,24 @@ WWINLINE void DX8Wrapper::Set_DX8_Texture(unsigned int stage, IDirect3DBaseTextu
   		return;
   	}
 
-	if (Textures[stage]==texture) return;
+        if (Textures[stage]==texture) return;
 
-	SNAPSHOT_SAY(("DX8 - SetTexture(%x) \n",texture));
+        SNAPSHOT_SAY(("DX8 - SetTexture(%x) \n",texture));
 
-	if (Textures[stage]) Textures[stage]->Release();
-	Textures[stage] = texture;
-	if (Textures[stage]) Textures[stage]->AddRef();
-	DX8CALL(SetTexture(stage, texture));
-	DX8_RECORD_TEXTURE_CHANGE();
+        if (!Is_Bgfx_Active())
+        {
+                if (Textures[stage]) Textures[stage]->Release();
+        }
+
+        Textures[stage] = texture;
+
+        if (!Is_Bgfx_Active())
+        {
+                if (Textures[stage]) Textures[stage]->AddRef();
+                DX8CALL(SetTexture(stage, texture));
+        }
+
+        DX8_RECORD_TEXTURE_CHANGE();
 }
 
 WWINLINE void DX8Wrapper::_Copy_DX8_Rects(

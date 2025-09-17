@@ -52,6 +52,7 @@ class DX8Wrapper;
 class SortingRendererClass;
 struct IDirect3DIndexBuffer8;
 class DX8IndexBufferClass;
+struct DX8IndexBufferBgfxData;
 class SortingIndexBufferClass;
 
 // ----------------------------------------------------------------------------
@@ -181,8 +182,12 @@ public:
 
 	inline IDirect3DIndexBuffer8* Get_DX8_Index_Buffer()	{ return index_buffer; }
 	
+	unsigned short* Lock(unsigned offset_bytes, unsigned size_bytes, unsigned flags);
+	void Unlock();
+
 private:
 	IDirect3DIndexBuffer8*	index_buffer;		// actual dx8 index buffer
+	DX8IndexBufferBgfxData* m_bgfxData;
 };
 
 

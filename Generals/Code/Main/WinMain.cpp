@@ -65,6 +65,7 @@
 #include "GameClient/IMEManager.h"
 #include "Win32Device/GameClient/Win32Mouse.h"
 #include "Win32Device/Common/Win32GameEngine.h"
+#include "W3DDevice/GameClient/RenderBackend.h"
 #include "Common/Version.h"
 #include "BuildVersion.h"
 #include "GeneratedVersion.h"
@@ -80,8 +81,6 @@ static HANDLE GeneralsMutex = NULL;
 #define GENERALS_GUID "685EAFF2-3216-4265-B047-251C5F4B82F3"
 #define DEFAULT_XRESOLUTION 800
 #define DEFAULT_YRESOLUTION 600
-
-extern void Reset_D3D_Device(bool active);
 
 static Bool gInitializing = false;
 static Bool gDoPaint = true;
@@ -536,7 +535,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message,
 					if (TheGameEngine)
 						TheGameEngine->setIsActive(isWinMainActive);
 
-					Reset_D3D_Device(isWinMainActive);
+					GetRenderBackend().HandleFocusChange(isWinMainActive != FALSE);
 					if (isWinMainActive)
 					{	//restore mouse cursor to our custom version.
 						if (TheWin32Mouse)

@@ -82,6 +82,18 @@
 #include "bound.h"
 #include "dx8webbrowser.h"
 
+#if defined(__has_include)
+#if __has_include(<bgfx/bgfx.h>)
+#include <bgfx/bgfx.h>
+#include <bgfx/platform.h>
+#define WW3D_BGFX_AVAILABLE 1
+#else
+#define WW3D_BGFX_AVAILABLE 0
+#endif
+#else
+#define WW3D_BGFX_AVAILABLE 0
+#endif
+
 #include "shdlib.h"
 
 const int DEFAULT_RESOLUTION_WIDTH = 640;
@@ -198,6 +210,22 @@ static DynamicVectorClass<StringClass>					_RenderDeviceNameTable;
 static DynamicVectorClass<StringClass>					_RenderDeviceShortNameTable;
 static DynamicVectorClass<RenderDeviceDescClass>	_RenderDeviceDescriptionTable;
 
+static GraphicsBackend g_activeBackend = GRAPHICS_BACKEND_DIRECT3D8;
+
+#if WW3D_BGFX_AVAILABLE
+struct BgfxDeviceState
+{
+	bool initialized;
+	void* windowHandle;
+};
+
+static BgfxDeviceState g_bgfxState = { false, NULL };
+#endif
+
+static void PopulateBgfxDeviceDescriptions();
+static bool InitializeBgfx(void* hwnd);
+static void ShutdownBgfx();
+
 
 typedef IDirect3D8* (WINAPI *Direct3DCreate8Type) (UINT SDKVersion);
 Direct3DCreate8Type	Direct3DCreate8Ptr = NULL;
@@ -244,13 +272,124 @@ void Non_Fatal_Log_DX8_ErrorCode(unsigned res,const char * file,int line)
 }
 
 
+static void PopulateBgfxDeviceDescriptions()
+{
+	StringClass device_name = "bgfx";
+	_RenderDeviceNameTable.Clear();
+	_RenderDeviceShortNameTable.Clear();
+	_RenderDeviceDescriptionTable.Clear();
+	_RenderDeviceNameTable.Add(device_name);
+	_RenderDeviceShortNameTable.Add(device_name);
+
+	RenderDeviceDescClass desc;
+	desc.set_device_name("bgfx");
+	desc.set_device_platform("bgfx");
+	desc.set_driver_name("bgfx");
+	desc.set_driver_vendor("bgfx");
+	desc.set_driver_version("1.0.0");
+	desc.set_hardware_name("bgfx");
+	desc.set_hardware_vendor("bgfx");
+	desc.set_hardware_chipset("bgfx");
+	desc.reset_resolution_list();
+
+	static const int kResolutions[][2] = {
+		{ 640, 480 },
+		{ 800, 600 },
+		{ 1024, 768 },
+		{ 1280, 720 },
+		{ 1280, 1024 },
+		{ 1600, 900 },
+		{ 1920, 1080 },
+	};
+
+	for (unsigned int idx = 0; idx < sizeof(kResolutions) / sizeof(kResolutions[0]); ++idx)
+	{
+		desc.add_resolution(kResolutions[idx][0], kResolutions[idx][1], DEFAULT_BIT_DEPTH);
+	}
+
+	_RenderDeviceDescriptionTable.Add(desc);
+}
+
+static bool InitializeBgfx(void* hwnd)
+{
+#if WW3D_BGFX_AVAILABLE
+	g_bgfxState.windowHandle = hwnd;
+	g_bgfxState.initialized = false;
+
+	_Hwnd = (HWND)hwnd;
+	_MainThreadID = ThreadClass::_Get_Current_Thread_ID();
+	CurRenderDevice = -1;
+	ResolutionWidth = DEFAULT_RESOLUTION_WIDTH;
+	ResolutionHeight = DEFAULT_RESOLUTION_HEIGHT;
+	Render2DClass::Set_Screen_Resolution(RectClass(0, 0, ResolutionWidth, ResolutionHeight));
+	BitDepth = DEFAULT_BIT_DEPTH;
+        TextureBitDepth = DEFAULT_TEXTURE_BIT_DEPTH;
+        IsWindowed = false;
+        DX8Wrapper_IsWindowed = false;
+
+        Reset_Statistics();
+        Invalidate_Cached_Render_States();
+
+        PopulateBgfxDeviceDescriptions();
+
+	bgfx::PlatformData platformData;
+	::memset(&platformData, 0, sizeof(platformData));
+	platformData.nwh = hwnd;
+	bgfx::setPlatformData(platformData);
+
+	bgfx::Init initArgs;
+	::memset(&initArgs, 0, sizeof(initArgs));
+	initArgs.type = bgfx::RendererType::Count;
+	initArgs.resolution.width = static_cast<uint32_t>(ResolutionWidth);
+	initArgs.resolution.height = static_cast<uint32_t>(ResolutionHeight);
+	initArgs.resolution.reset = BGFX_RESET_VSYNC;
+
+        if (!bgfx::init(initArgs))
+        {
+                return false;
+        }
+
+        IsInitted = true;
+        g_bgfxState.initialized = true;
+        Set_Default_Global_Render_States();
+        return true;
+#else
+	WWDEBUG_SAY(("bgfx backend selected but bgfx headers are not available.\n"));
+	(void)hwnd;
+	return false;
+#endif
+}
+
+static void ShutdownBgfx()
+{
+#if WW3D_BGFX_AVAILABLE
+	if (g_bgfxState.initialized)
+	{
+		bgfx::shutdown();
+		g_bgfxState.initialized = false;
+	}
+#endif
+
+	_RenderDeviceNameTable.Clear();
+	_RenderDeviceShortNameTable.Clear();
+	_RenderDeviceDescriptionTable.Clear();
+	IsInitted = false;
+	_Hwnd = NULL;
+}
+
 
 bool DX8Wrapper::Init(void * hwnd, bool lite)
 {
 	WWASSERT(!IsInitted);
 
-	// zero memory
-	memset(Textures,0,sizeof(IDirect3DBaseTexture8*)*MAX_TEXTURE_STAGES);
+	if (g_activeBackend == GRAPHICS_BACKEND_BGFX)
+	{
+		(void)lite;
+		return InitializeBgfx(hwnd);
+	}
+
+        // zero memory
+        memset(Textures,0,sizeof(IDirect3DBaseTexture8*)*MAX_TEXTURE_STAGES);
 	memset(RenderStates,0,sizeof(unsigned)*256);
 	memset(TextureStageStates,0,sizeof(unsigned)*32*MAX_TEXTURE_STAGES);
 	memset(Vertex_Shader_Constants,0,sizeof(Vector4)*MAX_VERTEX_SHADER_CONSTANTS);
@@ -325,6 +464,12 @@ bool DX8Wrapper::Init(void * hwnd, bool lite)
 
 void DX8Wrapper::Shutdown(void)
 {
+	if (g_activeBackend == GRAPHICS_BACKEND_BGFX)
+	{
+		ShutdownBgfx();
+		return;
+	}
+
 	if (D3DDevice) {
 
 		Set_Render_Target ((IDirect3DSurface8 *)NULL);
@@ -392,12 +537,33 @@ void DX8Wrapper::Do_Onetime_Device_Dependent_Inits(void)
 }
 
 inline DWORD F2DW(float f) { return *((unsigned*)&f); }
+
+static void Set_Default_Global_Render_States_Bgfx()
+{
+        DX8Wrapper::Set_DX8_Render_State(D3DRS_RANGEFOGENABLE, FALSE);
+        DX8Wrapper::Set_DX8_Render_State(D3DRS_FOGTABLEMODE, D3DFOG_NONE);
+        DX8Wrapper::Set_DX8_Render_State(D3DRS_FOGVERTEXMODE, D3DFOG_LINEAR);
+        DX8Wrapper::Set_DX8_Render_State(D3DRS_SPECULARMATERIALSOURCE, D3DMCS_MATERIAL);
+        DX8Wrapper::Set_DX8_Render_State(D3DRS_COLORVERTEX, TRUE);
+        DX8Wrapper::Set_DX8_Render_State(D3DRS_ZBIAS,0);
+        DX8Wrapper::Set_DX8_Texture_Stage_State(1, D3DTSS_BUMPENVLSCALE, F2DW(1.0f));
+        DX8Wrapper::Set_DX8_Texture_Stage_State(1, D3DTSS_BUMPENVLOFFSET, F2DW(0.0f));
+        DX8Wrapper::Set_DX8_Texture_Stage_State(0, D3DTSS_BUMPENVMAT00,F2DW(1.0f));
+        DX8Wrapper::Set_DX8_Texture_Stage_State(0, D3DTSS_BUMPENVMAT01,F2DW(0.0f));
+        DX8Wrapper::Set_DX8_Texture_Stage_State(0, D3DTSS_BUMPENVMAT10,F2DW(0.0f));
+        DX8Wrapper::Set_DX8_Texture_Stage_State(0, D3DTSS_BUMPENVMAT11,F2DW(1.0f));
+}
 void DX8Wrapper::Set_Default_Global_Render_States(void)
 {
-	DX8_THREAD_ASSERT();
-	const D3DCAPS8 &caps = Get_Current_Caps()->Get_DX8_Caps();
+        DX8_THREAD_ASSERT();
+        if (Is_Bgfx_Active())
+        {
+                Set_Default_Global_Render_States_Bgfx();
+                return;
+        }
+        const D3DCAPS8 &caps = Get_Current_Caps()->Get_DX8_Caps();
 
-	Set_DX8_Render_State(D3DRS_RANGEFOGENABLE, (caps.RasterCaps & D3DPRASTERCAPS_FOGRANGE) ? TRUE : FALSE);
+        Set_DX8_Render_State(D3DRS_RANGEFOGENABLE, (caps.RasterCaps & D3DPRASTERCAPS_FOGRANGE) ? TRUE : FALSE);
 	Set_DX8_Render_State(D3DRS_FOGTABLEMODE, D3DFOG_NONE);
 	Set_DX8_Render_State(D3DRS_FOGVERTEXMODE, D3DFOG_LINEAR);
 	Set_DX8_Render_State(D3DRS_SPECULARMATERIALSOURCE, D3DMCS_MATERIAL);
@@ -426,29 +592,35 @@ bool DX8Wrapper::Validate_Device(void)
 
 void DX8Wrapper::Invalidate_Cached_Render_States(void)
 {
-	render_state_changed=0;
+        DX8_THREAD_ASSERT();
+        render_state_changed=0;
 
-	int a;
-	for (a=0;a<sizeof(RenderStates)/sizeof(unsigned);++a) {
-		RenderStates[a]=0x12345678;
-	}
-	for (a=0;a<MAX_TEXTURE_STAGES;++a) 
-	{
-		for (int b=0; b<32;b++) 
-		{
-			TextureStageStates[a][b]=0x12345678;
-		}
-		//Need to explicitly set texture to NULL, otherwise app will not be able to
-		//set it to null because of redundant state checker. MW
-		if (_Get_D3D_Device8())
-			_Get_D3D_Device8()->SetTexture(a,NULL);
-		if (Textures[a] != NULL) {
-			Textures[a]->Release();
-		}
-		Textures[a]=NULL;
-	}
+        int a;
+        for (a=0;a<sizeof(RenderStates)/sizeof(unsigned);++a) {
+                RenderStates[a]=0x12345678;
+        }
+        for (a=0;a<MAX_TEXTURE_STAGES;++a)
+        {
+                for (int b=0; b<32;b++)
+                {
+                        TextureStageStates[a][b]=0x12345678;
+                }
+                //Need to explicitly set texture to NULL, otherwise app will not be able to
+                //set it to null because of redundant state checker. MW
+                if (!Is_Bgfx_Active())
+                {
+                        if (_Get_D3D_Device8())
+                        {
+                                _Get_D3D_Device8()->SetTexture(a,NULL);
+                        }
+                        if (Textures[a] != NULL) {
+                                Textures[a]->Release();
+                        }
+                }
+                Textures[a]=NULL;
+        }
 
-	ShaderClass::Invalidate();
+        ShaderClass::Invalidate();
 
 	//Need to explicitly set render_state texture pointers to NULL. MW
 	Release_Render_State();
@@ -712,6 +884,11 @@ void DX8Wrapper::Release_Device(void)
 void DX8Wrapper::Enumerate_Devices()
 {
 	DX8_Assert();
+
+	if (g_activeBackend == GRAPHICS_BACKEND_BGFX)
+	{
+		return;
+	}
 
 	int adapter_count = D3DInterface->GetAdapterCount();
 	for (int adapter_index=0; adapter_index<adapter_count; adapter_index++) {
@@ -4449,4 +4626,20 @@ const char* DX8Wrapper::Get_DX8_Blend_Op_Name(unsigned value)
 WW3DFormat	DX8Wrapper::getBackBufferFormat( void )
 {
 	return D3DFormat_To_WW3DFormat( _PresentParameters.BackBufferFormat );
+}
+
+
+void DX8Wrapper::Set_Active_Backend(GraphicsBackend backend)
+{
+	g_activeBackend = backend;
+}
+
+GraphicsBackend DX8Wrapper::Get_Active_Backend()
+{
+        return g_activeBackend;
+}
+
+bool DX8Wrapper::Is_Bgfx_Active()
+{
+        return g_activeBackend == GRAPHICS_BACKEND_BGFX;
 }

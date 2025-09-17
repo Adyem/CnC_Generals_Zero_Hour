@@ -1,5 +1,5 @@
 /*
-**	Command & Conquer Generals Zero Hour(tm)
+**	Command & Conquer Generals(tm)
 **	Copyright 2025 Electronic Arts Inc.
 **
 **	This program is free software: you can redistribute it and/or modify
@@ -45,10 +45,7 @@
 
 #include "W3DDevice/GameClient/heightmap.h"
 #include "W3DDevice/GameClient/W3DWaterTracks.h"
-#include "W3DDevice/GameClient/W3DShaderManager.h"
-#include "W3DDevice/GameClient/W3DShroud.h"
 #include "GameClient/InGameUI.h"
-#include "GameClient/Water.h"
 #include "GameLogic/TerrainLogic.h"
 #include "common/GlobalData.h"
 #include "common/UnicodeString.h"
@@ -318,16 +315,21 @@ Int WaterTracksObj::render(DX8VertexBufferClass	*vertexBuffer, Int batchStart)
 	Real	widthFrac;
 	Real	heightFrac;
 
+	const unsigned stride = vertexBuffer->FVF_Info().Get_FVF_Size();
+	const unsigned lockSize = m_x*m_y*stride;
+
 	if (batchStart < (WATER_VB_PAGES*WATER_STRIP_X*WATER_STRIP_Y-m_x*m_y))
 	{	//we have room in current VB, append new verts
-		if(vertexBuffer->Get_DX8_Vertex_Buffer()->Lock(batchStart*vertexBuffer->FVF_Info().Get_FVF_Size(),m_x*m_y*vertexBuffer->FVF_Info().Get_FVF_Size(),(unsigned char**)&vb,D3DLOCK_NOOVERWRITE) != D3D_OK)
+		vb = static_cast<VertexFormatXYZDUV1*>(vertexBuffer->Lock(batchStart*stride, lockSize, D3DLOCK_NOOVERWRITE));
+		if (vb == NULL)
 			return batchStart;
 	}
 	else
 	{	//ran out of room in last VB, request a substitute VB.
-		if(vertexBuffer->Get_DX8_Vertex_Buffer()->Lock(0,m_x*m_y*vertexBuffer->FVF_Info().Get_FVF_Size(),(unsigned char**)&vb,D3DLOCK_DISCARD) != D3D_OK)
+		vb = static_cast<VertexFormatXYZDUV1*>(vertexBuffer->Lock(0, lockSize, D3DLOCK_DISCARD));
+		if (vb == NULL)
 			return batchStart;
-		batchStart=0;	//reset start of page to first vertex
+		batchStart=0;   //reset start of page to first vertex
 	}
 
 	//Adjust wave position in a non-linear way so that it slows down as it hits the target.  Using 1/4 sine wave
@@ -481,7 +483,7 @@ Int WaterTracksObj::render(DX8VertexBufferClass	*vertexBuffer, Int batchStart)
 	vb->v1=1.0f;
 	vb++;
 
-	vertexBuffer->Get_DX8_Vertex_Buffer()->Unlock();
+	vertexBuffer->Unlock();
 
 	Int idxCount=(m_y-1)*(m_x*2+2) - 2;	//index count
 
@@ -869,9 +871,6 @@ Try improving the fit to vertical surfaces like cliffs.
 */
 	Int	diffuseLight;
 
-	if (!TheGlobalData->m_showSoftWaterEdge || TheWaterTransparency->m_transparentWaterDepth ==0 )
-		return;
-
 	if (TheGlobalData->m_usingWaterTrackEditor)
 		TestWaterUpdate();
 
@@ -882,9 +881,9 @@ Try improving the fit to vertical surfaces like cliffs.
 	if (!m_usedModules || ShaderClass::Is_Backface_Culling_Inverted())
 		return;	//don't render track marks in reflections.
 
- 	//According to Nvidia there's a D3D bug that happens if you don't start with a
- 	//new dynamic VB each frame - so we force a DISCARD by overflowing the counter.
- 	m_batchStart = 0xffff;
+	//According to Nvidia there's a D3D bug that happens if you don't start with a
+	//new dynamic VB each frame - so we force a DISCARD by overflowing the counter.
+	m_batchStart = 0xffff;
 
 	// adjust shading for time of day.
 	Real shadeR, shadeG, shadeB;
@@ -908,24 +907,6 @@ Try improving the fit to vertical surfaces like cliffs.
 
 	DX8Wrapper::Set_Vertex_Buffer(m_vertexBuffer);
 	DX8Wrapper::Set_DX8_Render_State(D3DRS_ZBIAS,8);
-	//Force apply of render states so we can override them.
-	DX8Wrapper::Apply_Render_State_Changes();
-
-	if (TheTerrainRenderObject->getShroud())
-	{	
-		W3DShaderManager::setTexture(0,TheTerrainRenderObject->getShroud()->getShroudTexture());
-		W3DShaderManager::setShader(W3DShaderManager::ST_SHROUD_TEXTURE, 1);
-
-		//modulate with shroud texture
-		DX8Wrapper::Set_DX8_Texture_Stage_State( 1, D3DTSS_COLORARG1, D3DTA_TEXTURE );	//stage 1 texture
-		DX8Wrapper::Set_DX8_Texture_Stage_State( 1, D3DTSS_COLORARG2, D3DTA_CURRENT );	//previous stage texture
-		DX8Wrapper::Set_DX8_Texture_Stage_State( 1, D3DTSS_COLOROP,   D3DTOP_MODULATE );
-		DX8Wrapper::Set_DX8_Texture_Stage_State( 1, D3DTSS_ALPHAOP,   D3DTOP_MODULATE );
-
-		//Shroud shader uses z-compare of EQUAL which wouldn't work on water because it doesn't
-		//write to the zbuffer.  Change to LESSEQUAL.
-		DX8Wrapper::Set_DX8_Render_State(D3DRS_ZFUNC, D3DCMP_LESSEQUAL);
-	}
 
 	Int LastTextureType=-1;
 
@@ -944,12 +925,6 @@ Try improving the fit to vertical surfaces like cliffs.
 	}	//while (mod)
 
 	DX8Wrapper::Set_DX8_Render_State(D3DRS_ZBIAS,0);
-
-	if (TheTerrainRenderObject->getShroud())
-	{	//we used the shroud shader, so reset it.
-		DX8Wrapper::Set_DX8_Render_State(D3DRS_ZFUNC, D3DCMP_EQUAL);
-		W3DShaderManager::resetShader(W3DShaderManager::ST_SHROUD_TEXTURE);
-	}
 }
 
 WaterTracksObj *WaterTracksRenderSystem::findTrack(Vector2 &start, Vector2 &end, waveType type)

@@ -13,6 +13,7 @@
 #include <Common/GameEngine.h>
 #include <Common/GameAudio.h>
 #include <Win32Device/Common/Win32GameEngine.h>
+#include <W3DDevice/GameClient/RenderBackend.h>
 
 #include <BuildVersion.h>
 #include <GeneratedVersion.h>
@@ -38,10 +39,6 @@
 using sfml_platform::WindowConfig;
 using sfml_platform::WindowSystem;
 
-#ifdef _WIN32
-extern void Reset_D3D_Device(bool active);
-#endif
-
 namespace {
 
 constexpr unsigned int kDefaultWidth = 1280;
@@ -50,6 +47,7 @@ constexpr unsigned int kDefaultHeight = 720;
 enum class BackendOption {
     Direct3D8,
     OpenGL,
+    Bgfx,
 };
 
 struct ParsedArguments {
@@ -91,6 +89,7 @@ void printHelp() {
               << "      --no-vsync       Disable vertical sync\n"
               << "      --fps <value>    Limit frames per second (0 = uncapped)\n"
               << "      --opengl         Use the OpenGL renderer\n"
+              << "      --bgfx           Use the bgfx renderer\n"
               << "      --d3d            Use the Direct3D 8 renderer (default)\n"
               << "      --bitdepth <n>   Set color bit depth (default 32)\n";
               << "      --legacy-miles-audio Use legacy Miles audio backend\n";
@@ -148,7 +147,7 @@ void processSfmlEvents() {
                     TheGameEngine->setIsActive(FALSE);
                 }
 #ifdef _WIN32
-                Reset_D3D_Device(false);
+                GetRenderBackend().HandleFocusChange(false);
 #endif
                 if (TheAudio) {
                     TheAudio->loseFocus();
@@ -167,7 +166,7 @@ void processSfmlEvents() {
                     TheGameEngine->setIsActive(TRUE);
                 }
 #ifdef _WIN32
-                Reset_D3D_Device(true);
+                GetRenderBackend().HandleFocusChange(true);
 #endif
                 if (TheAudio) {
                     TheAudio->regainFocus();
@@ -282,6 +281,11 @@ ParsedArguments parseArguments(const std::vector<std::string>& arguments) {
             continue;
         }
 
+        if (argument == "--bgfx") {
+            result.backend = BackendOption::Bgfx;
+            continue;
+        }
+
         if (argument == "--d3d" || argument == "--direct3d" || argument == "-d3d") {
             result.backend = BackendOption::Direct3D8;
             continue;
@@ -327,6 +331,8 @@ GraphicsBackend toGraphicsBackend(BackendOption backend) {
     switch (backend) {
         case BackendOption::OpenGL:
             return GRAPHICS_BACKEND_OPENGL;
+        case BackendOption::Bgfx:
+            return GRAPHICS_BACKEND_BGFX;
         case BackendOption::Direct3D8:
         default:
             return GRAPHICS_BACKEND_DIRECT3D8;

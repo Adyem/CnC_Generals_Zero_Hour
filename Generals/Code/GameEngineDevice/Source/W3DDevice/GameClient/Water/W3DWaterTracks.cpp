@@ -315,16 +315,21 @@ Int WaterTracksObj::render(DX8VertexBufferClass	*vertexBuffer, Int batchStart)
 	Real	widthFrac;
 	Real	heightFrac;
 
+	const unsigned stride = vertexBuffer->FVF_Info().Get_FVF_Size();
+	const unsigned lockSize = m_x*m_y*stride;
+
 	if (batchStart < (WATER_VB_PAGES*WATER_STRIP_X*WATER_STRIP_Y-m_x*m_y))
 	{	//we have room in current VB, append new verts
-		if(vertexBuffer->Get_DX8_Vertex_Buffer()->Lock(batchStart*vertexBuffer->FVF_Info().Get_FVF_Size(),m_x*m_y*vertexBuffer->FVF_Info().Get_FVF_Size(),(unsigned char**)&vb,D3DLOCK_NOOVERWRITE) != D3D_OK)
+		vb = static_cast<VertexFormatXYZDUV1*>(vertexBuffer->Lock(batchStart*stride, lockSize, D3DLOCK_NOOVERWRITE));
+		if (vb == NULL)
 			return batchStart;
 	}
 	else
 	{	//ran out of room in last VB, request a substitute VB.
-		if(vertexBuffer->Get_DX8_Vertex_Buffer()->Lock(0,m_x*m_y*vertexBuffer->FVF_Info().Get_FVF_Size(),(unsigned char**)&vb,D3DLOCK_DISCARD) != D3D_OK)
+		vb = static_cast<VertexFormatXYZDUV1*>(vertexBuffer->Lock(0, lockSize, D3DLOCK_DISCARD));
+		if (vb == NULL)
 			return batchStart;
-		batchStart=0;	//reset start of page to first vertex
+		batchStart=0;   //reset start of page to first vertex
 	}
 
 	//Adjust wave position in a non-linear way so that it slows down as it hits the target.  Using 1/4 sine wave
@@ -478,7 +483,7 @@ Int WaterTracksObj::render(DX8VertexBufferClass	*vertexBuffer, Int batchStart)
 	vb->v1=1.0f;
 	vb++;
 
-	vertexBuffer->Get_DX8_Vertex_Buffer()->Unlock();
+	vertexBuffer->Unlock();
 
 	Int idxCount=(m_y-1)*(m_x*2+2) - 2;	//index count
 
