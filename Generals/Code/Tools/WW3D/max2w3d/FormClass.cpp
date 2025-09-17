@@ -78,9 +78,10 @@ FormClass::Create_Form
 	assert(m_hWnd);
 
 	// Remove the caption from the dialog (if there was any)
-	::SetWindowLong (m_hWnd,
-						  GWL_STYLE,
-						  ::GetWindowLong (m_hWnd, GWL_STYLE) & (~WS_CAPTION));
+        const LONG_PTR style = ::GetWindowLongPtr(m_hWnd, GWL_STYLE);
+        ::SetWindowLongPtr(m_hWnd,
+                                                  GWL_STYLE,
+                                                  style & (~static_cast<LONG_PTR>(WS_CAPTION)));
 
 	::GetWindowRect (m_hWnd, &m_FormRect);
 

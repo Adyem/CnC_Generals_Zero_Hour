@@ -206,7 +206,7 @@ bool FloaterDialogClass::Dialog_Proc(HWND hWnd,UINT message,WPARAM wParam,LPARAM
 												);
 				if (childhwnd!= NULL) {
 					RECT rect;
-					LONG style = ::GetWindowLong(hWnd,GWL_STYLE);
+                                        const DWORD style = static_cast<DWORD>(::GetWindowLongPtr(hWnd, GWL_STYLE));
 					::GetWindowRect(childhwnd,&rect);
 					::AdjustWindowRect(&rect,style,FALSE);
 					::SetWindowPos(hWnd,NULL,0,0,rect.right - rect.left,rect.bottom - rect.top,SWP_NOZORDER|SWP_NOMOVE);
