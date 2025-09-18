@@ -131,7 +131,7 @@ SOURCE=.\Main\generatedVersion.h
 !IF  "$(CFG)" == "RTS - Win32 Release"
 
 # PROP Ignore_Default_Tool 1
-USERDEP__GENER="$(ProjDir)\main\winmain.cpp"	"$(ProjDir)\main\winmain.h"	"$(ProjDir)\Libraries\Lib\WW3D2.lib"	"$(ProjDir)\Libraries\Lib\WWDebug.lib"	"$(ProjDir)\Libraries\Lib\WWUtil.lib"	"$(ProjDir)\Libraries\Lib\WWLib.lib"	"$(ProjDir)\Libraries\Lib\WWMath.lib"	"$(ProjDir)\GameEngine\Lib\GameEngine.lib"	"$(ProjDir)\GameEngineDevice\Lib\GameEngineDevice.lib"	
+USERDEP__GENER="$(ProjDir)\SFMLPlatform\Main.cpp"	"$(ProjDir)\main\EntryPointLifecycle.cpp"	"$(ProjDir)\main\winmain.h"	"$(ProjDir)\Libraries\Lib\WW3D2.lib"	"$(ProjDir)\Libraries\Lib\WWDebug.lib"	"$(ProjDir)\Libraries\Lib\WWUtil.lib"	"$(ProjDir)\Libraries\Lib\WWLib.lib"	"$(ProjDir)\Libraries\Lib\WWMath.lib"	"$(ProjDir)\GameEngine\Lib\GameEngine.lib"	"$(ProjDir)\GameEngineDevice\Lib\GameEngineDevice.lib"	
 # Begin Custom Build - Incrementing version numbers held in $(InputPath) .\Main\buildVersion.h
 ProjDir=.
 TargetDir=\projects\generals\production\Run
@@ -146,7 +146,7 @@ InputPath=.\Main\generatedVersion.h
 !ELSEIF  "$(CFG)" == "RTS - Win32 Debug"
 
 # PROP Ignore_Default_Tool 1
-USERDEP__GENER="$(ProjDir)\main\winmain.cpp"	"$(ProjDir)\main\winmain.h"	"$(ProjDir)\Libraries\Lib\WW3D2Debug.lib"	"$(ProjDir)\Libraries\Lib\WWDebugDebug.lib"	"$(ProjDir)\Libraries\Lib\WWUtilDebug.lib"	"$(ProjDir)\Libraries\Lib\WWLibDebug.lib"	"$(ProjDir)\Libraries\Lib\WWMathDebug.lib"	"$(ProjDir)\GameEngine\Lib\GameEngineDebug.lib"	"$(ProjDir)\GameEngineDevice\Lib\GameEngineDeviceDebug.lib"	
+USERDEP__GENER="$(ProjDir)\SFMLPlatform\Main.cpp"	"$(ProjDir)\main\EntryPointLifecycle.cpp"	"$(ProjDir)\main\winmain.h"	"$(ProjDir)\Libraries\Lib\WW3D2Debug.lib"	"$(ProjDir)\Libraries\Lib\WWDebugDebug.lib"	"$(ProjDir)\Libraries\Lib\WWUtilDebug.lib"	"$(ProjDir)\Libraries\Lib\WWLibDebug.lib"	"$(ProjDir)\Libraries\Lib\WWMathDebug.lib"	"$(ProjDir)\GameEngine\Lib\GameEngineDebug.lib"	"$(ProjDir)\GameEngineDevice\Lib\GameEngineDeviceDebug.lib"	
 # Begin Custom Build - Incrementing version numbers held in $(InputPath) .\Main\buildVersion.h
 ProjDir=.
 TargetDir=\projects\generals\production\Run
@@ -161,7 +161,7 @@ InputPath=.\Main\generatedVersion.h
 !ELSEIF  "$(CFG)" == "RTS - Win32 Internal"
 
 # PROP Ignore_Default_Tool 1
-USERDEP__GENER="$(ProjDir)\main\winmain.cpp"	"$(ProjDir)\main\winmain.h"	"$(ProjDir)\Libraries\Lib\WW3D2Internal.lib"	"$(ProjDir)\Libraries\Lib\WWDebugInternal.lib"	"$(ProjDir)\Libraries\Lib\WWUtilInternal.lib"	"$(ProjDir)\Libraries\Lib\WWLibInternal.lib"	"$(ProjDir)\Libraries\Lib\WWMathInternal.lib"	"$(ProjDir)\GameEngine\Lib\GameEngineInternal.lib"	"$(ProjDir)\GameEngineDevice\Lib\GameEngineDeviceInternal.lib"	
+USERDEP__GENER="$(ProjDir)\SFMLPlatform\Main.cpp"	"$(ProjDir)\main\EntryPointLifecycle.cpp"	"$(ProjDir)\main\winmain.h"	"$(ProjDir)\Libraries\Lib\WW3D2Internal.lib"	"$(ProjDir)\Libraries\Lib\WWDebugInternal.lib"	"$(ProjDir)\Libraries\Lib\WWUtilInternal.lib"	"$(ProjDir)\Libraries\Lib\WWLibInternal.lib"	"$(ProjDir)\Libraries\Lib\WWMathInternal.lib"	"$(ProjDir)\GameEngine\Lib\GameEngineInternal.lib"	"$(ProjDir)\GameEngineDevice\Lib\GameEngineDeviceInternal.lib"	
 # Begin Custom Build - Incrementing version numbers held in $(InputPath) .\Main\buildVersion.h
 ProjDir=.
 TargetDir=\projects\generals\production\Run
@@ -178,7 +178,15 @@ InputPath=.\Main\generatedVersion.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Main\WinMain.cpp
+SOURCE=.\Main\EntryPointLifecycle.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Main\EntryPointLifecycle.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SFMLPlatform\Main.cpp
 # End Source File
 # Begin Source File
 

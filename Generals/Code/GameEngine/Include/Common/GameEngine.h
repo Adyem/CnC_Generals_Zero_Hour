@@ -114,6 +114,10 @@ extern GameEngine *TheGameEngine;
 /// This function creates a new game engine instance, and is device specific
 extern GameEngine *CreateGameEngine( void );
 
+typedef GameEngine *(*GameEngineFactoryFunction)();
+void SetGameEngineFactoryOverride(GameEngineFactoryFunction factory);
+GameEngineFactoryFunction GetGameEngineFactoryOverride();
+
 /// The entry point for the game system
 extern void GameMain( int argc, char *argv[] );
 

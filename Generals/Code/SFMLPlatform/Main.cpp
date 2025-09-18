@@ -4,10 +4,7 @@
 #include "SfmlMouseBridge.h"
 
 #include <Common/CriticalSection.h>
-#include <Common/Debug.h>
-#include <Common/GameMemory.h>
 #include <Common/StackDump.h>
-#include <Common/Version.h>
 #include <GameClient/Keyboard.h>
 #include <GameClient/Mouse.h>
 #include <Common/GameEngine.h>
@@ -15,13 +12,13 @@
 #include <Win32Device/Common/Win32GameEngine.h>
 #include <W3DDevice/GameClient/RenderBackend.h>
 
-#include <BuildVersion.h>
-#include <GeneratedVersion.h>
 #include <Main/WinMain.h>
+#include <Main/EntryPointLifecycle.h>
 
 #include <SFML/Graphics/RenderWindow.hpp>
 
 #include <algorithm>
+#include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <iostream>
@@ -65,6 +62,14 @@ CriticalSection critSec4;
 CriticalSection critSec5;
 
 WindowSystem* g_activeWindowSystem = nullptr;
+
+class SfmlGameEngine : public Win32GameEngine {
+public:
+    SfmlGameEngine() = default;
+    ~SfmlGameEngine() override = default;
+};
+
+GameEngine* CreateSfmlGameEngine() { return NEW SfmlGameEngine; }
 
 std::vector<std::string> toArgumentVector(int argc, char** argv) {
     std::vector<std::string> args;
@@ -383,7 +388,6 @@ int main(int argc, char** argv) {
     ApplicationHWnd = nullptr;
 #endif
     ApplicationIsWindowed = !parsed.config.fullscreen;
-    ApplicationGraphicsBackend = toGraphicsBackend(parsed.backend);
     gInitialEngineActiveState = windowSystem.window().hasFocus() ? TRUE : FALSE;
     g_activeWindowSystem = &windowSystem;
 
@@ -391,13 +395,8 @@ int main(int argc, char** argv) {
 
     assignCriticalSections();
 
-    DEBUG_INIT(DEBUG_FLAGS_DEFAULT);
-    initMemoryManager();
-
-    TheVersion = NEW Version;
-    TheVersion->setVersion(VERSION_MAJOR, VERSION_MINOR, VERSION_BUILDNUM, VERSION_LOCALBUILDNUM,
-                           AsciiString(VERSION_BUILDUSER), AsciiString(VERSION_BUILDLOC),
-                           AsciiString(__TIME__), AsciiString(__DATE__));
+    EntryPointConfig entryPointConfig{toGraphicsBackend(parsed.backend)};
+    EntryPointScope entryPointScope(entryPointConfig);
 
     std::vector<char*> argvPointers = buildArgv(arguments);
 
@@ -407,6 +406,7 @@ int main(int argc, char** argv) {
 
     SetKeyboardFactoryOverride(sfml_platform::CreateSfmlKeyboard);
     SetMouseFactoryOverride(sfml_platform::CreateSfmlMouse);
+    SetGameEngineFactoryOverride(CreateSfmlGameEngine);
 
     if (parsed.useLegacyMilesAudio) {
         SetAudioManagerFactoryOverride(NULL);
@@ -423,15 +423,19 @@ int main(int argc, char** argv) {
     SetWindowsMessagePumpOverride(NULL);
     g_activeWindowSystem = nullptr;
 
-    delete TheVersion;
-    TheVersion = NULL;
-
-    shutdownMemoryManager();
-    DEBUG_SHUTDOWN();
-
     clearCriticalSections();
 
     windowSystem.shutdown();
 
     return 0;
 }
+
+#ifdef _WIN32
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+    (void)hInstance;
+    (void)hPrevInstance;
+    (void)lpCmdLine;
+    (void)nCmdShow;
+    return main(__argc, __argv);
+}
+#endif
