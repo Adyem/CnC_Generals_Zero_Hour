@@ -505,6 +505,55 @@ inline DWORD F2DW(float f) { return *((unsigned*)&f); }
 
 static void Set_Default_Global_Render_States_Bgfx()
 {
+#if WW3D_BGFX_AVAILABLE
+        DX8Wrapper::FogEnable = false;
+        DX8Wrapper::FogColor = 0;
+
+        DX8Wrapper::RenderStates[D3DRS_RANGEFOGENABLE] = FALSE;
+        DX8Wrapper::RenderStates[D3DRS_FOGTABLEMODE] = D3DFOG_NONE;
+        DX8Wrapper::RenderStates[D3DRS_FOGVERTEXMODE] = D3DFOG_LINEAR;
+        DX8Wrapper::RenderStates[D3DRS_SPECULARMATERIALSOURCE] = D3DMCS_MATERIAL;
+        DX8Wrapper::RenderStates[D3DRS_COLORVERTEX] = TRUE;
+        DX8Wrapper::RenderStates[D3DRS_ZBIAS] = 0;
+
+        DX8Wrapper::TextureStageStates[1][D3DTSS_BUMPENVLSCALE] = F2DW(1.0f);
+        DX8Wrapper::TextureStageStates[1][D3DTSS_BUMPENVLOFFSET] = F2DW(0.0f);
+        DX8Wrapper::TextureStageStates[0][D3DTSS_BUMPENVMAT00] = F2DW(1.0f);
+        DX8Wrapper::TextureStageStates[0][D3DTSS_BUMPENVMAT01] = F2DW(0.0f);
+        DX8Wrapper::TextureStageStates[0][D3DTSS_BUMPENVMAT10] = F2DW(0.0f);
+        DX8Wrapper::TextureStageStates[0][D3DTSS_BUMPENVMAT11] = F2DW(1.0f);
+
+        BgfxStateData &bgfx_state = DX8Wrapper::render_state.bgfx;
+        bgfx_state = BgfxStateData();
+
+        bgfx_state.stateFlags = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
+                BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LEQUAL;
+        bgfx_state.alphaTestEnabled = false;
+        bgfx_state.alphaFunc = D3DCMP_ALWAYS;
+        bgfx_state.alphaReference = 0.0f;
+        bgfx_state.materialLightingEnabled = false;
+        bgfx_state.ambientSource = D3DMCS_MATERIAL;
+        bgfx_state.diffuseSource = D3DMCS_MATERIAL;
+        bgfx_state.emissiveSource = D3DMCS_MATERIAL;
+
+        for (unsigned stage = 0; stage < MAX_TEXTURE_STAGES; ++stage)
+        {
+                bgfx_state.textureBindings[stage] = NULL;
+                bgfx_state.textureEnabled[stage] = false;
+                bgfx_state.uvSource[stage] = static_cast<uint8_t>(stage);
+                bgfx_state.textureAddressU[stage] = D3DTADDRESS_WRAP;
+                bgfx_state.textureAddressV[stage] = D3DTADDRESS_WRAP;
+                bgfx_state.textureTransformFlags[stage] = D3DTTFF_DISABLE;
+                bgfx_state.textureTransforms[stage].Make_Identity();
+                bgfx_state.textureTransformUsed[stage] = false;
+                bgfx_state.minFilter[stage] = D3DTEXF_LINEAR;
+                bgfx_state.magFilter[stage] = D3DTEXF_LINEAR;
+                bgfx_state.mipFilter[stage] = D3DTEXF_LINEAR;
+                bgfx_state.samplerFlags[stage] = BGFX_SAMPLER_NONE;
+        }
+
+        bgfx_state.program.idx = bgfx::kInvalidHandle;
+#else
         DX8Wrapper::Set_DX8_Render_State(D3DRS_RANGEFOGENABLE, FALSE);
         DX8Wrapper::Set_DX8_Render_State(D3DRS_FOGTABLEMODE, D3DFOG_NONE);
         DX8Wrapper::Set_DX8_Render_State(D3DRS_FOGVERTEXMODE, D3DFOG_LINEAR);
@@ -517,6 +566,7 @@ static void Set_Default_Global_Render_States_Bgfx()
         DX8Wrapper::Set_DX8_Texture_Stage_State(0, D3DTSS_BUMPENVMAT01,F2DW(0.0f));
         DX8Wrapper::Set_DX8_Texture_Stage_State(0, D3DTSS_BUMPENVMAT10,F2DW(0.0f));
         DX8Wrapper::Set_DX8_Texture_Stage_State(0, D3DTSS_BUMPENVMAT11,F2DW(1.0f));
+#endif
 }
 
 #if WW3D_BGFX_AVAILABLE
