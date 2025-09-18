@@ -23,9 +23,37 @@
 
 Bool gInitialEngineActiveState = true;
 
+namespace {
+
+GameEngineFactoryFunction g_gameEngineFactoryOverride = NULL;
+
+}
+
+void SetGameEngineFactoryOverride(GameEngineFactoryFunction factory)
+{
+        g_gameEngineFactoryOverride = factory;
+}
+
+GameEngineFactoryFunction GetGameEngineFactoryOverride()
+{
+        return g_gameEngineFactoryOverride;
+}
+
 GameEngine* CreateGameEngine(void)
 {
-        Win32GameEngine* engine = NEW Win32GameEngine;
+        GameEngineFactoryFunction factory = GetGameEngineFactoryOverride();
+        GameEngine* engine = NULL;
+
+        if (factory != NULL)
+        {
+                engine = factory();
+        }
+
+        if (engine == NULL)
+        {
+                engine = NEW Win32GameEngine;
+        }
+
         engine->setIsActive(gInitialEngineActiveState);
         return engine;
 }

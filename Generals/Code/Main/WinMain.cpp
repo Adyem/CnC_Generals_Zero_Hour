@@ -46,6 +46,7 @@
 
 // USER INCLUDES //////////////////////////////////////////////////////////////
 #include "WinMain.h"
+#include "EntryPointLifecycle.h"
 #include "Lib/BaseType.h"
 #include "Common/CopyProtection.h"
 #include "Common/CriticalSection.h"
@@ -65,9 +66,6 @@
 #include "Win32Device/GameClient/Win32Mouse.h"
 #include "Win32Device/Common/Win32GameEngine.h"
 #include "W3DDevice/GameClient/RenderBackend.h"
-#include "Common/Version.h"
-#include "BuildVersion.h"
-#include "GeneratedVersion.h"
 #include "Resource.h"
 
 #ifdef _INTERNAL
@@ -1068,9 +1066,7 @@ Int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
                         gRequestedGraphicsSettings.bitDepth = 32;
                 }
 
-                ApplicationGraphicsBackend = gRequestedGraphicsSettings.backend;
-
-		if (argc>2 && strcmp(argv[1],"-DX")==0) {  
+                if (argc>2 && strcmp(argv[1],"-DX")==0) {
 			Int i;
 			DEBUG_LOG(("\n--- DX STACK DUMP\n"));
 			for (i=2; i<argc; i++) {
@@ -1118,27 +1114,16 @@ Int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		// BGC - initialize COM
 	//	OleInitialize(NULL);
 
-		// start the log
-		DEBUG_INIT(DEBUG_FLAGS_DEFAULT);
-		initMemoryManager();
-
- 
-		// Set up version info
-		TheVersion = NEW Version;
-		TheVersion->setVersion(VERSION_MAJOR, VERSION_MINOR, VERSION_BUILDNUM, VERSION_LOCALBUILDNUM,
-			AsciiString(VERSION_BUILDUSER), AsciiString(VERSION_BUILDLOC),
-			AsciiString(__TIME__), AsciiString(__DATE__));
+                EntryPointConfig entryPointConfig;
+                entryPointConfig.graphicsBackend = gRequestedGraphicsSettings.backend;
+                EntryPointScope entryPointScope(entryPointConfig);
 
 #ifdef DO_COPY_PROTECTION
-		if (!CopyProtect::isLauncherRunning())
-		{
-			DEBUG_LOG(("Launcher is not running - about to bail\n"));
-			delete TheVersion;
-			TheVersion = NULL;
-			shutdownMemoryManager();
-			DEBUG_SHUTDOWN();
-			return 0;
-		}
+                if (!CopyProtect::isLauncherRunning())
+                {
+                        DEBUG_LOG(("Launcher is not running - about to bail\n"));
+                        return 0;
+                }
 #endif
 
 
@@ -1160,25 +1145,17 @@ Int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 				GeneralsMutex = NULL;
 			}
 
-			DEBUG_LOG(("Generals is already running...Bail!\n"));
-			delete TheVersion;
-			TheVersion = NULL;
-			shutdownMemoryManager();
-			DEBUG_SHUTDOWN();
-			return 0;
-		}
+                        DEBUG_LOG(("Generals is already running...Bail!\n"));
+                        return 0;
+                }
 		DEBUG_LOG(("Create GeneralsMutex okay.\n"));
 
 #ifdef DO_COPY_PROTECTION
-		if (!CopyProtect::notifyLauncher())
-		{
-			DEBUG_LOG(("Could not talk to the launcher - about to bail\n"));
-			delete TheVersion;
-			TheVersion = NULL;
-			shutdownMemoryManager();
-			DEBUG_SHUTDOWN();
-			return 0;
-		}
+                if (!CopyProtect::notifyLauncher())
+                {
+                        DEBUG_LOG(("Could not talk to the launcher - about to bail\n"));
+                        return 0;
+                }
 #endif
 
                 DEBUG_LOG(("CRC message is %d\n", GameMessage::MSG_LOGIC_CRC));
@@ -1193,21 +1170,14 @@ Int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		CopyProtect::shutdown();
 #endif
 
-		delete TheVersion;
-		TheVersion = NULL;
-
-	#ifdef MEMORYPOOL_DEBUG
+        #ifdef MEMORYPOOL_DEBUG
 		TheMemoryPoolFactory->debugMemoryReport(REPORT_POOLINFO | REPORT_POOL_OVERFLOW | REPORT_SIMPLE_LEAKS, 0, 0);
 	#endif
 	#if defined(_DEBUG) || defined(_INTERNAL)
 		TheMemoryPoolFactory->memoryPoolUsageReport("AAAMemStats");
 	#endif
 
-		// close the log
-		shutdownMemoryManager();
-		DEBUG_SHUTDOWN();
-
-		// BGC - shut down COM
+                // BGC - shut down COM
 	//	OleUninitialize();
 	}	
 	catch (...) 
