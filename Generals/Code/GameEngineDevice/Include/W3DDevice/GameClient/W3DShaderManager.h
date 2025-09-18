@@ -37,8 +37,10 @@
 #define __W3DSHADERMANAGER_H_
 
 #include "WW3D2/Texture.h"
+#include <cstdint>
 #include <map>
 #include <string>
+#include <vector>
 
 #ifndef WW3D_BGFX_AVAILABLE
 #define WW3D_BGFX_AVAILABLE 0
@@ -68,6 +70,19 @@ public:
                 BgfxProgramDefinition();
                 BgfxProgramDefinition(const std::string &vertexPath, const std::string &fragmentPath, Bool preload = true);
 
+                struct BgfxSamplerBinding
+                {
+                        std::string m_name;
+                        std::uint8_t m_stage;
+                };
+
+                struct BgfxUniformBinding
+                {
+                        std::string m_name;
+                        std::string m_type;
+                        std::uint16_t m_arraySize;
+                };
+
                 std::string m_vertexShaderPath;
                 std::string m_fragmentShaderPath;
                 std::string m_vertexShaderSourcePath;
@@ -76,6 +91,8 @@ public:
                 std::string m_vertexShaderProfile;
                 std::string m_fragmentShaderProfile;
                 Bool m_preload;
+                std::vector<BgfxSamplerBinding> m_samplerBindings;
+                std::vector<BgfxUniformBinding> m_uniformBindings;
 
 #if WW3D_BGFX_AVAILABLE
                 bgfx::ProgramHandle m_programHandle;
@@ -85,6 +102,8 @@ public:
                 void setSourcePaths(const std::string &vertexSourcePath, const std::string &fragmentSourcePath);
                 void setVaryingPath(const std::string &varyingPath);
                 void setShaderProfiles(const std::string &vertexProfile, const std::string &fragmentProfile);
+                void addSampler(const std::string &name, std::uint8_t stage);
+                void addUniform(const std::string &name, const std::string &type, std::uint16_t arraySize = 1);
         };
 
         //put any custom shaders (not going through W3D) in here.

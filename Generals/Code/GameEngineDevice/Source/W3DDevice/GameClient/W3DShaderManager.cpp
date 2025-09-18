@@ -393,6 +393,23 @@ void W3DShaderManager::BgfxProgramDefinition::setShaderProfiles(const std::strin
         m_fragmentShaderProfile = fragmentProfile;
 }
 
+void W3DShaderManager::BgfxProgramDefinition::addSampler(const std::string &name, std::uint8_t stage)
+{
+        BgfxSamplerBinding binding;
+        binding.m_name = name;
+        binding.m_stage = stage;
+        m_samplerBindings.push_back(binding);
+}
+
+void W3DShaderManager::BgfxProgramDefinition::addUniform(const std::string &name, const std::string &type, std::uint16_t arraySize)
+{
+        BgfxUniformBinding binding;
+        binding.m_name = name;
+        binding.m_type = type;
+        binding.m_arraySize = arraySize;
+        m_uniformBindings.push_back(binding);
+}
+
 void W3DShaderManager::registerBgfxProgram(ShaderTypes shader, const BgfxProgramDefinition &definition)
 {
         if (!definition.isValid())
@@ -439,20 +456,97 @@ void W3DShaderManager::initializeDefaultBgfxPrograms(void)
         if (!m_bgfxPrograms.empty())
         {
                 return;
-	}
+        }
 
-	const char *shaderRoot = "shaders/bgfx/";
-	registerBgfxProgram(ST_TERRAIN_BASE, BgfxProgramDefinition(std::string(shaderRoot) + "terrain_base_vs.bin", std::string(shaderRoot) + "terrain_base_fs.bin"));
-	registerBgfxProgram(ST_TERRAIN_BASE_NOISE1, BgfxProgramDefinition(std::string(shaderRoot) + "terrain_noise_vs.bin", std::string(shaderRoot) + "terrain_noise_fs.bin", false));
-	registerBgfxProgram(ST_TERRAIN_BASE_NOISE2, BgfxProgramDefinition(std::string(shaderRoot) + "terrain_noise_vs.bin", std::string(shaderRoot) + "terrain_noise_fs.bin", false));
-	registerBgfxProgram(ST_TERRAIN_BASE_NOISE12, BgfxProgramDefinition(std::string(shaderRoot) + "terrain_noise_vs.bin", std::string(shaderRoot) + "terrain_noise_fs.bin", false));
-	registerBgfxProgram(ST_ROAD_BASE, BgfxProgramDefinition(std::string(shaderRoot) + "road_base_vs.bin", std::string(shaderRoot) + "road_base_fs.bin"));
-	registerBgfxProgram(ST_ROAD_BASE_NOISE1, BgfxProgramDefinition(std::string(shaderRoot) + "road_noise_vs.bin", std::string(shaderRoot) + "road_noise_fs.bin", false));
-	registerBgfxProgram(ST_ROAD_BASE_NOISE2, BgfxProgramDefinition(std::string(shaderRoot) + "road_noise_vs.bin", std::string(shaderRoot) + "road_noise_fs.bin", false));
-	registerBgfxProgram(ST_ROAD_BASE_NOISE12, BgfxProgramDefinition(std::string(shaderRoot) + "road_noise_vs.bin", std::string(shaderRoot) + "road_noise_fs.bin", false));
-	registerBgfxProgram(ST_SHROUD_TEXTURE, BgfxProgramDefinition(std::string(shaderRoot) + "shroud_vs.bin", std::string(shaderRoot) + "shroud_fs.bin"));
-        registerBgfxProgram(ST_MASK_TEXTURE, BgfxProgramDefinition(std::string(shaderRoot) + "mask_vs.bin", std::string(shaderRoot) + "mask_fs.bin"));
-        registerBgfxProgram(ST_CLOUD_TEXTURE, BgfxProgramDefinition(std::string(shaderRoot) + "cloud_vs.bin", std::string(shaderRoot) + "cloud_fs.bin"));
+        const char *shaderRoot = "shaders/bgfx/";
+        const char *shaderSourceRoot = "shaders/bgfx/src/";
+        const char *varyingPath = "shaders/bgfx/varying.def.sc";
+        const char *vertexProfile = "vs_5_0";
+        const char *fragmentProfile = "ps_5_0";
+
+        auto addCommonTerrainUniforms = [](BgfxProgramDefinition &definition)
+        {
+                definition.addUniform("u_modelViewProj", "mat4");
+                definition.addUniform("u_texTransform", "mat4", 4);
+                definition.addUniform("u_layerConfig", "vec4");
+                definition.addSampler("s_baseTexture", 0);
+                definition.addSampler("s_detailTexture", 1);
+        };
+
+        auto addNoiseSamplers = [](BgfxProgramDefinition &definition)
+        {
+                definition.addSampler("s_noiseTexture0", 2);
+                definition.addSampler("s_noiseTexture1", 3);
+        };
+
+        auto addCommonRoadUniforms = [](BgfxProgramDefinition &definition)
+        {
+                definition.addUniform("u_modelViewProj", "mat4");
+                definition.addUniform("u_texTransform", "mat4", 4);
+                definition.addUniform("u_layerConfig", "vec4");
+                definition.addSampler("s_roadTexture", 0);
+        };
+
+        auto applyCommonMetadata = [&](BgfxProgramDefinition &definition, const std::string &vertexSource, const std::string &fragmentSource)
+        {
+                definition.setSourcePaths(vertexSource, fragmentSource);
+                definition.setVaryingPath(varyingPath);
+                definition.setShaderProfiles(vertexProfile, fragmentProfile);
+        };
+
+        BgfxProgramDefinition terrainBase(std::string(shaderRoot) + "terrain_base_vs.bin", std::string(shaderRoot) + "terrain_base_fs.bin");
+        addCommonTerrainUniforms(terrainBase);
+        applyCommonMetadata(terrainBase, std::string(shaderSourceRoot) + "terrain_base.vs.sc", std::string(shaderSourceRoot) + "terrain_base.fs.sc");
+        registerBgfxProgram(ST_TERRAIN_BASE, terrainBase);
+
+        BgfxProgramDefinition terrainNoise(std::string(shaderRoot) + "terrain_noise_vs.bin", std::string(shaderRoot) + "terrain_noise_fs.bin", false);
+        addCommonTerrainUniforms(terrainNoise);
+        addNoiseSamplers(terrainNoise);
+        applyCommonMetadata(terrainNoise, std::string(shaderSourceRoot) + "terrain_noise.vs.sc", std::string(shaderSourceRoot) + "terrain_noise.fs.sc");
+        registerBgfxProgram(ST_TERRAIN_BASE_NOISE1, terrainNoise);
+        registerBgfxProgram(ST_TERRAIN_BASE_NOISE2, terrainNoise);
+        registerBgfxProgram(ST_TERRAIN_BASE_NOISE12, terrainNoise);
+
+        BgfxProgramDefinition roadBase(std::string(shaderRoot) + "road_base_vs.bin", std::string(shaderRoot) + "road_base_fs.bin");
+        addCommonRoadUniforms(roadBase);
+        roadBase.addUniform("u_fadeConfig", "vec4");
+        roadBase.addSampler("s_detailTexture", 1);
+        applyCommonMetadata(roadBase, std::string(shaderSourceRoot) + "road_base.vs.sc", std::string(shaderSourceRoot) + "road_base.fs.sc");
+        registerBgfxProgram(ST_ROAD_BASE, roadBase);
+
+        BgfxProgramDefinition roadNoise(std::string(shaderRoot) + "road_noise_vs.bin", std::string(shaderRoot) + "road_noise_fs.bin", false);
+        addCommonRoadUniforms(roadNoise);
+        roadNoise.addUniform("u_fadeConfig", "vec4");
+        roadNoise.addSampler("s_detailTexture", 1);
+        addNoiseSamplers(roadNoise);
+        applyCommonMetadata(roadNoise, std::string(shaderSourceRoot) + "road_noise.vs.sc", std::string(shaderSourceRoot) + "road_noise.fs.sc");
+        registerBgfxProgram(ST_ROAD_BASE_NOISE1, roadNoise);
+        registerBgfxProgram(ST_ROAD_BASE_NOISE2, roadNoise);
+        registerBgfxProgram(ST_ROAD_BASE_NOISE12, roadNoise);
+
+        BgfxProgramDefinition shroud(std::string(shaderRoot) + "shroud_vs.bin", std::string(shaderRoot) + "shroud_fs.bin");
+        shroud.addUniform("u_modelViewProj", "mat4");
+        shroud.addUniform("u_texTransform", "mat4", 4);
+        shroud.addUniform("u_shroudParams", "vec4");
+        shroud.addSampler("s_shroudTexture", 0);
+        applyCommonMetadata(shroud, std::string(shaderSourceRoot) + "shroud.vs.sc", std::string(shaderSourceRoot) + "shroud.fs.sc");
+        registerBgfxProgram(ST_SHROUD_TEXTURE, shroud);
+
+        BgfxProgramDefinition mask(std::string(shaderRoot) + "mask_vs.bin", std::string(shaderRoot) + "mask_fs.bin");
+        mask.addUniform("u_modelViewProj", "mat4");
+        mask.addUniform("u_texTransform", "mat4", 4);
+        mask.addUniform("u_maskParams", "vec4");
+        mask.addSampler("s_maskTexture", 0);
+        applyCommonMetadata(mask, std::string(shaderSourceRoot) + "mask.vs.sc", std::string(shaderSourceRoot) + "mask.fs.sc");
+        registerBgfxProgram(ST_MASK_TEXTURE, mask);
+
+        BgfxProgramDefinition cloud(std::string(shaderRoot) + "cloud_vs.bin", std::string(shaderRoot) + "cloud_fs.bin");
+        cloud.addUniform("u_modelViewProj", "mat4");
+        cloud.addUniform("u_texTransform", "mat4", 4);
+        cloud.addUniform("u_cloudParams", "vec4");
+        cloud.addSampler("s_cloudTexture", 0);
+        applyCommonMetadata(cloud, std::string(shaderSourceRoot) + "cloud.vs.sc", std::string(shaderSourceRoot) + "cloud.fs.sc");
+        registerBgfxProgram(ST_CLOUD_TEXTURE, cloud);
 }
 
 void W3DShaderManager::preloadBgfxPrograms(void)

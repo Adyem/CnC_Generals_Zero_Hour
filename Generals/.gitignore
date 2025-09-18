@@ -1,6 +1,10 @@
 
 # Ignore RUNable folder
-[Rr]un
+[Rr]un/*
+![Rr]un/BrowserEngine.dll
+![Rr]un/place_steam_build_here.txt
+![Rr]un/shaders/
+![Rr]un/shaders/**
 
 # Build output folders
 [Rr]elease*
