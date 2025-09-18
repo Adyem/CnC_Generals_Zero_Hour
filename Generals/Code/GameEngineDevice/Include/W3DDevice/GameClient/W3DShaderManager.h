@@ -39,6 +39,14 @@
 #include "WW3D2/Texture.h"
 #include <map>
 #include <string>
+
+#ifndef WW3D_BGFX_AVAILABLE
+#define WW3D_BGFX_AVAILABLE 0
+#endif
+
+#if WW3D_BGFX_AVAILABLE
+#include <bgfx/bgfx.h>
+#endif
 enum FilterTypes;
 enum CustomScenePassModes;
 enum StaticGameLODLevel;
@@ -62,9 +70,21 @@ public:
 
                 std::string m_vertexShaderPath;
                 std::string m_fragmentShaderPath;
+                std::string m_vertexShaderSourcePath;
+                std::string m_fragmentShaderSourcePath;
+                std::string m_varyingDefPath;
+                std::string m_vertexShaderProfile;
+                std::string m_fragmentShaderProfile;
                 Bool m_preload;
 
+#if WW3D_BGFX_AVAILABLE
+                bgfx::ProgramHandle m_programHandle;
+#endif
+
                 Bool isValid(void) const;
+                void setSourcePaths(const std::string &vertexSourcePath, const std::string &fragmentSourcePath);
+                void setVaryingPath(const std::string &varyingPath);
+                void setShaderProfiles(const std::string &vertexProfile, const std::string &fragmentProfile);
         };
 
         //put any custom shaders (not going through W3D) in here.
@@ -126,8 +146,16 @@ protected:
 	static ShaderTypes m_currentShader;	///<last shader that was set.
 	static Int m_currentShaderPass;		///<pass of last shader that was set.
 
-	static void initializeDefaultBgfxPrograms(void);
-	static std::map<ShaderTypes, BgfxProgramDefinition> m_bgfxPrograms;
+        static void initializeDefaultBgfxPrograms(void);
+        static void preloadBgfxPrograms(void);
+        static void unloadBgfxPrograms(void);
+#if WW3D_BGFX_AVAILABLE
+        static Bool ensureBgfxProgramLoaded(ShaderTypes shader);
+        static Bool ensureBgfxShaderBinary(const std::string &binaryPath, const std::string &sourcePath, const std::string &profile, const std::string &varyingPath, const char *stageLabel);
+        static void destroyBgfxProgram(BgfxProgramDefinition &definition);
+        static bgfx::ProgramHandle loadBgfxProgram(BgfxProgramDefinition &definition);
+#endif
+        static std::map<ShaderTypes, BgfxProgramDefinition> m_bgfxPrograms;
 
 	static FilterTypes m_currentFilter; ///< Last filter that was set.
 	// Info for a render to texture surface for special effects.

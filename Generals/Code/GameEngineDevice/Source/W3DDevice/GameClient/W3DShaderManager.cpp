@@ -58,9 +58,17 @@
 #include "Lib/BaseType.h"
 #include "Common/File.h"
 #include "Common/FileSystem.h"
+#include "Common/AsciiString.h"
 #include "W3DDevice/GameClient/W3DShaderManager.h"
 #include <map>
 #include <string>
+#include <algorithm>
+#include <cstdint>
+#include <cstdlib>
+#include <fstream>
+#include <limits>
+#include <sstream>
+#include <vector>
 #include "W3DDevice/GameClient/W3DShroud.h"
 #include "W3DDevice/GameClient/HeightMap.h"
 #include "W3DDevice/GameClient/W3DCustomScene.h"
@@ -118,32 +126,216 @@ IDirect3DSurface8 *W3DShaderManager::m_newRenderSurface=NULL;	///<new render tar
 IDirect3DSurface8 *W3DShaderManager::m_oldDepthSurface=NULL;	///<previous depth buffer surface
 std::map<W3DShaderManager::ShaderTypes, W3DShaderManager::BgfxProgramDefinition> W3DShaderManager::m_bgfxPrograms;
 
-W3DShaderManager::BgfxProgramDefinition::BgfxProgramDefinition()
-	: m_preload(false)
+#if WW3D_BGFX_AVAILABLE
+namespace
 {
+bool FileExistsOnDisk(const std::string &path)
+{
+std::ifstream file(path.c_str(), std::ios::binary);
+return file.good();
+}
+
+bool TryGetFileTimestamp(const std::string &path, uint64_t &timestamp)
+{
+AsciiString pathString(path.c_str());
+FileInfo info;
+if (!TheFileSystem->getFileInfo(pathString, &info))
+{
+return false;
+}
+
+timestamp = (static_cast<uint64_t>(static_cast<uint32_t>(info.timestampHigh)) << 32) |
+            static_cast<uint32_t>(info.timestampLow);
+return true;
+}
+
+std::string ResolveShaderCompilerPath()
+{
+static bool s_resolved = false;
+static std::string s_compilerPath;
+if (!s_resolved)
+{
+s_resolved = true;
+const char *envPath = std::getenv("BGFX_SHADERC");
+if (envPath && envPath[0] != '\0')
+{
+s_compilerPath = envPath;
+}
+
+if (s_compilerPath.empty())
+{
+static const char *kDefaultCompilerPaths[] = {
+"Tools/bgfx/shaderc.exe",
+"Tools/bgfx/shaderc",
+"bgfx/tools/bin/shaderc.exe",
+"bgfx/tools/bin/shaderc",
+"shaderc.exe",
+"shaderc"
+};
+
+const size_t count = sizeof(kDefaultCompilerPaths) / sizeof(kDefaultCompilerPaths[0]);
+for (size_t index = 0; index < count; ++index)
+{
+if (FileExistsOnDisk(kDefaultCompilerPaths[index]))
+{
+s_compilerPath = kDefaultCompilerPaths[index];
+break;
+}
+}
+}
+}
+return s_compilerPath;
+}
+
+bool InvokeShaderCompiler(const std::string &compilerPath, const std::string &stage, const std::string &sourcePath, const std::string &outputPath, const std::string &profile, const std::string &varyingPath)
+{
+std::ostringstream command;
+command << '"' << compilerPath << '"'
+        << " -f \"" << sourcePath << "\""
+        << " -o \"" << outputPath << "\""
+        << " --type " << stage
+        << " --platform windows";
+if (!profile.empty())
+{
+command << " --profile " << profile;
+}
+if (!varyingPath.empty())
+{
+command << " --varyingdef \"" << varyingPath << "\"";
+}
+
+return (std::system(command.str().c_str()) == 0);
+}
+
+bgfx::ShaderHandle LoadShaderHandle(const std::string &path)
+{
+File *file = TheFileSystem->openFile(path.c_str(), File::READ | File::BINARY);
+if (file == NULL)
+{
+std::ostringstream message;
+message << "Unable to open bgfx shader binary '" << path << "'\n";
+OutputDebugStringA(message.str().c_str());
+return BGFX_INVALID_HANDLE;
+}
+
+AsciiString pathString(path.c_str());
+FileInfo info;
+if (!TheFileSystem->getFileInfo(pathString, &info))
+{
+file->close();
+return BGFX_INVALID_HANDLE;
+}
+
+uint64_t fileSize = (static_cast<uint64_t>(static_cast<uint32_t>(info.sizeHigh)) << 32) |
+                  static_cast<uint32_t>(info.sizeLow);
+if (fileSize == 0 || fileSize > std::numeric_limits<uint32_t>::max())
+{
+file->close();
+return BGFX_INVALID_HANDLE;
+}
+
+std::vector<uint8_t> buffer;
+buffer.resize(static_cast<size_t>(fileSize));
+size_t offset = 0;
+while (offset < buffer.size())
+{
+size_t remaining = buffer.size() - offset;
+size_t chunkSize = std::min<size_t>(remaining, static_cast<size_t>(std::numeric_limits<int>::max()));
+Int bytesRead = file->read(&buffer[offset], static_cast<Int>(chunkSize));
+if (bytesRead <= 0)
+{
+file->close();
+return BGFX_INVALID_HANDLE;
+}
+offset += static_cast<size_t>(bytesRead);
+}
+
+file->close();
+
+const bgfx::Memory *memory = bgfx::copy(buffer.data(), static_cast<uint32_t>(buffer.size()));
+if (memory == NULL)
+{
+return BGFX_INVALID_HANDLE;
+}
+
+bgfx::ShaderHandle handle = bgfx::createShader(memory);
+if (bgfx::isValid(handle))
+{
+bgfx::setName(handle, path.c_str());
+}
+return handle;
+}
+}
+#endif
+
+W3DShaderManager::BgfxProgramDefinition::BgfxProgramDefinition()
+        : m_preload(false)
+{
+#if WW3D_BGFX_AVAILABLE
+        m_programHandle = BGFX_INVALID_HANDLE;
+#endif
 }
 
 W3DShaderManager::BgfxProgramDefinition::BgfxProgramDefinition(const std::string &vertexPath, const std::string &fragmentPath, Bool preload)
-	: m_vertexShaderPath(vertexPath),
-	  m_fragmentShaderPath(fragmentPath),
-	  m_preload(preload)
+        : m_vertexShaderPath(vertexPath),
+          m_fragmentShaderPath(fragmentPath),
+          m_preload(preload)
 {
+#if WW3D_BGFX_AVAILABLE
+        m_programHandle = BGFX_INVALID_HANDLE;
+#endif
 }
 
 Bool W3DShaderManager::BgfxProgramDefinition::isValid(void) const
 {
-	return (!m_vertexShaderPath.empty() && !m_fragmentShaderPath.empty());
+        return (!m_vertexShaderPath.empty() && !m_fragmentShaderPath.empty());
+}
+
+void W3DShaderManager::BgfxProgramDefinition::setSourcePaths(const std::string &vertexSourcePath, const std::string &fragmentSourcePath)
+{
+        m_vertexShaderSourcePath = vertexSourcePath;
+        m_fragmentShaderSourcePath = fragmentSourcePath;
+}
+
+void W3DShaderManager::BgfxProgramDefinition::setVaryingPath(const std::string &varyingPath)
+{
+        m_varyingDefPath = varyingPath;
+}
+
+void W3DShaderManager::BgfxProgramDefinition::setShaderProfiles(const std::string &vertexProfile, const std::string &fragmentProfile)
+{
+        m_vertexShaderProfile = vertexProfile;
+        m_fragmentShaderProfile = fragmentProfile;
 }
 
 void W3DShaderManager::registerBgfxProgram(ShaderTypes shader, const BgfxProgramDefinition &definition)
 {
-	if (!definition.isValid())
-	{
-		m_bgfxPrograms.erase(shader);
-		return;
-	}
+        if (!definition.isValid())
+        {
+                m_bgfxPrograms.erase(shader);
+                return;
+        }
 
-	m_bgfxPrograms[shader] = definition;
+#if WW3D_BGFX_AVAILABLE
+        std::map<ShaderTypes, BgfxProgramDefinition>::iterator existing = m_bgfxPrograms.find(shader);
+        if (existing != m_bgfxPrograms.end())
+        {
+                destroyBgfxProgram(existing->second);
+        }
+#endif
+
+        BgfxProgramDefinition storedDefinition = definition;
+#if WW3D_BGFX_AVAILABLE
+        storedDefinition.m_programHandle = BGFX_INVALID_HANDLE;
+#endif
+        m_bgfxPrograms[shader] = storedDefinition;
+
+#if WW3D_BGFX_AVAILABLE
+        if (DX8Wrapper::Is_Bgfx_Active() && storedDefinition.m_preload)
+        {
+                ensureBgfxProgramLoaded(shader);
+        }
+#endif
 }
 
 const W3DShaderManager::BgfxProgramDefinition *W3DShaderManager::getBgfxProgram(ShaderTypes shader)
@@ -159,9 +351,9 @@ const W3DShaderManager::BgfxProgramDefinition *W3DShaderManager::getBgfxProgram(
 
 void W3DShaderManager::initializeDefaultBgfxPrograms(void)
 {
-	if (!m_bgfxPrograms.empty())
-	{
-		return;
+        if (!m_bgfxPrograms.empty())
+        {
+                return;
 	}
 
 	const char *shaderRoot = "shaders/bgfx/";
@@ -174,9 +366,160 @@ void W3DShaderManager::initializeDefaultBgfxPrograms(void)
 	registerBgfxProgram(ST_ROAD_BASE_NOISE2, BgfxProgramDefinition(std::string(shaderRoot) + "road_noise_vs.bin", std::string(shaderRoot) + "road_noise_fs.bin", false));
 	registerBgfxProgram(ST_ROAD_BASE_NOISE12, BgfxProgramDefinition(std::string(shaderRoot) + "road_noise_vs.bin", std::string(shaderRoot) + "road_noise_fs.bin", false));
 	registerBgfxProgram(ST_SHROUD_TEXTURE, BgfxProgramDefinition(std::string(shaderRoot) + "shroud_vs.bin", std::string(shaderRoot) + "shroud_fs.bin"));
-	registerBgfxProgram(ST_MASK_TEXTURE, BgfxProgramDefinition(std::string(shaderRoot) + "mask_vs.bin", std::string(shaderRoot) + "mask_fs.bin"));
-	registerBgfxProgram(ST_CLOUD_TEXTURE, BgfxProgramDefinition(std::string(shaderRoot) + "cloud_vs.bin", std::string(shaderRoot) + "cloud_fs.bin"));
+        registerBgfxProgram(ST_MASK_TEXTURE, BgfxProgramDefinition(std::string(shaderRoot) + "mask_vs.bin", std::string(shaderRoot) + "mask_fs.bin"));
+        registerBgfxProgram(ST_CLOUD_TEXTURE, BgfxProgramDefinition(std::string(shaderRoot) + "cloud_vs.bin", std::string(shaderRoot) + "cloud_fs.bin"));
 }
+
+void W3DShaderManager::preloadBgfxPrograms(void)
+{
+#if WW3D_BGFX_AVAILABLE
+        if (!DX8Wrapper::Is_Bgfx_Active())
+        {
+                return;
+        }
+
+        for (std::map<ShaderTypes, BgfxProgramDefinition>::iterator it = m_bgfxPrograms.begin(); it != m_bgfxPrograms.end(); ++it)
+        {
+                if (it->second.m_preload)
+                {
+                        ensureBgfxProgramLoaded(it->first);
+                }
+        }
+#endif
+}
+
+void W3DShaderManager::unloadBgfxPrograms(void)
+{
+#if WW3D_BGFX_AVAILABLE
+        for (std::map<ShaderTypes, BgfxProgramDefinition>::iterator it = m_bgfxPrograms.begin(); it != m_bgfxPrograms.end(); ++it)
+        {
+                destroyBgfxProgram(it->second);
+        }
+#endif
+}
+
+#if WW3D_BGFX_AVAILABLE
+Bool W3DShaderManager::ensureBgfxProgramLoaded(ShaderTypes shader)
+{
+        std::map<ShaderTypes, BgfxProgramDefinition>::iterator it = m_bgfxPrograms.find(shader);
+        if (it == m_bgfxPrograms.end())
+        {
+                return false;
+        }
+
+        BgfxProgramDefinition &definition = it->second;
+        if (bgfx::isValid(definition.m_programHandle))
+        {
+                return true;
+        }
+
+        if (!definition.isValid())
+        {
+                return false;
+        }
+
+        bgfx::ProgramHandle programHandle = loadBgfxProgram(definition);
+        if (!bgfx::isValid(programHandle))
+        {
+                return false;
+        }
+
+        definition.m_programHandle = programHandle;
+        return true;
+}
+
+Bool W3DShaderManager::ensureBgfxShaderBinary(const std::string &binaryPath, const std::string &sourcePath, const std::string &profile, const std::string &varyingPath, const char *stageLabel)
+{
+        if (binaryPath.empty())
+        {
+                return false;
+        }
+
+        Bool binaryExists = TheFileSystem->doesFileExist(binaryPath.c_str());
+        if (sourcePath.empty())
+        {
+                return binaryExists;
+        }
+
+        if (!TheFileSystem->doesFileExist(sourcePath.c_str()))
+        {
+                return binaryExists;
+        }
+
+        uint64_t sourceTimestamp = 0;
+        uint64_t binaryTimestamp = 0;
+        bool haveSourceTimestamp = TryGetFileTimestamp(sourcePath, sourceTimestamp);
+        bool haveBinaryTimestamp = binaryExists && TryGetFileTimestamp(binaryPath, binaryTimestamp);
+
+        if (!binaryExists || (haveSourceTimestamp && (!haveBinaryTimestamp || sourceTimestamp > binaryTimestamp)))
+        {
+                std::string compilerPath = ResolveShaderCompilerPath();
+                if (compilerPath.empty())
+                {
+                        if (!binaryExists)
+                        {
+                                std::ostringstream message;
+                                message << "BGFX shader compiler not found; unable to build " << stageLabel << " shader '" << sourcePath << "'\n";
+                                OutputDebugStringA(message.str().c_str());
+                        }
+                        return binaryExists;
+                }
+
+                if (!InvokeShaderCompiler(compilerPath, stageLabel, sourcePath, binaryPath, profile, varyingPath))
+                {
+                        std::ostringstream message;
+                        message << "BGFX shader compilation failed for '" << sourcePath << "'\n";
+                        OutputDebugStringA(message.str().c_str());
+                        return binaryExists;
+                }
+        }
+
+        return TheFileSystem->doesFileExist(binaryPath.c_str());
+}
+
+void W3DShaderManager::destroyBgfxProgram(BgfxProgramDefinition &definition)
+{
+        if (bgfx::isValid(definition.m_programHandle))
+        {
+                bgfx::destroy(definition.m_programHandle);
+                definition.m_programHandle = BGFX_INVALID_HANDLE;
+        }
+}
+
+bgfx::ProgramHandle W3DShaderManager::loadBgfxProgram(BgfxProgramDefinition &definition)
+{
+        if (!ensureBgfxShaderBinary(definition.m_vertexShaderPath, definition.m_vertexShaderSourcePath, definition.m_vertexShaderProfile, definition.m_varyingDefPath, "vertex"))
+        {
+                return BGFX_INVALID_HANDLE;
+        }
+
+        if (!ensureBgfxShaderBinary(definition.m_fragmentShaderPath, definition.m_fragmentShaderSourcePath, definition.m_fragmentShaderProfile, definition.m_varyingDefPath, "fragment"))
+        {
+                return BGFX_INVALID_HANDLE;
+        }
+
+        bgfx::ShaderHandle vertexShader = LoadShaderHandle(definition.m_vertexShaderPath);
+        if (!bgfx::isValid(vertexShader))
+        {
+                return BGFX_INVALID_HANDLE;
+        }
+
+        bgfx::ShaderHandle fragmentShader = LoadShaderHandle(definition.m_fragmentShaderPath);
+        if (!bgfx::isValid(fragmentShader))
+        {
+                bgfx::destroy(vertexShader);
+                return BGFX_INVALID_HANDLE;
+        }
+
+        bgfx::ProgramHandle program = bgfx::createProgram(vertexShader, fragmentShader, true);
+        if (!bgfx::isValid(program))
+        {
+                return BGFX_INVALID_HANDLE;
+        }
+
+        return program;
+}
+#endif
 
 /*===========================================================================================*/
 /*=========      Screen Shaders	=============================================================*/
@@ -2421,11 +2764,12 @@ W3DShaderManager::W3DShaderManager(void)
 //=============================================================================
 void W3DShaderManager::init(void)
 {
-	int i,j;
+        int i,j;
 
-	initializeDefaultBgfxPrograms();
+        initializeDefaultBgfxPrograms();
+        preloadBgfxPrograms();
 
-	D3DSURFACE_DESC desc;
+        D3DSURFACE_DESC desc;
 	// For now, check & see if we are gf3 or higher on the food chain.
 
 	Int res=0;
@@ -2499,27 +2843,29 @@ void W3DShaderManager::shutdown(void)
 	if (m_renderTexture) m_renderTexture->Release();
 	if (m_oldRenderSurface) m_oldRenderSurface->Release();
 	if (m_oldDepthSurface) m_oldDepthSurface->Release();
-	m_renderTexture = NULL;
-	m_newRenderSurface = NULL;
-	m_oldDepthSurface = NULL;
-	m_oldRenderSurface = NULL;
-	m_currentShader = ST_INVALID;
-	m_currentFilter = FT_NULL_FILTER;
-	m_bgfxPrograms.clear();
-	//release any assets associated with a shader (vertex/pixel shaders, textures, etc.)
-	for (Int i=0; i<W3DShaderManager::ST_MAX; i++) {
-		if (W3DShaders[i]) {
-			W3DShaders[i]->shutdown();
-		}
-	}
+        m_renderTexture = NULL;
+        m_newRenderSurface = NULL;
+        m_oldDepthSurface = NULL;
+        m_oldRenderSurface = NULL;
+        m_currentShader = ST_INVALID;
+        m_currentFilter = FT_NULL_FILTER;
+        unloadBgfxPrograms();
+        //release any assets associated with a shader (vertex/pixel shaders, textures, etc.)
+        for (Int i=0; i<W3DShaderManager::ST_MAX; i++) {
+                if (W3DShaders[i]) {
+                        W3DShaders[i]->shutdown();
+                }
+        }
 
- 	for ( i=0; i < FT_MAX; i++)
- 	{	
- 		if (W3DFilters[i])
- 		{
- 			W3DFilters[i]->shutdown();
- 		}
-	}
+        for ( i=0; i < FT_MAX; i++)
+        {
+                if (W3DFilters[i])
+                {
+                        W3DFilters[i]->shutdown();
+                }
+        }
+
+        m_bgfxPrograms.clear();
 }
 
 // W3DShaderManager::getShaderPasses =======================================================
@@ -2540,6 +2886,21 @@ Int W3DShaderManager::getShaderPasses(ShaderTypes shader)
 //=============================================================================
 Int W3DShaderManager::setShader(ShaderTypes shader, Int pass)
 {
+#if WW3D_BGFX_AVAILABLE
+	if (DX8Wrapper::Is_Bgfx_Active())
+	{
+		bgfx::ProgramHandle programHandle = BGFX_INVALID_HANDLE;
+		if (ensureBgfxProgramLoaded(shader))
+		{
+			const BgfxProgramDefinition *definition = getBgfxProgram(shader);
+			if (definition != NULL && bgfx::isValid(definition->m_programHandle))
+			{
+				programHandle = definition->m_programHandle;
+			}
+		}
+		DX8Wrapper::render_state.bgfx.program = programHandle;
+	}
+#endif
 	if (shader == m_currentShader && pass == m_currentShaderPass)
 		return TRUE;	//shader is already set
 	m_currentShader=shader;
@@ -2561,8 +2922,12 @@ void W3DShaderManager::resetShader(ShaderTypes shader)
 		return;	//last shader is already reset.
 	if (W3DShaders[shader])
 		W3DShaders[shader]->reset();
+#if WW3D_BGFX_AVAILABLE
+	DX8Wrapper::render_state.bgfx.program = BGFX_INVALID_HANDLE;
+#endif
 	m_currentShader = ST_INVALID;
 }
+
 // W3DShaderManager::filterPreRender =======================================================
 /** Call to view filter shaders before rendering starts.
  */
