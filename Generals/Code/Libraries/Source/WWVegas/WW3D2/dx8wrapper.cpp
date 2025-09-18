@@ -82,6 +82,7 @@
 #if WW3D_BGFX_AVAILABLE
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
+#include <cstdio>
 #endif
 
 #define WW3D_DEVTYPE D3DDEVTYPE_HAL
@@ -183,8 +184,8 @@ static bool InitializeBgfx(void* hwnd);
 static void ShutdownBgfx();
 #if WW3D_BGFX_AVAILABLE
 static void UpdateBgfxDisplayParameters();
-#endif
-#if WW3D_BGFX_AVAILABLE
+static bgfx::UniformHandle GetBgfxTextureSamplerUniform(unsigned stage);
+static void DestroyBgfxTextureSamplerUniforms();
 static uint32_t ComputeBgfxSamplerFlags(const TextureClass* texture);
 #else
 static uint32_t ComputeBgfxSamplerFlags(const TextureClass*) { return 0; }
@@ -338,6 +339,7 @@ static void ShutdownBgfx()
 #if WW3D_BGFX_AVAILABLE
         if (g_bgfxState.initialized)
         {
+                DestroyBgfxTextureSamplerUniforms();
                 bgfx::shutdown();
                 g_bgfxState.initialized = false;
         }
@@ -518,6 +520,66 @@ static void Set_Default_Global_Render_States_Bgfx()
 }
 
 #if WW3D_BGFX_AVAILABLE
+namespace
+{
+bool g_bgfxTextureSamplersInitialized = false;
+bgfx::UniformHandle g_bgfxTextureSamplers[MAX_TEXTURE_STAGES];
+}
+
+static void EnsureBgfxTextureSamplerDefaults()
+{
+        if (g_bgfxTextureSamplersInitialized)
+        {
+                return;
+        }
+
+        for (unsigned stage = 0; stage < MAX_TEXTURE_STAGES; ++stage)
+        {
+                g_bgfxTextureSamplers[stage].idx = bgfx::kInvalidHandle;
+        }
+
+        g_bgfxTextureSamplersInitialized = true;
+}
+
+static bgfx::UniformHandle GetBgfxTextureSamplerUniform(unsigned stage)
+{
+        EnsureBgfxTextureSamplerDefaults();
+
+        if (stage >= MAX_TEXTURE_STAGES)
+        {
+                return BGFX_INVALID_HANDLE;
+        }
+
+        bgfx::UniformHandle &uniform = g_bgfxTextureSamplers[stage];
+        if (!bgfx::isValid(uniform))
+        {
+                char name[16];
+                std::snprintf(name, sizeof(name), "s_tex%u", stage);
+                uniform = bgfx::createUniform(name, bgfx::UniformType::Sampler);
+        }
+
+        return uniform;
+}
+
+static void DestroyBgfxTextureSamplerUniforms()
+{
+        if (!g_bgfxTextureSamplersInitialized)
+        {
+                return;
+        }
+
+        for (unsigned stage = 0; stage < MAX_TEXTURE_STAGES; ++stage)
+        {
+                if (bgfx::isValid(g_bgfxTextureSamplers[stage]))
+                {
+                        bgfx::destroy(g_bgfxTextureSamplers[stage]);
+                        g_bgfxTextureSamplers[stage].idx = bgfx::kInvalidHandle;
+                }
+        }
+
+        g_bgfxTextureSamplersInitialized = false;
+}
+
 static uint32_t ComputeBgfxSamplerFlags(const TextureClass* texture)
 {
         if (!texture) {
@@ -2237,6 +2299,39 @@ void DX8Wrapper::Draw(
 
                                                 if (indexBound && bgfx::isValid(render_state.bgfx.program))
                                                 {
+                                                        for (unsigned stage = 0; stage < MAX_TEXTURE_STAGES; ++stage)
+                                                        {
+                                                                if (!bgfx_state.textureEnabled[stage])
+                                                                {
+                                                                        continue;
+                                                                }
+
+                                                                TextureClass* texture = bgfx_state.textureBindings[stage];
+                                                                if (texture == NULL)
+                                                                {
+                                                                        continue;
+                                                                }
+
+                                                                bgfx::TextureHandle textureHandle = BGFX_INVALID_HANDLE;
+                                                                if (texture->Has_Bgfx_Texture())
+                                                                {
+                                                                        textureHandle = texture->Get_Bgfx_Texture_Handle();
+                                                                }
+
+                                                                if (!bgfx::isValid(textureHandle))
+                                                                {
+                                                                        continue;
+                                                                }
+
+                                                                bgfx::UniformHandle sampler = GetBgfxTextureSamplerUniform(stage);
+                                                                if (!bgfx::isValid(sampler))
+                                                                {
+                                                                        continue;
+                                                                }
+
+                                                                bgfx::setTexture(static_cast<uint8_t>(stage), sampler, textureHandle, bgfx_state.samplerFlags[stage]);
+                                                        }
+
                                                         state &= ~primitiveMask;
                                                         state |= primitiveState;
 
