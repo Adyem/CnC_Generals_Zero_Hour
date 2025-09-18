@@ -188,8 +188,8 @@ void DX8TextureManagerClass::Recreate_Textures()
 	{
 		DX8TextureTrackerClass *track=it.Peek_Obj();
 		WWASSERT(track->Texture->D3DTexture==NULL);
-		track->Texture->D3DTexture=DX8Wrapper::_Create_DX8_Texture(track->Width,track->Height,
-			track->Format,track->Mip_level_count,D3DPOOL_DEFAULT,track->RenderTarget);
+                track->Texture->D3DTexture=DX8Wrapper::_Create_DX8_Texture(track->Width,track->Height,
+                        track->Format,track->Mip_level_count,D3DPOOL_DEFAULT,track->RenderTarget,track->Texture);
 		track->Texture->Dirty=true;
 		it.Next();
 	}

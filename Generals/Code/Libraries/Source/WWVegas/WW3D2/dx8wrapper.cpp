@@ -2563,19 +2563,24 @@ void DX8Wrapper::Apply_Render_State_Changes()
 }
 
 IDirect3DTexture8 * DX8Wrapper::_Create_DX8_Texture(
-	unsigned int width, 
-	unsigned int height,
-	WW3DFormat format, 
-	TextureClass::MipCountType mip_level_count,
-	D3DPOOL pool,
-	bool rendertarget)
+        unsigned int width,
+        unsigned int height,
+        WW3DFormat format,
+        TextureClass::MipCountType mip_level_count,
+        D3DPOOL pool,
+        bool rendertarget,
+        TextureClass* texture_owner)
 {
-	DX8_THREAD_ASSERT();
-	DX8_Assert();
-	IDirect3DTexture8 *texture = NULL;
+        DX8_THREAD_ASSERT();
+        DX8_Assert();
+        IDirect3DTexture8 *texture = NULL;
 
-	// Paletted textures not supported!
-	WWASSERT(format!=D3DFMT_P8);
+#if !WW3D_BGFX_AVAILABLE
+        (void)texture_owner;
+#endif
+
+        // Paletted textures not supported!
+        WWASSERT(format!=D3DFMT_P8);
 
 	// NOTE: If 'format' is not supported as a texture format, this function will find the closest
 	// format that is supported and use that instead.
@@ -2603,23 +2608,55 @@ IDirect3DTexture8 * DX8Wrapper::_Create_DX8_Texture(
 			return NULL;
 		}
 
-		DX8_ErrorCode(ret);
-		// Just return the texture, no reduction
-		// allowed for render targets.
-		return texture;
-	}
+                DX8_ErrorCode(ret);
+
+#if WW3D_BGFX_AVAILABLE
+                if (texture && texture_owner && Is_Bgfx_Active())
+                {
+                        D3DSURFACE_DESC desc;
+                        ::ZeroMemory(&desc, sizeof(desc));
+                        if (SUCCEEDED(texture->GetLevelDesc(0, &desc)))
+                        {
+                                texture_owner->Create_Bgfx_Texture_From_D3D(texture, D3DFormat_To_WW3DFormat(desc.Format), true);
+                        }
+                        else
+                        {
+                                texture_owner->Create_Bgfx_Texture_From_D3D(texture, format, true);
+                        }
+                }
+#endif
+
+                // Just return the texture, no reduction
+                // allowed for render targets.
+                return texture;
+        }
 
 	// Don't allow any errors in non-render target
 	// texture creation.
-	DX8_ErrorCode(D3DXCreateTexture(
-		DX8Wrapper::_Get_D3D_Device8(), 
-		width, 
-		height,
-		mip_level_count,
-		0, 
-		WW3DFormat_To_D3DFormat(format),
-		pool, 
-		&texture));
+        DX8_ErrorCode(D3DXCreateTexture(
+                DX8Wrapper::_Get_D3D_Device8(),
+                width,
+                height,
+                mip_level_count,
+                0,
+                WW3DFormat_To_D3DFormat(format),
+                pool,
+                &texture));
+#if WW3D_BGFX_AVAILABLE
+        if (texture && texture_owner && Is_Bgfx_Active())
+        {
+                D3DSURFACE_DESC desc;
+                ::ZeroMemory(&desc, sizeof(desc));
+                if (SUCCEEDED(texture->GetLevelDesc(0, &desc)))
+                {
+                        texture_owner->Create_Bgfx_Texture_From_D3D(texture, D3DFormat_To_WW3DFormat(desc.Format), rendertarget);
+                }
+                else
+                {
+                        texture_owner->Create_Bgfx_Texture_From_D3D(texture, format, rendertarget);
+                }
+        }
+#endif
 
 //	unsigned reduction=WW3D::Get_Texture_Reduction();
 //	unsigned level_count=texture->GetLevelCount();
@@ -2630,8 +2667,9 @@ IDirect3DTexture8 * DX8Wrapper::_Create_DX8_Texture(
 }
 
 IDirect3DTexture8 * DX8Wrapper::_Create_DX8_Texture(
-	const char *filename, 
-	TextureClass::MipCountType mip_level_count)
+        const char *filename,
+        TextureClass::MipCountType mip_level_count,
+        TextureClass* texture_owner)
 {
 	DX8_THREAD_ASSERT();
 	DX8_Assert();
@@ -2676,12 +2714,22 @@ IDirect3DTexture8 * DX8Wrapper::_Create_DX8_Texture(
 //		texture->SetLOD(reduction);
 	}
 
+#if WW3D_BGFX_AVAILABLE
+	if (texture && texture_owner && Is_Bgfx_Active())
+	{
+		texture_owner->Create_Bgfx_Texture_From_D3D(texture, D3DFormat_To_WW3DFormat(desc.Format), false);
+	}
+#else
+	(void)texture_owner;
+#endif
+
 	return texture;
 }
 
 IDirect3DTexture8 * DX8Wrapper::_Create_DX8_Texture(
-	IDirect3DSurface8 *surface,
-	TextureClass::MipCountType mip_level_count)
+        IDirect3DSurface8 *surface,
+        TextureClass::MipCountType mip_level_count,
+        TextureClass* texture_owner)
 {
 	DX8_THREAD_ASSERT();
 	DX8_Assert();
@@ -2694,7 +2742,7 @@ IDirect3DTexture8 * DX8Wrapper::_Create_DX8_Texture(
 	// This function will create a texture with a different (but similar) format if the surface is
 	// not in a supported texture format.
 	WW3DFormat format=D3DFormat_To_WW3DFormat(surface_desc.Format);
-	texture = _Create_DX8_Texture(surface_desc.Width, surface_desc.Height, format, mip_level_count);
+        texture = _Create_DX8_Texture(surface_desc.Width, surface_desc.Height, format, mip_level_count, D3DPOOL_MANAGED, false, NULL);
 
 	// Copy the surface to the texture
 	IDirect3DSurface8 *tex_surface = NULL;
@@ -2703,30 +2751,46 @@ IDirect3DTexture8 * DX8Wrapper::_Create_DX8_Texture(
 	tex_surface->Release();
 
 	// Create mipmaps if needed
-	if (mip_level_count!=TextureClass::MIP_LEVELS_1) {
-		DX8_ErrorCode(D3DXFilterTexture(texture, NULL, 0, D3DX_FILTER_BOX));
-	}
+        if (mip_level_count!=TextureClass::MIP_LEVELS_1) {
+                DX8_ErrorCode(D3DXFilterTexture(texture, NULL, 0, D3DX_FILTER_BOX));
+        }
 
-	return texture;
+#if WW3D_BGFX_AVAILABLE
+        if (texture && texture_owner && Is_Bgfx_Active())
+        {
+                texture_owner->Create_Bgfx_Texture_From_D3D(texture, format, false);
+        }
+#endif
+
+        return texture;
 
 }
 
-IDirect3DSurface8 * DX8Wrapper::_Create_DX8_Surface(unsigned int width, unsigned int height, WW3DFormat format)
+IDirect3DSurface8 * DX8Wrapper::_Create_DX8_Surface(unsigned int width, unsigned int height, WW3DFormat format, SurfaceClass* surface_owner)
 {
 	DX8_THREAD_ASSERT();
 	DX8_Assert();
 
-	IDirect3DSurface8 *surface = NULL;
+        IDirect3DSurface8 *surface = NULL;
 
-	// Paletted surfaces not supported!
-	WWASSERT(format!=D3DFMT_P8);
+        // Paletted surfaces not supported!
+        WWASSERT(format!=D3DFMT_P8);
 
-	DX8CALL(CreateImageSurface(width, height, WW3DFormat_To_D3DFormat(format), &surface));
+        DX8CALL(CreateImageSurface(width, height, WW3DFormat_To_D3DFormat(format), &surface));
 
-	return surface;
+#if WW3D_BGFX_AVAILABLE
+        if (surface && surface_owner && Is_Bgfx_Active())
+        {
+                surface_owner->Create_Bgfx_Surface(static_cast<uint16_t>(width), static_cast<uint16_t>(height), format, false);
+        }
+#else
+        (void)surface_owner;
+#endif
+
+        return surface;
 }
 
-IDirect3DSurface8 * DX8Wrapper::_Create_DX8_Surface(const char *filename_)
+IDirect3DSurface8 * DX8Wrapper::_Create_DX8_Surface(const char *filename_, SurfaceClass* surface_owner)
 {
 	DX8_THREAD_ASSERT();
 	DX8_Assert();
@@ -2750,11 +2814,19 @@ IDirect3DSurface8 * DX8Wrapper::_Create_DX8_Surface(const char *filename_)
 		}
 	}
 
-	surface=TextureLoader::Load_Surface_Immediate(
-		filename_,
-		WW3D_FORMAT_UNKNOWN,
-		true);
-	return surface;
+        surface=TextureLoader::Load_Surface_Immediate(
+                filename_,
+                WW3D_FORMAT_UNKNOWN,
+                true);
+#if WW3D_BGFX_AVAILABLE
+        if (surface && surface_owner && Is_Bgfx_Active())
+        {
+                surface_owner->Create_Bgfx_Surface_From_D3D(surface);
+        }
+#else
+        (void)surface_owner;
+#endif
+        return surface;
 }
 
 

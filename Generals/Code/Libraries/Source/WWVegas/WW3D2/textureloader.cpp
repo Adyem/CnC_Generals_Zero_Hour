@@ -1242,6 +1242,12 @@ void TextureLoadTaskClass::Begin_Thumbnail_Load()
 
 void TextureLoadTaskClass::End_Load()
 {
+#if WW3D_BGFX_AVAILABLE
+	if (DX8Wrapper::Is_Bgfx_Active() && !HasFailed && Texture)
+	{
+		Texture->Create_Bgfx_Texture_From_Locked_Task(this);
+	}
+#endif
 	for (unsigned i=0;i<MipLevelCount;++i) {
 		if (LockedSurfacePtr[i]) {
 			WWASSERT(ThreadClass::_Get_Current_Thread_ID()==DX8Wrapper::_Get_Main_Thread_ID());

@@ -46,9 +46,21 @@
 #include "ww3dformat.h"
 #include "refcount.h"
 
+#ifndef WW3D_BGFX_AVAILABLE
+#define WW3D_BGFX_AVAILABLE 0
+#endif
+
+#if WW3D_BGFX_AVAILABLE
+#include <bgfx/bgfx.h>
+#endif
+
 struct IDirect3DSurface8;
 class Vector2i;
 class Vector3;
+
+#if WW3D_BGFX_AVAILABLE
+class TextureClass;
+#endif
 
 /*************************************************************************
 **                             SurfaceClass
@@ -140,13 +152,44 @@ class SurfaceClass : public W3DMPO, public RefCountClass
 
 		WW3DFormat Get_Surface_Format() const { return SurfaceFormat; }
 
-	private:
+        private:
 
-		// Direct3D surface object
-		IDirect3DSurface8 *D3DSurface;
+                // Direct3D surface object
+                IDirect3DSurface8 *D3DSurface;
 
-		WW3DFormat SurfaceFormat;
-	friend class TextureClass;	
+                WW3DFormat SurfaceFormat;
+        friend class TextureClass;
+
+#if WW3D_BGFX_AVAILABLE
+        public:
+                bool Has_Bgfx_Surface() const;
+                bgfx::TextureHandle Get_Bgfx_Texture_Handle() const;
+                bgfx::FrameBufferHandle Get_Bgfx_Frame_Buffer_Handle() const;
+
+        private:
+                struct BgfxSurfaceInfo
+                {
+                        BgfxSurfaceInfo();
+                        void Reset();
+
+                        bgfx::TextureHandle texture;
+                        bgfx::FrameBufferHandle framebuffer;
+                        TextureClass* ownerTexture;
+                        unsigned int ownerMipLevel;
+                        uint16_t width;
+                        uint16_t height;
+                        WW3DFormat format;
+                        bool renderTarget;
+                        bool ownsHandles;
+                };
+
+                void Destroy_Bgfx_Surface();
+                void Create_Bgfx_Surface(uint16_t width, uint16_t height, WW3DFormat format, bool render_target);
+                void Create_Bgfx_Surface_From_D3D(IDirect3DSurface8* surface);
+                void Create_Bgfx_Surface_From_Texture(TextureClass* texture, unsigned int level);
+
+                BgfxSurfaceInfo m_bgfxData;
+#endif
 };
 
 #endif

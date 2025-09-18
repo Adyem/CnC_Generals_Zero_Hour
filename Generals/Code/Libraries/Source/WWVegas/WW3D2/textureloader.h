@@ -101,6 +101,7 @@ class TextureLoadTaskClass : public W3DMPO
 
 	~TextureLoadTaskClass();
 	TextureLoadTaskClass();
+	friend class TextureClass;
 public:
 	static TextureLoadTaskClass* Get_Instance(TextureClass* tc, bool high_priority);
 	static void Release_Instance(TextureLoadTaskClass* task);
