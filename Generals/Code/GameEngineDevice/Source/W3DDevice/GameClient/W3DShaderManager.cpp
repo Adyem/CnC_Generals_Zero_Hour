@@ -83,6 +83,7 @@
 #include "common/GameLOD.h"
 #include "d3dx8tex.h"
 #include "dx8caps.h"
+#include "formconv.h"
 #include "common/gamelod.h"
 #include "Benchmark.h"
 
@@ -198,6 +199,8 @@ static W3DShaderInterface *W3DShaders[W3DShaderManager::ST_MAX];
 static Int W3DShadersPassCount[W3DShaderManager::ST_MAX];	//number of passes for each of the above shaders
 TextureClass *W3DShaderManager::m_Textures[8];
 W3DShaderManager::ShaderTypes W3DShaderManager::m_currentShader;
+TextureClass *W3DShaderManager::m_renderTextureWrapper = NULL;
+WW3DFormat W3DShaderManager::m_renderTextureFormat = WW3D_FORMAT_UNKNOWN;
 FilterTypes W3DShaderManager::m_currentFilter=FT_NULL_FILTER; ///< Last filter that was set.
 Int W3DShaderManager::m_currentShaderPass;
 
@@ -692,7 +695,16 @@ Bool ScreenBWFilter::postRender(enum FilterModes mode, Coord2D &scrollDelta,Bool
 
 	Int xpos, ypos, width, height;
 
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,tex);	//previously rendered frame inside this texture
+	TextureClass *renderTextureClass = W3DShaderManager::getRenderTextureClass();
+	if (renderTextureClass)
+	{
+		BindTextureToStage(0, renderTextureClass);	//previously rendered frame inside this texture
+	}
+	else
+	{
+		DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,tex);	//previously rendered frame inside this texture
+	}
+	DX8Wrapper::Apply_Render_State_Changes();
 	TheTacticalView->getOrigin(&xpos,&ypos);
 	width=TheTacticalView->getWidth();
 	height=TheTacticalView->getHeight();
@@ -849,15 +861,11 @@ Int ScreenBWFilter::set(enum FilterModes mode)
 
 void ScreenBWFilter::reset(void)
 {
+	BindTextureToStage(0, NULL);
 #if WW3D_BGFX_AVAILABLE
-	if (DX8Wrapper::Is_Bgfx_Active())
-	{
-		BindTextureToStage(0, NULL);
-	}
-	else
+	if (!DX8Wrapper::Is_Bgfx_Active())
 #endif
 	{
-		DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,NULL);	//previously rendered frame inside this texture
 		DX8Wrapper::_Get_D3D_Device8()->SetPixelShader(0);	//turn off pixel shader
 	}
 	DX8Wrapper::Invalidate_Cached_Render_States();
@@ -966,7 +974,16 @@ Bool ScreenBWFilterDOT3::postRender(enum FilterModes mode, Coord2D &scrollDelta,
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 0, D3DTSS_COLOROP, D3DTOP_MODULATE);
 	}
 
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,tex);	//previously rendered frame inside this texture
+	TextureClass *renderTextureClass = W3DShaderManager::getRenderTextureClass();
+	if (renderTextureClass)
+	{
+		BindTextureToStage(0, renderTextureClass);	//previously rendered frame inside this texture
+	}
+	else
+	{
+		DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,tex);	//previously rendered frame inside this texture
+	}
+	DX8Wrapper::Apply_Render_State_Changes();
 
 	pDev->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, v, sizeof(_TRANS_LIT_TEX_VERTEX));
 
@@ -1042,7 +1059,8 @@ Int ScreenBWFilterDOT3::set(enum FilterModes mode)
 
 void ScreenBWFilterDOT3::reset(void)
 {
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,NULL);	//previously rendered frame inside this texture
+	BindTextureToStage(0, NULL);
+	BindTextureToStage(1, NULL);
 	DX8Wrapper::Invalidate_Cached_Render_States();
 }
 
@@ -1183,15 +1201,28 @@ Bool ScreenCrossFadeFilter::postRender(enum FilterModes mode, Coord2D &scrollDel
 	Int xpos, ypos, width, height;
 	Real radius = 0.0f;
 
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,tex);	//previously rendered frame inside this texture
+	TextureClass *renderTextureClass = W3DShaderManager::getRenderTextureClass();
+	if (renderTextureClass)
+	{
+		BindTextureToStage(0, renderTextureClass);	//previously rendered frame inside this texture
+	}
+	else
+	{
+		DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,tex);	//previously rendered frame inside this texture
+	}
 	if (mode == FM_VIEW_CROSSFADE_CIRCLE)
-	{	DX8Wrapper::_Get_D3D_Device8()->SetTexture(1,m_fadePatternTexture->Peek_DX8_Texture());
+	{
+		BindTextureToStage(1, m_fadePatternTexture);
 		//Use the current fade level to scale the mask texture, for other modes the texture
 		//comes pre-scaled so doesn't require uv scaling.
 		radius = (1.0f-m_curFadeValue)*2.0f;
 		if (radius <= 0)
 			radius = 0.01f;
 		radius = 0.5f/radius;
+	}
+	else
+	{
+		BindTextureToStage(1, NULL);
 	}
 
 	TheTacticalView->getOrigin(&xpos,&ypos);
@@ -1230,6 +1261,8 @@ Bool ScreenCrossFadeFilter::postRender(enum FilterModes mode, Coord2D &scrollDel
 	//draw polygons like this is very inefficient but for only 2 triangles, it's
 	//not worth bothering with index/vertex buffers.
 	pDev->SetVertexShader(D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX2);
+
+	DX8Wrapper::Apply_Render_State_Changes();
 
 //		m_pDev->SetTextureStageState(0,D3DTSS_MAGFILTER,D3DTEXF_POINT); 
 //		m_pDev->SetTextureStageState(0,D3DTSS_MINFILTER,D3DTEXF_POINT); 
@@ -1281,7 +1314,8 @@ void ScreenCrossFadeFilter::reset(void)
 {
 	DX8Wrapper::Set_DX8_Texture_Stage_State( 1, D3DTSS_COLOROP,   D3DTOP_DISABLE );
 	DX8Wrapper::Set_DX8_Texture_Stage_State( 1, D3DTSS_ALPHAOP,   D3DTOP_DISABLE );
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,NULL);	//previously rendered frame inside this texture
+	BindTextureToStage(0, NULL);
+	BindTextureToStage(1, NULL);
 	DX8Wrapper::Invalidate_Cached_Render_States();
 }
 
@@ -1350,7 +1384,15 @@ Bool ScreenMotionBlurFilter::postRender(enum FilterModes mode, Coord2D &scrollDe
 
 	Int xpos, ypos, width, height;
 
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,tex);	//previously rendered frame inside this texture
+	TextureClass *renderTextureClass = W3DShaderManager::getRenderTextureClass();
+	if (renderTextureClass)
+	{
+		BindTextureToStage(0, renderTextureClass);	//previously rendered frame inside this texture
+	}
+	else
+	{
+		DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,tex);	//previously rendered frame inside this texture
+	}
 	TheTacticalView->getOrigin(&xpos,&ypos);
 	width=TheTacticalView->getWidth();
 	height=TheTacticalView->getHeight();
@@ -1551,7 +1593,7 @@ Int ScreenMotionBlurFilter::set(enum FilterModes mode)
 
 void ScreenMotionBlurFilter::reset(void)
 {
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,NULL);	//previously rendered frame inside this texture
+	BindTextureToStage(0, NULL);
 	DX8Wrapper::Invalidate_Cached_Render_States();
 }
 
@@ -2863,6 +2905,8 @@ W3DShaderManager::W3DShaderManager(void)
 	m_newRenderSurface = NULL;
 	m_oldDepthSurface = NULL;
 	m_renderingToTexture = false;
+	m_renderTextureWrapper = NULL;
+	m_renderTextureFormat = WW3D_FORMAT_UNKNOWN;
 	Int i;
 	for (i=0; i<W3DShaderManager::ST_MAX; i++)
 	{	W3DShaders[i]=NULL;
@@ -2895,35 +2939,61 @@ void W3DShaderManager::init(void)
 	if ((res=W3DShaderManager::getChipset()) != 0)
 	{
 		//Some of our effects require an offscreen render target, so try creating it here.
+				::ZeroMemory(&desc, sizeof(desc));
 		HRESULT hr=DX8Wrapper::_Get_D3D_Device8()->GetRenderTarget(&m_oldRenderSurface);
 
-		m_oldRenderSurface->GetDesc(&desc);
+		REF_PTR_RELEASE(m_renderTextureWrapper);
+		m_renderTextureFormat = WW3D_FORMAT_UNKNOWN;
 
-		hr=DX8Wrapper::_Get_D3D_Device8()->CreateTexture(desc.Width,desc.Height,1,D3DUSAGE_RENDERTARGET,desc.Format,D3DPOOL_DEFAULT,&m_renderTexture);
-
-		if (hr != S_OK)
+		if (SUCCEEDED(hr) && m_oldRenderSurface)
 		{
-			if (m_oldRenderSurface) m_oldRenderSurface->Release();
-			m_oldRenderSurface = NULL;
-			m_renderTexture = NULL;
-		} else {
-			hr = m_renderTexture->GetSurfaceLevel(0, &m_newRenderSurface);
+			m_oldRenderSurface->GetDesc(&desc);
+			m_renderTextureFormat = D3DFormat_To_WW3DFormat(desc.Format);
+		}
+
+		if (desc.Width != 0 && desc.Height != 0 && desc.Format != D3DFMT_UNKNOWN)
+		{
+			hr=DX8Wrapper::_Get_D3D_Device8()->CreateTexture(desc.Width,desc.Height,1,D3DUSAGE_RENDERTARGET,desc.Format,D3DPOOL_DEFAULT,&m_renderTexture);
+
 			if (hr != S_OK)
 			{
-				if (m_renderTexture) m_renderTexture->Release();
+				if (m_oldRenderSurface) m_oldRenderSurface->Release();
+				m_oldRenderSurface = NULL;
 				m_renderTexture = NULL;
-				m_newRenderSurface = NULL;
-			}	else {
-				hr = DX8Wrapper::_Get_D3D_Device8()->GetDepthStencilSurface(&m_oldDepthSurface);
+				m_renderTextureFormat = WW3D_FORMAT_UNKNOWN;
+			} else {
+				hr = m_renderTexture->GetSurfaceLevel(0, &m_newRenderSurface);
 				if (hr != S_OK)
 				{
-					if (m_newRenderSurface) m_newRenderSurface->Release();
 					if (m_renderTexture) m_renderTexture->Release();
 					m_renderTexture = NULL;
 					m_newRenderSurface = NULL;
-					m_oldDepthSurface = NULL;
+					m_renderTextureFormat = WW3D_FORMAT_UNKNOWN;
+				} else {
+					hr = DX8Wrapper::_Get_D3D_Device8()->GetDepthStencilSurface(&m_oldDepthSurface);
+					if (hr != S_OK)
+					{
+						if (m_newRenderSurface) m_newRenderSurface->Release();
+						if (m_renderTexture) m_renderTexture->Release();
+						m_renderTexture = NULL;
+						m_newRenderSurface = NULL;
+						m_oldDepthSurface = NULL;
+						m_renderTextureFormat = WW3D_FORMAT_UNKNOWN;
+					}
+					else
+					{
+						m_renderTextureWrapper = new TextureClass(m_renderTexture);
+#if WW3D_BGFX_AVAILABLE
+						if (m_renderTextureWrapper && m_renderTextureFormat != WW3D_FORMAT_UNKNOWN && DX8Wrapper::Is_Bgfx_Active())
+						{
+							m_renderTextureWrapper->Create_Bgfx_Texture_From_D3D(m_renderTexture, m_renderTextureFormat, true);
+						}
+#endif
+					}
 				}
 			}
+		}
+
 		}
 	}
 
@@ -2966,6 +3036,8 @@ void W3DShaderManager::shutdown(void)
         m_newRenderSurface = NULL;
         m_oldDepthSurface = NULL;
         m_oldRenderSurface = NULL;
+        REF_PTR_RELEASE(m_renderTextureWrapper);
+        m_renderTextureFormat = WW3D_FORMAT_UNKNOWN;
         m_currentShader = ST_INVALID;
         m_currentFilter = FT_NULL_FILTER;
         unloadBgfxPrograms();
@@ -3189,6 +3261,12 @@ IDirect3DTexture8 *W3DShaderManager::endRenderToTexture(void)
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 0, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 0, D3DTSS_MINFILTER, D3DTEXF_LINEAR);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 0, D3DTSS_MIPFILTER, D3DTEXF_NONE);
+#if WW3D_BGFX_AVAILABLE
+		if (DX8Wrapper::Is_Bgfx_Active() && m_renderTextureWrapper && m_renderTextureFormat != WW3D_FORMAT_UNKNOWN)
+		{
+			m_renderTextureWrapper->Create_Bgfx_Texture_From_D3D(m_renderTexture, m_renderTextureFormat, true);
+		}
+#endif
 
 		m_renderingToTexture = false;
 	}
@@ -3201,6 +3279,11 @@ was applied.  NOTE: This texture does not survive device reset.. so quit effect 
 IDirect3DTexture8 *W3DShaderManager::getRenderTexture(void)
 {
 	return m_renderTexture;
+}
+
+TextureClass *W3DShaderManager::getRenderTextureClass(void)
+{
+	return m_renderTextureWrapper;
 }
 
 #define DC_NVIDIA_VENDOR_ID 0x10DE
