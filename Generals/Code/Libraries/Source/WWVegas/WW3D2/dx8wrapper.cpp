@@ -524,6 +524,8 @@ namespace
 {
 bool g_bgfxTextureSamplersInitialized = false;
 bgfx::UniformHandle g_bgfxTextureSamplers[MAX_TEXTURE_STAGES];
+bool g_bgfxTextureMatricesInitialized = false;
+bgfx::UniformHandle g_bgfxTextureMatrices[MAX_TEXTURE_STAGES];
 }
 
 static void EnsureBgfxTextureSamplerDefaults()
@@ -536,9 +538,21 @@ static void EnsureBgfxTextureSamplerDefaults()
         for (unsigned stage = 0; stage < MAX_TEXTURE_STAGES; ++stage)
         {
                 g_bgfxTextureSamplers[stage].idx = bgfx::kInvalidHandle;
+                g_bgfxTextureMatrices[stage].idx = bgfx::kInvalidHandle;
         }
 
         g_bgfxTextureSamplersInitialized = true;
+}
+
+static void EnsureBgfxTextureMatrixDefaults()
+{
+        if (g_bgfxTextureMatricesInitialized)
+        {
+                return;
+        }
+
+        EnsureBgfxTextureSamplerDefaults();
+        g_bgfxTextureMatricesInitialized = true;
 }
 
 static bgfx::UniformHandle GetBgfxTextureSamplerUniform(unsigned stage)
@@ -575,9 +589,16 @@ static void DestroyBgfxTextureSamplerUniforms()
                         bgfx::destroy(g_bgfxTextureSamplers[stage]);
                         g_bgfxTextureSamplers[stage].idx = bgfx::kInvalidHandle;
                 }
+
+                if (bgfx::isValid(g_bgfxTextureMatrices[stage]))
+                {
+                        bgfx::destroy(g_bgfxTextureMatrices[stage]);
+                        g_bgfxTextureMatrices[stage].idx = bgfx::kInvalidHandle;
+                }
         }
 
         g_bgfxTextureSamplersInitialized = false;
+        g_bgfxTextureMatricesInitialized = false;
 }
 
 static uint32_t ComputeBgfxSamplerFlags(const TextureClass* texture)
@@ -610,6 +631,70 @@ static uint32_t ComputeBgfxSamplerFlags(const TextureClass* texture)
         }
 
         return flags;
+}
+
+static bgfx::UniformHandle GetBgfxTextureMatrixUniform(unsigned stage)
+{
+        EnsureBgfxTextureMatrixDefaults();
+
+        if (stage >= MAX_TEXTURE_STAGES)
+        {
+                return BGFX_INVALID_HANDLE;
+        }
+
+        bgfx::UniformHandle &uniform = g_bgfxTextureMatrices[stage];
+        if (!bgfx::isValid(uniform))
+        {
+                char name[16];
+                std::snprintf(name, sizeof(name), "u_texMtx%u", stage);
+                uniform = bgfx::createUniform(name, bgfx::UniformType::Mat4);
+        }
+
+        return uniform;
+}
+
+static void UpdateBgfxSamplerFlagsForStage(BgfxStateData &bgfx_state, unsigned stage)
+{
+        if (stage >= MAX_TEXTURE_STAGES)
+        {
+                return;
+        }
+
+        TextureClass* texture = bgfx_state.textureBindings[stage];
+        uint32_t samplerFlags = ComputeBgfxSamplerFlags(texture);
+
+        samplerFlags &= ~(BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
+                BGFX_SAMPLER_MIN_MASK | BGFX_SAMPLER_MAG_MASK | BGFX_SAMPLER_MIP_MASK);
+
+        if (bgfx_state.textureAddressU[stage] == D3DTADDRESS_CLAMP)
+        {
+                samplerFlags |= BGFX_SAMPLER_U_CLAMP;
+        }
+
+        if (bgfx_state.textureAddressV[stage] == D3DTADDRESS_CLAMP)
+        {
+                samplerFlags |= BGFX_SAMPLER_V_CLAMP;
+        }
+
+        uint32_t minFilter = bgfx_state.minFilter[stage];
+        if (minFilter == D3DTEXF_POINT || minFilter == D3DTEXF_NONE)
+        {
+                samplerFlags |= BGFX_SAMPLER_MIN_POINT;
+        }
+
+        uint32_t magFilter = bgfx_state.magFilter[stage];
+        if (magFilter == D3DTEXF_POINT || magFilter == D3DTEXF_NONE)
+        {
+                samplerFlags |= BGFX_SAMPLER_MAG_POINT;
+        }
+
+        uint32_t mipFilter = bgfx_state.mipFilter[stage];
+        if (mipFilter == D3DTEXF_POINT || mipFilter == D3DTEXF_NONE)
+        {
+                samplerFlags |= BGFX_SAMPLER_MIP_POINT;
+        }
+
+        bgfx_state.samplerFlags[stage] = samplerFlags;
 }
 #endif
 void DX8Wrapper::Set_Default_Global_Render_States(void)
@@ -2327,9 +2412,31 @@ void DX8Wrapper::Draw(
                                                                 if (!bgfx::isValid(sampler))
                                                                 {
                                                                         continue;
-                                                                }
+                                                        }
 
                                                                 bgfx::setTexture(static_cast<uint8_t>(stage), sampler, textureHandle, bgfx_state.samplerFlags[stage]);
+                                                        }
+
+                                                        for (unsigned stage = 0; stage < MAX_TEXTURE_STAGES; ++stage)
+                                                        {
+                                                                if (!bgfx_state.textureTransformUsed[stage])
+                                                                {
+                                                                        continue;
+                                                                }
+
+                                                                if (bgfx_state.textureTransformFlags[stage] == D3DTTFF_DISABLE)
+                                                                {
+                                                                        continue;
+                                                                }
+
+                                                                bgfx::UniformHandle matrixUniform = GetBgfxTextureMatrixUniform(stage);
+                                                                if (!bgfx::isValid(matrixUniform))
+                                                                {
+                                                                        continue;
+                                                                }
+
+                                                                const float *matrixData = reinterpret_cast<const float*>(&bgfx_state.textureTransforms[stage]);
+                                                                bgfx::setUniform(matrixUniform, matrixData);
                                                         }
 
                                                         state &= ~primitiveMask;
@@ -2483,7 +2590,7 @@ void DX8Wrapper::Apply_Render_State_Changes()
                                 SNAPSHOT_SAY(("DX8 - apply texture %d\n", i));
                                 TextureClass* texture = render_state.Textures[i];
                                 bgfx_state.textureBindings[i] = texture;
-                                bgfx_state.samplerFlags[i] = ComputeBgfxSamplerFlags(texture);
+                                UpdateBgfxSamplerFlagsForStage(bgfx_state, i);
                         }
                 }
 
