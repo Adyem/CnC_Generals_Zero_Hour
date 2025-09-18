@@ -59,6 +59,8 @@
 #include "Common/File.h"
 #include "Common/FileSystem.h"
 #include "W3DDevice/GameClient/W3DShaderManager.h"
+#include <map>
+#include <string>
 #include "W3DDevice/GameClient/W3DShroud.h"
 #include "W3DDevice/GameClient/HeightMap.h"
 #include "W3DDevice/GameClient/W3DCustomScene.h"
@@ -114,6 +116,68 @@ IDirect3DSurface8 *W3DShaderManager::m_oldRenderSurface=NULL;	///<previous rende
 IDirect3DTexture8 *W3DShaderManager::m_renderTexture=NULL;		///<texture into which rendering will be redirected.
 IDirect3DSurface8 *W3DShaderManager::m_newRenderSurface=NULL;	///<new render target inside m_renderTexture
 IDirect3DSurface8 *W3DShaderManager::m_oldDepthSurface=NULL;	///<previous depth buffer surface
+std::map<W3DShaderManager::ShaderTypes, W3DShaderManager::BgfxProgramDefinition> W3DShaderManager::m_bgfxPrograms;
+
+W3DShaderManager::BgfxProgramDefinition::BgfxProgramDefinition()
+	: m_preload(false)
+{
+}
+
+W3DShaderManager::BgfxProgramDefinition::BgfxProgramDefinition(const std::string &vertexPath, const std::string &fragmentPath, Bool preload)
+	: m_vertexShaderPath(vertexPath),
+	  m_fragmentShaderPath(fragmentPath),
+	  m_preload(preload)
+{
+}
+
+Bool W3DShaderManager::BgfxProgramDefinition::isValid(void) const
+{
+	return (!m_vertexShaderPath.empty() && !m_fragmentShaderPath.empty());
+}
+
+void W3DShaderManager::registerBgfxProgram(ShaderTypes shader, const BgfxProgramDefinition &definition)
+{
+	if (!definition.isValid())
+	{
+		m_bgfxPrograms.erase(shader);
+		return;
+	}
+
+	m_bgfxPrograms[shader] = definition;
+}
+
+const W3DShaderManager::BgfxProgramDefinition *W3DShaderManager::getBgfxProgram(ShaderTypes shader)
+{
+	std::map<ShaderTypes, BgfxProgramDefinition>::const_iterator it = m_bgfxPrograms.find(shader);
+	if (it == m_bgfxPrograms.end())
+	{
+		return NULL;
+	}
+
+	return &it->second;
+}
+
+void W3DShaderManager::initializeDefaultBgfxPrograms(void)
+{
+	if (!m_bgfxPrograms.empty())
+	{
+		return;
+	}
+
+	const char *shaderRoot = "shaders/bgfx/";
+	registerBgfxProgram(ST_TERRAIN_BASE, BgfxProgramDefinition(std::string(shaderRoot) + "terrain_base_vs.bin", std::string(shaderRoot) + "terrain_base_fs.bin"));
+	registerBgfxProgram(ST_TERRAIN_BASE_NOISE1, BgfxProgramDefinition(std::string(shaderRoot) + "terrain_noise_vs.bin", std::string(shaderRoot) + "terrain_noise_fs.bin", false));
+	registerBgfxProgram(ST_TERRAIN_BASE_NOISE2, BgfxProgramDefinition(std::string(shaderRoot) + "terrain_noise_vs.bin", std::string(shaderRoot) + "terrain_noise_fs.bin", false));
+	registerBgfxProgram(ST_TERRAIN_BASE_NOISE12, BgfxProgramDefinition(std::string(shaderRoot) + "terrain_noise_vs.bin", std::string(shaderRoot) + "terrain_noise_fs.bin", false));
+	registerBgfxProgram(ST_ROAD_BASE, BgfxProgramDefinition(std::string(shaderRoot) + "road_base_vs.bin", std::string(shaderRoot) + "road_base_fs.bin"));
+	registerBgfxProgram(ST_ROAD_BASE_NOISE1, BgfxProgramDefinition(std::string(shaderRoot) + "road_noise_vs.bin", std::string(shaderRoot) + "road_noise_fs.bin", false));
+	registerBgfxProgram(ST_ROAD_BASE_NOISE2, BgfxProgramDefinition(std::string(shaderRoot) + "road_noise_vs.bin", std::string(shaderRoot) + "road_noise_fs.bin", false));
+	registerBgfxProgram(ST_ROAD_BASE_NOISE12, BgfxProgramDefinition(std::string(shaderRoot) + "road_noise_vs.bin", std::string(shaderRoot) + "road_noise_fs.bin", false));
+	registerBgfxProgram(ST_SHROUD_TEXTURE, BgfxProgramDefinition(std::string(shaderRoot) + "shroud_vs.bin", std::string(shaderRoot) + "shroud_fs.bin"));
+	registerBgfxProgram(ST_MASK_TEXTURE, BgfxProgramDefinition(std::string(shaderRoot) + "mask_vs.bin", std::string(shaderRoot) + "mask_fs.bin"));
+	registerBgfxProgram(ST_CLOUD_TEXTURE, BgfxProgramDefinition(std::string(shaderRoot) + "cloud_vs.bin", std::string(shaderRoot) + "cloud_fs.bin"));
+}
+
 /*===========================================================================================*/
 /*=========      Screen Shaders	=============================================================*/
 /*===========================================================================================*/
@@ -2331,6 +2395,7 @@ W3DShaderManager::W3DShaderManager(void)
 {
 	m_currentShader = ST_INVALID;
 	m_currentFilter = FT_NULL_FILTER;
+	m_bgfxPrograms.clear();
 	m_oldRenderSurface = NULL;
 	m_renderTexture = NULL;
 	m_newRenderSurface = NULL;
@@ -2357,6 +2422,8 @@ W3DShaderManager::W3DShaderManager(void)
 void W3DShaderManager::init(void)
 {
 	int i,j;
+
+	initializeDefaultBgfxPrograms();
 
 	D3DSURFACE_DESC desc;
 	// For now, check & see if we are gf3 or higher on the food chain.
@@ -2438,6 +2505,7 @@ void W3DShaderManager::shutdown(void)
 	m_oldRenderSurface = NULL;
 	m_currentShader = ST_INVALID;
 	m_currentFilter = FT_NULL_FILTER;
+	m_bgfxPrograms.clear();
 	//release any assets associated with a shader (vertex/pixel shaders, textures, etc.)
 	for (Int i=0; i<W3DShaderManager::ST_MAX; i++) {
 		if (W3DShaders[i]) {

@@ -37,6 +37,8 @@
 #define __W3DSHADERMANAGER_H_
 
 #include "WW3D2/Texture.h"
+#include <map>
+#include <string>
 enum FilterTypes;
 enum CustomScenePassModes;
 enum StaticGameLODLevel;
@@ -53,8 +55,20 @@ class W3DShaderManager
 {
 public:
 
-	//put any custom shaders (not going through W3D) in here.
-	enum ShaderTypes
+        struct BgfxProgramDefinition
+        {
+                BgfxProgramDefinition();
+                BgfxProgramDefinition(const std::string &vertexPath, const std::string &fragmentPath, Bool preload = true);
+
+                std::string m_vertexShaderPath;
+                std::string m_fragmentShaderPath;
+                Bool m_preload;
+
+                Bool isValid(void) const;
+        };
+
+        //put any custom shaders (not going through W3D) in here.
+        enum ShaderTypes
 	{	ST_INVALID,			//invalid shader type.
 		ST_TERRAIN_BASE,	//shader to apply base terrain texture only
 		ST_TERRAIN_BASE_NOISE1,	//shader to apply base texture and cloud/noise 1.
@@ -83,9 +97,11 @@ public:
 	///Return current texture available to shaders.
 	static inline TextureClass *getShaderTexture(Int stage) { return m_Textures[stage];}	///<returns currently selected texture for given stage
 	///Return last activated shader.
-	static inline ShaderTypes getCurrentShader(void) {return m_currentShader;}
-	/// Loads a .vso file and creates a vertex shader for it
-	static HRESULT LoadAndCreateD3DShader(char* strFilePath, const DWORD* pDeclaration, DWORD Usage, Bool ShaderType, DWORD* pHandle);
+        static inline ShaderTypes getCurrentShader(void) {return m_currentShader;}
+        static void registerBgfxProgram(ShaderTypes shader, const BgfxProgramDefinition &definition);
+        static const BgfxProgramDefinition *getBgfxProgram(ShaderTypes shader);
+        /// Loads a .vso file and creates a vertex shader for it
+        static HRESULT LoadAndCreateD3DShader(char* strFilePath, const DWORD* pDeclaration, DWORD Usage, Bool ShaderType, DWORD* pHandle);
 
 	static Bool testMinimumRequirements(ChipsetType *videoChipType, CpuType *cpuType, Int *cpuFreq, Int *numRAM, Real *intBenchIndex, Real *floatBenchIndex, Real *memBenchIndex);
 	static StaticGameLODLevel getGPUPerformanceIndex(void);
@@ -109,6 +125,9 @@ protected:
 	static ChipsetType m_currentChipset;	///<last video card chipset that was detected.
 	static ShaderTypes m_currentShader;	///<last shader that was set.
 	static Int m_currentShaderPass;		///<pass of last shader that was set.
+
+	static void initializeDefaultBgfxPrograms(void);
+	static std::map<ShaderTypes, BgfxProgramDefinition> m_bgfxPrograms;
 
 	static FilterTypes m_currentFilter; ///< Last filter that was set.
 	// Info for a render to texture surface for special effects.
