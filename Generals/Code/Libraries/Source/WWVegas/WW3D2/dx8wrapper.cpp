@@ -2492,6 +2492,19 @@ void DX8Wrapper::Draw(
                                                         state &= ~primitiveMask;
                                                         state |= primitiveState;
 
+                                                        Matrix4 worldMatrix = bgfx_state.worldTransform;
+                                                        Matrix4 viewMatrix = bgfx_state.viewTransform;
+                                                        Matrix4 projectionMatrix = bgfx_state.projectionTransform;
+
+                                                        Matrix4 bgfxWorldMatrix = worldMatrix.Transpose();
+                                                        Matrix4 bgfxViewMatrix = viewMatrix.Transpose();
+                                                        Matrix4 bgfxProjectionMatrix = projectionMatrix.Transpose();
+
+                                                        bgfx::setViewTransform(0,
+                                                                reinterpret_cast<const float*>(&bgfxViewMatrix),
+                                                                reinterpret_cast<const float*>(&bgfxProjectionMatrix));
+                                                        bgfx::setTransform(reinterpret_cast<const float*>(&bgfxWorldMatrix));
+
                                                         bgfx::setState(state);
                                                         bgfx::submit(0, render_state.bgfx.program);
 
@@ -2652,6 +2665,16 @@ void DX8Wrapper::Apply_Render_State_Changes()
                         } else {
                                 VertexMaterialClass::Apply_Null();
                         }
+                }
+
+                if (render_state_changed & WORLD_CHANGED) {
+                        bgfx_state.worldTransform = render_state.world;
+                        bgfx_state.worldTransformValid = true;
+                }
+
+                if (render_state_changed & VIEW_CHANGED) {
+                        bgfx_state.viewTransform = render_state.view;
+                        bgfx_state.viewTransformValid = true;
                 }
 
                 if (render_state_changed & VERTEX_BUFFER_CHANGED) {

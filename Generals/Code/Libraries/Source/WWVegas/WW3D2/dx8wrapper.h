@@ -175,6 +175,12 @@ struct BgfxStateData
         uint32_t                                                minFilter[MAX_TEXTURE_STAGES];
         uint32_t                                                magFilter[MAX_TEXTURE_STAGES];
         uint32_t                                                mipFilter[MAX_TEXTURE_STAGES];
+        Matrix4                                         worldTransform;
+        Matrix4                                         viewTransform;
+        Matrix4                                         projectionTransform;
+        bool                                                    worldTransformValid;
+        bool                                                    viewTransformValid;
+        bool                                                    projectionTransformValid;
         Vector4                                         materialAmbient;
         Vector4                                         materialDiffuse;
         Vector4                                         materialSpecular;
@@ -610,15 +616,32 @@ WWINLINE void DX8Wrapper::_Set_DX8_Transform(D3DTRANSFORMSTATETYPE transform,con
         DX8_RECORD_MATRIX_CHANGE();
         if (Is_Bgfx_Active())
         {
-                if (transform >= D3DTS_TEXTURE0 && transform < (D3DTS_TEXTURE0 + MAX_TEXTURE_STAGES))
-                {
 #if WW3D_BGFX_AVAILABLE
-                        unsigned stage = static_cast<unsigned>(transform - D3DTS_TEXTURE0);
-                        render_state.bgfx.textureTransforms[stage] = m;
-                        render_state.bgfx.textureTransformUsed[stage] = true;
-                        return;
-#endif
+                switch (transform)
+                {
+                case D3DTS_WORLD:
+                        render_state.bgfx.worldTransform = m;
+                        render_state.bgfx.worldTransformValid = true;
+                        break;
+                case D3DTS_VIEW:
+                        render_state.bgfx.viewTransform = m;
+                        render_state.bgfx.viewTransformValid = true;
+                        break;
+                case D3DTS_PROJECTION:
+                        render_state.bgfx.projectionTransform = m;
+                        render_state.bgfx.projectionTransformValid = true;
+                        break;
+                default:
+                        if (transform >= D3DTS_TEXTURE0 && transform < (D3DTS_TEXTURE0 + MAX_TEXTURE_STAGES))
+                        {
+                                unsigned stage = static_cast<unsigned>(transform - D3DTS_TEXTURE0);
+                                render_state.bgfx.textureTransforms[stage] = m;
+                                render_state.bgfx.textureTransformUsed[stage] = true;
+                                return;
+                        }
+                        break;
                 }
+#endif
         }
         DX8CALL(SetTransform(transform,(D3DMATRIX*)&m));
 }
@@ -630,15 +653,35 @@ WWINLINE void DX8Wrapper::_Set_DX8_Transform(D3DTRANSFORMSTATETYPE transform,con
         DX8_RECORD_MATRIX_CHANGE();
         if (Is_Bgfx_Active())
         {
-                if (transform >= D3DTS_TEXTURE0 && transform < (D3DTS_TEXTURE0 + MAX_TEXTURE_STAGES))
-                {
 #if WW3D_BGFX_AVAILABLE
-                        unsigned stage = static_cast<unsigned>(transform - D3DTS_TEXTURE0);
-                        render_state.bgfx.textureTransforms[stage] = Matrix4(m);
-                        render_state.bgfx.textureTransformUsed[stage] = true;
-                        return;
-#endif
+                switch (transform)
+                {
+                case D3DTS_WORLD:
+                        render_state.bgfx.worldTransform = Matrix4(m);
+                        render_state.bgfx.worldTransformValid = true;
+                        break;
+                case D3DTS_VIEW:
+                        render_state.bgfx.viewTransform = Matrix4(m);
+                        render_state.bgfx.viewTransformValid = true;
+                        break;
+                case D3DTS_PROJECTION:
+                        {
+                                Matrix4 proj(m);
+                                render_state.bgfx.projectionTransform = proj;
+                                render_state.bgfx.projectionTransformValid = true;
+                        }
+                        break;
+                default:
+                        if (transform >= D3DTS_TEXTURE0 && transform < (D3DTS_TEXTURE0 + MAX_TEXTURE_STAGES))
+                        {
+                                unsigned stage = static_cast<unsigned>(transform - D3DTS_TEXTURE0);
+                                render_state.bgfx.textureTransforms[stage] = Matrix4(m);
+                                render_state.bgfx.textureTransformUsed[stage] = true;
+                                return;
+                        }
+                        break;
                 }
+#endif
         }
         DX8CALL(SetTransform(transform,(D3DMATRIX*)&m));
 }
@@ -1119,12 +1162,22 @@ WWINLINE void DX8Wrapper::Set_Transform(D3DTRANSFORMSTATETYPE transform,const Ma
 		render_state_changed|=(unsigned)VIEW_CHANGED;
 		render_state_changed&=~(unsigned)VIEW_IDENTITY;
 		break;
-	default:
-		DX8_RECORD_MATRIX_CHANGE();
-		Matrix4 m2=m.Transpose();
-		DX8CALL(SetTransform(transform,(D3DMATRIX*)&m2));	
-		break;
-	}
+        default:
+                DX8_RECORD_MATRIX_CHANGE();
+                Matrix4 m2=m.Transpose();
+                if (Is_Bgfx_Active())
+                {
+#if WW3D_BGFX_AVAILABLE
+                        if (transform == D3DTS_PROJECTION)
+                        {
+                                render_state.bgfx.projectionTransform = m2;
+                                render_state.bgfx.projectionTransformValid = true;
+                        }
+#endif
+                }
+                DX8CALL(SetTransform(transform,(D3DMATRIX*)&m2));
+                break;
+        }
 }
 
 WWINLINE void DX8Wrapper::Set_Transform(D3DTRANSFORMSTATETYPE transform,const Matrix3D& m)
@@ -1141,12 +1194,22 @@ WWINLINE void DX8Wrapper::Set_Transform(D3DTRANSFORMSTATETYPE transform,const Ma
 		render_state_changed|=(unsigned)VIEW_CHANGED;
 		render_state_changed&=~(unsigned)VIEW_IDENTITY;
 		break;
-	default:
-		DX8_RECORD_MATRIX_CHANGE();
-		m2=m2.Transpose();
-		DX8CALL(SetTransform(transform,(D3DMATRIX*)&m2));
-		break;
-	}
+        default:
+                DX8_RECORD_MATRIX_CHANGE();
+                m2=m2.Transpose();
+                if (Is_Bgfx_Active())
+                {
+#if WW3D_BGFX_AVAILABLE
+                        if (transform == D3DTS_PROJECTION)
+                        {
+                                render_state.bgfx.projectionTransform = m2;
+                                render_state.bgfx.projectionTransformValid = true;
+                        }
+#endif
+                }
+                DX8CALL(SetTransform(transform,(D3DMATRIX*)&m2));
+                break;
+        }
 }
 
 WWINLINE void DX8Wrapper::Set_World_Identity()
@@ -1259,6 +1322,9 @@ WWINLINE void DX8Wrapper::Release_Render_State()
 WWINLINE BgfxStateData::BgfxStateData()
         :
         stateFlags(0),
+        worldTransformValid(false),
+        viewTransformValid(false),
+        projectionTransformValid(false),
         materialAmbient(0.0f,0.0f,0.0f,1.0f),
         materialDiffuse(0.0f,0.0f,0.0f,1.0f),
         materialSpecular(0.0f,0.0f,0.0f,1.0f),
@@ -1275,6 +1341,9 @@ WWINLINE BgfxStateData::BgfxStateData()
 #if WW3D_BGFX_AVAILABLE
         program.idx = bgfx::kInvalidHandle;
 #endif
+        worldTransform.Make_Identity();
+        viewTransform.Make_Identity();
+        projectionTransform.Make_Identity();
         for (unsigned i = 0; i < MAX_TEXTURE_STAGES; ++i) {
                 samplerFlags[i] = 0;
                 textureBindings[i] = NULL;
