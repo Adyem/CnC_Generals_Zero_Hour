@@ -248,11 +248,13 @@ class TextureClass : public W3DMPO, public RefCountClass
                         uint64_t                                                flags;
                 };
 
-		void Destroy_Bgfx_Resources();
-		void Upload_Bgfx_Texture(uint16_t width, uint16_t height, WW3DFormat format, uint8_t mip_count, bool render_target, const uint8_t* const* data, const uint32_t* pitches);
-		void Create_Bgfx_Texture_From_D3D(IDirect3DTexture8* texture, WW3DFormat format, bool render_target);
-		void Create_Bgfx_Texture_From_Locked_Task(TextureLoadTaskClass* task);
-		BgfxTextureInfo m_bgfxData;
+                void Destroy_Bgfx_Resources();
+                void Upload_Bgfx_Texture(uint16_t width, uint16_t height, WW3DFormat format, uint8_t mip_count, bool render_target, const uint8_t* const* data, const uint32_t* pitches);
+                void Create_Bgfx_Texture_From_D3D(IDirect3DTexture8* texture, WW3DFormat format, bool render_target);
+                void Create_Bgfx_Texture_From_Locked_Task(TextureLoadTaskClass* task);
+                static uint8_t Calculate_Max_Bgfx_Mip_Count(uint16_t width, uint16_t height);
+                static uint8_t Calculate_Bgfx_Mip_Count(uint16_t width, uint16_t height, MipCountType mip_level_count);
+                BgfxTextureInfo m_bgfxData;
 #endif
 
 		// State not contained in the Direct3D texture object:
