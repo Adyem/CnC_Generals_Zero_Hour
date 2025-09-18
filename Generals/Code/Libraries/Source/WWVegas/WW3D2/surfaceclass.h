@@ -52,6 +52,7 @@
 
 #if WW3D_BGFX_AVAILABLE
 #include <bgfx/bgfx.h>
+#include <vector>
 #endif
 
 struct IDirect3DSurface8;
@@ -72,8 +73,8 @@ class TextureClass;
 *************************************************************************/
 class SurfaceClass : public W3DMPO, public RefCountClass
 {
-	W3DMPO_GLUE(SurfaceClass)
-	public:
+        W3DMPO_GLUE(SurfaceClass)
+        public:
 
 		struct SurfaceDescription {
 			WW3DFormat		Format;	// Surface format
@@ -88,12 +89,16 @@ class SurfaceClass : public W3DMPO, public RefCountClass
 		SurfaceClass(const char *filename);
 
 		// Create the surface from a D3D pointer
-		SurfaceClass(IDirect3DSurface8 *d3d_surface);
+                SurfaceClass(IDirect3DSurface8 *d3d_surface);
 
-		~SurfaceClass(void);
+                ~SurfaceClass(void);
 
-		// Get surface description
-		 void Get_Description(SurfaceDescription &surface_desc);
+#if WW3D_BGFX_AVAILABLE
+                static SurfaceClass* Create_From_Bgfx_Texture(TextureClass* texture, unsigned int level);
+#endif
+
+                // Get surface description
+                 void Get_Description(SurfaceDescription &surface_desc);
 
 		// Lock / unlock the surface
 		void * Lock(int * pitch);
@@ -181,6 +186,8 @@ class SurfaceClass : public W3DMPO, public RefCountClass
                         WW3DFormat format;
                         bool renderTarget;
                         bool ownsHandles;
+                        std::vector<uint8_t> stagingData;
+                        uint32_t stagingPitch;
                 };
 
                 void Destroy_Bgfx_Surface();
@@ -189,6 +196,12 @@ class SurfaceClass : public W3DMPO, public RefCountClass
                 void Create_Bgfx_Surface_From_Texture(TextureClass* texture, unsigned int level);
 
                 BgfxSurfaceInfo m_bgfxData;
+#endif
+
+#if WW3D_BGFX_AVAILABLE
+        private:
+                struct BgfxEmptyTag {};
+                explicit SurfaceClass(BgfxEmptyTag);
 #endif
 };
 

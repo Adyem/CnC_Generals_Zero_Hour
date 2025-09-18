@@ -198,13 +198,14 @@ TextureClass::BgfxTextureInfo::BgfxTextureInfo()
 
 void TextureClass::BgfxTextureInfo::Reset()
 {
-	texture = BGFX_INVALID_HANDLE;
-	framebuffer = BGFX_INVALID_HANDLE;
-	width = 0;
-	height = 0;
-	mipCount = 0;
-	renderTarget = false;
-	flags = BGFX_TEXTURE_NONE;
+        texture = BGFX_INVALID_HANDLE;
+        framebuffer = BGFX_INVALID_HANDLE;
+        width = 0;
+        height = 0;
+        mipCount = 0;
+        format = WW3D_FORMAT_UNKNOWN;
+        renderTarget = false;
+        flags = BGFX_TEXTURE_NONE;
 }
 #endif
 
@@ -212,16 +213,28 @@ void TextureClass::BgfxTextureInfo::Reset()
 
 static int Calculate_Texture_Memory_Usage(const TextureClass* texture,int red_factor=0)
 {
-	// Set performance statistics
+        // Set performance statistics
 
-	int size=0;
-	IDirect3DTexture8* d3d_texture=const_cast<TextureClass*>(texture)->Peek_DX8_Texture();
-	if (!d3d_texture) return 0;
-	for (unsigned i=red_factor;i<d3d_texture->GetLevelCount();++i) {
-		D3DSURFACE_DESC desc;
-		DX8_ErrorCode(d3d_texture->GetLevelDesc(i,&desc));
-		size+=desc.Size;
-	}
+        int size=0;
+        IDirect3DTexture8* d3d_texture=const_cast<TextureClass*>(texture)->Peek_DX8_Texture();
+#if WW3D_BGFX_AVAILABLE
+        if (d3d_texture == NULL && DX8Wrapper::Is_Bgfx_Active() && texture->Has_Bgfx_Texture())
+        {
+                const TextureClass::BgfxTextureInfo& info = texture->m_bgfxData;
+                const WW3DFormat bgfx_format = info.format != WW3D_FORMAT_UNKNOWN ? info.format : texture->Get_Texture_Format();
+                if (info.width != 0 && info.height != 0 && info.mipCount != 0 && bgfx_format != WW3D_FORMAT_UNKNOWN)
+                {
+                        size = static_cast<int>(Calculate_Bgfx_Buffer_Size(bgfx_format, info.width, info.height, info.mipCount));
+                }
+                return size;
+        }
+#endif
+        if (!d3d_texture) return 0;
+        for (unsigned i=red_factor;i<d3d_texture->GetLevelCount();++i) {
+                D3DSURFACE_DESC desc;
+                DX8_ErrorCode(d3d_texture->GetLevelDesc(i,&desc));
+                size+=desc.Size;
+        }
 	return size;
 }
 
@@ -326,10 +339,10 @@ void TextureClass::Upload_Bgfx_Texture(uint16_t width, uint16_t height, WW3DForm
 		}
 	}
 
-	const uint64_t flags = render_target ? BGFX_TEXTURE_RT : BGFX_TEXTURE_NONE;
-	const uint16_t tex_width = width ? width : 1;
-	const uint16_t tex_height = height ? height : 1;
-	const uint8_t actual_mips = mip_count > 0 ? mip_count : 1;
+        const uint64_t flags = render_target ? BGFX_TEXTURE_RT : BGFX_TEXTURE_NONE;
+        const uint16_t tex_width = width ? width : 1;
+        const uint16_t tex_height = height ? height : 1;
+        const uint8_t actual_mips = mip_count > 0 ? mip_count : 1;
 
 	m_bgfxData.texture = bgfx::createTexture2D(tex_width, tex_height, actual_mips > 1, 1, bgfx_format, flags, memory);
 	if (!bgfx::isValid(m_bgfxData.texture))
@@ -349,11 +362,12 @@ void TextureClass::Upload_Bgfx_Texture(uint16_t width, uint16_t height, WW3DForm
 		}
 	}
 
-	m_bgfxData.width = tex_width;
-	m_bgfxData.height = tex_height;
-	m_bgfxData.mipCount = actual_mips;
-	m_bgfxData.renderTarget = render_target;
-	m_bgfxData.flags = flags;
+        m_bgfxData.width = tex_width;
+        m_bgfxData.height = tex_height;
+        m_bgfxData.mipCount = actual_mips;
+        m_bgfxData.format = format;
+        m_bgfxData.renderTarget = render_target;
+        m_bgfxData.flags = flags;
 }
 
 void TextureClass::Create_Bgfx_Texture_From_D3D(IDirect3DTexture8* texture, WW3DFormat format, bool render_target)
@@ -812,33 +826,70 @@ void TextureClass::Set_Texture_Name(const char * name)
 
 unsigned int TextureClass::Get_Mip_Level_Count(void)
 {
-	if (!D3DTexture) {
-		WWASSERT_PRINT(0, "Get_Mip_Level_Count: D3DTexture is NULL!\n");
-		return 0;
-	}
+        if (D3DTexture) {
+                return D3DTexture->GetLevelCount();
+        }
+#if WW3D_BGFX_AVAILABLE
+        if (DX8Wrapper::Is_Bgfx_Active() && Has_Bgfx_Texture())
+        {
+                return (m_bgfxData.mipCount != 0) ? m_bgfxData.mipCount : 1;
+        }
+#endif
 
-	return D3DTexture->GetLevelCount();
+        WWASSERT_PRINT(0, "Get_Mip_Level_Count: No backing texture available!\n");
+        return 0;
 }
 
 // ----------------------------------------------------------------------------
 
 void TextureClass::Get_Level_Description(SurfaceClass::SurfaceDescription &surface_desc, unsigned int level)
 {
-	if (!D3DTexture) {
-		WWASSERT_PRINT(0, "Get_Surface_Description: D3DTexture is NULL!\n");
-	}
+        if (D3DTexture) {
+                D3DSURFACE_DESC d3d_surf_desc;
+                DX8_ErrorCode(D3DTexture->GetLevelDesc(level, &d3d_surf_desc));
+                surface_desc.Format = D3DFormat_To_WW3DFormat(d3d_surf_desc.Format);
+                surface_desc.Height = d3d_surf_desc.Height;
+                surface_desc.Width = d3d_surf_desc.Width;
+                return;
+        }
+#if WW3D_BGFX_AVAILABLE
+        if (DX8Wrapper::Is_Bgfx_Active() && Has_Bgfx_Texture())
+        {
+                const uint32_t mip_count = Get_Mip_Level_Count();
+                if (level >= mip_count)
+                {
+                        WWASSERT_PRINT(0, "Get_Level_Description: Level out of range for bgfx texture!\n");
+                        level = mip_count ? (mip_count - 1) : 0;
+                }
 
-	D3DSURFACE_DESC d3d_surf_desc;
-	DX8_ErrorCode(D3DTexture->GetLevelDesc(level, &d3d_surf_desc));
-	surface_desc.Format = D3DFormat_To_WW3DFormat(d3d_surf_desc.Format);
-	surface_desc.Height = d3d_surf_desc.Height; 
-	surface_desc.Width = d3d_surf_desc.Width;
+                const uint32_t level_width = std::max(1u, static_cast<unsigned>(m_bgfxData.width) >> level);
+                const uint32_t level_height = std::max(1u, static_cast<unsigned>(m_bgfxData.height) >> level);
+                const WW3DFormat format = (m_bgfxData.format != WW3D_FORMAT_UNKNOWN) ? m_bgfxData.format : TextureFormat;
+
+                surface_desc.Format = format;
+                surface_desc.Width = level_width;
+                surface_desc.Height = level_height;
+                return;
+        }
+#endif
+
+        WWASSERT_PRINT(0, "Get_Level_Description: No backing texture available!\n");
+        surface_desc.Format = TextureFormat;
+        surface_desc.Width = 0;
+        surface_desc.Height = 0;
 }
 
 // ----------------------------------------------------------------------------
 
 SurfaceClass *TextureClass::Get_Surface_Level(unsigned int level)
 {
+#if WW3D_BGFX_AVAILABLE
+        if (!D3DTexture && DX8Wrapper::Is_Bgfx_Active() && Has_Bgfx_Texture())
+        {
+                return SurfaceClass::Create_From_Bgfx_Texture(this, level);
+        }
+#endif
+
         IDirect3DSurface8 *d3d_surface = NULL;
         DX8_ErrorCode(D3DTexture->GetSurfaceLevel(level, &d3d_surface));
         SurfaceClass *surface = W3DNEW SurfaceClass(d3d_surface);
@@ -856,24 +907,38 @@ SurfaceClass *TextureClass::Get_Surface_Level(unsigned int level)
 
 unsigned int TextureClass::Get_Priority(void)
 {
-	if (!D3DTexture) {
-		WWASSERT_PRINT(0, "Get_Priority: D3DTexture is NULL!\n");
-		return 0;
-	}
+        if (D3DTexture) {
+                return D3DTexture->GetPriority();
+        }
 
-	return D3DTexture->GetPriority();
+#if WW3D_BGFX_AVAILABLE
+        if (DX8Wrapper::Is_Bgfx_Active() && Has_Bgfx_Texture())
+        {
+                return 0;
+        }
+#endif
+
+        WWASSERT_PRINT(0, "Get_Priority: No backing texture available!\n");
+        return 0;
 }
 
 // ----------------------------------------------------------------------------
 
 unsigned int TextureClass::Set_Priority(unsigned int priority)
 {
-	if (!D3DTexture) {
-		WWASSERT_PRINT(0, "Set_Priority: D3DTexture is NULL!\n");
-		return 0;
-	}
+        if (D3DTexture) {
+                return D3DTexture->SetPriority(priority);
+        }
 
-	return D3DTexture->SetPriority(priority);
+#if WW3D_BGFX_AVAILABLE
+        if (DX8Wrapper::Is_Bgfx_Active() && Has_Bgfx_Texture())
+        {
+                return 0;
+        }
+#endif
+
+        WWASSERT_PRINT(0, "Set_Priority: No backing texture available!\n");
+        return 0;
 }
 
 // ----------------------------------------------------------------------------

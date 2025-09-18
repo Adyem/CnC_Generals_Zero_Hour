@@ -218,6 +218,8 @@ void SurfaceClass::BgfxSurfaceInfo::Reset()
         format = WW3D_FORMAT_UNKNOWN;
         renderTarget = false;
         ownsHandles = true;
+        stagingData.clear();
+        stagingPitch = 0;
 }
 
 bool SurfaceClass::Has_Bgfx_Surface() const
@@ -315,6 +317,7 @@ void SurfaceClass::Create_Bgfx_Surface(uint16_t width, uint16_t height, WW3DForm
         m_bgfxData.ownerTexture = NULL;
         m_bgfxData.ownerMipLevel = 0;
         m_bgfxData.ownsHandles = true;
+        SurfaceFormat = format;
 }
 
 void SurfaceClass::Create_Bgfx_Surface_From_D3D(IDirect3DSurface8* surface)
@@ -396,6 +399,7 @@ void SurfaceClass::Create_Bgfx_Surface_From_D3D(IDirect3DSurface8* surface)
         m_bgfxData.ownerTexture = NULL;
         m_bgfxData.ownerMipLevel = 0;
         m_bgfxData.ownsHandles = true;
+        SurfaceFormat = format;
 }
 
 void SurfaceClass::Create_Bgfx_Surface_From_Texture(TextureClass* texture, unsigned int level)
@@ -431,6 +435,32 @@ void SurfaceClass::Create_Bgfx_Surface_From_Texture(TextureClass* texture, unsig
         m_bgfxData.format = desc.Format;
         m_bgfxData.renderTarget = bgfx::isValid(borrowed_framebuffer);
         m_bgfxData.ownsHandles = false;
+        SurfaceFormat = desc.Format;
+}
+#endif
+
+#if WW3D_BGFX_AVAILABLE
+SurfaceClass::SurfaceClass(BgfxEmptyTag)
+        : D3DSurface(NULL),
+        SurfaceFormat(WW3D_FORMAT_UNKNOWN)
+{
+        // The bgfx data will be initialised on demand by the caller.
+}
+
+SurfaceClass* SurfaceClass::Create_From_Bgfx_Texture(TextureClass* texture, unsigned int level)
+{
+        if (!texture || !texture->Has_Bgfx_Texture())
+        {
+                return NULL;
+        }
+
+        SurfaceClass* surface = W3DNEW SurfaceClass(BgfxEmptyTag());
+        SurfaceDescription desc;
+        ::ZeroMemory(&desc, sizeof(desc));
+        texture->Get_Level_Description(desc, level);
+        surface->SurfaceFormat = desc.Format;
+        surface->Create_Bgfx_Surface_From_Texture(texture, level);
+        return surface;
 }
 #endif
 /***********************************************************************************************
@@ -629,26 +659,103 @@ SurfaceClass::~SurfaceClass(void)
 
 void SurfaceClass::Get_Description(SurfaceDescription &surface_desc)
 {
-	D3DSURFACE_DESC d3d_desc;
-	::ZeroMemory(&d3d_desc, sizeof(D3DSURFACE_DESC));
-	DX8_ErrorCode(D3DSurface->GetDesc(&d3d_desc));
-	surface_desc.Format = D3DFormat_To_WW3DFormat(d3d_desc.Format);
-	surface_desc.Height = d3d_desc.Height;
-	surface_desc.Width = d3d_desc.Width;
+        if (D3DSurface)
+        {
+                D3DSURFACE_DESC d3d_desc;
+                ::ZeroMemory(&d3d_desc, sizeof(D3DSURFACE_DESC));
+                DX8_ErrorCode(D3DSurface->GetDesc(&d3d_desc));
+                surface_desc.Format = D3DFormat_To_WW3DFormat(d3d_desc.Format);
+                surface_desc.Height = d3d_desc.Height;
+                surface_desc.Width = d3d_desc.Width;
+                return;
+        }
+
+#if WW3D_BGFX_AVAILABLE
+        if (DX8Wrapper::Is_Bgfx_Active() && Has_Bgfx_Surface())
+        {
+                surface_desc.Format = m_bgfxData.format;
+                surface_desc.Height = m_bgfxData.height;
+                surface_desc.Width = m_bgfxData.width;
+                return;
+        }
+#endif
+
+        surface_desc.Format = SurfaceFormat;
+        surface_desc.Height = 0;
+        surface_desc.Width = 0;
 }
 
 void * SurfaceClass::Lock(int * pitch)
 {
-	D3DLOCKED_RECT lock_rect;	
-	::ZeroMemory(&lock_rect, sizeof(D3DLOCKED_RECT));
-	DX8_ErrorCode(D3DSurface->LockRect(&lock_rect, 0, 0));
-	*pitch = lock_rect.Pitch;
-	return (void *)lock_rect.pBits;
+        if (D3DSurface)
+        {
+                D3DLOCKED_RECT lock_rect;
+                ::ZeroMemory(&lock_rect, sizeof(D3DLOCKED_RECT));
+                DX8_ErrorCode(D3DSurface->LockRect(&lock_rect, 0, 0));
+                *pitch = lock_rect.Pitch;
+                return (void *)lock_rect.pBits;
+        }
+
+#if WW3D_BGFX_AVAILABLE
+        if (DX8Wrapper::Is_Bgfx_Active() && Has_Bgfx_Surface())
+        {
+                SurfaceDescription desc;
+                ::ZeroMemory(&desc, sizeof(desc));
+                Get_Description(desc);
+
+                uint32_t row_bytes = 0;
+                uint32_t row_count = 0;
+                Compute_Bgfx_Row_Info(desc.Format, desc.Width, desc.Height, row_bytes, row_count);
+                if (row_bytes == 0 || row_count == 0)
+                {
+                        *pitch = 0;
+                        return NULL;
+                }
+
+                const uint32_t total_size = row_bytes * row_count;
+                m_bgfxData.stagingData.resize(total_size);
+                m_bgfxData.stagingPitch = row_bytes;
+
+                bgfx::TextureHandle texture_handle = Get_Bgfx_Texture_Handle();
+                const uint8_t mip_level = static_cast<uint8_t>(m_bgfxData.ownerTexture ? m_bgfxData.ownerMipLevel : 0);
+                bgfx::readTexture(texture_handle, m_bgfxData.stagingData.data(), mip_level);
+
+                *pitch = static_cast<int>(row_bytes);
+                return m_bgfxData.stagingData.data();
+        }
+#endif
+
+        *pitch = 0;
+        return NULL;
 }
 
 void SurfaceClass::Unlock(void)
 {
-	DX8_ErrorCode(D3DSurface->UnlockRect());
+        if (D3DSurface)
+        {
+                DX8_ErrorCode(D3DSurface->UnlockRect());
+                return;
+        }
+
+#if WW3D_BGFX_AVAILABLE
+        if (DX8Wrapper::Is_Bgfx_Active() && Has_Bgfx_Surface())
+        {
+                if (!m_bgfxData.stagingData.empty())
+                {
+                        const bgfx::TextureHandle texture_handle = Get_Bgfx_Texture_Handle();
+                        const uint16_t width = m_bgfxData.width ? m_bgfxData.width : 1;
+                        const uint16_t height = m_bgfxData.height ? m_bgfxData.height : 1;
+                        const uint8_t mip_level = static_cast<uint8_t>(m_bgfxData.ownerTexture ? m_bgfxData.ownerMipLevel : 0);
+
+                        const bgfx::Memory* memory = bgfx::copy(m_bgfxData.stagingData.data(), static_cast<uint32_t>(m_bgfxData.stagingData.size()));
+                        bgfx::updateTexture2D(texture_handle, mip_level, 0, 0, width, height, memory);
+                }
+
+                m_bgfxData.stagingData.clear();
+                m_bgfxData.stagingPitch = 0;
+                return;
+        }
+#endif
 }
 
 /***********************************************************************************************
