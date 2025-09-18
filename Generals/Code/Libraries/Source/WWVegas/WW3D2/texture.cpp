@@ -161,9 +161,9 @@ void Compute_Bgfx_Row_Info(WW3DFormat format, uint32_t width, uint32_t height, u
 
 uint32_t Calculate_Bgfx_Buffer_Size(WW3DFormat format, uint16_t width, uint16_t height, uint8_t mip_count)
 {
-	uint32_t total_size = 0;
-	uint32_t current_width = width ? width : 1;
-	uint32_t current_height = height ? height : 1;
+        uint32_t total_size = 0;
+        uint32_t current_width = width ? width : 1;
+        uint32_t current_height = height ? height : 1;
 
 	for (uint8_t level = 0; level < mip_count; ++level)
 	{
@@ -191,9 +191,88 @@ uint32_t Calculate_Bgfx_Buffer_Size(WW3DFormat format, uint16_t width, uint16_t 
 // ----------------------------------------------------------------------------
 
 #if WW3D_BGFX_AVAILABLE
+uint8_t TextureClass::Calculate_Max_Bgfx_Mip_Count(uint16_t width, uint16_t height)
+{
+        uint32_t current_width = (width != 0) ? width : 1;
+        uint32_t current_height = (height != 0) ? height : 1;
+        uint8_t count = 1;
+
+        while (current_width > 1 || current_height > 1)
+        {
+                if (current_width > 1)
+                {
+                        current_width >>= 1;
+                }
+                if (current_height > 1)
+                {
+                        current_height >>= 1;
+                }
+
+                ++count;
+        }
+
+        return count;
+}
+
+uint8_t TextureClass::Calculate_Bgfx_Mip_Count(uint16_t width, uint16_t height, MipCountType mip_level_count)
+{
+        const uint8_t max_mips = Calculate_Max_Bgfx_Mip_Count(width, height);
+        uint8_t requested = max_mips;
+
+        switch (mip_level_count)
+        {
+        case MIP_LEVELS_ALL:
+                requested = max_mips;
+                break;
+        case MIP_LEVELS_1:
+                requested = 1;
+                break;
+        case MIP_LEVELS_2:
+                requested = 2;
+                break;
+        case MIP_LEVELS_3:
+                requested = 3;
+                break;
+        case MIP_LEVELS_4:
+                requested = 4;
+                break;
+        case MIP_LEVELS_5:
+                requested = 5;
+                break;
+        case MIP_LEVELS_6:
+                requested = 6;
+                break;
+        case MIP_LEVELS_7:
+                requested = 7;
+                break;
+        case MIP_LEVELS_8:
+                requested = 8;
+                break;
+        case MIP_LEVELS_10:
+                requested = 10;
+                break;
+        case MIP_LEVELS_11:
+                requested = 11;
+                break;
+        case MIP_LEVELS_12:
+                requested = 12;
+                break;
+        default:
+                requested = max_mips;
+                break;
+        }
+
+        if (requested > max_mips)
+        {
+                requested = max_mips;
+        }
+
+        return (requested != 0) ? requested : 1;
+}
+
 TextureClass::BgfxTextureInfo::BgfxTextureInfo()
 {
-	Reset();
+        Reset();
 }
 
 void TextureClass::BgfxTextureInfo::Reset()
@@ -1022,33 +1101,58 @@ void TextureClass::Apply_Null(unsigned int stage)
 
 void TextureClass::Apply_New_Surface(bool initialized)
 {
-	if (D3DTexture) D3DTexture->Release();
-	D3DTexture=TextureLoadTask->Peek_D3D_Texture();
-	D3DTexture->AddRef();
-	if (initialized) Initialized=true;
-
-	WWASSERT(D3DTexture);
-	IDirect3DSurface8* surface;
-	DX8_ErrorCode(D3DTexture->GetSurfaceLevel(0,&surface));
-	D3DSURFACE_DESC d3d_desc;
-	::ZeroMemory(&d3d_desc, sizeof(D3DSURFACE_DESC));
-	DX8_ErrorCode(surface->GetDesc(&d3d_desc));
-//	if (TextureFormat==WW3D_FORMAT_UNKNOWN) {
-		TextureFormat=D3DFormat_To_WW3DFormat(d3d_desc.Format);
-//	}
-//	else {
-//		WWASSERT(D3DFormat_To_WW3DFormat(d3d_desc.Format)==TextureFormat);
-//	}
-	surface->Release();
-#if WW3D_BGFX_AVAILABLE
-	if (DX8Wrapper::Is_Bgfx_Active() && D3DTexture)
+	if (D3DTexture)
 	{
-		if (!Has_Bgfx_Texture())
-		{
-			Create_Bgfx_Texture_From_D3D(D3DTexture, TextureFormat, false);
-		}
+		D3DTexture->Release();
+		D3DTexture = NULL;
 	}
+
+	IDirect3DTexture8* new_texture = (TextureLoadTask != NULL) ? TextureLoadTask->Peek_D3D_Texture() : NULL;
+	if (new_texture)
+	{
+		D3DTexture = new_texture;
+		D3DTexture->AddRef();
+		if (initialized)
+		{
+			Initialized = true;
+		}
+
+		IDirect3DSurface8* surface;
+		DX8_ErrorCode(D3DTexture->GetSurfaceLevel(0,&surface));
+		D3DSURFACE_DESC d3d_desc;
+		::ZeroMemory(&d3d_desc, sizeof(D3DSURFACE_DESC));
+		DX8_ErrorCode(surface->GetDesc(&d3d_desc));
+		TextureFormat = D3DFormat_To_WW3DFormat(d3d_desc.Format);
+		surface->Release();
+
+#if WW3D_BGFX_AVAILABLE
+		if (DX8Wrapper::Is_Bgfx_Active())
+		{
+			if (!Has_Bgfx_Texture())
+			{
+				Create_Bgfx_Texture_From_D3D(D3DTexture, TextureFormat, false);
+			}
+		}
 #endif
+		return;
+	}
+
+#if WW3D_BGFX_AVAILABLE
+        if (DX8Wrapper::Is_Bgfx_Active() && Has_Bgfx_Texture())
+        {
+                if (initialized)
+                {
+                        Initialized = true;
+                }
+                if (TextureFormat == WW3D_FORMAT_UNKNOWN && m_bgfxData.format != WW3D_FORMAT_UNKNOWN)
+                {
+                        TextureFormat = m_bgfxData.format;
+                }
+                return;
+        }
+#endif
+
+        WWASSERT(D3DTexture);
 }
 
 // ----------------------------------------------------------------------------

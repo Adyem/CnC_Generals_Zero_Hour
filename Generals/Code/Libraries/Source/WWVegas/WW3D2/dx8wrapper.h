@@ -479,6 +479,17 @@ public:
 
 protected:
 
+
+#if WW3D_BGFX_AVAILABLE
+	static void Create_Bgfx_Texture_For_Owner(TextureClass* texture_owner,
+		IDirect3DTexture8* texture,
+		WW3DFormat requested_format,
+		unsigned int width,
+		unsigned int height,
+		TextureClass::MipCountType mip_level_count,
+		bool render_target);
+#endif
+
 	static bool	Create_Device(void);
 	static void Release_Device(void);
 

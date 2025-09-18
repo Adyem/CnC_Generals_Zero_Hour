@@ -1297,16 +1297,25 @@ void TextureLoadTaskClass::Set_D3D_Texture(IDirect3DTexture8* texture)
 
 void TextureLoadTaskClass::Apply(bool initialize)
 {
-	WWASSERT(D3DTexture);
-	// Verify that none of the mip levels are locked
-	for (unsigned i=0;i<MipLevelCount;++i) {
-		WWASSERT(LockedSurfacePtr[i]==NULL);
-	}
+        // Verify that none of the mip levels are locked
+        for (unsigned i=0;i<MipLevelCount;++i) {
+                WWASSERT(LockedSurfacePtr[i]==NULL);
+        }
 
-	Texture->Apply_New_Surface(initialize);
+#if WW3D_BGFX_AVAILABLE
+        if (!D3DTexture && DX8Wrapper::Is_Bgfx_Active() && Texture && Texture->Has_Bgfx_Texture())
+        {
+                Texture->Apply_New_Surface(initialize);
+                return;
+        }
+#endif
 
-	D3DTexture->Release();
-	D3DTexture=NULL;
+        WWASSERT(D3DTexture);
+
+        Texture->Apply_New_Surface(initialize);
+
+        D3DTexture->Release();
+        D3DTexture=NULL;
 }
 
 // ----------------------------------------------------------------------------
