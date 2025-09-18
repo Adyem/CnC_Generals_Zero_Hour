@@ -47,7 +47,6 @@
 #include <stdio.h>
 #include <Debug\DebugPrint.h>
 
-#include "SafeDisk\CdaPfn.h"
 
 // This GUID should be unique for each product. (CHANGE IT WHEN DOING THE
 // NEXT PRODUCT) Note that the game will need to agree on this GUID also, so
@@ -112,7 +111,7 @@ void InitializeProtect(void)
 	}
 }
 
-CDAPFN_DECLARE_GLOBAL(SendProtectMessage, CDAPFN_OVERHEAD_L5, CDAPFN_CONSTRAINT_NONE);
+
 
 void SendProtectMessage(HANDLE process, DWORD threadID)
 {
@@ -314,7 +313,7 @@ void SendProtectMessage(HANDLE process, DWORD threadID)
 #endif
 
 	CloseHandle(event);
-	CDAPFN_ENDMARK(SendProtectMessage);
+	
 }
 
 

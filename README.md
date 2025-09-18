@@ -15,7 +15,6 @@ If you wish to rebuild the source code and tools successfully you will need to f
 - BYTEmark - (expected path `\Code\Libraries\Source\Benchmark`)
 - RAD Miles Sound System SDK - (expected path `\Code\Libraries\Source\WWVegas\Miles6\`)
 - RAD Bink SDK - (expected path `\Code\GameEngineDevice\Include\VideoDevice\Bink`)
-- SafeDisk API - (expected path `\Code\GameEngine\Include\Common\SafeDisk` and `\Code\Tools\Launcher\SafeDisk\`)
 - Miles Sound System "Asimp3" - (expected path `\Code\Libraries\WPAudio\Asimp3`)
 - GameSpy SDK - (expected path `\Code\Libraries\Source\GameSpy\`)
 - ZLib (1.1.4) - (expected path `\Code\Libraries\Source\Compression\ZLib\`)
