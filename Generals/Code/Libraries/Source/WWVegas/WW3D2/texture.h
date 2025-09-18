@@ -232,20 +232,21 @@ class TextureClass : public W3DMPO, public RefCountClass
 		static void Apply_Null(unsigned int stage);
 
 #if WW3D_BGFX_AVAILABLE
-		struct BgfxTextureInfo
-		{
-			BgfxTextureInfo();
+                struct BgfxTextureInfo
+                {
+                        BgfxTextureInfo();
 
-			void Reset();
+                        void Reset();
 
-			bgfx::TextureHandle                 texture;
-			bgfx::FrameBufferHandle             framebuffer;
-			uint16_t                                        width;
-			uint16_t                                        height;
-			uint8_t                                         mipCount;
-			bool                                                    renderTarget;
-			uint64_t                                                flags;
-		};
+                        bgfx::TextureHandle                 texture;
+                        bgfx::FrameBufferHandle             framebuffer;
+                        uint16_t                                        width;
+                        uint16_t                                        height;
+                        uint8_t                                         mipCount;
+                        WW3DFormat                                     format;
+                        bool                                                    renderTarget;
+                        uint64_t                                                flags;
+                };
 
 		void Destroy_Bgfx_Resources();
 		void Upload_Bgfx_Texture(uint16_t width, uint16_t height, WW3DFormat format, uint8_t mip_count, bool render_target, const uint8_t* const* data, const uint32_t* pitches);
