@@ -368,18 +368,19 @@ public:
 	/*
 	** Resources
 	*/
-	static IDirect3DTexture8 * _Create_DX8_Texture(
-		unsigned int width, 
-		unsigned int height, 
-		WW3DFormat format, 
-		TextureClass::MipCountType mip_level_count,
-		D3DPOOL pool=D3DPOOL_MANAGED,
-		bool rendertarget=false);
-	static IDirect3DTexture8 * _Create_DX8_Texture(const char *filename, TextureClass::MipCountType mip_level_count);
-	static IDirect3DTexture8 * _Create_DX8_Texture(IDirect3DSurface8 *surface, TextureClass::MipCountType mip_level_count);
+        static IDirect3DTexture8 * _Create_DX8_Texture(
+                unsigned int width,
+                unsigned int height,
+                WW3DFormat format,
+                TextureClass::MipCountType mip_level_count,
+                D3DPOOL pool=D3DPOOL_MANAGED,
+                bool rendertarget=false,
+                TextureClass* texture_owner=NULL);
+        static IDirect3DTexture8 * _Create_DX8_Texture(const char *filename, TextureClass::MipCountType mip_level_count, TextureClass* texture_owner=NULL);
+        static IDirect3DTexture8 * _Create_DX8_Texture(IDirect3DSurface8 *surface, TextureClass::MipCountType mip_level_count, TextureClass* texture_owner=NULL);
 
-	static IDirect3DSurface8 * _Create_DX8_Surface(unsigned int width, unsigned int height, WW3DFormat format);
-	static IDirect3DSurface8 * _Create_DX8_Surface(const char *filename);
+        static IDirect3DSurface8 * _Create_DX8_Surface(unsigned int width, unsigned int height, WW3DFormat format, SurfaceClass* surface_owner=NULL);
+        static IDirect3DSurface8 * _Create_DX8_Surface(const char *filename, SurfaceClass* surface_owner=NULL);
 	static IDirect3DSurface8 * _Get_DX8_Front_Buffer();
 	static SurfaceClass * _Get_DX8_Back_Buffer(unsigned int num=0);
 

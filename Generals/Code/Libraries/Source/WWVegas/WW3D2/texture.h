@@ -49,6 +49,14 @@
 #include "ww3dformat.h"
 #include "wwstring.h"
 
+#ifndef WW3D_BGFX_AVAILABLE
+#define WW3D_BGFX_AVAILABLE 0
+#endif
+
+#if WW3D_BGFX_AVAILABLE
+#include <bgfx/bgfx.h>
+#endif
+
 class DX8Wrapper;
 struct IDirect3DTexture8;
 class TextureLoader;
@@ -223,6 +231,29 @@ class TextureClass : public W3DMPO, public RefCountClass
 		// Apply a Null texture's settings into D3D
 		static void Apply_Null(unsigned int stage);
 
+#if WW3D_BGFX_AVAILABLE
+		struct BgfxTextureInfo
+		{
+			BgfxTextureInfo();
+
+			void Reset();
+
+			bgfx::TextureHandle                 texture;
+			bgfx::FrameBufferHandle             framebuffer;
+			uint16_t                                        width;
+			uint16_t                                        height;
+			uint8_t                                         mipCount;
+			bool                                                    renderTarget;
+			uint64_t                                                flags;
+		};
+
+		void Destroy_Bgfx_Resources();
+		void Upload_Bgfx_Texture(uint16_t width, uint16_t height, WW3DFormat format, uint8_t mip_count, bool render_target, const uint8_t* const* data, const uint32_t* pitches);
+		void Create_Bgfx_Texture_From_D3D(IDirect3DTexture8* texture, WW3DFormat format, bool render_target);
+		void Create_Bgfx_Texture_From_Locked_Task(TextureLoadTaskClass* task);
+		BgfxTextureInfo m_bgfxData;
+#endif
+
 		// State not contained in the Direct3D texture object:
 		FilterType TextureMinFilter;
 		FilterType TextureMagFilter;
@@ -264,6 +295,13 @@ public:
 		TextureLoadTaskClass* TextureLoadTask;
 		// Background texture loader will call this when texture has been loaded
 		void Apply_New_Surface(bool initialized);	// If the parameter is true, the texture will be flagged as initialised
+
+#if WW3D_BGFX_AVAILABLE
+public:
+		bool Has_Bgfx_Texture() const;
+		bgfx::TextureHandle Get_Bgfx_Texture_Handle() const;
+		bgfx::FrameBufferHandle Get_Bgfx_Frame_Buffer_Handle() const;
+#endif
 
 };
 
