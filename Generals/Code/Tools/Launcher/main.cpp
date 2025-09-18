@@ -291,7 +291,7 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			// Its still early in the product's lifetime, so run the 2nd (SafeDisk'd) launcher.
+			// Its still early in the product's lifetime, so run the second launcher.
 			// We don't have to wait around since it'll do the entire talk to game, look for patches,
 			// etc. deal.
 			RunLauncher(argv[0], proc2);

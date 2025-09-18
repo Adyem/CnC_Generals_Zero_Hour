@@ -115,7 +115,6 @@ SOURCE=..\BFISH.H
 # End Source File
 # Begin Source File
 
-SOURCE=..\SafeDisk\CdaPfn.h
 # End Source File
 # Begin Source File
 
