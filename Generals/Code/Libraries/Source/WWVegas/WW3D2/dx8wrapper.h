@@ -167,6 +167,14 @@ struct BgfxStateData
         TextureClass*                                   textureBindings[MAX_TEXTURE_STAGES];
         bool                                                    textureEnabled[MAX_TEXTURE_STAGES];
         uint8_t                                                 uvSource[MAX_TEXTURE_STAGES];
+        uint32_t                                                textureAddressU[MAX_TEXTURE_STAGES];
+        uint32_t                                                textureAddressV[MAX_TEXTURE_STAGES];
+        uint32_t                                                textureTransformFlags[MAX_TEXTURE_STAGES];
+        Matrix4                                         textureTransforms[MAX_TEXTURE_STAGES];
+        bool                                                    textureTransformUsed[MAX_TEXTURE_STAGES];
+        uint32_t                                                minFilter[MAX_TEXTURE_STAGES];
+        uint32_t                                                magFilter[MAX_TEXTURE_STAGES];
+        uint32_t                                                mipFilter[MAX_TEXTURE_STAGES];
         Vector4                                         materialAmbient;
         Vector4                                         materialDiffuse;
         Vector4                                         materialSpecular;
@@ -587,17 +595,41 @@ protected:
 
 WWINLINE void DX8Wrapper::_Set_DX8_Transform(D3DTRANSFORMSTATETYPE transform,const Matrix4& m)
 {
-	SNAPSHOT_SAY(("DX8 - SetTransform\n"));
-	DX8_RECORD_MATRIX_CHANGE();
-	DX8CALL(SetTransform(transform,(D3DMATRIX*)&m));
+        SNAPSHOT_SAY(("DX8 - SetTransform\n"));
+        DX8_RECORD_MATRIX_CHANGE();
+        if (Is_Bgfx_Active())
+        {
+                if (transform >= D3DTS_TEXTURE0 && transform < (D3DTS_TEXTURE0 + MAX_TEXTURE_STAGES))
+                {
+#if WW3D_BGFX_AVAILABLE
+                        unsigned stage = static_cast<unsigned>(transform - D3DTS_TEXTURE0);
+                        render_state.bgfx.textureTransforms[stage] = m;
+                        render_state.bgfx.textureTransformUsed[stage] = true;
+                        return;
+#endif
+                }
+        }
+        DX8CALL(SetTransform(transform,(D3DMATRIX*)&m));
 }
 
 
 WWINLINE void DX8Wrapper::_Set_DX8_Transform(D3DTRANSFORMSTATETYPE transform,const Matrix3D& m)
 {
-	SNAPSHOT_SAY(("DX8 - SetTransform\n"));
-	DX8_RECORD_MATRIX_CHANGE();
-	DX8CALL(SetTransform(transform,(D3DMATRIX*)&m));
+        SNAPSHOT_SAY(("DX8 - SetTransform\n"));
+        DX8_RECORD_MATRIX_CHANGE();
+        if (Is_Bgfx_Active())
+        {
+                if (transform >= D3DTS_TEXTURE0 && transform < (D3DTS_TEXTURE0 + MAX_TEXTURE_STAGES))
+                {
+#if WW3D_BGFX_AVAILABLE
+                        unsigned stage = static_cast<unsigned>(transform - D3DTS_TEXTURE0);
+                        render_state.bgfx.textureTransforms[stage] = Matrix4(m);
+                        render_state.bgfx.textureTransformUsed[stage] = true;
+                        return;
+#endif
+                }
+        }
+        DX8CALL(SetTransform(transform,(D3DMATRIX*)&m));
 }
 
 WWINLINE void DX8Wrapper::_Get_DX8_Transform(D3DTRANSFORMSTATETYPE transform, Matrix4& m)
@@ -732,13 +764,49 @@ WWINLINE void DX8Wrapper::Set_DX8_Texture_Stage_State(unsigned stage, D3DTEXTURE
   	}
 
 	// Can't monitor state changes because setShader call to GERD may change the states!
-	if (TextureStageStates[stage][(unsigned int)state]==value) return;
+        if (TextureStageStates[stage][(unsigned int)state]==value) return;
 
         SNAPSHOT_SAY(("DX8 - SetTextureStageState(%d,%d,%d)\n",stage,state,value));
 
         TextureStageStates[stage][(unsigned int)state]=value;
         if (Is_Bgfx_Active())
         {
+#if WW3D_BGFX_AVAILABLE
+                BgfxStateData &bgfx_state = render_state.bgfx;
+                switch (state)
+                {
+                case D3DTSS_COLOROP:
+                        bgfx_state.textureEnabled[stage] = (value != D3DTOP_DISABLE);
+                        break;
+                case D3DTSS_TEXCOORDINDEX:
+                        bgfx_state.uvSource[stage] = static_cast<uint8_t>(value & 0xff);
+                        break;
+                case D3DTSS_ADDRESSU:
+                        bgfx_state.textureAddressU[stage] = value;
+                        break;
+                case D3DTSS_ADDRESSV:
+                        bgfx_state.textureAddressV[stage] = value;
+                        break;
+                case D3DTSS_MINFILTER:
+                        bgfx_state.minFilter[stage] = value;
+                        break;
+                case D3DTSS_MAGFILTER:
+                        bgfx_state.magFilter[stage] = value;
+                        break;
+                case D3DTSS_MIPFILTER:
+                        bgfx_state.mipFilter[stage] = value;
+                        break;
+                case D3DTSS_TEXTURETRANSFORMFLAGS:
+                        bgfx_state.textureTransformFlags[stage] = value;
+                        if (value == D3DTTFF_DISABLE)
+                        {
+                                bgfx_state.textureTransformUsed[stage] = false;
+                        }
+                        break;
+                default:
+                        break;
+                }
+#endif
                 DX8_RECORD_TEXTURE_STAGE_STATE_CHANGE();
                 return;
         }
@@ -1201,6 +1269,14 @@ WWINLINE BgfxStateData::BgfxStateData()
                 textureBindings[i] = NULL;
                 textureEnabled[i] = false;
                 uvSource[i] = 0;
+                textureAddressU[i] = D3DTADDRESS_WRAP;
+                textureAddressV[i] = D3DTADDRESS_WRAP;
+                textureTransformFlags[i] = D3DTTFF_DISABLE;
+                textureTransforms[i].Make_Identity();
+                textureTransformUsed[i] = false;
+                minFilter[i] = D3DTEXF_LINEAR;
+                magFilter[i] = D3DTEXF_LINEAR;
+                mipFilter[i] = D3DTEXF_LINEAR;
         }
 }
 

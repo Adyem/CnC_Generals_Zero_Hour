@@ -58,7 +58,18 @@
 #include "Lib/BaseType.h"
 #include "Common/File.h"
 #include "Common/FileSystem.h"
+#include "Common/AsciiString.h"
 #include "W3DDevice/GameClient/W3DShaderManager.h"
+#include <map>
+#include <string>
+#include <algorithm>
+#include <cstdint>
+#include <cstdlib>
+#include <fstream>
+#include <limits>
+#include <sstream>
+#include <vector>
+#include <unordered_map>
 #include "W3DDevice/GameClient/W3DShroud.h"
 #include "W3DDevice/GameClient/HeightMap.h"
 #include "W3DDevice/GameClient/W3DCustomScene.h"
@@ -72,8 +83,89 @@
 #include "common/GameLOD.h"
 #include "d3dx8tex.h"
 #include "dx8caps.h"
+#include "formconv.h"
 #include "common/gamelod.h"
 #include "Benchmark.h"
+
+#if WW3D_BGFX_AVAILABLE
+namespace
+{
+static std::unordered_map<std::string, bgfx::UniformHandle> g_bgfxUniformCache;
+}
+#endif
+
+namespace
+{
+
+static void BindTextureToStage(unsigned stage, TextureClass* texture)
+{
+#if WW3D_BGFX_AVAILABLE
+        if (DX8Wrapper::Is_Bgfx_Active())
+        {
+                DX8Wrapper::Set_Texture(stage, texture);
+                return;
+        }
+#endif
+
+        IDirect3DBaseTexture8* nativeTexture = texture ? texture->Peek_DX8_Texture() : NULL;
+        DX8Wrapper::_Get_D3D_Device8()->SetTexture(stage, nativeTexture);
+}
+
+#if WW3D_BGFX_AVAILABLE
+static bgfx::UniformHandle GetBgfxUniform(const char* name, bgfx::UniformType::Enum type)
+{
+        if (!DX8Wrapper::Is_Bgfx_Active())
+        {
+                return BGFX_INVALID_HANDLE;
+        }
+
+        std::unordered_map<std::string, bgfx::UniformHandle>::iterator it = g_bgfxUniformCache.find(name);
+        if (it != g_bgfxUniformCache.end())
+        {
+                return it->second;
+        }
+
+        bgfx::UniformHandle handle = bgfx::createUniform(name, type);
+        if (bgfx::isValid(handle))
+        {
+                g_bgfxUniformCache[name] = handle;
+        }
+
+        return handle;
+}
+
+static void SetBgfxUniformVec4(const char* name, const float* values)
+{
+        if (!DX8Wrapper::Is_Bgfx_Active())
+        {
+                return;
+        }
+
+        bgfx::UniformHandle handle = GetBgfxUniform(name, bgfx::UniformType::Vec4);
+        if (!bgfx::isValid(handle))
+        {
+                return;
+        }
+
+        bgfx::setUniform(handle, values);
+}
+
+static void DestroyBgfxUniformCache()
+{
+        for (std::unordered_map<std::string, bgfx::UniformHandle>::iterator it = g_bgfxUniformCache.begin();
+                it != g_bgfxUniformCache.end(); ++it)
+        {
+                if (bgfx::isValid(it->second))
+                {
+                        bgfx::destroy(it->second);
+                }
+        }
+
+        g_bgfxUniformCache.clear();
+}
+#endif
+
+}
 
 #ifdef _INTERNAL
 // for occasional debugging...
@@ -90,10 +182,11 @@ public:
 	Int getNumPasses(void) {return m_numPasses;};	///<return number of passes needed for this shader
 	virtual Int set(Int pass) {return TRUE;};		///<setup shader for the specified rendering pass.
 	 ///do any custom resetting necessary to bring W3D in sync.
-	virtual void reset(void) {
-		ShaderClass::Invalidate();
-		DX8Wrapper::_Get_D3D_Device8()->SetTexture(0, NULL);
-		DX8Wrapper::_Get_D3D_Device8()->SetTexture(1, NULL);};
+        virtual void reset(void) {
+                ShaderClass::Invalidate();
+                BindTextureToStage(0, NULL);
+                BindTextureToStage(1, NULL);
+        };
 	virtual Int init(void) = 0;			///<perform any one time initialization and validation
 	virtual Int shutdown(void) { return TRUE;};			///<release resources used by shader
 protected:
@@ -106,6 +199,8 @@ static W3DShaderInterface *W3DShaders[W3DShaderManager::ST_MAX];
 static Int W3DShadersPassCount[W3DShaderManager::ST_MAX];	//number of passes for each of the above shaders
 TextureClass *W3DShaderManager::m_Textures[8];
 W3DShaderManager::ShaderTypes W3DShaderManager::m_currentShader;
+TextureClass *W3DShaderManager::m_renderTextureWrapper = NULL;
+WW3DFormat W3DShaderManager::m_renderTextureFormat = WW3D_FORMAT_UNKNOWN;
 FilterTypes W3DShaderManager::m_currentFilter=FT_NULL_FILTER; ///< Last filter that was set.
 Int W3DShaderManager::m_currentShaderPass;
 
@@ -114,6 +209,403 @@ IDirect3DSurface8 *W3DShaderManager::m_oldRenderSurface=NULL;	///<previous rende
 IDirect3DTexture8 *W3DShaderManager::m_renderTexture=NULL;		///<texture into which rendering will be redirected.
 IDirect3DSurface8 *W3DShaderManager::m_newRenderSurface=NULL;	///<new render target inside m_renderTexture
 IDirect3DSurface8 *W3DShaderManager::m_oldDepthSurface=NULL;	///<previous depth buffer surface
+std::map<W3DShaderManager::ShaderTypes, W3DShaderManager::BgfxProgramDefinition> W3DShaderManager::m_bgfxPrograms;
+
+#if WW3D_BGFX_AVAILABLE
+namespace
+{
+bool FileExistsOnDisk(const std::string &path)
+{
+std::ifstream file(path.c_str(), std::ios::binary);
+return file.good();
+}
+
+bool TryGetFileTimestamp(const std::string &path, uint64_t &timestamp)
+{
+AsciiString pathString(path.c_str());
+FileInfo info;
+if (!TheFileSystem->getFileInfo(pathString, &info))
+{
+return false;
+}
+
+timestamp = (static_cast<uint64_t>(static_cast<uint32_t>(info.timestampHigh)) << 32) |
+            static_cast<uint32_t>(info.timestampLow);
+return true;
+}
+
+std::string ResolveShaderCompilerPath()
+{
+static bool s_resolved = false;
+static std::string s_compilerPath;
+if (!s_resolved)
+{
+s_resolved = true;
+const char *envPath = std::getenv("BGFX_SHADERC");
+if (envPath && envPath[0] != '\0')
+{
+s_compilerPath = envPath;
+}
+
+if (s_compilerPath.empty())
+{
+static const char *kDefaultCompilerPaths[] = {
+"Tools/bgfx/shaderc.exe",
+"Tools/bgfx/shaderc",
+"bgfx/tools/bin/shaderc.exe",
+"bgfx/tools/bin/shaderc",
+"shaderc.exe",
+"shaderc"
+};
+
+const size_t count = sizeof(kDefaultCompilerPaths) / sizeof(kDefaultCompilerPaths[0]);
+for (size_t index = 0; index < count; ++index)
+{
+if (FileExistsOnDisk(kDefaultCompilerPaths[index]))
+{
+s_compilerPath = kDefaultCompilerPaths[index];
+break;
+}
+}
+}
+}
+return s_compilerPath;
+}
+
+bool InvokeShaderCompiler(const std::string &compilerPath, const std::string &stage, const std::string &sourcePath, const std::string &outputPath, const std::string &profile, const std::string &varyingPath)
+{
+std::ostringstream command;
+command << '"' << compilerPath << '"'
+        << " -f \"" << sourcePath << "\""
+        << " -o \"" << outputPath << "\""
+        << " --type " << stage
+        << " --platform windows";
+if (!profile.empty())
+{
+command << " --profile " << profile;
+}
+if (!varyingPath.empty())
+{
+command << " --varyingdef \"" << varyingPath << "\"";
+}
+
+return (std::system(command.str().c_str()) == 0);
+}
+
+bgfx::ShaderHandle LoadShaderHandle(const std::string &path)
+{
+File *file = TheFileSystem->openFile(path.c_str(), File::READ | File::BINARY);
+if (file == NULL)
+{
+std::ostringstream message;
+message << "Unable to open bgfx shader binary '" << path << "'\n";
+OutputDebugStringA(message.str().c_str());
+return BGFX_INVALID_HANDLE;
+}
+
+AsciiString pathString(path.c_str());
+FileInfo info;
+if (!TheFileSystem->getFileInfo(pathString, &info))
+{
+file->close();
+return BGFX_INVALID_HANDLE;
+}
+
+uint64_t fileSize = (static_cast<uint64_t>(static_cast<uint32_t>(info.sizeHigh)) << 32) |
+                  static_cast<uint32_t>(info.sizeLow);
+if (fileSize == 0 || fileSize > std::numeric_limits<uint32_t>::max())
+{
+file->close();
+return BGFX_INVALID_HANDLE;
+}
+
+std::vector<uint8_t> buffer;
+buffer.resize(static_cast<size_t>(fileSize));
+size_t offset = 0;
+while (offset < buffer.size())
+{
+size_t remaining = buffer.size() - offset;
+size_t chunkSize = std::min<size_t>(remaining, static_cast<size_t>(std::numeric_limits<int>::max()));
+Int bytesRead = file->read(&buffer[offset], static_cast<Int>(chunkSize));
+if (bytesRead <= 0)
+{
+file->close();
+return BGFX_INVALID_HANDLE;
+}
+offset += static_cast<size_t>(bytesRead);
+}
+
+file->close();
+
+const bgfx::Memory *memory = bgfx::copy(buffer.data(), static_cast<uint32_t>(buffer.size()));
+if (memory == NULL)
+{
+return BGFX_INVALID_HANDLE;
+}
+
+bgfx::ShaderHandle handle = bgfx::createShader(memory);
+if (bgfx::isValid(handle))
+{
+bgfx::setName(handle, path.c_str());
+}
+return handle;
+}
+}
+#endif
+
+W3DShaderManager::BgfxProgramDefinition::BgfxProgramDefinition()
+        : m_preload(false)
+{
+#if WW3D_BGFX_AVAILABLE
+        m_programHandle = BGFX_INVALID_HANDLE;
+#endif
+}
+
+W3DShaderManager::BgfxProgramDefinition::BgfxProgramDefinition(const std::string &vertexPath, const std::string &fragmentPath, Bool preload)
+        : m_vertexShaderPath(vertexPath),
+          m_fragmentShaderPath(fragmentPath),
+          m_preload(preload)
+{
+#if WW3D_BGFX_AVAILABLE
+        m_programHandle = BGFX_INVALID_HANDLE;
+#endif
+}
+
+Bool W3DShaderManager::BgfxProgramDefinition::isValid(void) const
+{
+        return (!m_vertexShaderPath.empty() && !m_fragmentShaderPath.empty());
+}
+
+void W3DShaderManager::BgfxProgramDefinition::setSourcePaths(const std::string &vertexSourcePath, const std::string &fragmentSourcePath)
+{
+        m_vertexShaderSourcePath = vertexSourcePath;
+        m_fragmentShaderSourcePath = fragmentSourcePath;
+}
+
+void W3DShaderManager::BgfxProgramDefinition::setVaryingPath(const std::string &varyingPath)
+{
+        m_varyingDefPath = varyingPath;
+}
+
+void W3DShaderManager::BgfxProgramDefinition::setShaderProfiles(const std::string &vertexProfile, const std::string &fragmentProfile)
+{
+        m_vertexShaderProfile = vertexProfile;
+        m_fragmentShaderProfile = fragmentProfile;
+}
+
+void W3DShaderManager::registerBgfxProgram(ShaderTypes shader, const BgfxProgramDefinition &definition)
+{
+        if (!definition.isValid())
+        {
+                m_bgfxPrograms.erase(shader);
+                return;
+        }
+
+#if WW3D_BGFX_AVAILABLE
+        std::map<ShaderTypes, BgfxProgramDefinition>::iterator existing = m_bgfxPrograms.find(shader);
+        if (existing != m_bgfxPrograms.end())
+        {
+                destroyBgfxProgram(existing->second);
+        }
+#endif
+
+        BgfxProgramDefinition storedDefinition = definition;
+#if WW3D_BGFX_AVAILABLE
+        storedDefinition.m_programHandle = BGFX_INVALID_HANDLE;
+#endif
+        m_bgfxPrograms[shader] = storedDefinition;
+
+#if WW3D_BGFX_AVAILABLE
+        if (DX8Wrapper::Is_Bgfx_Active() && storedDefinition.m_preload)
+        {
+                ensureBgfxProgramLoaded(shader);
+        }
+#endif
+}
+
+const W3DShaderManager::BgfxProgramDefinition *W3DShaderManager::getBgfxProgram(ShaderTypes shader)
+{
+	std::map<ShaderTypes, BgfxProgramDefinition>::const_iterator it = m_bgfxPrograms.find(shader);
+	if (it == m_bgfxPrograms.end())
+	{
+		return NULL;
+	}
+
+	return &it->second;
+}
+
+void W3DShaderManager::initializeDefaultBgfxPrograms(void)
+{
+        if (!m_bgfxPrograms.empty())
+        {
+                return;
+	}
+
+	const char *shaderRoot = "shaders/bgfx/";
+	registerBgfxProgram(ST_TERRAIN_BASE, BgfxProgramDefinition(std::string(shaderRoot) + "terrain_base_vs.bin", std::string(shaderRoot) + "terrain_base_fs.bin"));
+	registerBgfxProgram(ST_TERRAIN_BASE_NOISE1, BgfxProgramDefinition(std::string(shaderRoot) + "terrain_noise_vs.bin", std::string(shaderRoot) + "terrain_noise_fs.bin", false));
+	registerBgfxProgram(ST_TERRAIN_BASE_NOISE2, BgfxProgramDefinition(std::string(shaderRoot) + "terrain_noise_vs.bin", std::string(shaderRoot) + "terrain_noise_fs.bin", false));
+	registerBgfxProgram(ST_TERRAIN_BASE_NOISE12, BgfxProgramDefinition(std::string(shaderRoot) + "terrain_noise_vs.bin", std::string(shaderRoot) + "terrain_noise_fs.bin", false));
+	registerBgfxProgram(ST_ROAD_BASE, BgfxProgramDefinition(std::string(shaderRoot) + "road_base_vs.bin", std::string(shaderRoot) + "road_base_fs.bin"));
+	registerBgfxProgram(ST_ROAD_BASE_NOISE1, BgfxProgramDefinition(std::string(shaderRoot) + "road_noise_vs.bin", std::string(shaderRoot) + "road_noise_fs.bin", false));
+	registerBgfxProgram(ST_ROAD_BASE_NOISE2, BgfxProgramDefinition(std::string(shaderRoot) + "road_noise_vs.bin", std::string(shaderRoot) + "road_noise_fs.bin", false));
+	registerBgfxProgram(ST_ROAD_BASE_NOISE12, BgfxProgramDefinition(std::string(shaderRoot) + "road_noise_vs.bin", std::string(shaderRoot) + "road_noise_fs.bin", false));
+	registerBgfxProgram(ST_SHROUD_TEXTURE, BgfxProgramDefinition(std::string(shaderRoot) + "shroud_vs.bin", std::string(shaderRoot) + "shroud_fs.bin"));
+        registerBgfxProgram(ST_MASK_TEXTURE, BgfxProgramDefinition(std::string(shaderRoot) + "mask_vs.bin", std::string(shaderRoot) + "mask_fs.bin"));
+        registerBgfxProgram(ST_CLOUD_TEXTURE, BgfxProgramDefinition(std::string(shaderRoot) + "cloud_vs.bin", std::string(shaderRoot) + "cloud_fs.bin"));
+}
+
+void W3DShaderManager::preloadBgfxPrograms(void)
+{
+#if WW3D_BGFX_AVAILABLE
+        if (!DX8Wrapper::Is_Bgfx_Active())
+        {
+                return;
+        }
+
+        for (std::map<ShaderTypes, BgfxProgramDefinition>::iterator it = m_bgfxPrograms.begin(); it != m_bgfxPrograms.end(); ++it)
+        {
+                if (it->second.m_preload)
+                {
+                        ensureBgfxProgramLoaded(it->first);
+                }
+        }
+#endif
+}
+
+void W3DShaderManager::unloadBgfxPrograms(void)
+{
+#if WW3D_BGFX_AVAILABLE
+        for (std::map<ShaderTypes, BgfxProgramDefinition>::iterator it = m_bgfxPrograms.begin(); it != m_bgfxPrograms.end(); ++it)
+        {
+                destroyBgfxProgram(it->second);
+        }
+#endif
+}
+
+#if WW3D_BGFX_AVAILABLE
+Bool W3DShaderManager::ensureBgfxProgramLoaded(ShaderTypes shader)
+{
+        std::map<ShaderTypes, BgfxProgramDefinition>::iterator it = m_bgfxPrograms.find(shader);
+        if (it == m_bgfxPrograms.end())
+        {
+                return false;
+        }
+
+        BgfxProgramDefinition &definition = it->second;
+        if (bgfx::isValid(definition.m_programHandle))
+        {
+                return true;
+        }
+
+        if (!definition.isValid())
+        {
+                return false;
+        }
+
+        bgfx::ProgramHandle programHandle = loadBgfxProgram(definition);
+        if (!bgfx::isValid(programHandle))
+        {
+                return false;
+        }
+
+        definition.m_programHandle = programHandle;
+        return true;
+}
+
+Bool W3DShaderManager::ensureBgfxShaderBinary(const std::string &binaryPath, const std::string &sourcePath, const std::string &profile, const std::string &varyingPath, const char *stageLabel)
+{
+        if (binaryPath.empty())
+        {
+                return false;
+        }
+
+        Bool binaryExists = TheFileSystem->doesFileExist(binaryPath.c_str());
+        if (sourcePath.empty())
+        {
+                return binaryExists;
+        }
+
+        if (!TheFileSystem->doesFileExist(sourcePath.c_str()))
+        {
+                return binaryExists;
+        }
+
+        uint64_t sourceTimestamp = 0;
+        uint64_t binaryTimestamp = 0;
+        bool haveSourceTimestamp = TryGetFileTimestamp(sourcePath, sourceTimestamp);
+        bool haveBinaryTimestamp = binaryExists && TryGetFileTimestamp(binaryPath, binaryTimestamp);
+
+        if (!binaryExists || (haveSourceTimestamp && (!haveBinaryTimestamp || sourceTimestamp > binaryTimestamp)))
+        {
+                std::string compilerPath = ResolveShaderCompilerPath();
+                if (compilerPath.empty())
+                {
+                        if (!binaryExists)
+                        {
+                                std::ostringstream message;
+                                message << "BGFX shader compiler not found; unable to build " << stageLabel << " shader '" << sourcePath << "'\n";
+                                OutputDebugStringA(message.str().c_str());
+                        }
+                        return binaryExists;
+                }
+
+                if (!InvokeShaderCompiler(compilerPath, stageLabel, sourcePath, binaryPath, profile, varyingPath))
+                {
+                        std::ostringstream message;
+                        message << "BGFX shader compilation failed for '" << sourcePath << "'\n";
+                        OutputDebugStringA(message.str().c_str());
+                        return binaryExists;
+                }
+        }
+
+        return TheFileSystem->doesFileExist(binaryPath.c_str());
+}
+
+void W3DShaderManager::destroyBgfxProgram(BgfxProgramDefinition &definition)
+{
+        if (bgfx::isValid(definition.m_programHandle))
+        {
+                bgfx::destroy(definition.m_programHandle);
+                definition.m_programHandle = BGFX_INVALID_HANDLE;
+        }
+}
+
+bgfx::ProgramHandle W3DShaderManager::loadBgfxProgram(BgfxProgramDefinition &definition)
+{
+        if (!ensureBgfxShaderBinary(definition.m_vertexShaderPath, definition.m_vertexShaderSourcePath, definition.m_vertexShaderProfile, definition.m_varyingDefPath, "vertex"))
+        {
+                return BGFX_INVALID_HANDLE;
+        }
+
+        if (!ensureBgfxShaderBinary(definition.m_fragmentShaderPath, definition.m_fragmentShaderSourcePath, definition.m_fragmentShaderProfile, definition.m_varyingDefPath, "fragment"))
+        {
+                return BGFX_INVALID_HANDLE;
+        }
+
+        bgfx::ShaderHandle vertexShader = LoadShaderHandle(definition.m_vertexShaderPath);
+        if (!bgfx::isValid(vertexShader))
+        {
+                return BGFX_INVALID_HANDLE;
+        }
+
+        bgfx::ShaderHandle fragmentShader = LoadShaderHandle(definition.m_fragmentShaderPath);
+        if (!bgfx::isValid(fragmentShader))
+        {
+                bgfx::destroy(vertexShader);
+                return BGFX_INVALID_HANDLE;
+        }
+
+        bgfx::ProgramHandle program = bgfx::createProgram(vertexShader, fragmentShader, true);
+        if (!bgfx::isValid(program))
+        {
+                return BGFX_INVALID_HANDLE;
+        }
+
+        return program;
+}
+#endif
+
 /*===========================================================================================*/
 /*=========      Screen Shaders	=============================================================*/
 /*===========================================================================================*/
@@ -203,7 +695,16 @@ Bool ScreenBWFilter::postRender(enum FilterModes mode, Coord2D &scrollDelta,Bool
 
 	Int xpos, ypos, width, height;
 
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,tex);	//previously rendered frame inside this texture
+	TextureClass *renderTextureClass = W3DShaderManager::getRenderTextureClass();
+	if (renderTextureClass)
+	{
+		BindTextureToStage(0, renderTextureClass);	//previously rendered frame inside this texture
+	}
+	else
+	{
+		DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,tex);	//previously rendered frame inside this texture
+	}
+	DX8Wrapper::Apply_Render_State_Changes();
 	TheTacticalView->getOrigin(&xpos,&ypos);
 	width=TheTacticalView->getWidth();
 	height=TheTacticalView->getHeight();
@@ -287,8 +788,22 @@ Int ScreenBWFilter::set(enum FilterModes mode)
 		DX8Wrapper::Set_DX8_Render_State(D3DRS_ZWRITEENABLE,FALSE);
 		DX8Wrapper::Apply_Render_State_Changes();	//force update of view and projection matrices
 
-		hr=DX8Wrapper::_Get_D3D_Device8()->SetPixelShader(m_dwBWPixelShader);
-		DX8Wrapper::_Get_D3D_Device8()->SetPixelShaderConstant(0,   D3DXVECTOR4(0.3f, 0.59f, 0.11f, 1.0f), 1);
+		const float bwWeights[4] = {0.3f, 0.59f, 0.11f, 1.0f};
+#if WW3D_BGFX_AVAILABLE
+		const bool bgfxActive = DX8Wrapper::Is_Bgfx_Active();
+		if (bgfxActive)
+		{
+			SetBgfxUniformVec4("u_bwWeights", bwWeights);
+		}
+		else
+#endif
+		{
+			hr=DX8Wrapper::_Get_D3D_Device8()->SetPixelShader(m_dwBWPixelShader);
+			if (SUCCEEDED(hr))
+			{
+				DX8Wrapper::_Get_D3D_Device8()->SetPixelShaderConstant(0, bwWeights, 1);
+			}
+		}
 
 		D3DXVECTOR4	color(1.0f,1.0f,1.0f,1.0f);	//multiply color
 
@@ -316,8 +831,22 @@ Int ScreenBWFilter::set(enum FilterModes mode)
 			color.z = 0.0f;
 		}
 
-		DX8Wrapper::_Get_D3D_Device8()->SetPixelShaderConstant(1,   color, 1);
-		DX8Wrapper::_Get_D3D_Device8()->SetPixelShaderConstant(2,	D3DXVECTOR4(m_curFadeValue, m_curFadeValue, m_curFadeValue, 1.0f), 1);
+#if WW3D_BGFX_AVAILABLE
+		if (bgfxActive)
+		{
+			const float colorValues[4] = {color.x, color.y, color.z, color.w};
+			SetBgfxUniformVec4("u_bwColor", colorValues);
+
+			const float fadeValues[4] = {m_curFadeValue, m_curFadeValue, m_curFadeValue, 1.0f};
+			SetBgfxUniformVec4("u_bwFade", fadeValues);
+		}
+		else
+#endif
+		{
+			DX8Wrapper::_Get_D3D_Device8()->SetPixelShaderConstant(1,   color, 1);
+			const float fadeValues[4] = {m_curFadeValue, m_curFadeValue, m_curFadeValue, 1.0f};
+			DX8Wrapper::_Get_D3D_Device8()->SetPixelShaderConstant(2, fadeValues, 1);
+		}
 /*		DX8Wrapper::_Get_D3D_Device8()->SetPixelShaderConstant(2,   D3DXVECTOR4(150.0f/255.0f, 150.0f/255.0f, 150.0f/255.0f, 0.0f), 1);
 		DX8Wrapper::_Get_D3D_Device8()->SetPixelShaderConstant(3,   D3DXVECTOR4((765.0f/450.0f)/3, (765.0f/450.0f)/3, (765.0f/450.0f)/3, 1.0f), 1);
 		DX8Wrapper::_Get_D3D_Device8()->SetPixelShaderConstant(4,   D3DXVECTOR4(0.5f, 0.5f, 0.5f, 0), 1);
@@ -332,8 +861,13 @@ Int ScreenBWFilter::set(enum FilterModes mode)
 
 void ScreenBWFilter::reset(void)
 {
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,NULL);	//previously rendered frame inside this texture
-	DX8Wrapper::_Get_D3D_Device8()->SetPixelShader(0);	//turn off pixel shader
+	BindTextureToStage(0, NULL);
+#if WW3D_BGFX_AVAILABLE
+	if (!DX8Wrapper::Is_Bgfx_Active())
+#endif
+	{
+		DX8Wrapper::_Get_D3D_Device8()->SetPixelShader(0);	//turn off pixel shader
+	}
 	DX8Wrapper::Invalidate_Cached_Render_States();
 }
 
@@ -440,7 +974,16 @@ Bool ScreenBWFilterDOT3::postRender(enum FilterModes mode, Coord2D &scrollDelta,
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 0, D3DTSS_COLOROP, D3DTOP_MODULATE);
 	}
 
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,tex);	//previously rendered frame inside this texture
+	TextureClass *renderTextureClass = W3DShaderManager::getRenderTextureClass();
+	if (renderTextureClass)
+	{
+		BindTextureToStage(0, renderTextureClass);	//previously rendered frame inside this texture
+	}
+	else
+	{
+		DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,tex);	//previously rendered frame inside this texture
+	}
+	DX8Wrapper::Apply_Render_State_Changes();
 
 	pDev->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, v, sizeof(_TRANS_LIT_TEX_VERTEX));
 
@@ -516,7 +1059,8 @@ Int ScreenBWFilterDOT3::set(enum FilterModes mode)
 
 void ScreenBWFilterDOT3::reset(void)
 {
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,NULL);	//previously rendered frame inside this texture
+	BindTextureToStage(0, NULL);
+	BindTextureToStage(1, NULL);
 	DX8Wrapper::Invalidate_Cached_Render_States();
 }
 
@@ -657,15 +1201,28 @@ Bool ScreenCrossFadeFilter::postRender(enum FilterModes mode, Coord2D &scrollDel
 	Int xpos, ypos, width, height;
 	Real radius = 0.0f;
 
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,tex);	//previously rendered frame inside this texture
+	TextureClass *renderTextureClass = W3DShaderManager::getRenderTextureClass();
+	if (renderTextureClass)
+	{
+		BindTextureToStage(0, renderTextureClass);	//previously rendered frame inside this texture
+	}
+	else
+	{
+		DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,tex);	//previously rendered frame inside this texture
+	}
 	if (mode == FM_VIEW_CROSSFADE_CIRCLE)
-	{	DX8Wrapper::_Get_D3D_Device8()->SetTexture(1,m_fadePatternTexture->Peek_DX8_Texture());
+	{
+		BindTextureToStage(1, m_fadePatternTexture);
 		//Use the current fade level to scale the mask texture, for other modes the texture
 		//comes pre-scaled so doesn't require uv scaling.
 		radius = (1.0f-m_curFadeValue)*2.0f;
 		if (radius <= 0)
 			radius = 0.01f;
 		radius = 0.5f/radius;
+	}
+	else
+	{
+		BindTextureToStage(1, NULL);
 	}
 
 	TheTacticalView->getOrigin(&xpos,&ypos);
@@ -704,6 +1261,8 @@ Bool ScreenCrossFadeFilter::postRender(enum FilterModes mode, Coord2D &scrollDel
 	//draw polygons like this is very inefficient but for only 2 triangles, it's
 	//not worth bothering with index/vertex buffers.
 	pDev->SetVertexShader(D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX2);
+
+	DX8Wrapper::Apply_Render_State_Changes();
 
 //		m_pDev->SetTextureStageState(0,D3DTSS_MAGFILTER,D3DTEXF_POINT); 
 //		m_pDev->SetTextureStageState(0,D3DTSS_MINFILTER,D3DTEXF_POINT); 
@@ -755,7 +1314,8 @@ void ScreenCrossFadeFilter::reset(void)
 {
 	DX8Wrapper::Set_DX8_Texture_Stage_State( 1, D3DTSS_COLOROP,   D3DTOP_DISABLE );
 	DX8Wrapper::Set_DX8_Texture_Stage_State( 1, D3DTSS_ALPHAOP,   D3DTOP_DISABLE );
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,NULL);	//previously rendered frame inside this texture
+	BindTextureToStage(0, NULL);
+	BindTextureToStage(1, NULL);
 	DX8Wrapper::Invalidate_Cached_Render_States();
 }
 
@@ -824,7 +1384,15 @@ Bool ScreenMotionBlurFilter::postRender(enum FilterModes mode, Coord2D &scrollDe
 
 	Int xpos, ypos, width, height;
 
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,tex);	//previously rendered frame inside this texture
+	TextureClass *renderTextureClass = W3DShaderManager::getRenderTextureClass();
+	if (renderTextureClass)
+	{
+		BindTextureToStage(0, renderTextureClass);	//previously rendered frame inside this texture
+	}
+	else
+	{
+		DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,tex);	//previously rendered frame inside this texture
+	}
 	TheTacticalView->getOrigin(&xpos,&ypos);
 	width=TheTacticalView->getWidth();
 	height=TheTacticalView->getHeight();
@@ -1025,7 +1593,7 @@ Int ScreenMotionBlurFilter::set(enum FilterModes mode)
 
 void ScreenMotionBlurFilter::reset(void)
 {
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(0,NULL);	//previously rendered frame inside this texture
+	BindTextureToStage(0, NULL);
 	DX8Wrapper::Invalidate_Cached_Render_States();
 }
 
@@ -1074,7 +1642,7 @@ Int ShroudTextureShader::set(Int stage)
 	if (stage < 2)
 		DX8Wrapper::Set_Texture(stage, W3DShaderManager::getShaderTexture(0));
 	else	//stages larger than 1 are not supported by W3D so set them directly
-		DX8Wrapper::Set_DX8_Texture(stage, W3DShaderManager::getShaderTexture(0)->Peek_DX8_Texture());
+                BindTextureToStage(stage, W3DShaderManager::getShaderTexture(0));
 
 	if (stage == 0)
 	{
@@ -1328,8 +1896,8 @@ void TerrainShader2Stage::reset(void)
 	ShaderClass::Invalidate();
 
 	//Free references to textures
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(0, NULL);
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(1, NULL);
+        BindTextureToStage(0, NULL);
+        BindTextureToStage(1, NULL);
 
 	DX8Wrapper::Set_DX8_Texture_Stage_State( 0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_DISABLE);
 	DX8Wrapper::Set_DX8_Texture_Stage_State( 0, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_PASSTHRU|0);
@@ -1408,7 +1976,7 @@ Int TerrainShader2Stage::set(Int pass)
 	switch (pass)
 	{
 		case 0:
-			DX8Wrapper::_Get_D3D_Device8()->SetTexture(0, W3DShaderManager::getShaderTexture(0)->Peek_DX8_Texture());
+                        BindTextureToStage(0, W3DShaderManager::getShaderTexture(0));
 			DX8Wrapper::Set_DX8_Texture_Stage_State( 0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
 			DX8Wrapper::Set_DX8_Texture_Stage_State( 0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
 
@@ -1423,7 +1991,7 @@ Int TerrainShader2Stage::set(Int pass)
 			DX8Wrapper::Set_DX8_Render_State(D3DRS_ALPHABLENDENABLE,false);
 			break;
 		case 1:
-			DX8Wrapper::_Get_D3D_Device8()->SetTexture(0, W3DShaderManager::getShaderTexture(1)->Peek_DX8_Texture());
+                        BindTextureToStage(0, W3DShaderManager::getShaderTexture(1));
 			DX8Wrapper::Set_DX8_Texture_Stage_State( 0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
 			DX8Wrapper::Set_DX8_Texture_Stage_State( 0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
 
@@ -1472,7 +2040,7 @@ Int TerrainShader2Stage::set(Int pass)
 			if (W3DShaderManager::getCurrentShader() == W3DShaderManager::ST_TERRAIN_BASE_NOISE12)
 			{
 				//setup cloud pass
-				DX8Wrapper::_Get_D3D_Device8()->SetTexture(0, W3DShaderManager::getShaderTexture(2)->Peek_DX8_Texture());
+                                BindTextureToStage(0, W3DShaderManager::getShaderTexture(2));
 
 				updateNoise1(((D3DXMATRIX*)&curView),&inv);	//update curView with texture matrix
 				DX8Wrapper::_Set_DX8_Transform(D3DTS_TEXTURE0, curView);
@@ -1481,7 +2049,7 @@ Int TerrainShader2Stage::set(Int pass)
 				DX8Wrapper::Set_DX8_Texture_Stage_State(0, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
 
 				//setup noise pass
-				DX8Wrapper::_Get_D3D_Device8()->SetTexture(1, W3DShaderManager::getShaderTexture(3)->Peek_DX8_Texture());
+                                BindTextureToStage(1, W3DShaderManager::getShaderTexture(3));
 
 				updateNoise2(((D3DXMATRIX*)&curView),&inv);
 				DX8Wrapper::_Set_DX8_Transform(D3DTS_TEXTURE1, curView);
@@ -1505,7 +2073,7 @@ Int TerrainShader2Stage::set(Int pass)
 				// Now setup the texture pipeline.
 				if (W3DShaderManager::getCurrentShader() == W3DShaderManager::ST_TERRAIN_BASE_NOISE1)
 				{	//setup cloud pass
-					DX8Wrapper::_Get_D3D_Device8()->SetTexture(0, W3DShaderManager::getShaderTexture(2)->Peek_DX8_Texture());
+                                BindTextureToStage(0, W3DShaderManager::getShaderTexture(2));
 					updateNoise1(((D3DXMATRIX*)&curView),&inv);	//update curView with texture matrix
 					DX8Wrapper::Set_DX8_Texture_Stage_State(0, D3DTSS_MINFILTER, D3DTEXF_LINEAR);
 					DX8Wrapper::Set_DX8_Texture_Stage_State(0, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
@@ -1513,7 +2081,7 @@ Int TerrainShader2Stage::set(Int pass)
 				else
 				{
 					//setup noise pass
-					DX8Wrapper::_Get_D3D_Device8()->SetTexture(0, W3DShaderManager::getShaderTexture(3)->Peek_DX8_Texture());
+                                BindTextureToStage(0, W3DShaderManager::getShaderTexture(3));
 					updateNoise2(((D3DXMATRIX*)&curView),&inv);	//update curView with texture matrix
 					DX8Wrapper::Set_DX8_Texture_Stage_State(1, D3DTSS_MINFILTER, D3DTEXF_POINT);
 					DX8Wrapper::Set_DX8_Texture_Stage_State(1, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
@@ -1581,8 +2149,8 @@ Int TerrainShader8Stage::set(Int pass)
 			DX8Wrapper::Set_DX8_Texture_Stage_State(1, D3DTSS_MIPFILTER, D3DTEXF_LINEAR);
 		}
 		
-		DX8Wrapper::_Get_D3D_Device8()->SetTexture(0, W3DShaderManager::getShaderTexture(0)->Peek_DX8_Texture());
-		DX8Wrapper::_Get_D3D_Device8()->SetTexture(1, W3DShaderManager::getShaderTexture(1)->Peek_DX8_Texture());
+                BindTextureToStage(0, W3DShaderManager::getShaderTexture(0));
+                BindTextureToStage(1, W3DShaderManager::getShaderTexture(1));
 
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 0, D3DTSS_COLOROP, D3DTOP_MODULATE);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 0, D3DTSS_TEXCOORDINDEX, 0);
@@ -1600,7 +2168,7 @@ Int TerrainShader8Stage::set(Int pass)
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 1, D3DTSS_ALPHAARG1, D3DTA_TFACTOR | D3DTA_COMPLEMENT);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 1, D3DTSS_ALPHAARG2, D3DTA_TFACTOR);
 
-		DX8Wrapper::Set_DX8_Texture(2, NULL);
+                DX8Wrapper::Set_Texture(2, NULL);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 2, D3DTSS_COLOROP, D3DTOP_MODULATE);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 2, D3DTSS_TEXCOORDINDEX, 2);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 2, D3DTSS_COLORARG1, D3DTA_TEXTURE);
@@ -1609,7 +2177,7 @@ Int TerrainShader8Stage::set(Int pass)
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 2, D3DTSS_ALPHAARG1, D3DTA_TFACTOR);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 2, D3DTSS_ALPHAARG2, D3DTA_TFACTOR);
 
-		DX8Wrapper::Set_DX8_Texture(3, NULL);
+                DX8Wrapper::Set_Texture(3, NULL);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 3, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 3, D3DTSS_TEXCOORDINDEX, 3);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 3, D3DTSS_COLORARG1, D3DTA_DIFFUSE | 0 | D3DTA_ALPHAREPLICATE);
@@ -1618,7 +2186,7 @@ Int TerrainShader8Stage::set(Int pass)
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 3, D3DTSS_ALPHAARG1, D3DTA_TFACTOR);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 3, D3DTSS_ALPHAARG2, D3DTA_TFACTOR);
 
-		DX8Wrapper::Set_DX8_Texture(4, NULL);
+                DX8Wrapper::Set_Texture(4, NULL);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 4, D3DTSS_COLOROP, D3DTOP_MODULATE);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 4, D3DTSS_TEXCOORDINDEX, 4);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 4, D3DTSS_COLORARG1, D3DTA_CURRENT);
@@ -1627,7 +2195,7 @@ Int TerrainShader8Stage::set(Int pass)
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 4, D3DTSS_ALPHAARG1, D3DTA_CURRENT);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 4, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
 
-		DX8Wrapper::Set_DX8_Texture(5, NULL);
+                DX8Wrapper::Set_Texture(5, NULL);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 5, D3DTSS_COLOROP, D3DTOP_ADD);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 5, D3DTSS_TEXCOORDINDEX, 5);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 5, D3DTSS_COLORARG1, D3DTA_DIFFUSE);
@@ -1636,7 +2204,7 @@ Int TerrainShader8Stage::set(Int pass)
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 5, D3DTSS_ALPHAARG1, D3DTA_TFACTOR | D3DTA_COMPLEMENT);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 5, D3DTSS_ALPHAARG2, D3DTA_TFACTOR);
 
-		DX8Wrapper::Set_DX8_Texture(6, NULL);
+                DX8Wrapper::Set_Texture(6, NULL);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 6, D3DTSS_COLOROP, D3DTOP_MODULATE);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 6, D3DTSS_TEXCOORDINDEX, 6);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 6, D3DTSS_COLORARG1, D3DTA_TFACTOR);
@@ -1645,7 +2213,7 @@ Int TerrainShader8Stage::set(Int pass)
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 6, D3DTSS_ALPHAARG1, D3DTA_TFACTOR);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 6, D3DTSS_ALPHAARG2, D3DTA_TFACTOR);
 
-		DX8Wrapper::Set_DX8_Texture(7, NULL);
+                DX8Wrapper::Set_Texture(7, NULL);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 7, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 7, D3DTSS_TEXCOORDINDEX, 7);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 7, D3DTSS_COLORARG1, D3DTA_TFACTOR);
@@ -1676,8 +2244,8 @@ void TerrainShader8Stage::reset(void)
 	DX8Wrapper::Set_DX8_Texture_Stage_State( 4, D3DTSS_COLOROP, D3DTOP_DISABLE);
 	DX8Wrapper::Set_DX8_Texture_Stage_State( 4, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(0, NULL);
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(1, NULL);
+                BindTextureToStage(0, NULL);
+                BindTextureToStage(1, NULL);
 	DX8Wrapper::Invalidate_Cached_Render_States();
 }
 
@@ -1862,8 +2430,8 @@ void TerrainShaderPixelShader::reset(void)
 
 	DX8Wrapper::_Get_D3D_Device8()->SetPixelShader(0);	//turn off pixel shader
 
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(0, NULL);
-	DX8Wrapper::_Get_D3D_Device8()->SetTexture(1, NULL);
+        BindTextureToStage(0, NULL);
+        BindTextureToStage(1, NULL);
 
 	DX8Wrapper::Set_DX8_Texture_Stage_State( 0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_DISABLE);
 	DX8Wrapper::Set_DX8_Texture_Stage_State( 0, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_PASSTHRU|0);
@@ -2331,11 +2899,14 @@ W3DShaderManager::W3DShaderManager(void)
 {
 	m_currentShader = ST_INVALID;
 	m_currentFilter = FT_NULL_FILTER;
+	m_bgfxPrograms.clear();
 	m_oldRenderSurface = NULL;
 	m_renderTexture = NULL;
 	m_newRenderSurface = NULL;
 	m_oldDepthSurface = NULL;
 	m_renderingToTexture = false;
+	m_renderTextureWrapper = NULL;
+	m_renderTextureFormat = WW3D_FORMAT_UNKNOWN;
 	Int i;
 	for (i=0; i<W3DShaderManager::ST_MAX; i++)
 	{	W3DShaders[i]=NULL;
@@ -2356,44 +2927,73 @@ W3DShaderManager::W3DShaderManager(void)
 //=============================================================================
 void W3DShaderManager::init(void)
 {
-	int i,j;
+        int i,j;
 
-	D3DSURFACE_DESC desc;
+        initializeDefaultBgfxPrograms();
+        preloadBgfxPrograms();
+
+        D3DSURFACE_DESC desc;
 	// For now, check & see if we are gf3 or higher on the food chain.
 
 	Int res=0;
 	if ((res=W3DShaderManager::getChipset()) != 0)
 	{
 		//Some of our effects require an offscreen render target, so try creating it here.
+				::ZeroMemory(&desc, sizeof(desc));
 		HRESULT hr=DX8Wrapper::_Get_D3D_Device8()->GetRenderTarget(&m_oldRenderSurface);
 
-		m_oldRenderSurface->GetDesc(&desc);
+		REF_PTR_RELEASE(m_renderTextureWrapper);
+		m_renderTextureFormat = WW3D_FORMAT_UNKNOWN;
 
-		hr=DX8Wrapper::_Get_D3D_Device8()->CreateTexture(desc.Width,desc.Height,1,D3DUSAGE_RENDERTARGET,desc.Format,D3DPOOL_DEFAULT,&m_renderTexture);
-
-		if (hr != S_OK)
+		if (SUCCEEDED(hr) && m_oldRenderSurface)
 		{
-			if (m_oldRenderSurface) m_oldRenderSurface->Release();
-			m_oldRenderSurface = NULL;
-			m_renderTexture = NULL;
-		} else {
-			hr = m_renderTexture->GetSurfaceLevel(0, &m_newRenderSurface);
+			m_oldRenderSurface->GetDesc(&desc);
+			m_renderTextureFormat = D3DFormat_To_WW3DFormat(desc.Format);
+		}
+
+		if (desc.Width != 0 && desc.Height != 0 && desc.Format != D3DFMT_UNKNOWN)
+		{
+			hr=DX8Wrapper::_Get_D3D_Device8()->CreateTexture(desc.Width,desc.Height,1,D3DUSAGE_RENDERTARGET,desc.Format,D3DPOOL_DEFAULT,&m_renderTexture);
+
 			if (hr != S_OK)
 			{
-				if (m_renderTexture) m_renderTexture->Release();
+				if (m_oldRenderSurface) m_oldRenderSurface->Release();
+				m_oldRenderSurface = NULL;
 				m_renderTexture = NULL;
-				m_newRenderSurface = NULL;
-			}	else {
-				hr = DX8Wrapper::_Get_D3D_Device8()->GetDepthStencilSurface(&m_oldDepthSurface);
+				m_renderTextureFormat = WW3D_FORMAT_UNKNOWN;
+			} else {
+				hr = m_renderTexture->GetSurfaceLevel(0, &m_newRenderSurface);
 				if (hr != S_OK)
 				{
-					if (m_newRenderSurface) m_newRenderSurface->Release();
 					if (m_renderTexture) m_renderTexture->Release();
 					m_renderTexture = NULL;
 					m_newRenderSurface = NULL;
-					m_oldDepthSurface = NULL;
+					m_renderTextureFormat = WW3D_FORMAT_UNKNOWN;
+				} else {
+					hr = DX8Wrapper::_Get_D3D_Device8()->GetDepthStencilSurface(&m_oldDepthSurface);
+					if (hr != S_OK)
+					{
+						if (m_newRenderSurface) m_newRenderSurface->Release();
+						if (m_renderTexture) m_renderTexture->Release();
+						m_renderTexture = NULL;
+						m_newRenderSurface = NULL;
+						m_oldDepthSurface = NULL;
+						m_renderTextureFormat = WW3D_FORMAT_UNKNOWN;
+					}
+					else
+					{
+						m_renderTextureWrapper = new TextureClass(m_renderTexture);
+#if WW3D_BGFX_AVAILABLE
+						if (m_renderTextureWrapper && m_renderTextureFormat != WW3D_FORMAT_UNKNOWN && DX8Wrapper::Is_Bgfx_Active())
+						{
+							m_renderTextureWrapper->Create_Bgfx_Texture_From_D3D(m_renderTexture, m_renderTextureFormat, true);
+						}
+#endif
+					}
 				}
 			}
+		}
+
 		}
 	}
 
@@ -2432,26 +3032,34 @@ void W3DShaderManager::shutdown(void)
 	if (m_renderTexture) m_renderTexture->Release();
 	if (m_oldRenderSurface) m_oldRenderSurface->Release();
 	if (m_oldDepthSurface) m_oldDepthSurface->Release();
-	m_renderTexture = NULL;
-	m_newRenderSurface = NULL;
-	m_oldDepthSurface = NULL;
-	m_oldRenderSurface = NULL;
-	m_currentShader = ST_INVALID;
-	m_currentFilter = FT_NULL_FILTER;
-	//release any assets associated with a shader (vertex/pixel shaders, textures, etc.)
-	for (Int i=0; i<W3DShaderManager::ST_MAX; i++) {
-		if (W3DShaders[i]) {
-			W3DShaders[i]->shutdown();
-		}
-	}
+        m_renderTexture = NULL;
+        m_newRenderSurface = NULL;
+        m_oldDepthSurface = NULL;
+        m_oldRenderSurface = NULL;
+        REF_PTR_RELEASE(m_renderTextureWrapper);
+        m_renderTextureFormat = WW3D_FORMAT_UNKNOWN;
+        m_currentShader = ST_INVALID;
+        m_currentFilter = FT_NULL_FILTER;
+        unloadBgfxPrograms();
+#if WW3D_BGFX_AVAILABLE
+        DestroyBgfxUniformCache();
+#endif
+        //release any assets associated with a shader (vertex/pixel shaders, textures, etc.)
+        for (Int i=0; i<W3DShaderManager::ST_MAX; i++) {
+                if (W3DShaders[i]) {
+                        W3DShaders[i]->shutdown();
+                }
+        }
 
- 	for ( i=0; i < FT_MAX; i++)
- 	{	
- 		if (W3DFilters[i])
- 		{
- 			W3DFilters[i]->shutdown();
- 		}
-	}
+        for ( i=0; i < FT_MAX; i++)
+        {
+                if (W3DFilters[i])
+                {
+                        W3DFilters[i]->shutdown();
+                }
+        }
+
+        m_bgfxPrograms.clear();
 }
 
 // W3DShaderManager::getShaderPasses =======================================================
@@ -2472,6 +3080,21 @@ Int W3DShaderManager::getShaderPasses(ShaderTypes shader)
 //=============================================================================
 Int W3DShaderManager::setShader(ShaderTypes shader, Int pass)
 {
+#if WW3D_BGFX_AVAILABLE
+	if (DX8Wrapper::Is_Bgfx_Active())
+	{
+		bgfx::ProgramHandle programHandle = BGFX_INVALID_HANDLE;
+		if (ensureBgfxProgramLoaded(shader))
+		{
+			const BgfxProgramDefinition *definition = getBgfxProgram(shader);
+			if (definition != NULL && bgfx::isValid(definition->m_programHandle))
+			{
+				programHandle = definition->m_programHandle;
+			}
+		}
+		DX8Wrapper::render_state.bgfx.program = programHandle;
+	}
+#endif
 	if (shader == m_currentShader && pass == m_currentShaderPass)
 		return TRUE;	//shader is already set
 	m_currentShader=shader;
@@ -2493,8 +3116,12 @@ void W3DShaderManager::resetShader(ShaderTypes shader)
 		return;	//last shader is already reset.
 	if (W3DShaders[shader])
 		W3DShaders[shader]->reset();
+#if WW3D_BGFX_AVAILABLE
+	DX8Wrapper::render_state.bgfx.program = BGFX_INVALID_HANDLE;
+#endif
 	m_currentShader = ST_INVALID;
 }
+
 // W3DShaderManager::filterPreRender =======================================================
 /** Call to view filter shaders before rendering starts.
  */
@@ -2634,6 +3261,12 @@ IDirect3DTexture8 *W3DShaderManager::endRenderToTexture(void)
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 0, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 0, D3DTSS_MINFILTER, D3DTEXF_LINEAR);
 		DX8Wrapper::Set_DX8_Texture_Stage_State( 0, D3DTSS_MIPFILTER, D3DTEXF_NONE);
+#if WW3D_BGFX_AVAILABLE
+		if (DX8Wrapper::Is_Bgfx_Active() && m_renderTextureWrapper && m_renderTextureFormat != WW3D_FORMAT_UNKNOWN)
+		{
+			m_renderTextureWrapper->Create_Bgfx_Texture_From_D3D(m_renderTexture, m_renderTextureFormat, true);
+		}
+#endif
 
 		m_renderingToTexture = false;
 	}
@@ -2646,6 +3279,11 @@ was applied.  NOTE: This texture does not survive device reset.. so quit effect 
 IDirect3DTexture8 *W3DShaderManager::getRenderTexture(void)
 {
 	return m_renderTexture;
+}
+
+TextureClass *W3DShaderManager::getRenderTextureClass(void)
+{
+	return m_renderTextureWrapper;
 }
 
 #define DC_NVIDIA_VENDOR_ID 0x10DE

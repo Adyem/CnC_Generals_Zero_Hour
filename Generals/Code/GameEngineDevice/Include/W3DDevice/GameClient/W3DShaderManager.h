@@ -37,6 +37,16 @@
 #define __W3DSHADERMANAGER_H_
 
 #include "WW3D2/Texture.h"
+#include <map>
+#include <string>
+
+#ifndef WW3D_BGFX_AVAILABLE
+#define WW3D_BGFX_AVAILABLE 0
+#endif
+
+#if WW3D_BGFX_AVAILABLE
+#include <bgfx/bgfx.h>
+#endif
 enum FilterTypes;
 enum CustomScenePassModes;
 enum StaticGameLODLevel;
@@ -53,8 +63,32 @@ class W3DShaderManager
 {
 public:
 
-	//put any custom shaders (not going through W3D) in here.
-	enum ShaderTypes
+        struct BgfxProgramDefinition
+        {
+                BgfxProgramDefinition();
+                BgfxProgramDefinition(const std::string &vertexPath, const std::string &fragmentPath, Bool preload = true);
+
+                std::string m_vertexShaderPath;
+                std::string m_fragmentShaderPath;
+                std::string m_vertexShaderSourcePath;
+                std::string m_fragmentShaderSourcePath;
+                std::string m_varyingDefPath;
+                std::string m_vertexShaderProfile;
+                std::string m_fragmentShaderProfile;
+                Bool m_preload;
+
+#if WW3D_BGFX_AVAILABLE
+                bgfx::ProgramHandle m_programHandle;
+#endif
+
+                Bool isValid(void) const;
+                void setSourcePaths(const std::string &vertexSourcePath, const std::string &fragmentSourcePath);
+                void setVaryingPath(const std::string &varyingPath);
+                void setShaderProfiles(const std::string &vertexProfile, const std::string &fragmentProfile);
+        };
+
+        //put any custom shaders (not going through W3D) in here.
+        enum ShaderTypes
 	{	ST_INVALID,			//invalid shader type.
 		ST_TERRAIN_BASE,	//shader to apply base terrain texture only
 		ST_TERRAIN_BASE_NOISE1,	//shader to apply base texture and cloud/noise 1.
@@ -83,9 +117,11 @@ public:
 	///Return current texture available to shaders.
 	static inline TextureClass *getShaderTexture(Int stage) { return m_Textures[stage];}	///<returns currently selected texture for given stage
 	///Return last activated shader.
-	static inline ShaderTypes getCurrentShader(void) {return m_currentShader;}
-	/// Loads a .vso file and creates a vertex shader for it
-	static HRESULT LoadAndCreateD3DShader(char* strFilePath, const DWORD* pDeclaration, DWORD Usage, Bool ShaderType, DWORD* pHandle);
+        static inline ShaderTypes getCurrentShader(void) {return m_currentShader;}
+        static void registerBgfxProgram(ShaderTypes shader, const BgfxProgramDefinition &definition);
+        static const BgfxProgramDefinition *getBgfxProgram(ShaderTypes shader);
+        /// Loads a .vso file and creates a vertex shader for it
+        static HRESULT LoadAndCreateD3DShader(char* strFilePath, const DWORD* pDeclaration, DWORD Usage, Bool ShaderType, DWORD* pHandle);
 
 	static Bool testMinimumRequirements(ChipsetType *videoChipType, CpuType *cpuType, Int *cpuFreq, Int *numRAM, Real *intBenchIndex, Real *floatBenchIndex, Real *memBenchIndex);
 	static StaticGameLODLevel getGPUPerformanceIndex(void);
@@ -101,6 +137,7 @@ public:
 	static void startRenderToTexture(void); ///< Sets render target to texture.
 	static IDirect3DTexture8 * endRenderToTexture(void); ///< Ends render to texture, & returns texture.
 	static IDirect3DTexture8 * getRenderTexture(void);	///< returns last used render target texture
+	static TextureClass * getRenderTextureClass(void);	///< returns wrapper for the render target texture
 	static void drawViewport(Int color);	///<draws 2 triangles covering the current tactical viewport
 
 
@@ -110,6 +147,17 @@ protected:
 	static ShaderTypes m_currentShader;	///<last shader that was set.
 	static Int m_currentShaderPass;		///<pass of last shader that was set.
 
+        static void initializeDefaultBgfxPrograms(void);
+        static void preloadBgfxPrograms(void);
+        static void unloadBgfxPrograms(void);
+#if WW3D_BGFX_AVAILABLE
+        static Bool ensureBgfxProgramLoaded(ShaderTypes shader);
+        static Bool ensureBgfxShaderBinary(const std::string &binaryPath, const std::string &sourcePath, const std::string &profile, const std::string &varyingPath, const char *stageLabel);
+        static void destroyBgfxProgram(BgfxProgramDefinition &definition);
+        static bgfx::ProgramHandle loadBgfxProgram(BgfxProgramDefinition &definition);
+#endif
+        static std::map<ShaderTypes, BgfxProgramDefinition> m_bgfxPrograms;
+
 	static FilterTypes m_currentFilter; ///< Last filter that was set.
 	// Info for a render to texture surface for special effects.
 	static Bool m_renderingToTexture;
@@ -117,6 +165,8 @@ protected:
 	static IDirect3DTexture8 *m_renderTexture;		///<texture into which rendering will be redirected.
 	static IDirect3DSurface8 *m_newRenderSurface;	///<new render target inside m_renderTexture
 	static IDirect3DSurface8 *m_oldDepthSurface;	///<previous depth buffer surface
+	static TextureClass *m_renderTextureWrapper;	///<wrapper for render target texture
+	static WW3DFormat m_renderTextureFormat;	///<format of render target texture
 
 
 };
