@@ -53,6 +53,27 @@
 
 #include_next <string.h>
 #include "Lib/BaseType.h"
+#include <compat/win_compat.h>
+
+// GCC builds use a case-sensitive filesystem, which means the legacy BaseType
+// header is not always pulled in by the mixed-case include directives that were
+// tolerated on Windows.  Ensure the fundamental aliases exist even if the
+// include above fails (or has not defined them yet) so this header can compile
+// when the wider project is brought up under g++.
+#ifndef WWLIB_CHAR_DEFINED
+typedef char Char;
+#define WWLIB_CHAR_DEFINED 1
+#endif
+
+#ifndef WWLIB_BOOL_DEFINED
+typedef bool Bool;
+#define WWLIB_BOOL_DEFINED 1
+#endif
+
+#ifndef WWLIB_INT_DEFINED
+typedef int Int;
+#define WWLIB_INT_DEFINED 1
+#endif
 
 //----------------------------------------------------------------------------
 //           Forward References

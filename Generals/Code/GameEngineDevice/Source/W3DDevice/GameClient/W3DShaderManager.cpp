@@ -350,6 +350,28 @@ bgfx::setName(handle, path.c_str());
 }
 return handle;
 }
+
+bgfx::ProgramHandle AcquireUnitBaseProgram()
+{
+        if (!DX8Wrapper::Is_Bgfx_Active())
+        {
+                return BGFX_INVALID_HANDLE;
+        }
+
+        if (!W3DShaderManager::ensureBgfxProgramLoaded(W3DShaderManager::ST_UNIT_BASE))
+        {
+                return BGFX_INVALID_HANDLE;
+        }
+
+        const W3DShaderManager::BgfxProgramDefinition *definition =
+                W3DShaderManager::getBgfxProgram(W3DShaderManager::ST_UNIT_BASE);
+        if (definition != NULL && bgfx::isValid(definition->m_programHandle))
+        {
+                return definition->m_programHandle;
+        }
+
+        return BGFX_INVALID_HANDLE;
+}
 }
 #endif
 
@@ -547,6 +569,27 @@ void W3DShaderManager::initializeDefaultBgfxPrograms(void)
         cloud.addSampler("s_cloudTexture", 0);
         applyCommonMetadata(cloud, std::string(shaderSourceRoot) + "cloud.vs.sc", std::string(shaderSourceRoot) + "cloud.fs.sc");
         registerBgfxProgram(ST_CLOUD_TEXTURE, cloud);
+
+        BgfxProgramDefinition unitBase(std::string(shaderRoot) + "unit_base_vs.bin", std::string(shaderRoot) + "unit_base_fs.bin");
+        unitBase.addUniform("u_modelViewProj", "mat4");
+        unitBase.addUniform("u_textureConfig", "vec4");
+        unitBase.addUniform("u_uvSource", "vec4");
+        unitBase.addUniform("u_alphaTestConfig", "vec4");
+        unitBase.addUniform("u_texMtx0", "mat4");
+        unitBase.addUniform("u_texMtx1", "mat4");
+        unitBase.addUniform("u_materialAmbient", "vec4");
+        unitBase.addUniform("u_materialDiffuse", "vec4");
+        unitBase.addUniform("u_materialSpecular", "vec4");
+        unitBase.addUniform("u_materialEmissive", "vec4");
+        unitBase.addUniform("u_materialParams", "vec4");
+        unitBase.addSampler("s_texture0", 0);
+        unitBase.addSampler("s_texture1", 1);
+        applyCommonMetadata(unitBase, std::string(shaderSourceRoot) + "unit_base.vs.sc", std::string(shaderSourceRoot) + "unit_base.fs.sc");
+        registerBgfxProgram(ST_UNIT_BASE, unitBase);
+
+#if WW3D_BGFX_AVAILABLE
+        DX8Wrapper::Set_Bgfx_Default_Program_Callback(&AcquireUnitBaseProgram);
+#endif
 }
 
 void W3DShaderManager::preloadBgfxPrograms(void)
@@ -3136,6 +3179,7 @@ void W3DShaderManager::shutdown(void)
         m_currentFilter = FT_NULL_FILTER;
         unloadBgfxPrograms();
 #if WW3D_BGFX_AVAILABLE
+        DX8Wrapper::Set_Bgfx_Default_Program_Callback(NULL);
         DestroyBgfxUniformCache();
 #endif
         //release any assets associated with a shader (vertex/pixel shaders, textures, etc.)

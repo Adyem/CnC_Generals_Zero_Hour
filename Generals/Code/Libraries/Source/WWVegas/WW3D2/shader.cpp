@@ -525,6 +525,16 @@ void ShaderClass::Apply()
                 }
 
                 bgfx_state.stateFlags = state;
+
+                if (!bgfx::isValid(bgfx_state.program))
+                {
+                        bgfx::ProgramHandle defaultProgram = DX8Wrapper::Get_Default_Bgfx_Program();
+                        if (bgfx::isValid(defaultProgram))
+                        {
+                                bgfx_state.program = defaultProgram;
+                        }
+                }
+
                 return;
         }
 #endif
