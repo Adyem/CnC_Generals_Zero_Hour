@@ -34,11 +34,22 @@
 #define __WINMAIN_H_
 
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
+#ifdef _WIN32
 #include <windows.h>
+#else
+using HINSTANCE = void *;
+using HWND = void *;
+using HDC = void *;
+using HGLRC = void *;
+#endif
 
 // USER INCLUDES //////////////////////////////////////////////////////////////
 #include "GraphicsBackend.h"
+#ifdef _WIN32
 #include "Win32Device/GameClient/Win32Mouse.h"
+#else
+class Win32Mouse;
+#endif
 
 // EXTERNAL ///////////////////////////////////////////////////////////////////
 extern HINSTANCE ApplicationHInstance;  ///< our application instance

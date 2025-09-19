@@ -35,6 +35,10 @@
 
 using sfml_platform::WindowConfig;
 using sfml_platform::WindowSystem;
+using sfml_platform::GetActiveKeyboardBridge;
+using sfml_platform::GetActiveMouseBridge;
+
+extern Bool ApplicationIsWindowed;
 
 namespace {
 
