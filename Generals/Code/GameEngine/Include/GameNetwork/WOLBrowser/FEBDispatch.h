@@ -30,27 +30,33 @@
 #ifndef _FEBDISPATCH_H__
 #define _FEBDISPATCH_H__
 
+#ifdef _WIN32
 #include <atlbase.h>
 extern CComModule _Module;
 #include <atlcom.h>
 #include <comutil.h>    // For _bstr_t.
-
 #include "oleauto.h"
+#endif
 
 template <class T, class C, const IID *I>
 class FEBDispatch :
+#ifdef _WIN32
 public CComObjectRootEx<CComSingleThreadModel>,
 public CComCoClass<T>,
 public C
+#else
+public C
+#endif
 {
 public:
-	
-	BEGIN_COM_MAP(T)
-		COM_INTERFACE_ENTRY(C)
-		COM_INTERFACE_ENTRY_AGGREGATE(IID_IDispatch, m_dispatch)
-	END_COM_MAP()
-		
-		FEBDispatch()
+
+#ifdef _WIN32
+        BEGIN_COM_MAP(T)
+                COM_INTERFACE_ENTRY(C)
+                COM_INTERFACE_ENTRY_AGGREGATE(IID_IDispatch, m_dispatch)
+        END_COM_MAP()
+
+                FEBDispatch()
 	{
 		m_ptinfo = NULL;
 		m_dispatch = NULL;
@@ -95,12 +101,21 @@ public:
 		
 		if (m_dispatch)
 			m_dispatch->Release();
-	}
-	
-	IUnknown *m_dispatch;
+        }
+
+        IUnknown *m_dispatch;
 
 private:
-	ITypeInfo *m_ptinfo;
+        ITypeInfo *m_ptinfo;
+#else
+        FEBDispatch()
+        {
+        }
+
+        ~FEBDispatch()
+        {
+        }
+#endif
 };
 
 #endif

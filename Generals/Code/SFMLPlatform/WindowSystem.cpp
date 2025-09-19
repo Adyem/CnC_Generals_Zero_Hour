@@ -3,15 +3,31 @@
 #include "SfmlKeyboardBridge.h"
 #include "SfmlMouseBridge.h"
 
+#include <SFML/System/Clock.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/VideoMode.hpp>
+#include <SFML/Window/WindowHandle.hpp>
 #include <SFML/Window/WindowStyle.hpp>
-#include <SFML/System/Clock.hpp>
+#include <cstdint>
 #include <algorithm>
+
+#if defined(SFML_SYSTEM_LINUX)
+#include <X11/Xlib.h>
+#endif
 
 namespace sfml_platform {
 
 namespace {
+
+#if defined(SFML_SYSTEM_LINUX)
+Display* acquireX11Display() {
+    static Display* display = nullptr;
+    if (display == nullptr) {
+        display = XOpenDisplay(nullptr);
+    }
+    return display;
+}
+#endif
 
 sf::VideoMode pickVideoMode(unsigned int width, unsigned int height, bool fullscreen) {
     if (!fullscreen) {
@@ -120,6 +136,25 @@ sf::RenderWindow& WindowSystem::window() {
 
 const sf::RenderWindow& WindowSystem::window() const {
     return m_window;
+}
+
+NativeWindowHandle WindowSystem::nativeHandle() const {
+    NativeWindowHandle handle{};
+
+    const sf::WindowHandle systemHandle = m_window.getSystemHandle();
+#if defined(SFML_SYSTEM_WINDOWS) || defined(SFML_SYSTEM_MACOS) || defined(SFML_SYSTEM_IOS)
+    handle.window = reinterpret_cast<void*>(systemHandle);
+#else
+    handle.window = reinterpret_cast<void*>(static_cast<std::uintptr_t>(systemHandle));
+#endif
+
+#if defined(SFML_SYSTEM_LINUX)
+    handle.display = acquireX11Display();
+#else
+    handle.display = nullptr;
+#endif
+
+    return handle;
 }
 
 } // namespace sfml_platform

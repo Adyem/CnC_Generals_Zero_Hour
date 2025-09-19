@@ -74,6 +74,7 @@
 #include "dx8texman.h"
 #include "bound.h"
 #include "dx8webbrowser.h"
+#include "Main/WinMain.h"
 
 #ifndef WW3D_BGFX_AVAILABLE
 #define WW3D_BGFX_AVAILABLE 0
@@ -283,10 +284,12 @@ static void PopulateBgfxDeviceDescriptions()
 static bool InitializeBgfx(void* hwnd)
 {
 #if WW3D_BGFX_AVAILABLE
-        g_bgfxState.windowHandle = hwnd;
+        void* windowHandle = ApplicationBgfxNativeWindow.window != NULL ?
+                ApplicationBgfxNativeWindow.window : hwnd;
+        g_bgfxState.windowHandle = windowHandle;
         g_bgfxState.initialized = false;
 
-        _Hwnd = (HWND)hwnd;
+        _Hwnd = (HWND)windowHandle;
         _MainThreadID = ThreadClass::_Get_Current_Thread_ID();
         CurRenderDevice = -1;
         ResolutionWidth = DEFAULT_RESOLUTION_WIDTH;
@@ -307,7 +310,12 @@ static bool InitializeBgfx(void* hwnd)
 
         bgfx::PlatformData platformData;
         ::memset(&platformData, 0, sizeof(platformData));
-        platformData.nwh = hwnd;
+        platformData.ndt = ApplicationBgfxNativeWindow.display;
+        platformData.nwh = windowHandle;
+        platformData.context = ApplicationBgfxNativeWindow.context;
+        platformData.backBuffer = ApplicationBgfxNativeWindow.backBuffer;
+        platformData.backBufferDS = ApplicationBgfxNativeWindow.backBufferDepth;
+        platformData.destroyWindow = ApplicationBgfxNativeWindow.destroyWindow;
         bgfx::setPlatformData(platformData);
 
         bgfx::Init initArgs;

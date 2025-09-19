@@ -46,6 +46,8 @@
 #include "GameClient/GameWindow.h"
 #include "GameClient/Display.h"
 
+#ifdef _WIN32
+
 #ifdef _INTERNAL
 // for occasional debugging...
 //#pragma optimize("", off)
@@ -308,8 +310,14 @@ ULONG STDMETHODCALLTYPE WebBrowser::Release(void)
 	return mRefCount;
 }
 
-STDMETHODIMP WebBrowser::TestMethod(Int num1) 
+STDMETHODIMP WebBrowser::TestMethod(Int num1)
 {
-	DEBUG_LOG(("WebBrowser::TestMethod - num1 = %d\n", num1));
-	return S_OK;
+        DEBUG_LOG(("WebBrowser::TestMethod - num1 = %d\n", num1));
+        return S_OK;
 }
+
+#else  // !_WIN32
+
+WebBrowser *TheWebBrowser = NULL;
+
+#endif  // _WIN32

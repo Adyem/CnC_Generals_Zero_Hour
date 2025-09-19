@@ -39,6 +39,9 @@
 #include "Common/SubsystemInterface.h"
 #include "GameClient/Color.h"
 #include "Common/STLTypedefs.h"
+#include "GameClient/TerrainVisual.h"
+#include "GameLogic/Module/BodyModule.h"
+#include "GameLogic/AI.h"
 
 // FORWARD DECLARATIONS ///////////////////////////////////////////////////////////////////////////
 struct FieldParse;

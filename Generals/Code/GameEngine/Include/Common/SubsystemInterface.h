@@ -33,7 +33,8 @@
 #define __SUBSYSTEMINTERFACE_H_
 
 #include "Common/INI.h"
-#include "Common/STLTypedefs.h"	
+#include "Common/STLTypedefs.h"
+#include <vector>
 
 class Xfer;
 
