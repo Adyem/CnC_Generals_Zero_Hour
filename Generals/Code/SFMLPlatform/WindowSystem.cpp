@@ -27,6 +27,8 @@ namespace sfml_platform {
 
 namespace {
 
+WindowSystem* g_activeWindowSystem = nullptr;
+
 #if defined(SFML_SYSTEM_LINUX)
 Display* acquireX11Display() {
     static Display* display = nullptr;
@@ -197,6 +199,14 @@ NativeWindowHandle WindowSystem::nativeHandle() const {
 #endif
 
     return handle;
+}
+
+void SetActiveWindowSystem(WindowSystem* system) {
+    g_activeWindowSystem = system;
+}
+
+WindowSystem* GetActiveWindowSystem() {
+    return g_activeWindowSystem;
 }
 
 } // namespace sfml_platform

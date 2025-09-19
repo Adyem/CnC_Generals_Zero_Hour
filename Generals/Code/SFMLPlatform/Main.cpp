@@ -18,12 +18,9 @@
 
 #include <Common/CriticalSection.h>
 #include <Common/StackDump.h>
-#include <GameClient/Keyboard.h>
-#include <GameClient/Mouse.h>
 #include <Common/GameEngine.h>
 #include <Common/GameAudio.h>
 #include <SfmlDevice/Common/SfmlGameEngine.h>
-#include <W3DDevice/GameClient/RenderBackend.h>
 
 #include <Main/WinMain.h>
 #include <Main/EntryPointLifecycle.h>
@@ -35,8 +32,6 @@
 
 using sfml_platform::WindowConfig;
 using sfml_platform::WindowSystem;
-using sfml_platform::GetActiveKeyboardBridge;
-using sfml_platform::GetActiveMouseBridge;
 using sfml_platform::NativeWindowHandle;
 
 extern Bool ApplicationIsWindowed;
@@ -64,8 +59,6 @@ CriticalSection critSec2;
 CriticalSection critSec3;
 CriticalSection critSec4;
 CriticalSection critSec5;
-
-WindowSystem* g_activeWindowSystem = nullptr;
 
 std::vector<std::string> toArgumentVector(int argc, char** argv) {
     std::vector<std::string> args;
@@ -108,91 +101,6 @@ std::optional<unsigned int> parseUnsigned(const std::string& value) {
         return static_cast<unsigned int>(parsed);
     } catch (const std::exception&) {
         return std::nullopt;
-    }
-}
-
-void processSfmlEvents() {
-    if (g_activeWindowSystem == nullptr) {
-        return;
-    }
-
-    sf::RenderWindow& window = g_activeWindowSystem->window();
-    sf::Event event{};
-    while (window.isOpen() && window.pollEvent(event)) {
-        if (auto* keyboard = GetActiveKeyboardBridge()) {
-            keyboard->handleEvent(event);
-        }
-        if (auto* mouse = GetActiveMouseBridge()) {
-            mouse->handleEvent(event);
-        }
-
-        switch (event.type) {
-            case sf::Event::Closed:
-                window.close();
-                if (TheGameEngine) {
-                    TheGameEngine->checkAbnormalQuitting();
-                    TheGameEngine->reset();
-                    TheGameEngine->setQuitting(TRUE);
-                }
-                break;
-
-            case sf::Event::LostFocus:
-                if (TheKeyboard) {
-                    TheKeyboard->resetKeys();
-                }
-                if (auto* mouse = GetActiveMouseBridge()) {
-                    mouse->lostFocus(TRUE);
-                }
-                if (TheGameEngine) {
-                    TheGameEngine->setIsActive(FALSE);
-                }
-#ifdef _WIN32
-                GetRenderBackend().HandleFocusChange(false);
-#endif
-                if (TheAudio) {
-                    TheAudio->loseFocus();
-                }
-                break;
-
-            case sf::Event::GainedFocus:
-                if (TheKeyboard) {
-                    TheKeyboard->resetKeys();
-                }
-                if (auto* mouse = GetActiveMouseBridge()) {
-                    mouse->lostFocus(FALSE);
-                    mouse->refreshCursor();
-                }
-                if (TheGameEngine) {
-                    TheGameEngine->setIsActive(TRUE);
-                }
-#ifdef _WIN32
-                GetRenderBackend().HandleFocusChange(true);
-#endif
-                if (TheAudio) {
-                    TheAudio->regainFocus();
-                }
-                break;
-
-            case sf::Event::MouseEntered:
-                if (auto* mouse = GetActiveMouseBridge()) {
-                    mouse->refreshCursor();
-                }
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    if (!window.isOpen()) {
-        if (TheGameEngine) {
-            TheGameEngine->setQuitting(TRUE);
-        }
-        return;
-    }
-
-    if (auto* mouse = GetActiveMouseBridge()) {
-        mouse->refreshCursor();
     }
 }
 
@@ -386,9 +294,7 @@ int main(int argc, char** argv) {
     ApplicationBgfxNativeWindow.destroyWindow = nativeHandle.destroyWindow;
     ApplicationIsWindowed = !parsed.config.fullscreen;
     gInitialEngineActiveState = windowSystem.window().hasFocus() ? TRUE : FALSE;
-    g_activeWindowSystem = &windowSystem;
-
-    SetWindowsMessagePumpOverride(processSfmlEvents);
+    sfml_platform::SetActiveWindowSystem(&windowSystem);
 
     assignCriticalSections();
 
@@ -413,8 +319,7 @@ int main(int argc, char** argv) {
         std::cerr << "Unhandled exception while running GameMain" << std::endl;
     }
 
-    SetWindowsMessagePumpOverride(NULL);
-    g_activeWindowSystem = nullptr;
+    sfml_platform::SetActiveWindowSystem(nullptr);
 
     clearCriticalSections();
 
