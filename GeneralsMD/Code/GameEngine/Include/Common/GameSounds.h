@@ -83,7 +83,7 @@ class SoundManager : public SubsystemInterface
 		// empty string means that this sound wasn't found or some error occurred. CHECK FOR EMPTY STRING.
 		virtual AsciiString getFilenameForPlayFromAudioEvent( const AudioEventRTS *eventToGetFrom );
 
-		// called by this class and MilesAudioManager to determine if a sound can still be played
+                // called by this class and the active AudioManager to determine if a sound can still be played
 		virtual Bool canPlayNow( AudioEventRTS *event );
 
 	protected:

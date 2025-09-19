@@ -1361,14 +1361,6 @@ SOURCE=.\Source\VideoDevice\Bink\BinkVideoPlayer.cpp
 # End Source File
 # End Group
 # End Group
-# Begin Group "MilesAudioDevice"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\Source\MilesAudioDevice\MilesAudioManager.cpp
-# End Source File
-# End Group
 # End Group
 # Begin Group "Include"
 
@@ -1780,14 +1772,6 @@ SOURCE=.\Include\VideoDevice\Bink\RAD.H
 SOURCE=.\Include\VideoDevice\Bink\radbase.h
 # End Source File
 # End Group
-# End Group
-# Begin Group "MilesAudioDevice H"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\Include\MilesAudioDevice\MilesAudioManager.h
-# End Source File
 # End Group
 # End Group
 # End Target

@@ -39,11 +39,7 @@
 #include "Common/GameEngine.h"
 #include "GameLogic/GameLogic.h"
 #include "GameNetwork/NetworkInterface.h"
-#if defined(_WIN32) && !defined(__unix__) && !defined(__APPLE__)
-#include "MilesAudioDevice/MilesAudioManager.h"
-#else
 #include "SFMLPlatform/SfmlAudioManager.h"
-#endif
 #include "Win32Device/Common/Win32BIGFileSystem.h"
 #include "Win32Device/Common/Win32LocalFileSystem.h"
 #include "W3DDevice/Common/W3DModuleFactory.h"
@@ -115,11 +111,7 @@ inline AudioManager *Win32GameEngine::createAudioManager( void ) {
         if (factory != NULL) {
                 return factory();
         }
-#if defined(_WIN32) && !defined(__unix__) && !defined(__APPLE__)
-        return NEW MilesAudioManager;
-#else
         return NEW SfmlAudioManager;
-#endif
 }
  
 #endif  // end __WIN32GAMEENGINE_H_
