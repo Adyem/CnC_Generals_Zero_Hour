@@ -39,6 +39,7 @@
 #include "GameClient/Color.h"
 #include "WWMath/matrix3d.h"
 #include "GameClient/DrawableInfo.h"
+#include "Common/BodyDamageType.h"
 
 // FORWARD REFERENCES /////////////////////////////////////////////////////////////////////////////
 class PositionalSound;
@@ -55,7 +56,6 @@ class Shadow;
 class ModuleInfo;
 class Anim2DTemplate;
 class Image;
-enum BodyDamageType;
 
 // this is a very worthwhile performance win. left conditionally defined for now, just 
 // in case, but probably should be made permanent soon. (srj)

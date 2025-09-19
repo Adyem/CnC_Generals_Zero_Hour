@@ -3,7 +3,7 @@
 #include "WinMain.h"
 #include "Common/Debug.h"
 #include "Common/GameMemory.h"
-#include "Common/Version.h"
+#include "Common/version.h"
 #include "BuildVersion.h"
 #include "GeneratedVersion.h"
 

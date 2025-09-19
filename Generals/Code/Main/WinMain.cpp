@@ -30,6 +30,35 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+
+#define FORCE_WIN32_COMPAT 1
+#include "compat/win_compat.h"
+#undef FORCE_WIN32_COMPAT
+
+#include <cstdlib>
+
+#include "WinMain.h"
+
+HINSTANCE ApplicationHInstance = nullptr;
+HWND ApplicationHWnd = nullptr;
+HDC ApplicationHDC = nullptr;
+HGLRC ApplicationHGLRC = nullptr;
+GraphicsBackend ApplicationGraphicsBackend = GRAPHICS_BACKEND_BGFX;
+Win32Mouse* TheWin32Mouse = nullptr;
+DWORD TheMessageTime = 0;
+Bool gInitialEngineActiveState = true;
+BgfxNativeWindowData ApplicationBgfxNativeWindow{};
+
+Int APIENTRY WinMain(HINSTANCE, HINSTANCE, LPSTR, Int) {
+        // Linux and other non-Windows platforms bootstrap the game via the SFML entry point.
+        // This stub exists solely to satisfy the build when the Windows sources are compiled
+        // into static libraries.
+        return EXIT_SUCCESS;
+}
+
+#else
+
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 #define WIN32_LEAN_AND_MEAN  // only bare bones windows stuff wanted
 #include <windows.h>
@@ -1195,3 +1224,5 @@ Int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	return 0;
 
 }  // end WinMain
+
+#endif  // platform dispatch

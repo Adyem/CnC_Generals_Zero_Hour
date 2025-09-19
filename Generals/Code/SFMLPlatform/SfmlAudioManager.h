@@ -113,7 +113,7 @@ private:
     ActiveSound* findActiveSound(AudioHandle handle);
     std::vector<AudioHandle> collectHandlesMatching(const AsciiString& eventName) const;
 
-    Real getEffectiveVolume(const AudioEventRTS* event) const;
+    Real getEffectiveVolume(AudioEventRTS* event) const;
 
     std::shared_ptr<sf::SoundBuffer> loadBuffer(const AsciiString& filename);
     void purgeExpiredBuffers();

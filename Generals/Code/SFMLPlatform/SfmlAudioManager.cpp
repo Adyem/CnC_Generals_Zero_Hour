@@ -72,7 +72,7 @@ public:
         return true;
     }
 
-    void enqueueSamples(const Int16* samples, std::size_t count) {
+    void enqueueSamples(const sf::Int16* samples, std::size_t count) {
         if (!samples || count == 0) {
             return;
         }
@@ -117,8 +117,8 @@ protected:
 private:
     std::mutex m_mutex;
     std::condition_variable m_condition;
-    std::deque<std::vector<Int16>> m_pending;
-    std::vector<Int16> m_current;
+    std::deque<std::vector<sf::Int16>> m_pending;
+    std::vector<sf::Int16> m_current;
     bool m_running;
 };
 
@@ -215,8 +215,8 @@ public:
                 break;
             }
 
-            const Int16* samples = static_cast<const Int16*>(data);
-            std::size_t sampleCount = dataSize / sizeof(Int16);
+            const sf::Int16* samples = static_cast<const sf::Int16*>(data);
+            std::size_t sampleCount = dataSize / sizeof(sf::Int16);
             m_stream->enqueueSamples(samples, sampleCount);
         }
     }
@@ -553,7 +553,7 @@ Bool SfmlAudioManager::isObjectPlayingVoice(UnsignedInt objID) const {
         if (!entry.second || !entry.second->event) {
             continue;
         }
-        const AudioEventRTS* evt = entry.second->event.get();
+        AudioEventRTS* evt = entry.second->event.get();
         if (!evt->getAudioEventInfo()) {
             continue;
         }
@@ -943,7 +943,7 @@ std::vector<AudioHandle> SfmlAudioManager::collectHandlesMatching(const AsciiStr
     return handles;
 }
 
-Real SfmlAudioManager::getEffectiveVolume(const AudioEventRTS* event) const {
+Real SfmlAudioManager::getEffectiveVolume(AudioEventRTS* event) const {
     if (!event || !event->getAudioEventInfo()) {
         return 0.0f;
     }

@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef _WIN32
+#if defined(__linux__) || defined(__unix__) || defined(__APPLE__) || defined(FORCE_WIN32_COMPAT)
 
 #include <cstdint>
 #include <cstddef>
@@ -58,6 +58,10 @@ using EXCEPTION_POINTERS = _EXCEPTION_POINTERS;
 
 #ifndef CALLBACK
 #define CALLBACK
+#endif
+
+#ifndef APIENTRY
+#define APIENTRY
 #endif
 
 #ifndef MAX_PATH
@@ -145,5 +149,5 @@ unsigned long GetModuleFileNameA(HMODULE module, char* buffer, unsigned long siz
 
 #include "string_compat.h"
 
-#endif // !_WIN32
+#endif // platform compat block
 

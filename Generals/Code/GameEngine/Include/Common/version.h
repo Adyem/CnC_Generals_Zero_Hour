@@ -31,6 +31,9 @@
 #ifndef __VERSION_H__
 #define __VERSION_H__
 
+#include "Common/AsciiString.h"
+#include "Common/UnicodeString.h"
+
 /** 
  * The Version class formats the version number into integer and string
  * values for different parts of the game.

@@ -59,7 +59,7 @@ class STLSpecialAlloc;
 #include "Common/GameCommon.h"
 #include "Common/GameMemory.h"
 #include "Common/GameType.h"
-#include "Common/NameKeyGenerator.h"
+#include "Common/NameKeyType.h"
 
 //-----------------------------------------------------------------------------
 
