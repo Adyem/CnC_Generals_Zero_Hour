@@ -1608,10 +1608,16 @@ void W3DDisplay::draw( void )
 	//USE_PERF_TIMER(W3DDisplay_draw)
 	static UnsignedInt syncTime = 0;
 
+	if (TheGameEngine != NULL && !TheGameEngine->isActive()) {
+		return;
+	}
+
+#ifdef _WIN32
 	extern HWND ApplicationHWnd;
 	if (ApplicationHWnd && ::IsIconic(ApplicationHWnd)) {
 		return;
 	}
+#endif
 
 
 	updateAverageFPS();
@@ -2903,25 +2909,39 @@ void W3DDisplay::takeScreenShot(void)
 	D3DSURFACE_DESC desc;
 	fb->GetDesc(&desc);
 
-	RECT bounds;
-	POINT point;
-
-	GetClientRect(ApplicationHWnd,&bounds);
-	point.x=bounds.left; point.y=bounds.top;
-	ClientToScreen(ApplicationHWnd, &point);
-	bounds.left=point.x; bounds.top=point.y; 
-	point.x=bounds.right; point.y=bounds.bottom;
-	ClientToScreen(ApplicationHWnd, &point);
-	bounds.right=point.x; bounds.bottom=point.y;
- 
+#ifdef _WIN32
+	extern HWND ApplicationHWnd;
+#endif
 	D3DLOCKED_RECT lrect;
-
-	DX8_ErrorCode(fb->LockRect(&lrect,&bounds,D3DLOCK_READONLY));
-
 	unsigned int x,y,index,index2,width,height;
 
-	width=bounds.right-bounds.left;
-	height=bounds.bottom-bounds.top;
+#ifdef _WIN32
+	if (ApplicationHWnd != NULL)
+	{
+		RECT bounds;
+		POINT point;
+
+		GetClientRect(ApplicationHWnd,&bounds);
+		point.x=bounds.left; point.y=bounds.top;
+		ClientToScreen(ApplicationHWnd, &point);
+		bounds.left=point.x; bounds.top=point.y;
+		point.x=bounds.right; point.y=bounds.bottom;
+		ClientToScreen(ApplicationHWnd, &point);
+		bounds.right=point.x; bounds.bottom=point.y;
+
+		DX8_ErrorCode(fb->LockRect(&lrect,&bounds,D3DLOCK_READONLY));
+
+		width=bounds.right-bounds.left;
+		height=bounds.bottom-bounds.top;
+	}
+	else
+#endif
+	{
+		DX8_ErrorCode(fb->LockRect(&lrect,NULL,D3DLOCK_READONLY));
+		width = desc.Width;
+		height = desc.Height;
+	}
+
 
 	char *image=NEW char[3*width*height];
 #ifdef CAPTURE_TO_TARGA

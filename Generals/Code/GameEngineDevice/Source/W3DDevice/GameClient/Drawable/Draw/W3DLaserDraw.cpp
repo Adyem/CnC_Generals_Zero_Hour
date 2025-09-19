@@ -46,7 +46,7 @@
 #include "W3DDevice/GameClient/W3DDisplay.h"
 #include "W3DDevice/GameClient/W3DScene.h"
 #include "WW3D2/RInfo.h"
-#include "WW3D2/Camera.h"
+#include "WW3D2/camera.h"
 #include "WW3D2/Segline.h"
 #include "WWMath/Vector3.h"
 #include "WW3D2/AssetMgr.h"

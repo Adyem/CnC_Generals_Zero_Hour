@@ -28,18 +28,8 @@
 #ifndef UDP_HEADER
 #define UDP_HEADER
 
-#ifdef _UNIX
+#if defined(__unix__) || defined(__APPLE__)
 #include <errno.h>
-#endif
-
-#ifdef _WINDOWS
-#include <winsock.h>
-#include <io.h>
-//#define close _close
-//#define read  _read
-//#define write _write
-
-#else  //UNIX
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -49,6 +39,11 @@
 #include <sys/time.h>
 #include <fcntl.h>
 #include <limits.h>
+#elif defined(_WINDOWS) || defined(_WIN32)
+#include <winsock.h>
+#include <io.h>
+#else
+#error "Unsupported platform for UDP networking"
 #endif
 
 #ifdef AIX

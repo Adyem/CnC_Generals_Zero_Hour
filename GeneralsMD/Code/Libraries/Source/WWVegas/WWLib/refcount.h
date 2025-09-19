@@ -44,7 +44,7 @@
 #include "always.h"
 #endif
 
-#ifndef LISTNODE_H
+#ifndef listnode.h
 #include "listnode.h"
 #endif
 
