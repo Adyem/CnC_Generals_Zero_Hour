@@ -83,7 +83,7 @@
 #include "W3DDevice/GameClient/W3DDisplayStringManager.h"
 #include "GameClient/Keyboard.h"
 #include "Win32Device/GameClient/Win32Mouse.h"
-#include "Win32Device/GameClient/Win32DIKeyboard.h"
+#include "SFMLPlatform/SfmlKeyboardBridge.h"
 #include "Win32Device/Common/Win32LocalFileSystem.h"
 #include "Win32Device/Common/Win32BIGFileSystem.h"
 
@@ -565,7 +565,7 @@ void GUIEdit::init( void )
 	ThePlayerList = new PlayerList;
 	ThePlayerList->init();
 
-	TheKeyboard = new DirectInputKeyboard;
+    TheKeyboard = sfml_platform::CreateSfmlKeyboard();
 	//
 	// in order to easily expose the new methods for our own internal editor
 	// use we will keep a pointer to what we KNOW to be a gui edit window man.

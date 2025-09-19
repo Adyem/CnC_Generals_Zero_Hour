@@ -49,7 +49,6 @@
 #include "W3DDevice/GameClient/W3DGameFont.h"
 #include "W3DDevice/GameClient/W3DDisplayStringManager.h"
 #include "VideoDevice/Bink/BinkVideoPlayer.h"
-#include "Win32Device/GameClient/Win32DIKeyboard.h"
 #include "Win32Device/GameClient/Win32DIMouse.h"
 #include "Win32Device/GameClient/Win32Mouse.h"
 #include "W3DDevice/GameClient/W3DMouse.h"
@@ -123,7 +122,6 @@ protected:
 
 };  // end class W3DGameClient
 
-inline Keyboard *W3DGameClient::createKeyboard( void ) { return NEW DirectInputKeyboard; }
 inline Mouse *W3DGameClient::createMouse( void )
 {
         MouseFactoryFunction factory = GetMouseFactoryOverride();

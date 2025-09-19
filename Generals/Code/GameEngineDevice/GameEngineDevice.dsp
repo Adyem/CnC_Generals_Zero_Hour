@@ -954,10 +954,6 @@ SOURCE=.\Source\Win32Device\Common\Win32OSDisplay.cpp
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\Win32Device\GameClient\Win32DIKeyboard.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\Source\Win32Device\GameClient\Win32Mouse.cpp
 # End Source File
 # End Group
@@ -1320,10 +1316,6 @@ SOURCE=.\Include\Win32Device\Common\Win32LocalFileSystem.h
 # Begin Group "GameClient H (Win32Device)"
 
 # PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\Include\Win32Device\GameClient\Win32DIKeyboard.h
-# End Source File
 # Begin Source File
 
 SOURCE=.\Include\Win32Device\GameClient\Win32Mouse.h

@@ -48,6 +48,7 @@
 #include "GameClient/GameClient.h"
 #include "GameClient/ParticleSys.h"
 #include "GameClient/RayEffect.h"
+#include "SFMLPlatform/SfmlKeyboardBridge.h"
 #include "W3DDevice/GameClient/W3DAssetManager.h"
 #include "W3DDevice/GameClient/W3DGameClient.h"
 #include "W3DDevice/GameClient/W3DStatusCircle.h"
@@ -72,6 +73,21 @@ W3DGameClient::~W3DGameClient()
 {
 
 }  // end ~W3DGameClient
+
+Keyboard *W3DGameClient::createKeyboard( void )
+{
+        KeyboardFactoryFunction factory = GetKeyboardFactoryOverride();
+        if( factory )
+        {
+                Keyboard *keyboard = factory();
+                if( keyboard )
+                {
+                        return keyboard;
+                }
+        }
+
+        return sfml_platform::CreateSfmlKeyboard();
+}
 
 //-------------------------------------------------------------------------------------------------
 /** Initialize resources for the w3d game client */
