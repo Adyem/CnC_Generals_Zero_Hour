@@ -35,18 +35,38 @@
 #ifndef __SFMLGAMEENGINE_H_
 #define __SFMLGAMEENGINE_H_
 
-#include "Win32Device/Common/Win32GameEngine.h"
+#include "Common/GameEngine.h"
 
-class SfmlGameEngine : public Win32GameEngine
+namespace sf
+{
+        class Event;
+}
+
+class SfmlGameEngine : public GameEngine
 {
 public:
         SfmlGameEngine();
         virtual ~SfmlGameEngine();
 
-        virtual void update( void );
+        virtual void execute(void);
+        virtual void update(void);
 
 protected:
-        virtual void serviceWindowsOS( void );
+        virtual GameLogic* createGameLogic(void);
+        virtual GameClient* createGameClient(void);
+        virtual ModuleFactory* createModuleFactory(void);
+        virtual ThingFactory* createThingFactory(void);
+        virtual FunctionLexicon* createFunctionLexicon(void);
+        virtual LocalFileSystem* createLocalFileSystem(void);
+        virtual ArchiveFileSystem* createArchiveFileSystem(void);
+        virtual NetworkInterface* createNetwork(void);
+        virtual Radar* createRadar(void);
+        virtual WebBrowser* createWebBrowser(void);
+        virtual AudioManager* createAudioManager(void);
+        virtual ParticleSystemManager* createParticleSystemManager(void);
+
+private:
+        void handleEvent(const sf::Event& event);
 };
 
 GameEngine* CreateSfmlGameEngine();

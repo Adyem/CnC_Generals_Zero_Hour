@@ -42,4 +42,7 @@ private:
     bool m_running = false;
 };
 
+void SetActiveWindowSystem(WindowSystem* system);
+WindowSystem* GetActiveWindowSystem();
+
 } // namespace sfml_platform
