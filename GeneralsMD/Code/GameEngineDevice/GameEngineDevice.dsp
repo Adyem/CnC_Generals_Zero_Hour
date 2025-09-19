@@ -1352,12 +1352,12 @@ SOURCE=.\Source\Win32Device\GameClient\Win32Mouse.cpp
 # Begin Group "VideoDevice"
 
 # PROP Default_Filter ""
-# Begin Group "Bink"
+# Begin Group "VLC"
 
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\VideoDevice\Bink\BinkVideoPlayer.cpp
+SOURCE=.\Source\VideoDevice\VLC\VlcVideoPlayer.cpp
 # End Source File
 # End Group
 # End Group
@@ -1752,24 +1752,12 @@ SOURCE=.\Include\Win32Device\GameClient\Win32Mouse.h
 # Begin Group "VideoDevice H"
 
 # PROP Default_Filter ""
-# Begin Group "Bink H"
+# Begin Group "VLC H"
 
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Include\VideoDevice\Bink\BINK.H
-# End Source File
-# Begin Source File
-
-SOURCE=.\Include\VideoDevice\Bink\BinkVideoPlayer.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\Include\VideoDevice\Bink\RAD.H
-# End Source File
-# Begin Source File
-
-SOURCE=.\Include\VideoDevice\Bink\radbase.h
+SOURCE=.\Include\VideoDevice\VLC\VlcVideoPlayer.h
 # End Source File
 # End Group
 # End Group
