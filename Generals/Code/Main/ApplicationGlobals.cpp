@@ -27,6 +27,7 @@ Bool ApplicationIsWindowed = false;
 GraphicsBackend ApplicationGraphicsBackend = GRAPHICS_BACKEND_DIRECT3D8;
 Win32Mouse* TheWin32Mouse = NULL;
 DWORD TheMessageTime = 0;
+BgfxNativeWindowData ApplicationBgfxNativeWindow;
 
 const Char* g_strFile = "data\\Generals.str";
 const Char* g_csfFile = "data\\%s\\Generals.csf";

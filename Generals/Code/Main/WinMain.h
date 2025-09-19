@@ -62,6 +62,28 @@ extern Win32Mouse *TheWin32Mouse;  ///< global for win32 mouse only!
 extern DWORD TheMessageTime;       ///< For getting the time that a message was posted from Windows.
 extern Bool gInitialEngineActiveState;
 
+struct BgfxNativeWindowData
+{
+        void *display;
+        void *window;
+        void *context;
+        void *backBuffer;
+        void *backBufferDepth;
+        void (*destroyWindow)(void *);
+
+        BgfxNativeWindowData()
+                : display(NULL),
+                  window(NULL),
+                  context(NULL),
+                  backBuffer(NULL),
+                  backBufferDepth(NULL),
+                  destroyWindow(NULL)
+        {
+        }
+};
+
+extern BgfxNativeWindowData ApplicationBgfxNativeWindow;
+
 #ifdef _WIN32
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 #endif

@@ -35,8 +35,14 @@
 #include "Common/SubsystemInterface.h"
 #include "Common/GameMemory.h"
 #include "Common/GameType.h"
+#include "Common/SpecialPowerType.h"
+#include "Common/Upgrade.h"
+#include "GameClient/ControlBar.h"
 #include "GameLogic/Damage.h"
 #include "GameLogic/HackerAttackMode.h"
+#include "GameLogic/WeaponSet.h"
+#include "GameLogic/WeaponSetType.h"
+#include "GameLogic/Module/BattlePlanUpdate.h"
 #include "Common/STLTypedefs.h"
 
 class AIGroup;

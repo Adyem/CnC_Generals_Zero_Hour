@@ -37,6 +37,7 @@ using sfml_platform::WindowConfig;
 using sfml_platform::WindowSystem;
 using sfml_platform::GetActiveKeyboardBridge;
 using sfml_platform::GetActiveMouseBridge;
+using sfml_platform::NativeWindowHandle;
 
 extern Bool ApplicationIsWindowed;
 
@@ -376,13 +377,20 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    const NativeWindowHandle nativeHandle = windowSystem.nativeHandle();
+
 #ifdef _WIN32
     ApplicationHInstance = GetModuleHandle(nullptr);
-    ApplicationHWnd = reinterpret_cast<HWND>(windowSystem.window().getSystemHandle());
 #else
     ApplicationHInstance = nullptr;
-    ApplicationHWnd = nullptr;
 #endif
+    ApplicationHWnd = reinterpret_cast<HWND>(nativeHandle.window);
+    ApplicationBgfxNativeWindow.display = nativeHandle.display;
+    ApplicationBgfxNativeWindow.window = nativeHandle.window;
+    ApplicationBgfxNativeWindow.context = nativeHandle.context;
+    ApplicationBgfxNativeWindow.backBuffer = nativeHandle.backBuffer;
+    ApplicationBgfxNativeWindow.backBufferDepth = nativeHandle.backBufferDepth;
+    ApplicationBgfxNativeWindow.destroyWindow = nativeHandle.destroyWindow;
     ApplicationIsWindowed = !parsed.config.fullscreen;
     gInitialEngineActiveState = windowSystem.window().hasFocus() ? TRUE : FALSE;
     g_activeWindowSystem = &windowSystem;
