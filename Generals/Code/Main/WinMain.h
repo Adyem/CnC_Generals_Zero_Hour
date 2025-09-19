@@ -34,16 +34,23 @@
 #define __WINMAIN_H_
 
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
-#ifdef _WIN32
-#include <windows.h>
+#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+#define FORCE_WIN32_COMPAT 1
+#include "compat/win_compat.h"
+#undef FORCE_WIN32_COMPAT
 #else
-using HINSTANCE = void *;
-using HWND = void *;
-using HDC = void *;
-using HGLRC = void *;
+#include <windows.h>
+#endif
+
+#ifndef HDC
+using HDC = void*;
+#endif
+#ifndef HGLRC
+using HGLRC = void*;
 #endif
 
 // USER INCLUDES //////////////////////////////////////////////////////////////
+#include "Lib/BaseType.h"
 #include "GraphicsBackend.h"
 #ifdef _WIN32
 #include "Win32Device/GameClient/Win32Mouse.h"

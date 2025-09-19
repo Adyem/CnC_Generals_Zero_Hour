@@ -33,6 +33,7 @@
 
 #include <stdio.h>
 #include "Common/SubsystemInterface.h"
+#include "Common/StaticGameLODLevel.h"
 #include "View.h"
 #include "GameClient/Color.h"
 #include "GameClient/GameFont.h"
@@ -51,7 +52,6 @@ class DebugDisplayInterface;
 class Radar;
 class Image;
 class DisplayString;
-enum StaticGameLODLevel;
 /**
  * The Display class implements the Display interface
  */

@@ -39,11 +39,10 @@
 #include "Common/GameMemory.h"
 #include "Common/NameKeyGenerator.h"
 #include "Common/Snapshot.h"
-#include "Common/GameLOD.h"
+#include "Common/StaticGameLODLevel.h"
 
 // FORWARD REFERENCES /////////////////////////////////////////////////////////////////////////////
 enum TimeOfDay;
-enum StaticGameLODLevel;
 class Drawable;
 class Object;
 class Player;

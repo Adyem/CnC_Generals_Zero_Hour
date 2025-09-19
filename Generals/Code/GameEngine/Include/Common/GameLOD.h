@@ -38,7 +38,7 @@
 
 #include "Common/AsciiString.h"
 #include "Common/GameMemory.h"
-#include "Common/Module.h"
+#include "Common/StaticGameLODLevel.h"
 #include "GameClient/ParticleSys.h"
 
 enum ParticlePriorityType;
@@ -46,16 +46,6 @@ enum ParticlePriorityType;
 #define MAX_LOD_PRESETS_PER_LEVEL	32	//number of hardware configs preset for each low,medium,high
 #define MAX_BENCH_PROFILES	16
 
-//Make sure this enum stays in sync with GameLODNames[]
-enum StaticGameLODLevel
-{
-	STATIC_GAME_LOD_UNKNOWN=-1,
-	STATIC_GAME_LOD_LOW,
-	STATIC_GAME_LOD_MEDIUM,
-	STATIC_GAME_LOD_HIGH,
-	STATIC_GAME_LOD_CUSTOM,	//make sure this remains last!
-	STATIC_GAME_LOD_COUNT
-};
 
 enum DynamicGameLODLevel
 {
