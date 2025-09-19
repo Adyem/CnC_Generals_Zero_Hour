@@ -57,6 +57,7 @@ TARGET      ?= $(BIN_DIR)/generals-sfml
 ESCAPED_INCLUDE_DIRS := $(shell find $(SRC_DIR) -type d -print | sed 's/ /\\ /g' | sort)
 INCLUDE_DIRS         := $(foreach dir,$(ESCAPED_INCLUDE_DIRS),-I$(dir))
 CPPFLAGS             += $(INCLUDE_DIRS)
+CPPFLAGS             += -DWW3D_BGFX_AVAILABLE=1
 
 # STLport ships in a nested "stlport" include directory, so add a convenience
 # include for it when present.
