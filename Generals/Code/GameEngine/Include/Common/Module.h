@@ -39,6 +39,7 @@
 #include "Common/GameMemory.h"
 #include "Common/NameKeyGenerator.h"
 #include "Common/Snapshot.h"
+#include "Common/GameLOD.h"
 
 // FORWARD REFERENCES /////////////////////////////////////////////////////////////////////////////
 enum TimeOfDay;

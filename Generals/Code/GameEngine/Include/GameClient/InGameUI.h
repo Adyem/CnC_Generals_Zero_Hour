@@ -33,8 +33,10 @@
 #ifndef _IN_GAME_UI_H_
 #define _IN_GAME_UI_H_
 
+#include "Common/BuildAssistant.h"
 #include "Common/GameCommon.h"
 #include "Common/GameType.h"
+#include "Common/KindOf.h"
 #include "Common/MessageStream.h"		// for GameMessageTranslator
 #include "Common/SpecialPowerType.h"
 #include "Common/STLTypedefs.h"
@@ -45,6 +47,7 @@
 #include "GameClient/RadiusDecal.h"
 #include "GameClient/View.h"
 #include "Common/Snapshot.h"
+#include "GameLogic/WeaponSet.h"
 
 // FORWARD DECLARATIONS ///////////////////////////////////////////////////////////////////////////
 class Drawable;
@@ -59,10 +62,6 @@ class WindowLayout;
 class Anim2DTemplate;
 class Anim2D;
 class Shadow;
-enum LegalBuildCode;
-enum KindOfType;
-enum ShadowType;
-enum CanAttackResult;
 
 // ------------------------------------------------------------------------------------------------
 enum RadiusCursorType

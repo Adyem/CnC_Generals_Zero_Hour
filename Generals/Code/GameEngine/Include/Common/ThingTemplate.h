@@ -43,8 +43,11 @@
 #include "Common/ModuleFactory.h"
 #include "Common/Overridable.h"
 #include "Common/ProductionPrerequisite.h"
+#include "Common/Radar.h"
 #include "Common/Science.h"
+#include "Common/ThingSort.h"
 #include "Common/UnicodeString.h"
+#include "GameClient/Shadow.h"
 
 #include "GameLogic/ArmorSet.h"
 #include "GameLogic/WeaponSet.h"
@@ -60,10 +63,7 @@ class ProductionPrerequisite;
 struct FieldParse;
 class Player;
 class INI;
-enum RadarPriorityType;
 enum ScienceType;
-enum EditorSortingType;
-enum ShadowType;
 class WeaponTemplateSet;
 class ArmorTemplateSet;
 class FXList;
@@ -279,7 +279,7 @@ public:
 	ModuleInfo() { }
 
 	void addModuleInfo(ThingTemplate *thingTemplate, const AsciiString& name, const AsciiString& moduleTag, const ModuleData* data, Int interfaceMask, Bool inheritable);
-	const ModuleInfo::Nugget *ModuleInfo::getNuggetWithTag( const AsciiString& tag ) const;
+        const ModuleInfo::Nugget *getNuggetWithTag( const AsciiString& tag ) const;
 
 	Int getCount() const 
 	{ 

@@ -49,7 +49,9 @@
 #include "W3DDevice/Common/W3DModuleFactory.h"
 #include "W3DDevice/GameLogic/W3DGameLogic.h"
 #include "W3DDevice/GameClient/W3DGameClient.h"
+#if defined(_WIN32)
 #include "W3DDevice/GameClient/W3DWebBrowser.h"
+#endif
 #include "W3DDevice/Common/W3DFunctionLexicon.h"
 #include "W3DDevice/Common/W3DRadar.h"
 #include "W3DDevice/Common/W3DFunctionLexicon.h"
@@ -110,7 +112,11 @@ inline ParticleSystemManager* Win32GameEngine::createParticleSystemManager( void
 
 inline NetworkInterface *Win32GameEngine::createNetwork( void ) { return NetworkInterface::createNetwork(); }
 inline Radar *Win32GameEngine::createRadar( void ) { return NEW W3DRadar; }
+#if defined(_WIN32)
 inline WebBrowser *Win32GameEngine::createWebBrowser( void ) { return NEW CComObject<W3DWebBrowser>; }
+#else
+inline WebBrowser *Win32GameEngine::createWebBrowser( void ) { return NULL; }
+#endif
 inline AudioManager *Win32GameEngine::createAudioManager( void ) {
         AudioManagerFactoryFunction factory = GetAudioManagerFactoryOverride();
         if (factory != NULL) {

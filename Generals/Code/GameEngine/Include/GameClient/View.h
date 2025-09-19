@@ -36,6 +36,7 @@
 #include "Common/GameType.h"
 #include "Common/Snapshot.h"
 #include "Lib/BaseType.h"
+#include "GameClient/FilterTypes.h"
 #include "WW3D2/coltype.h"			///< we don't generally do this, but we need the W3D collision types
 
 #define DEFAULT_VIEW_WIDTH 640

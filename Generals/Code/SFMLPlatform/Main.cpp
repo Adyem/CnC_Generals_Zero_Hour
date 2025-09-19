@@ -1,3 +1,16 @@
+#include <algorithm>
+#include <cstdlib>
+#include <cstring>
+#include <filesystem>
+#include <iostream>
+#include <limits>
+#include <optional>
+#include <system_error>
+#include <string>
+#include <vector>
+
+#include <SFML/Graphics/RenderWindow.hpp>
+
 #include "WindowSystem.h"
 #include "SfmlAudioManager.h"
 #include "SfmlKeyboardBridge.h"
@@ -14,19 +27,6 @@
 
 #include <Main/WinMain.h>
 #include <Main/EntryPointLifecycle.h>
-
-#include <SFML/Graphics/RenderWindow.hpp>
-
-#include <algorithm>
-#include <cstdlib>
-#include <cstring>
-#include <filesystem>
-#include <iostream>
-#include <limits>
-#include <optional>
-#include <system_error>
-#include <string>
-#include <vector>
 
 #ifdef _WIN32
 #include <eh.h>
@@ -92,7 +92,7 @@ void printHelp() {
               << "      --opengl         Use the OpenGL renderer\n"
               << "      --bgfx           Use the bgfx renderer\n"
               << "      --d3d            Use the Direct3D 8 renderer (default)\n"
-              << "      --bitdepth <n>   Set color bit depth (default 32)\n";
+              << "      --bitdepth <n>   Set color bit depth (default 32)\n"
               << "      --legacy-miles-audio Use legacy Miles audio backend\n";
 }
 

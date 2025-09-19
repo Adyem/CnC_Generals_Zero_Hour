@@ -36,6 +36,11 @@
 #ifndef _GAME_LOD_H_
 #define _GAME_LOD_H_
 
+#include "Common/AsciiString.h"
+#include "Common/GameMemory.h"
+#include "Common/Module.h"
+#include "GameClient/ParticleSys.h"
+
 enum ParticlePriorityType;
 
 #define MAX_LOD_PRESETS_PER_LEVEL	32	//number of hardware configs preset for each low,medium,high

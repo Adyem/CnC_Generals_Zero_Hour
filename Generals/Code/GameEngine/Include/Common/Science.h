@@ -33,17 +33,14 @@
 #define __SCIENCE_H_
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
+#include "Common/GameMemory.h"
 #include "Common/Overridable.h"
 #include "Common/NameKeyGenerator.h"
+#include "Common/ScienceType.h"
+#include "Common/SubsystemInterface.h"
 #include "Common/UnicodeString.h"
 
 class Player;
-
-//-------------------------------------------------------------------------------------------------
-enum ScienceType
-{
-	SCIENCE_INVALID = -1
-};
 
 //-------------------------------------------------------------------------------------------------
 typedef std::vector<ScienceType> ScienceVec;

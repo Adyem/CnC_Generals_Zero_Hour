@@ -33,8 +33,8 @@
 #include "Common/GameCommon.h"
 #include "Common/GameType.h"
 #include "GameClient/Color.h"
+#include "GameClient/Shadow.h"
 
-enum ShadowType;
 class Player;
 class Shadow;
 class RadiusDecalTemplate;

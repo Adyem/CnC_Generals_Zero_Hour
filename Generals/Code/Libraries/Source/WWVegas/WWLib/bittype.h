@@ -41,26 +41,32 @@
 #ifndef BITTYPE_H
 #define BITTYPE_H
 
-typedef unsigned char	uint8;
-typedef unsigned short	uint16;
-typedef unsigned long	uint32;
+#include <cstdint>
+
+typedef std::uint8_t    uint8;
+typedef std::uint16_t   uint16;
+typedef std::uint32_t   uint32;
 typedef unsigned int    uint;
 
-typedef signed char		sint8;
-typedef signed short		sint16;
-typedef signed long		sint32;
-typedef signed int      sint;
+typedef std::int8_t             sint8;
+typedef std::int16_t            sint16;
+typedef std::int32_t            sint32;
+typedef int             sint;
 
-typedef float				float32;
-typedef double				float64;
+typedef float                           float32;
+typedef double                          float64;
 
+#ifdef _WIN32
 typedef unsigned long   DWORD;
-typedef unsigned short	WORD;
+typedef unsigned short  WORD;
 typedef unsigned char   BYTE;
 typedef int             BOOL;
-typedef unsigned short	USHORT;
-typedef const char *		LPCSTR;
+typedef unsigned short  USHORT;
+typedef const char *            LPCSTR;
 typedef unsigned int    UINT;
 typedef unsigned long   ULONG;
+#else
+#include "../../../../compat/win_compat.h"
+#endif
 
 #endif //BITTYPE_H

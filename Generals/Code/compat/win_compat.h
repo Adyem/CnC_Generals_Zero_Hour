@@ -6,6 +6,18 @@
 #include <cstddef>
 #include <cstdarg>
 
+#ifndef __cdecl
+#define __cdecl
+#endif
+
+#ifndef __stdcall
+#define __stdcall
+#endif
+
+#ifndef _cdecl
+#define _cdecl
+#endif
+
 using BOOL = int;
 using BYTE = std::uint8_t;
 using WORD = std::uint16_t;
@@ -35,6 +47,10 @@ using LPTSTR = char*;
 using LPCTSTR = const char*;
 using LPWSTR = wchar_t*;
 using LPCWSTR = const wchar_t*;
+using WCHAR = wchar_t;
+
+struct _EXCEPTION_POINTERS;
+using EXCEPTION_POINTERS = _EXCEPTION_POINTERS;
 
 #ifndef WINAPI
 #define WINAPI
@@ -126,6 +142,8 @@ HMODULE GetModuleHandleA(const char* name);
 
 unsigned long GetModuleFileNameA(HMODULE module, char* buffer, unsigned long size);
 #define GetModuleFileName GetModuleFileNameA
+
+#include "string_compat.h"
 
 #endif // !_WIN32
 

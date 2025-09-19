@@ -36,6 +36,7 @@
 #include "Common/GameType.h"
 #include "Common/DisabledTypes.h"
 #include "GameLogic/Module/BehaviorModule.h"
+#include "GameClient/ControlBar.h"
 
 #define DIRECT_UPDATEMODULE_ACCESS
 
@@ -62,7 +63,6 @@ class WeaponTemplate;
 class DamageInfo;
 class ParticleSystemTemplate;
 class CommandButton;
-enum CommandOption;
 
 //-------------------------------------------------------------------------------------------------
 enum UpdateSleepTime 
@@ -181,7 +181,7 @@ public:
 	}
 
 #ifdef DIRECT_UPDATEMODULE_ACCESS
-	#define UPDATEMODULE_FRIEND_DECLARATOR __forceinline
+    #define UPDATEMODULE_FRIEND_DECLARATOR inline
 #else
 	#define UPDATEMODULE_FRIEND_DECLARATOR virtual 
 #endif

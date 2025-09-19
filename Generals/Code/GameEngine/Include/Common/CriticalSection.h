@@ -33,47 +33,67 @@
 
 #include "Common/PerfTimer.h"
 
+#if !defined(_WIN32)
+#include <mutex>
+#endif
+
 #ifdef PERF_TIMERS
 extern PerfGather TheCritSecPerfGather;
 #endif
 
 class CriticalSection
 {
-	CRITICAL_SECTION m_windowsCriticalSection;
+#if defined(_WIN32)
+        CRITICAL_SECTION m_windowsCriticalSection;
+#else
+        std::recursive_mutex m_mutex;
+#endif
 
-	public:
-		CriticalSection()
-		{
-			#ifdef PERF_TIMERS
-			AutoPerfGather a(TheCritSecPerfGather);
-			#endif
-			InitializeCriticalSection( &m_windowsCriticalSection );
-		}
+        public:
+                CriticalSection()
+                {
+                        #ifdef PERF_TIMERS
+                        AutoPerfGather a(TheCritSecPerfGather);
+                        #endif
+#if defined(_WIN32)
+                        InitializeCriticalSection(&m_windowsCriticalSection);
+#endif
+                }
 
-		virtual ~CriticalSection()
-		{
-			#ifdef PERF_TIMERS
-			AutoPerfGather a(TheCritSecPerfGather);
-			#endif
-			DeleteCriticalSection( &m_windowsCriticalSection );
-		}
+                virtual ~CriticalSection()
+                {
+                        #ifdef PERF_TIMERS
+                        AutoPerfGather a(TheCritSecPerfGather);
+                        #endif
+#if defined(_WIN32)
+                        DeleteCriticalSection(&m_windowsCriticalSection);
+#endif
+                }
 
-	public:	// Use these when entering/exiting a critical section.
-		void enter( void ) 
-		{ 
-			#ifdef PERF_TIMERS
-			AutoPerfGather a(TheCritSecPerfGather);
-			#endif
-			EnterCriticalSection( &m_windowsCriticalSection );
-		}
-		
-		void exit( void )
-		{
-			#ifdef PERF_TIMERS
-			AutoPerfGather a(TheCritSecPerfGather);
-			#endif
-			LeaveCriticalSection( &m_windowsCriticalSection );
-		}
+        public: // Use these when entering/exiting a critical section.
+                void enter( void )
+                {
+                        #ifdef PERF_TIMERS
+                        AutoPerfGather a(TheCritSecPerfGather);
+                        #endif
+#if defined(_WIN32)
+                        EnterCriticalSection(&m_windowsCriticalSection);
+#else
+                        m_mutex.lock();
+#endif
+                }
+
+                void exit( void )
+                {
+                        #ifdef PERF_TIMERS
+                        AutoPerfGather a(TheCritSecPerfGather);
+                        #endif
+#if defined(_WIN32)
+                        LeaveCriticalSection(&m_windowsCriticalSection);
+#else
+                        m_mutex.unlock();
+#endif
+                }
 };
 
 class ScopedCriticalSection

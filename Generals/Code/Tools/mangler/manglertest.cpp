@@ -38,7 +38,7 @@
 #include <udp.h>
 
 // ST - 2/1/01 12:46PM
-bool BigEndian = false;
+extern "C" bool BigEndian = false;
 
 unsigned long ResolveIP(char *Server)
 {

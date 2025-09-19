@@ -51,6 +51,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <compat/string_compat.h>
 #include "Lib/BaseType.h"
 #include "Common/Debug.h"
 #include "Common/Errors.h"

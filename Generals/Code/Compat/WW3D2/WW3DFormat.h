@@ -1,11 +1,5 @@
 #pragma once
 
 #ifndef _WIN32
-
-enum WW3DFormat
-{
-        WW3D_FORMAT_UNKNOWN = 0,
-};
-
+#include "../../Libraries/Source/WWVegas/WW3D2/ww3dformat.h"
 #endif  // !_WIN32
-

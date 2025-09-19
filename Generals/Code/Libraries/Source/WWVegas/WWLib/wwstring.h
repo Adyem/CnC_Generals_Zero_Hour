@@ -50,6 +50,9 @@
 #ifdef _UNIX
 #include "osdep.h"
 #endif
+#ifndef _WIN32
+#include "compat/string_compat.h"
+#endif
 
 
 

@@ -54,7 +54,14 @@ TARGET      ?= $(BIN_DIR)/generals-sfml
 # path.  Directories containing whitespace are supported by escaping the space
 # characters with a backslash.  Consumers can extend INCLUDE_DIRS from the
 # command line if additional external SDKs are available on the system.
-ESCAPED_INCLUDE_DIRS := $(shell find $(SRC_DIR) -type d -print | sed 's/ /\\ /g' | sort)
+# Discover include directories while filtering out problematic paths that
+# shadow system headers (for example Libraries/bx/include/bx contains an
+# "endian.h" that collides with the C library header of the same name).
+empty :=
+space := $(empty) $(empty)
+RAW_INCLUDE_DIRS := $(shell find $(SRC_DIR) -type d -print | sort)
+FILTERED_INCLUDE_DIRS := $(filter-out $(SRC_DIR)/Libraries/bx/include/bx%,$(RAW_INCLUDE_DIRS))
+ESCAPED_INCLUDE_DIRS := $(foreach dir,$(FILTERED_INCLUDE_DIRS),$(subst $(space),\ ,$(dir)))
 INCLUDE_DIRS         := $(foreach dir,$(ESCAPED_INCLUDE_DIRS),-I$(dir))
 CPPFLAGS             += $(INCLUDE_DIRS)
 CPPFLAGS             += -DWW3D_BGFX_AVAILABLE=1

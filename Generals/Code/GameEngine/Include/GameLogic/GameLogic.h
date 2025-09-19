@@ -36,6 +36,8 @@
 #include "Common/GameType.h"
 #include "Common/Snapshot.h"
 #include "Common/STLTypedefs.h"
+#include "Common/ThingTemplate.h"
+#include "GameLogic/ObjectStatusBits.h"
 #include "GameNetwork/NetworkDefs.h"
 #include "Common/STLTypedefs.h"
 #include "GameLogic/Module/UpdateModule.h"	// needed for DIRECT_UPDATEMODULE_ACCESS
