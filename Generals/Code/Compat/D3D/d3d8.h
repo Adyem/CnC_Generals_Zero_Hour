@@ -10,6 +10,8 @@
 
 #include <cstdint>
 
+#include "d3d8types.h"
+
 using HRESULT = long;
 
 #ifndef DWORD

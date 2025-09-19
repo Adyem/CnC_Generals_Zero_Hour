@@ -11,8 +11,16 @@
 #include <cstdint>
 #include <algorithm>
 
-#if defined(SFML_SYSTEM_LINUX)
+#if defined(SFML_SYSTEM_WINDOWS)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#include <SFML/OpenGL.hpp>
+#elif defined(SFML_SYSTEM_LINUX)
+#include <SFML/OpenGL.hpp>
 #include <X11/Xlib.h>
+#include <GL/glx.h>
 #endif
 
 namespace sfml_platform {
@@ -26,6 +34,30 @@ Display* acquireX11Display() {
         display = XOpenDisplay(nullptr);
     }
     return display;
+}
+
+void destroyX11Window(void* window) {
+    if (window == nullptr) {
+        return;
+    }
+
+    Display* display = acquireX11Display();
+    if (display == nullptr) {
+        return;
+    }
+
+    ::Window nativeWindow = static_cast<::Window>(reinterpret_cast<std::uintptr_t>(window));
+    XDestroyWindow(display, nativeWindow);
+    XFlush(display);
+}
+#elif defined(SFML_SYSTEM_WINDOWS)
+void destroyWin32Window(void* window) {
+    if (window == nullptr) {
+        return;
+    }
+
+    HWND hwnd = static_cast<HWND>(window);
+    PostMessage(hwnd, WM_CLOSE, 0, 0);
 }
 #endif
 
@@ -59,6 +91,7 @@ bool WindowSystem::initialize(const WindowConfig& config) {
 
     m_window.create(videoMode, config.title, style);
     configureRenderSettings(config);
+    m_window.setActive(true);
     m_running = m_window.isOpen();
 
     return m_running;
@@ -141,6 +174,8 @@ const sf::RenderWindow& WindowSystem::window() const {
 NativeWindowHandle WindowSystem::nativeHandle() const {
     NativeWindowHandle handle{};
 
+    const_cast<sf::RenderWindow&>(m_window).setActive(true);
+
     const sf::WindowHandle systemHandle = m_window.getSystemHandle();
 #if defined(SFML_SYSTEM_WINDOWS) || defined(SFML_SYSTEM_MACOS) || defined(SFML_SYSTEM_IOS)
     handle.window = reinterpret_cast<void*>(systemHandle);
@@ -150,6 +185,13 @@ NativeWindowHandle WindowSystem::nativeHandle() const {
 
 #if defined(SFML_SYSTEM_LINUX)
     handle.display = acquireX11Display();
+    handle.context = reinterpret_cast<void*>(glXGetCurrentContext());
+    handle.backBuffer = reinterpret_cast<void*>(glXGetCurrentDrawable());
+    handle.destroyWindow = destroyX11Window;
+#elif defined(SFML_SYSTEM_WINDOWS)
+    handle.context = reinterpret_cast<void*>(wglGetCurrentContext());
+    handle.backBuffer = reinterpret_cast<void*>(wglGetCurrentDC());
+    handle.destroyWindow = destroyWin32Window;
 #else
     handle.display = nullptr;
 #endif

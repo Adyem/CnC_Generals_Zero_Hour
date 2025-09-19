@@ -15,7 +15,7 @@
 #include "GameLogic/GameLogic.h"
 #include "GameLogic/Object.h"
 #include "GameLogic/TerrainLogic.h"
-#include "Lib/Basetype.h"
+#include "Lib/BaseType.h"
 #include "bink.h"
 
 #include <SFML/Audio/Listener.hpp>

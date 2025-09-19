@@ -84,6 +84,15 @@
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
 #include <cstdio>
+#include "Common/AsciiString.h"
+#include "Common/File.h"
+#include "Common/FileSystem.h"
+#include <algorithm>
+#include <cstdlib>
+#include <fstream>
+#include <limits>
+#include <sstream>
+#include <vector>
 #endif
 
 #define WW3D_DEVTYPE D3DDEVTYPE_HAL
@@ -187,7 +196,6 @@ static void ShutdownBgfx();
 static void UpdateBgfxDisplayParameters();
 static bgfx::UniformHandle GetBgfxTextureSamplerUniform(unsigned stage);
 static void DestroyBgfxTextureSamplerUniforms();
-static uint32_t ComputeBgfxSamplerFlags(const TextureClass* texture);
 #else
 static uint32_t ComputeBgfxSamplerFlags(const TextureClass*) { return 0; }
 #endif
@@ -347,6 +355,9 @@ static void ShutdownBgfx()
 #if WW3D_BGFX_AVAILABLE
         if (g_bgfxState.initialized)
         {
+                DestroyBgfxFixedFunctionProgram();
+                DestroyBgfxFixedFunctionUniforms();
+                DestroyBgfxMaterialUniforms();
                 DestroyBgfxTextureSamplerUniforms();
                 bgfx::shutdown();
                 g_bgfxState.initialized = false;
@@ -523,6 +534,30 @@ static void Set_Default_Global_Render_States_Bgfx()
         DX8Wrapper::RenderStates[D3DRS_SPECULARMATERIALSOURCE] = D3DMCS_MATERIAL;
         DX8Wrapper::RenderStates[D3DRS_COLORVERTEX] = TRUE;
         DX8Wrapper::RenderStates[D3DRS_ZBIAS] = 0;
+        DX8Wrapper::RenderStates[D3DRS_FOGENABLE] = FALSE;
+        DX8Wrapper::RenderStates[D3DRS_FOGCOLOR] = 0;
+        DX8Wrapper::RenderStates[D3DRS_FOGSTART] = F2DW(0.0f);
+        DX8Wrapper::RenderStates[D3DRS_FOGEND] = F2DW(1.0f);
+        DX8Wrapper::RenderStates[D3DRS_FOGDENSITY] = F2DW(1.0f);
+        DX8Wrapper::RenderStates[D3DRS_AMBIENT] = 0;
+        DX8Wrapper::RenderStates[D3DRS_SPECULARENABLE] = FALSE;
+        DX8Wrapper::RenderStates[D3DRS_LOCALVIEWER] = FALSE;
+        DX8Wrapper::RenderStates[D3DRS_FILLMODE] = D3DFILL_SOLID;
+        DX8Wrapper::RenderStates[D3DRS_SHADEMODE] = D3DSHADE_GOURAUD;
+        DX8Wrapper::RenderStates[D3DRS_STENCILENABLE] = FALSE;
+        DX8Wrapper::RenderStates[D3DRS_STENCILFUNC] = D3DCMP_ALWAYS;
+        DX8Wrapper::RenderStates[D3DRS_STENCILREF] = 0;
+        DX8Wrapper::RenderStates[D3DRS_STENCILMASK] = 0xffffffffu;
+        DX8Wrapper::RenderStates[D3DRS_STENCILWRITEMASK] = 0xffffffffu;
+        DX8Wrapper::RenderStates[D3DRS_STENCILFAIL] = D3DSTENCILOP_KEEP;
+        DX8Wrapper::RenderStates[D3DRS_STENCILZFAIL] = D3DSTENCILOP_KEEP;
+        DX8Wrapper::RenderStates[D3DRS_STENCILPASS] = D3DSTENCILOP_KEEP;
+#if defined(D3DRS_DEPTHBIAS)
+        DX8Wrapper::RenderStates[D3DRS_DEPTHBIAS] = F2DW(0.0f);
+#endif
+#if defined(D3DRS_SLOPESCALEDEPTHBIAS)
+        DX8Wrapper::RenderStates[D3DRS_SLOPESCALEDEPTHBIAS] = F2DW(0.0f);
+#endif
 
         DX8Wrapper::TextureStageStates[1][D3DTSS_BUMPENVLSCALE] = F2DW(1.0f);
         DX8Wrapper::TextureStageStates[1][D3DTSS_BUMPENVLOFFSET] = F2DW(0.0f);
@@ -543,6 +578,31 @@ static void Set_Default_Global_Render_States_Bgfx()
         bgfx_state.ambientSource = D3DMCS_MATERIAL;
         bgfx_state.diffuseSource = D3DMCS_MATERIAL;
         bgfx_state.emissiveSource = D3DMCS_MATERIAL;
+        bgfx_state.specularSource = D3DMCS_MATERIAL;
+        bgfx_state.specularEnabled = false;
+        bgfx_state.localViewerEnabled = false;
+        bgfx_state.fillMode = D3DFILL_SOLID;
+        bgfx_state.shadeMode = D3DSHADE_GOURAUD;
+        bgfx_state.ambientColor = 0u;
+        bgfx_state.fogEnabled = false;
+        bgfx_state.rangeFogEnabled = false;
+        bgfx_state.fogTableMode = D3DFOG_NONE;
+        bgfx_state.fogVertexMode = D3DFOG_LINEAR;
+        bgfx_state.fogStart = 0.0f;
+        bgfx_state.fogEnd = 1.0f;
+        bgfx_state.fogDensity = 1.0f;
+        bgfx_state.stencilEnabled = false;
+        bgfx_state.stencilRef = 0;
+        bgfx_state.stencilReadMask = 0xffu;
+        bgfx_state.stencilWriteMask = 0xffu;
+        bgfx_state.stencilFunc = D3DCMP_ALWAYS;
+        bgfx_state.stencilFailOp = D3DSTENCILOP_KEEP;
+        bgfx_state.stencilDepthFailOp = D3DSTENCILOP_KEEP;
+        bgfx_state.stencilPassOp = D3DSTENCILOP_KEEP;
+        bgfx_state.depthBias = 0.0f;
+        bgfx_state.slopeScaleDepthBias = 0.0f;
+        bgfx_state.zBias = 0;
+        UpdateBgfxStencilState(bgfx_state);
 
         for (unsigned stage = 0; stage < MAX_TEXTURE_STAGES; ++stage)
         {
@@ -584,6 +644,39 @@ bool g_bgfxTextureSamplersInitialized = false;
 bgfx::UniformHandle g_bgfxTextureSamplers[MAX_TEXTURE_STAGES];
 bool g_bgfxTextureMatricesInitialized = false;
 bgfx::UniformHandle g_bgfxTextureMatrices[MAX_TEXTURE_STAGES];
+bool g_bgfxMaterialUniformsInitialized = false;
+bool g_bgfxFixedFunctionUniformsInitialized = false;
+bgfx::UniformHandle g_bgfxFixedFunctionTextureConfig;
+bgfx::UniformHandle g_bgfxFixedFunctionUVSource;
+bgfx::UniformHandle g_bgfxFixedFunctionAlphaTest;
+bgfx::ProgramHandle g_bgfxFixedFunctionProgram = BGFX_INVALID_HANDLE;
+DX8Wrapper::BgfxProgramRequestCallback g_bgfxFixedFunctionProgramCallback = NULL;
+
+const char *kBgfxShaderRoot = "shaders/bgfx/";
+const char *kBgfxShaderSourceRoot = "shaders/bgfx/src/";
+const char *kBgfxVaryingPath = "shaders/bgfx/varying.def.sc";
+const char *kBgfxVertexProfile = "vs_5_0";
+const char *kBgfxFragmentProfile = "ps_5_0";
+
+enum BgfxMaterialUniform
+{
+        BGFX_MATERIAL_UNIFORM_AMBIENT = 0,
+        BGFX_MATERIAL_UNIFORM_DIFFUSE,
+        BGFX_MATERIAL_UNIFORM_SPECULAR,
+        BGFX_MATERIAL_UNIFORM_EMISSIVE,
+        BGFX_MATERIAL_UNIFORM_PARAMS,
+        BGFX_MATERIAL_UNIFORM_COUNT
+};
+
+bgfx::UniformHandle g_bgfxMaterialUniforms[BGFX_MATERIAL_UNIFORM_COUNT];
+
+enum BgfxFixedFunctionUniform
+{
+        BGFX_FIXED_UNIFORM_TEXTURE_CONFIG = 0,
+        BGFX_FIXED_UNIFORM_UV_SOURCE,
+        BGFX_FIXED_UNIFORM_ALPHA_TEST,
+        BGFX_FIXED_UNIFORM_COUNT
+};
 }
 
 static void EnsureBgfxTextureSamplerDefaults()
@@ -611,6 +704,65 @@ static void EnsureBgfxTextureMatrixDefaults()
 
         EnsureBgfxTextureSamplerDefaults();
         g_bgfxTextureMatricesInitialized = true;
+}
+
+static void EnsureBgfxMaterialUniformDefaults()
+{
+        if (g_bgfxMaterialUniformsInitialized)
+        {
+                return;
+        }
+
+        for (unsigned i = 0; i < BGFX_MATERIAL_UNIFORM_COUNT; ++i)
+        {
+                g_bgfxMaterialUniforms[i].idx = bgfx::kInvalidHandle;
+        }
+
+        g_bgfxMaterialUniformsInitialized = true;
+}
+
+static bgfx::UniformHandle GetBgfxMaterialUniform(BgfxMaterialUniform uniform)
+{
+        EnsureBgfxMaterialUniformDefaults();
+
+        if (uniform < 0 || uniform >= BGFX_MATERIAL_UNIFORM_COUNT)
+        {
+                return BGFX_INVALID_HANDLE;
+        }
+
+        bgfx::UniformHandle &handle = g_bgfxMaterialUniforms[uniform];
+        if (!bgfx::isValid(handle))
+        {
+                const char *name = NULL;
+                switch (uniform)
+                {
+                case BGFX_MATERIAL_UNIFORM_AMBIENT:
+                        name = "u_materialAmbient";
+                        break;
+                case BGFX_MATERIAL_UNIFORM_DIFFUSE:
+                        name = "u_materialDiffuse";
+                        break;
+                case BGFX_MATERIAL_UNIFORM_SPECULAR:
+                        name = "u_materialSpecular";
+                        break;
+                case BGFX_MATERIAL_UNIFORM_EMISSIVE:
+                        name = "u_materialEmissive";
+                        break;
+                case BGFX_MATERIAL_UNIFORM_PARAMS:
+                        name = "u_materialParams";
+                        break;
+                default:
+                        name = "";
+                        break;
+                }
+
+                if (name != NULL && name[0] != '\0')
+                {
+                        handle = bgfx::createUniform(name, bgfx::UniformType::Vec4);
+                }
+        }
+
+        return handle;
 }
 
 static bgfx::UniformHandle GetBgfxTextureSamplerUniform(unsigned stage)
@@ -659,36 +811,23 @@ static void DestroyBgfxTextureSamplerUniforms()
         g_bgfxTextureMatricesInitialized = false;
 }
 
-static uint32_t ComputeBgfxSamplerFlags(const TextureClass* texture)
+static void DestroyBgfxMaterialUniforms()
 {
-        if (!texture) {
-                return BGFX_SAMPLER_NONE;
+        if (!g_bgfxMaterialUniformsInitialized)
+        {
+                return;
         }
 
-        uint32_t flags = BGFX_SAMPLER_NONE;
-
-        if (texture->Get_U_Addr_Mode() == TextureClass::TEXTURE_ADDRESS_CLAMP) {
-                flags |= BGFX_SAMPLER_U_CLAMP;
+        for (unsigned i = 0; i < BGFX_MATERIAL_UNIFORM_COUNT; ++i)
+        {
+                if (bgfx::isValid(g_bgfxMaterialUniforms[i]))
+                {
+                        bgfx::destroy(g_bgfxMaterialUniforms[i]);
+                        g_bgfxMaterialUniforms[i].idx = bgfx::kInvalidHandle;
+                }
         }
 
-        if (texture->Get_V_Addr_Mode() == TextureClass::TEXTURE_ADDRESS_CLAMP) {
-                flags |= BGFX_SAMPLER_V_CLAMP;
-        }
-
-        if (texture->Get_Min_Filter() == TextureClass::FILTER_TYPE_NONE) {
-                flags |= BGFX_SAMPLER_MIN_POINT;
-        }
-
-        if (texture->Get_Mag_Filter() == TextureClass::FILTER_TYPE_NONE) {
-                flags |= BGFX_SAMPLER_MAG_POINT;
-        }
-
-        TextureClass::FilterType mip_filter = texture->Get_Mip_Mapping();
-        if ((mip_filter == TextureClass::FILTER_TYPE_NONE) || (mip_filter == TextureClass::FILTER_TYPE_FAST)) {
-                flags |= BGFX_SAMPLER_MIP_POINT;
-        }
-
-        return flags;
+        g_bgfxMaterialUniformsInitialized = false;
 }
 
 static bgfx::UniformHandle GetBgfxTextureMatrixUniform(unsigned stage)
@@ -711,48 +850,450 @@ static bgfx::UniformHandle GetBgfxTextureMatrixUniform(unsigned stage)
         return uniform;
 }
 
-static void UpdateBgfxSamplerFlagsForStage(BgfxStateData &bgfx_state, unsigned stage)
+static void EnsureBgfxFixedFunctionUniformDefaults()
 {
-        if (stage >= MAX_TEXTURE_STAGES)
+        if (g_bgfxFixedFunctionUniformsInitialized)
         {
                 return;
         }
 
-        TextureClass* texture = bgfx_state.textureBindings[stage];
-        uint32_t samplerFlags = ComputeBgfxSamplerFlags(texture);
+        g_bgfxFixedFunctionTextureConfig.idx = bgfx::kInvalidHandle;
+        g_bgfxFixedFunctionUVSource.idx = bgfx::kInvalidHandle;
+        g_bgfxFixedFunctionAlphaTest.idx = bgfx::kInvalidHandle;
+        g_bgfxFixedFunctionUniformsInitialized = true;
+}
 
-        samplerFlags &= ~(BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
-                BGFX_SAMPLER_MIN_MASK | BGFX_SAMPLER_MAG_MASK | BGFX_SAMPLER_MIP_MASK);
+static bgfx::UniformHandle GetBgfxFixedFunctionUniform(BgfxFixedFunctionUniform uniform)
+{
+        EnsureBgfxFixedFunctionUniformDefaults();
 
-        if (bgfx_state.textureAddressU[stage] == D3DTADDRESS_CLAMP)
+        switch (uniform)
         {
-                samplerFlags |= BGFX_SAMPLER_U_CLAMP;
+        case BGFX_FIXED_UNIFORM_TEXTURE_CONFIG:
+                if (!bgfx::isValid(g_bgfxFixedFunctionTextureConfig))
+                {
+                        g_bgfxFixedFunctionTextureConfig = bgfx::createUniform("u_textureConfig", bgfx::UniformType::Vec4);
+                }
+                return g_bgfxFixedFunctionTextureConfig;
+        case BGFX_FIXED_UNIFORM_UV_SOURCE:
+                if (!bgfx::isValid(g_bgfxFixedFunctionUVSource))
+                {
+                        g_bgfxFixedFunctionUVSource = bgfx::createUniform("u_uvSource", bgfx::UniformType::Vec4);
+                }
+                return g_bgfxFixedFunctionUVSource;
+        case BGFX_FIXED_UNIFORM_ALPHA_TEST:
+                if (!bgfx::isValid(g_bgfxFixedFunctionAlphaTest))
+                {
+                        g_bgfxFixedFunctionAlphaTest = bgfx::createUniform("u_alphaTestConfig", bgfx::UniformType::Vec4);
+                }
+                return g_bgfxFixedFunctionAlphaTest;
+        default:
+                break;
         }
 
-        if (bgfx_state.textureAddressV[stage] == D3DTADDRESS_CLAMP)
+        return BGFX_INVALID_HANDLE;
+}
+
+static void DestroyBgfxFixedFunctionUniforms()
+{
+        if (bgfx::isValid(g_bgfxFixedFunctionTextureConfig))
         {
-                samplerFlags |= BGFX_SAMPLER_V_CLAMP;
+                bgfx::destroy(g_bgfxFixedFunctionTextureConfig);
+                g_bgfxFixedFunctionTextureConfig.idx = bgfx::kInvalidHandle;
         }
 
-        uint32_t minFilter = bgfx_state.minFilter[stage];
-        if (minFilter == D3DTEXF_POINT || minFilter == D3DTEXF_NONE)
+        if (bgfx::isValid(g_bgfxFixedFunctionUVSource))
         {
-                samplerFlags |= BGFX_SAMPLER_MIN_POINT;
+                bgfx::destroy(g_bgfxFixedFunctionUVSource);
+                g_bgfxFixedFunctionUVSource.idx = bgfx::kInvalidHandle;
         }
 
-        uint32_t magFilter = bgfx_state.magFilter[stage];
-        if (magFilter == D3DTEXF_POINT || magFilter == D3DTEXF_NONE)
+        if (bgfx::isValid(g_bgfxFixedFunctionAlphaTest))
         {
-                samplerFlags |= BGFX_SAMPLER_MAG_POINT;
+                bgfx::destroy(g_bgfxFixedFunctionAlphaTest);
+                g_bgfxFixedFunctionAlphaTest.idx = bgfx::kInvalidHandle;
         }
 
-        uint32_t mipFilter = bgfx_state.mipFilter[stage];
-        if (mipFilter == D3DTEXF_POINT || mipFilter == D3DTEXF_NONE)
+        g_bgfxFixedFunctionUniformsInitialized = false;
+}
+
+static bool Dx8FileExistsOnDisk(const std::string &path)
+{
+        std::ifstream file(path.c_str(), std::ios::binary);
+        return file.good();
+}
+
+static bool Dx8TryGetFileTimestamp(const std::string &path, uint64_t &timestamp)
+{
+        AsciiString pathString(path.c_str());
+        FileInfo info;
+        if (!TheFileSystem->getFileInfo(pathString, &info))
         {
-                samplerFlags |= BGFX_SAMPLER_MIP_POINT;
+                return false;
         }
 
-        bgfx_state.samplerFlags[stage] = samplerFlags;
+        timestamp = (static_cast<uint64_t>(static_cast<uint32_t>(info.timestampHigh)) << 32) |
+                static_cast<uint32_t>(info.timestampLow);
+        return true;
+}
+
+static std::string Dx8ResolveShaderCompilerPath()
+{
+        static bool s_resolved = false;
+        static std::string s_compilerPath;
+        if (!s_resolved)
+        {
+                s_resolved = true;
+
+                const char *envPath = std::getenv("BGFX_SHADERC");
+                if (envPath && envPath[0] != '\0')
+                {
+                        s_compilerPath = envPath;
+                }
+
+                if (s_compilerPath.empty())
+                {
+                        static const char *kDefaultCompilerPaths[] = {
+                                "Tools/bgfx/shaderc.exe",
+                                "Tools/bgfx/shaderc",
+                                "bgfx/tools/bin/shaderc.exe",
+                                "bgfx/tools/bin/shaderc",
+                                "shaderc.exe",
+                                "shaderc"
+                        };
+
+                        const size_t count = sizeof(kDefaultCompilerPaths) / sizeof(kDefaultCompilerPaths[0]);
+                        for (size_t index = 0; index < count; ++index)
+                        {
+                                if (Dx8FileExistsOnDisk(kDefaultCompilerPaths[index]))
+                                {
+                                        s_compilerPath = kDefaultCompilerPaths[index];
+                                        break;
+                                }
+                        }
+                }
+        }
+
+        return s_compilerPath;
+}
+
+static bool Dx8InvokeShaderCompiler(const std::string &compilerPath, const std::string &stage, const std::string &sourcePath,
+        const std::string &outputPath, const std::string &profile, const std::string &varyingPath)
+{
+        std::ostringstream command;
+        command << '"' << compilerPath << '"'
+                << " -f \"" << sourcePath << "\""
+                << " -o \"" << outputPath << "\""
+                << " --type " << stage
+                << " --platform windows";
+
+        if (!profile.empty())
+        {
+                command << " --profile " << profile;
+        }
+
+        if (!varyingPath.empty())
+        {
+                command << " --varyingdef \"" << varyingPath << "\"";
+        }
+
+        return (std::system(command.str().c_str()) == 0);
+}
+
+static bool EnsureBgfxShaderBinaryLocal(const std::string &binaryPath, const std::string &sourcePath,
+        const std::string &profile, const std::string &varyingPath, const char *stageLabel)
+{
+        if (binaryPath.empty())
+        {
+                return false;
+        }
+
+        Bool binaryExists = TheFileSystem->doesFileExist(binaryPath.c_str());
+        if (sourcePath.empty())
+        {
+                return binaryExists;
+        }
+
+        if (!TheFileSystem->doesFileExist(sourcePath.c_str()))
+        {
+                return binaryExists;
+        }
+
+        uint64_t sourceTimestamp = 0;
+        uint64_t binaryTimestamp = 0;
+        bool haveSourceTimestamp = Dx8TryGetFileTimestamp(sourcePath, sourceTimestamp);
+        bool haveBinaryTimestamp = binaryExists && Dx8TryGetFileTimestamp(binaryPath, binaryTimestamp);
+
+        if (!binaryExists || (haveSourceTimestamp && (!haveBinaryTimestamp || sourceTimestamp > binaryTimestamp)))
+        {
+                std::string compilerPath = Dx8ResolveShaderCompilerPath();
+                if (compilerPath.empty())
+                {
+                        if (!binaryExists)
+                        {
+                                std::ostringstream message;
+                                message << "BGFX shader compiler not found; unable to build " << stageLabel
+                                        << " shader '" << sourcePath << "'\n";
+                                OutputDebugStringA(message.str().c_str());
+                        }
+                        return binaryExists;
+                }
+
+                if (!Dx8InvokeShaderCompiler(compilerPath, stageLabel, sourcePath, binaryPath, profile, varyingPath))
+                {
+                        std::ostringstream message;
+                        message << "BGFX shader compilation failed for '" << sourcePath << "'\n";
+                        OutputDebugStringA(message.str().c_str());
+                        return false;
+                }
+        }
+
+        return true;
+}
+
+static bgfx::ShaderHandle LoadBgfxShaderHandle(const std::string &path)
+{
+        File *file = TheFileSystem->openFile(path.c_str(), File::READ | File::BINARY);
+        if (file == NULL)
+        {
+                std::ostringstream message;
+                message << "Unable to open bgfx shader binary '" << path << "'\n";
+                OutputDebugStringA(message.str().c_str());
+                return BGFX_INVALID_HANDLE;
+        }
+
+        AsciiString pathString(path.c_str());
+        FileInfo info;
+        if (!TheFileSystem->getFileInfo(pathString, &info))
+        {
+                file->close();
+                return BGFX_INVALID_HANDLE;
+        }
+
+        uint64_t fileSize = (static_cast<uint64_t>(static_cast<uint32_t>(info.sizeHigh)) << 32) |
+                static_cast<uint32_t>(info.sizeLow);
+        if (fileSize == 0 || fileSize > std::numeric_limits<uint32_t>::max())
+        {
+                file->close();
+                return BGFX_INVALID_HANDLE;
+        }
+
+        std::vector<uint8_t> buffer;
+        buffer.resize(static_cast<size_t>(fileSize));
+        size_t offset = 0;
+        while (offset < buffer.size())
+        {
+                size_t remaining = buffer.size() - offset;
+                size_t chunkSize = std::min<size_t>(remaining, static_cast<size_t>(std::numeric_limits<int>::max()));
+                Int bytesRead = file->read(&buffer[offset], static_cast<Int>(chunkSize));
+                if (bytesRead <= 0)
+                {
+                        file->close();
+                        return BGFX_INVALID_HANDLE;
+                }
+
+                offset += static_cast<size_t>(bytesRead);
+        }
+
+        file->close();
+
+        const bgfx::Memory *memory = bgfx::copy(buffer.data(), static_cast<uint32_t>(buffer.size()));
+        if (memory == NULL)
+        {
+                return BGFX_INVALID_HANDLE;
+        }
+
+        bgfx::ShaderHandle handle = bgfx::createShader(memory);
+        if (bgfx::isValid(handle))
+        {
+                        bgfx::setName(handle, path.c_str());
+        }
+
+        return handle;
+}
+
+static bgfx::ProgramHandle LoadBgfxFixedFunctionProgram()
+{
+        std::string vertexBinary = std::string(kBgfxShaderRoot) + "unit_base_vs.bin";
+        std::string fragmentBinary = std::string(kBgfxShaderRoot) + "unit_base_fs.bin";
+        std::string vertexSource = std::string(kBgfxShaderSourceRoot) + "unit_base.vs.sc";
+        std::string fragmentSource = std::string(kBgfxShaderSourceRoot) + "unit_base.fs.sc";
+
+        if (!EnsureBgfxShaderBinaryLocal(vertexBinary, vertexSource, kBgfxVertexProfile, kBgfxVaryingPath, "vertex"))
+        {
+                return BGFX_INVALID_HANDLE;
+        }
+
+        if (!EnsureBgfxShaderBinaryLocal(fragmentBinary, fragmentSource, kBgfxFragmentProfile, kBgfxVaryingPath, "fragment"))
+        {
+                return BGFX_INVALID_HANDLE;
+        }
+
+        bgfx::ShaderHandle vertexShader = LoadBgfxShaderHandle(vertexBinary);
+        if (!bgfx::isValid(vertexShader))
+        {
+                return BGFX_INVALID_HANDLE;
+        }
+
+        bgfx::ShaderHandle fragmentShader = LoadBgfxShaderHandle(fragmentBinary);
+        if (!bgfx::isValid(fragmentShader))
+        {
+                bgfx::destroy(vertexShader);
+                return BGFX_INVALID_HANDLE;
+        }
+
+        return bgfx::createProgram(vertexShader, fragmentShader, true);
+}
+
+static void DestroyBgfxFixedFunctionProgram()
+{
+        if (bgfx::isValid(g_bgfxFixedFunctionProgram))
+        {
+                bgfx::destroy(g_bgfxFixedFunctionProgram);
+                g_bgfxFixedFunctionProgram = BGFX_INVALID_HANDLE;
+        }
+}
+
+#if WW3D_BGFX_AVAILABLE
+void DX8Wrapper::Set_Bgfx_Default_Program_Callback(BgfxProgramRequestCallback callback)
+{
+        g_bgfxFixedFunctionProgramCallback = callback;
+}
+#endif
+
+bgfx::ProgramHandle DX8Wrapper::Get_Default_Bgfx_Program()
+{
+#if WW3D_BGFX_AVAILABLE
+        if (g_bgfxFixedFunctionProgramCallback != NULL)
+        {
+                bgfx::ProgramHandle program = g_bgfxFixedFunctionProgramCallback();
+                if (bgfx::isValid(program))
+                {
+                        return program;
+                }
+        }
+
+        if (!bgfx::isValid(g_bgfxFixedFunctionProgram))
+        {
+                g_bgfxFixedFunctionProgram = LoadBgfxFixedFunctionProgram();
+        }
+
+        return g_bgfxFixedFunctionProgram;
+#else
+        return BGFX_INVALID_HANDLE;
+#endif
+}
+
+static void SubmitBgfxFixedFunctionUniforms(const BgfxStateData &bgfx_state)
+{
+	bgfx::UniformHandle uniform = GetBgfxFixedFunctionUniform(BGFX_FIXED_UNIFORM_TEXTURE_CONFIG);
+	if (bgfx::isValid(uniform))
+	{
+		float config[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+		unsigned count = (MAX_TEXTURE_STAGES < 2) ? MAX_TEXTURE_STAGES : 2;
+		for (unsigned stage = 0; stage < count; ++stage)
+		{
+			config[stage] = bgfx_state.textureEnabled[stage] ? 1.0f : 0.0f;
+			config[stage + 2u] = bgfx_state.textureTransformUsed[stage] ? 1.0f : 0.0f;
+		}
+
+		bgfx::setUniform(uniform, config);
+	}
+
+        uniform = GetBgfxFixedFunctionUniform(BGFX_FIXED_UNIFORM_UV_SOURCE);
+        if (bgfx::isValid(uniform))
+        {
+                float uvSourceData[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+                unsigned count = (MAX_TEXTURE_STAGES < 2) ? MAX_TEXTURE_STAGES : 2;
+                for (unsigned stage = 0; stage < count; ++stage)
+                {
+                        uvSourceData[stage] = static_cast<float>(bgfx_state.uvSource[stage]);
+                }
+
+                bgfx::setUniform(uniform, uvSourceData);
+        }
+
+        uniform = GetBgfxFixedFunctionUniform(BGFX_FIXED_UNIFORM_ALPHA_TEST);
+        if (bgfx::isValid(uniform))
+        {
+                float alphaConfig[4] =
+                {
+                        bgfx_state.alphaTestEnabled ? 1.0f : 0.0f,
+                        bgfx_state.alphaReference,
+                        static_cast<float>(bgfx_state.alphaFunc),
+                        bgfx_state.materialLightingEnabled ? 1.0f : 0.0f
+                };
+
+                bgfx::setUniform(uniform, alphaConfig);
+        }
+}
+
+static void SubmitBgfxMaterialUniforms(const BgfxStateData &bgfx_state)
+{
+        float ambient[4] = {
+                bgfx_state.materialAmbient.X,
+                bgfx_state.materialAmbient.Y,
+                bgfx_state.materialAmbient.Z,
+                bgfx_state.materialAmbient.W
+        };
+
+        float diffuse[4] = {
+                bgfx_state.materialDiffuse.X,
+                bgfx_state.materialDiffuse.Y,
+                bgfx_state.materialDiffuse.Z,
+                bgfx_state.materialDiffuse.W
+        };
+
+        float specular[4] = {
+                bgfx_state.materialSpecular.X,
+                bgfx_state.materialSpecular.Y,
+                bgfx_state.materialSpecular.Z,
+                bgfx_state.materialSpecular.W
+        };
+
+        float emissive[4] = {
+                bgfx_state.materialEmissive.X,
+                bgfx_state.materialEmissive.Y,
+                bgfx_state.materialEmissive.Z,
+                bgfx_state.materialEmissive.W
+        };
+
+        float params[4] = {
+                bgfx_state.materialLightingEnabled ? 1.0f : 0.0f,
+                bgfx_state.materialShininess,
+                static_cast<float>(bgfx_state.ambientSource),
+                static_cast<float>(bgfx_state.emissiveSource)
+        };
+
+        bgfx::UniformHandle uniform = GetBgfxMaterialUniform(BGFX_MATERIAL_UNIFORM_AMBIENT);
+        if (bgfx::isValid(uniform))
+        {
+                bgfx::setUniform(uniform, ambient);
+        }
+
+        uniform = GetBgfxMaterialUniform(BGFX_MATERIAL_UNIFORM_DIFFUSE);
+        if (bgfx::isValid(uniform))
+        {
+                bgfx::setUniform(uniform, diffuse);
+        }
+
+        uniform = GetBgfxMaterialUniform(BGFX_MATERIAL_UNIFORM_SPECULAR);
+        if (bgfx::isValid(uniform))
+        {
+                bgfx::setUniform(uniform, specular);
+        }
+
+        uniform = GetBgfxMaterialUniform(BGFX_MATERIAL_UNIFORM_EMISSIVE);
+        if (bgfx::isValid(uniform))
+        {
+                bgfx::setUniform(uniform, emissive);
+        }
+
+        uniform = GetBgfxMaterialUniform(BGFX_MATERIAL_UNIFORM_PARAMS);
+        if (bgfx::isValid(uniform))
+        {
+                bgfx::setUniform(uniform, params);
+        }
 }
 #endif
 void DX8Wrapper::Set_Default_Global_Render_States(void)
@@ -2329,6 +2870,7 @@ void DX8Wrapper::Draw(
         if (Is_Bgfx_Active())
         {
                 bool submitted = false;
+                BgfxStateData& bgfx_state = render_state.bgfx;
                 uint32_t firstIndex = static_cast<uint32_t>(start_index) + render_state.iba_offset;
                 uint32_t baseVertex = static_cast<uint32_t>(render_state.index_base_offset) + render_state.vba_offset + min_vertex_index;
                 uint32_t drawIndexCount = 0;
@@ -2513,6 +3055,9 @@ void DX8Wrapper::Draw(
                                                                 reinterpret_cast<const float*>(&bgfxProjectionMatrix));
                                                         bgfx::setTransform(reinterpret_cast<const float*>(&bgfxWorldMatrix));
 
+                                                        SubmitBgfxFixedFunctionUniforms(bgfx_state);
+                                                        SubmitBgfxMaterialUniforms(bgfx_state);
+                                                        bgfx::setStencil(bgfx_state.stencilState);
                                                         bgfx::setState(state);
                                                         bgfx::submit(0, render_state.bgfx.program);
 

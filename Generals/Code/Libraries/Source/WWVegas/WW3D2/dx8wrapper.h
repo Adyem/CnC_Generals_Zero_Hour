@@ -190,15 +190,291 @@ struct BgfxStateData
         unsigned                                        ambientSource;
         unsigned                                        diffuseSource;
         unsigned                                        emissiveSource;
+        unsigned                                        specularSource;
+        bool                                                    specularEnabled;
+        bool                                                    localViewerEnabled;
+        unsigned                                        fillMode;
+        unsigned                                        shadeMode;
+        uint32_t                                                ambientColor;
         bool                                                    alphaTestEnabled;
         uint8_t                                                 alphaFunc;
         float                                                   alphaReference;
+        bool                                                    fogEnabled;
+        bool                                                    rangeFogEnabled;
+        uint32_t                                                fogColor;
+        uint32_t                                                fogTableMode;
+        uint32_t                                                fogVertexMode;
+        float                                                   fogStart;
+        float                                                   fogEnd;
+        float                                                   fogDensity;
+        bool                                                    stencilEnabled;
+        uint32_t                                                stencilState;
+        uint8_t                                                 stencilRef;
+        uint8_t                                                 stencilReadMask;
+        uint8_t                                                 stencilWriteMask;
+        uint8_t                                                 stencilFunc;
+        uint8_t                                                 stencilFailOp;
+        uint8_t                                                 stencilDepthFailOp;
+        uint8_t                                                 stencilPassOp;
+        float                                                   depthBias;
+        float                                                   slopeScaleDepthBias;
+        int32_t                                         zBias;
 #if WW3D_BGFX_AVAILABLE
         bgfx::ProgramHandle                             program;
 #endif
 
         BgfxStateData();
 };
+
+#if WW3D_BGFX_AVAILABLE
+WWINLINE uint64_t Convert_D3D_Blend_Factor_To_Bgfx(D3DBLEND blend)
+{
+        switch (blend)
+        {
+        case D3DBLEND_ZERO: return BGFX_STATE_BLEND_ZERO;
+        case D3DBLEND_ONE: return BGFX_STATE_BLEND_ONE;
+        case D3DBLEND_SRCCOLOR: return BGFX_STATE_BLEND_SRC_COLOR;
+        case D3DBLEND_INVSRCCOLOR: return BGFX_STATE_BLEND_INV_SRC_COLOR;
+        case D3DBLEND_SRCALPHA: return BGFX_STATE_BLEND_SRC_ALPHA;
+        case D3DBLEND_INVSRCALPHA: return BGFX_STATE_BLEND_INV_SRC_ALPHA;
+        case D3DBLEND_DESTCOLOR: return BGFX_STATE_BLEND_DST_COLOR;
+        case D3DBLEND_INVDESTCOLOR: return BGFX_STATE_BLEND_INV_DST_COLOR;
+        case D3DBLEND_DESTALPHA: return BGFX_STATE_BLEND_DST_ALPHA;
+        case D3DBLEND_INVDESTALPHA: return BGFX_STATE_BLEND_INV_DST_ALPHA;
+        default: return BGFX_STATE_BLEND_ONE;
+        }
+}
+
+WWINLINE uint64_t Convert_D3D_Blend_Op_To_Bgfx(D3DBLENDOP op)
+{
+        switch (op)
+        {
+        case D3DBLENDOP_ADD: return BGFX_STATE_BLEND_EQUATION_ADD;
+        case D3DBLENDOP_SUBTRACT: return BGFX_STATE_BLEND_EQUATION_SUB;
+        case D3DBLENDOP_REVSUBTRACT: return BGFX_STATE_BLEND_EQUATION_REVSUB;
+#if defined(D3DBLENDOP_MIN)
+        case D3DBLENDOP_MIN: return BGFX_STATE_BLEND_EQUATION_MIN;
+#endif
+#if defined(D3DBLENDOP_MAX)
+        case D3DBLENDOP_MAX: return BGFX_STATE_BLEND_EQUATION_MAX;
+#endif
+        default: return BGFX_STATE_BLEND_EQUATION_ADD;
+        }
+}
+
+WWINLINE uint64_t Convert_D3D_Depth_Compare_To_Bgfx(D3DCMPFUNC func)
+{
+        switch (func)
+        {
+        case D3DCMP_NEVER: return BGFX_STATE_DEPTH_TEST_NEVER;
+        case D3DCMP_LESS: return BGFX_STATE_DEPTH_TEST_LESS;
+        case D3DCMP_EQUAL: return BGFX_STATE_DEPTH_TEST_EQUAL;
+        case D3DCMP_LESSEQUAL: return BGFX_STATE_DEPTH_TEST_LEQUAL;
+        case D3DCMP_GREATER: return BGFX_STATE_DEPTH_TEST_GREATER;
+        case D3DCMP_NOTEQUAL: return BGFX_STATE_DEPTH_TEST_NOTEQUAL;
+        case D3DCMP_GREATEREQUAL: return BGFX_STATE_DEPTH_TEST_GEQUAL;
+        case D3DCMP_ALWAYS: return BGFX_STATE_DEPTH_TEST_ALWAYS;
+        default: return BGFX_STATE_DEPTH_TEST_LEQUAL;
+        }
+}
+
+WWINLINE float Convert_D3D_Dword_To_Float(unsigned value)
+{
+        union
+        {
+                unsigned u;
+                float f;
+        } converter;
+
+        converter.u = value;
+        return converter.f;
+}
+
+WWINLINE uint32_t Convert_D3D_Stencil_Func_To_Bgfx(D3DCMPFUNC func)
+{
+        switch (func)
+        {
+        case D3DCMP_NEVER: return BGFX_STENCIL_TEST_NEVER;
+        case D3DCMP_LESS: return BGFX_STENCIL_TEST_LESS;
+        case D3DCMP_EQUAL: return BGFX_STENCIL_TEST_EQUAL;
+        case D3DCMP_LESSEQUAL: return BGFX_STENCIL_TEST_LEQUAL;
+        case D3DCMP_GREATER: return BGFX_STENCIL_TEST_GREATER;
+        case D3DCMP_NOTEQUAL: return BGFX_STENCIL_TEST_NOTEQUAL;
+        case D3DCMP_GREATEREQUAL: return BGFX_STENCIL_TEST_GEQUAL;
+        case D3DCMP_ALWAYS: return BGFX_STENCIL_TEST_ALWAYS;
+        default: return BGFX_STENCIL_TEST_ALWAYS;
+        }
+}
+
+WWINLINE uint32_t Convert_D3D_Stencil_Fail_To_Bgfx(D3DSTENCILOP op)
+{
+        switch (op)
+        {
+        case D3DSTENCILOP_ZERO: return BGFX_STENCIL_OP_FAIL_S_ZERO;
+        case D3DSTENCILOP_REPLACE: return BGFX_STENCIL_OP_FAIL_S_REPLACE;
+        case D3DSTENCILOP_INCRSAT: return BGFX_STENCIL_OP_FAIL_S_INCRSAT;
+        case D3DSTENCILOP_DECRSAT: return BGFX_STENCIL_OP_FAIL_S_DECRSAT;
+        case D3DSTENCILOP_INVERT: return BGFX_STENCIL_OP_FAIL_S_INVERT;
+        case D3DSTENCILOP_INCR: return BGFX_STENCIL_OP_FAIL_S_INCR;
+        case D3DSTENCILOP_DECR: return BGFX_STENCIL_OP_FAIL_S_DECR;
+        case D3DSTENCILOP_KEEP:
+        default:
+                return BGFX_STENCIL_OP_FAIL_S_KEEP;
+        }
+}
+
+WWINLINE uint32_t Convert_D3D_Stencil_Depth_Fail_To_Bgfx(D3DSTENCILOP op)
+{
+        switch (op)
+        {
+        case D3DSTENCILOP_ZERO: return BGFX_STENCIL_OP_FAIL_Z_ZERO;
+        case D3DSTENCILOP_REPLACE: return BGFX_STENCIL_OP_FAIL_Z_REPLACE;
+        case D3DSTENCILOP_INCRSAT: return BGFX_STENCIL_OP_FAIL_Z_INCRSAT;
+        case D3DSTENCILOP_DECRSAT: return BGFX_STENCIL_OP_FAIL_Z_DECRSAT;
+        case D3DSTENCILOP_INVERT: return BGFX_STENCIL_OP_FAIL_Z_INVERT;
+        case D3DSTENCILOP_INCR: return BGFX_STENCIL_OP_FAIL_Z_INCR;
+        case D3DSTENCILOP_DECR: return BGFX_STENCIL_OP_FAIL_Z_DECR;
+        case D3DSTENCILOP_KEEP:
+        default:
+                return BGFX_STENCIL_OP_FAIL_Z_KEEP;
+        }
+}
+
+WWINLINE uint32_t Convert_D3D_Stencil_Pass_To_Bgfx(D3DSTENCILOP op)
+{
+        switch (op)
+        {
+        case D3DSTENCILOP_ZERO: return BGFX_STENCIL_OP_PASS_Z_ZERO;
+        case D3DSTENCILOP_REPLACE: return BGFX_STENCIL_OP_PASS_Z_REPLACE;
+        case D3DSTENCILOP_INCRSAT: return BGFX_STENCIL_OP_PASS_Z_INCRSAT;
+        case D3DSTENCILOP_DECRSAT: return BGFX_STENCIL_OP_PASS_Z_DECRSAT;
+        case D3DSTENCILOP_INVERT: return BGFX_STENCIL_OP_PASS_Z_INVERT;
+        case D3DSTENCILOP_INCR: return BGFX_STENCIL_OP_PASS_Z_INCR;
+        case D3DSTENCILOP_DECR: return BGFX_STENCIL_OP_PASS_Z_DECR;
+        case D3DSTENCILOP_KEEP:
+        default:
+                return BGFX_STENCIL_OP_PASS_Z_KEEP;
+        }
+}
+
+WWINLINE void UpdateBgfxStencilState(BgfxStateData &bgfx_state)
+{
+        if (!bgfx_state.stencilEnabled)
+        {
+                bgfx_state.stencilState = BGFX_STENCIL_NONE;
+                return;
+        }
+
+        uint32_t stencil = BGFX_STENCIL_FUNC_REF(bgfx_state.stencilRef);
+        stencil |= BGFX_STENCIL_FUNC_RMASK(bgfx_state.stencilReadMask);
+        stencil |= Convert_D3D_Stencil_Func_To_Bgfx(static_cast<D3DCMPFUNC>(bgfx_state.stencilFunc));
+        stencil |= Convert_D3D_Stencil_Fail_To_Bgfx(static_cast<D3DSTENCILOP>(bgfx_state.stencilFailOp));
+        stencil |= Convert_D3D_Stencil_Depth_Fail_To_Bgfx(static_cast<D3DSTENCILOP>(bgfx_state.stencilDepthFailOp));
+        stencil |= Convert_D3D_Stencil_Pass_To_Bgfx(static_cast<D3DSTENCILOP>(bgfx_state.stencilPassOp));
+        bgfx_state.stencilState = stencil;
+}
+
+WWINLINE uint32_t ComputeBgfxSamplerFlags(const TextureClass* texture)
+{
+        uint32_t flags = BGFX_SAMPLER_NONE;
+
+        if (texture == NULL)
+        {
+                return flags;
+        }
+
+        switch (texture->Get_U_Addr_Mode())
+        {
+        case TextureClass::TEXTURE_ADDRESS_CLAMP:
+                flags |= BGFX_SAMPLER_U_CLAMP;
+                break;
+        case TextureClass::TEXTURE_ADDRESS_MIRROR:
+                flags |= BGFX_SAMPLER_U_MIRROR;
+                break;
+        default:
+                break;
+        }
+
+        switch (texture->Get_V_Addr_Mode())
+        {
+        case TextureClass::TEXTURE_ADDRESS_CLAMP:
+                flags |= BGFX_SAMPLER_V_CLAMP;
+                break;
+        case TextureClass::TEXTURE_ADDRESS_MIRROR:
+                flags |= BGFX_SAMPLER_V_MIRROR;
+                break;
+        default:
+                break;
+        }
+
+        if (texture->Get_Min_Filter() == TextureClass::FILTER_TYPE_NONE)
+        {
+                flags |= BGFX_SAMPLER_MIN_POINT;
+        }
+
+        if (texture->Get_Mag_Filter() == TextureClass::FILTER_TYPE_NONE)
+        {
+                flags |= BGFX_SAMPLER_MAG_POINT;
+        }
+
+        TextureClass::FilterType mip_filter = texture->Get_Mip_Mapping();
+        if ((mip_filter == TextureClass::FILTER_TYPE_NONE) || (mip_filter == TextureClass::FILTER_TYPE_FAST))
+        {
+                flags |= BGFX_SAMPLER_MIP_POINT;
+        }
+
+        return flags;
+}
+
+WWINLINE void UpdateBgfxSamplerFlagsForStage(BgfxStateData &bgfx_state, unsigned stage)
+{
+        if (stage >= MAX_TEXTURE_STAGES)
+        {
+                return;
+        }
+
+        uint32_t samplerFlags = ComputeBgfxSamplerFlags(bgfx_state.textureBindings[stage]);
+
+        samplerFlags &= ~(BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_U_MIRROR |
+                BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_V_MIRROR |
+                BGFX_SAMPLER_MIN_MASK | BGFX_SAMPLER_MAG_MASK | BGFX_SAMPLER_MIP_MASK);
+
+        if (bgfx_state.textureAddressU[stage] == D3DTADDRESS_CLAMP)
+        {
+                samplerFlags |= BGFX_SAMPLER_U_CLAMP;
+        }
+        else if (bgfx_state.textureAddressU[stage] == D3DTADDRESS_MIRROR)
+        {
+                samplerFlags |= BGFX_SAMPLER_U_MIRROR;
+        }
+
+        if (bgfx_state.textureAddressV[stage] == D3DTADDRESS_CLAMP)
+        {
+                samplerFlags |= BGFX_SAMPLER_V_CLAMP;
+        }
+        else if (bgfx_state.textureAddressV[stage] == D3DTADDRESS_MIRROR)
+        {
+                samplerFlags |= BGFX_SAMPLER_V_MIRROR;
+        }
+
+        if (bgfx_state.minFilter[stage] == D3DTEXF_POINT || bgfx_state.minFilter[stage] == D3DTEXF_NONE)
+        {
+                samplerFlags |= BGFX_SAMPLER_MIN_POINT;
+        }
+
+        if (bgfx_state.magFilter[stage] == D3DTEXF_POINT || bgfx_state.magFilter[stage] == D3DTEXF_NONE)
+        {
+                samplerFlags |= BGFX_SAMPLER_MAG_POINT;
+        }
+
+        if (bgfx_state.mipFilter[stage] == D3DTEXF_POINT || bgfx_state.mipFilter[stage] == D3DTEXF_NONE)
+        {
+                samplerFlags |= BGFX_SAMPLER_MIP_POINT;
+        }
+
+        bgfx_state.samplerFlags[stage] = samplerFlags;
+}
+#endif
 
 struct RenderStateStruct
 {
@@ -359,6 +635,12 @@ public:
 	static void Set_Material(const VertexMaterialClass* material);
 	static void Set_Light(unsigned index,const D3DLIGHT8* light);	
 	static void Set_Light(unsigned index,const LightClass &light);
+
+#if WW3D_BGFX_AVAILABLE
+    typedef bgfx::ProgramHandle (*BgfxProgramRequestCallback)();
+    static void Set_Bgfx_Default_Program_Callback(BgfxProgramRequestCallback callback);
+    static bgfx::ProgramHandle Get_Default_Bgfx_Program();
+#endif
 
 	static void Apply_Render_State_Changes();	// Apply deferred render state changes (will be called automatically by Draw...)
 
@@ -784,14 +1066,229 @@ WWINLINE void DX8Wrapper::Set_DX8_Light(int index, D3DLIGHT8* light)
 
 WWINLINE void DX8Wrapper::Set_DX8_Render_State(D3DRENDERSTATETYPE state, unsigned value)
 {
-	// Can't monitor state changes because setShader call to GERD may change the states!
-	if (RenderStates[state]==value) return;
+        // Can't monitor state changes because setShader call to GERD may change the states!
+        if (RenderStates[state]==value) return;
 
-	SNAPSHOT_SAY(("DX8 - SetRenderState(%d,%d)\n",state,value));
+        SNAPSHOT_SAY(("DX8 - SetRenderState(%d,%d)\n",state,value));
 
         RenderStates[state]=value;
         if (Is_Bgfx_Active())
         {
+#if WW3D_BGFX_AVAILABLE
+                BgfxStateData &bgfx_state = render_state.bgfx;
+                bool updateStencilState = false;
+
+                switch (state)
+                {
+                case D3DRS_ZWRITEENABLE:
+                        if (value)
+                        {
+                                bgfx_state.stateFlags |= BGFX_STATE_WRITE_Z;
+                        }
+                        else
+                        {
+                                bgfx_state.stateFlags &= ~BGFX_STATE_WRITE_Z;
+                        }
+                        break;
+                case D3DRS_ZENABLE:
+                        if (value == FALSE)
+                        {
+                                bgfx_state.stateFlags &= ~BGFX_STATE_DEPTH_TEST_MASK;
+                        }
+                        else
+                        {
+                                bgfx_state.stateFlags &= ~BGFX_STATE_DEPTH_TEST_MASK;
+                                bgfx_state.stateFlags |= Convert_D3D_Depth_Compare_To_Bgfx(
+                                        static_cast<D3DCMPFUNC>(RenderStates[D3DRS_ZFUNC]));
+                        }
+                        break;
+                case D3DRS_ZFUNC:
+                        if (RenderStates[D3DRS_ZENABLE] != FALSE)
+                        {
+                                bgfx_state.stateFlags &= ~BGFX_STATE_DEPTH_TEST_MASK;
+                                bgfx_state.stateFlags |= Convert_D3D_Depth_Compare_To_Bgfx(
+                                        static_cast<D3DCMPFUNC>(value));
+                        }
+                        break;
+                case D3DRS_COLORWRITEENABLE:
+                        if (value & (D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE))
+                        {
+                                bgfx_state.stateFlags |= BGFX_STATE_WRITE_RGB;
+                        }
+                        else
+                        {
+                                bgfx_state.stateFlags &= ~BGFX_STATE_WRITE_RGB;
+                        }
+
+                        if (value & D3DCOLORWRITEENABLE_ALPHA)
+                        {
+                                bgfx_state.stateFlags |= BGFX_STATE_WRITE_A;
+                        }
+                        else
+                        {
+                                bgfx_state.stateFlags &= ~BGFX_STATE_WRITE_A;
+                        }
+                        break;
+                case D3DRS_CULLMODE:
+                        bgfx_state.stateFlags &= ~(BGFX_STATE_CULL_CW | BGFX_STATE_CULL_CCW);
+                        if (value == D3DCULL_CW)
+                        {
+                                bgfx_state.stateFlags |= BGFX_STATE_CULL_CW;
+                        }
+                        else if (value == D3DCULL_CCW)
+                        {
+                                bgfx_state.stateFlags |= BGFX_STATE_CULL_CCW;
+                        }
+                        break;
+                case D3DRS_ALPHABLENDENABLE:
+                case D3DRS_SRCBLEND:
+                case D3DRS_DESTBLEND:
+                case D3DRS_BLENDOP:
+                        bgfx_state.stateFlags &= ~(BGFX_STATE_BLEND_MASK | BGFX_STATE_BLEND_EQUATION_MASK);
+                        if (RenderStates[D3DRS_ALPHABLENDENABLE])
+                        {
+                                D3DBLEND srcBlend = static_cast<D3DBLEND>(RenderStates[D3DRS_SRCBLEND]);
+                                D3DBLEND dstBlend = static_cast<D3DBLEND>(RenderStates[D3DRS_DESTBLEND]);
+                                D3DBLENDOP blendOp = static_cast<D3DBLENDOP>(RenderStates[D3DRS_BLENDOP]);
+                                if (blendOp == 0)
+                                {
+                                        blendOp = D3DBLENDOP_ADD;
+                                }
+
+                                uint64_t blendFlags = BGFX_STATE_BLEND_FUNC(
+                                        Convert_D3D_Blend_Factor_To_Bgfx(srcBlend),
+                                        Convert_D3D_Blend_Factor_To_Bgfx(dstBlend));
+                                blendFlags |= Convert_D3D_Blend_Op_To_Bgfx(blendOp);
+                                bgfx_state.stateFlags |= blendFlags;
+                        }
+                        break;
+                case D3DRS_ALPHATESTENABLE:
+                        bgfx_state.alphaTestEnabled = (value != FALSE);
+                        bgfx_state.stateFlags &= ~BGFX_STATE_ALPHA_REF_MASK;
+                        if (bgfx_state.alphaTestEnabled)
+                        {
+                                uint32_t alphaRef = RenderStates[D3DRS_ALPHAREF] & 0xffu;
+                                bgfx_state.stateFlags |= BGFX_STATE_ALPHA_REF(alphaRef);
+                        }
+                        break;
+                case D3DRS_ALPHAREF:
+                        bgfx_state.alphaReference = static_cast<float>(value & 0xffu) / 255.0f;
+                        if (bgfx_state.alphaTestEnabled)
+                        {
+                                bgfx_state.stateFlags &= ~BGFX_STATE_ALPHA_REF_MASK;
+                                bgfx_state.stateFlags |= BGFX_STATE_ALPHA_REF(value & 0xffu);
+                        }
+                        break;
+                case D3DRS_ALPHAFUNC:
+                        bgfx_state.alphaFunc = static_cast<uint8_t>(value);
+                        break;
+                case D3DRS_LIGHTING:
+                        bgfx_state.materialLightingEnabled = (value != FALSE);
+                        break;
+                case D3DRS_AMBIENTMATERIALSOURCE:
+                        bgfx_state.ambientSource = value;
+                        break;
+                case D3DRS_DIFFUSEMATERIALSOURCE:
+                        bgfx_state.diffuseSource = value;
+                        break;
+                case D3DRS_EMISSIVEMATERIALSOURCE:
+                        bgfx_state.emissiveSource = value;
+                        break;
+                case D3DRS_SPECULARMATERIALSOURCE:
+                        bgfx_state.specularSource = value;
+                        break;
+                case D3DRS_SPECULARENABLE:
+                        bgfx_state.specularEnabled = (value != FALSE);
+                        break;
+                case D3DRS_LOCALVIEWER:
+                        bgfx_state.localViewerEnabled = (value != FALSE);
+                        break;
+                case D3DRS_FILLMODE:
+                        bgfx_state.fillMode = value;
+                        break;
+                case D3DRS_SHADEMODE:
+                        bgfx_state.shadeMode = value;
+                        break;
+                case D3DRS_AMBIENT:
+                        bgfx_state.ambientColor = value;
+                        break;
+                case D3DRS_FOGENABLE:
+                        bgfx_state.fogEnabled = (value != FALSE);
+                        break;
+                case D3DRS_FOGCOLOR:
+                        bgfx_state.fogColor = value;
+                        break;
+                case D3DRS_FOGTABLEMODE:
+                        bgfx_state.fogTableMode = value;
+                        break;
+                case D3DRS_FOGVERTEXMODE:
+                        bgfx_state.fogVertexMode = value;
+                        break;
+                case D3DRS_FOGSTART:
+                        bgfx_state.fogStart = Convert_D3D_Dword_To_Float(value);
+                        break;
+                case D3DRS_FOGEND:
+                        bgfx_state.fogEnd = Convert_D3D_Dword_To_Float(value);
+                        break;
+                case D3DRS_FOGDENSITY:
+                        bgfx_state.fogDensity = Convert_D3D_Dword_To_Float(value);
+                        break;
+                case D3DRS_RANGEFOGENABLE:
+                        bgfx_state.rangeFogEnabled = (value != FALSE);
+                        break;
+                case D3DRS_STENCILENABLE:
+                        bgfx_state.stencilEnabled = (value != FALSE);
+                        updateStencilState = true;
+                        break;
+                case D3DRS_STENCILFUNC:
+                        bgfx_state.stencilFunc = static_cast<uint8_t>(value);
+                        updateStencilState = true;
+                        break;
+                case D3DRS_STENCILFAIL:
+                        bgfx_state.stencilFailOp = static_cast<uint8_t>(value);
+                        updateStencilState = true;
+                        break;
+                case D3DRS_STENCILZFAIL:
+                        bgfx_state.stencilDepthFailOp = static_cast<uint8_t>(value);
+                        updateStencilState = true;
+                        break;
+                case D3DRS_STENCILPASS:
+                        bgfx_state.stencilPassOp = static_cast<uint8_t>(value);
+                        updateStencilState = true;
+                        break;
+                case D3DRS_STENCILREF:
+                        bgfx_state.stencilRef = static_cast<uint8_t>(value & 0xffu);
+                        updateStencilState = true;
+                        break;
+                case D3DRS_STENCILMASK:
+                        bgfx_state.stencilReadMask = static_cast<uint8_t>(value & 0xffu);
+                        updateStencilState = true;
+                        break;
+                case D3DRS_STENCILWRITEMASK:
+                        bgfx_state.stencilWriteMask = static_cast<uint8_t>(value & 0xffu);
+                        break;
+                case D3DRS_ZBIAS:
+                        bgfx_state.zBias = static_cast<int32_t>(value);
+                        break;
+#if defined(D3DRS_DEPTHBIAS)
+                case D3DRS_DEPTHBIAS:
+                        bgfx_state.depthBias = Convert_D3D_Dword_To_Float(value);
+                        break;
+#endif
+#if defined(D3DRS_SLOPESCALEDEPTHBIAS)
+                case D3DRS_SLOPESCALEDEPTHBIAS:
+                        bgfx_state.slopeScaleDepthBias = Convert_D3D_Dword_To_Float(value);
+                        break;
+#endif
+                default:
+                        break;
+                }
+
+                if (updateStencilState)
+                {
+                        UpdateBgfxStencilState(bgfx_state);
+                }
+#endif
                 DX8_RECORD_RENDER_STATE_CHANGE();
                 return;
         }
@@ -827,6 +1324,7 @@ WWINLINE void DX8Wrapper::Set_DX8_Texture_Stage_State(unsigned stage, D3DTEXTURE
         {
 #if WW3D_BGFX_AVAILABLE
                 BgfxStateData &bgfx_state = render_state.bgfx;
+                bool updateSampler = false;
                 switch (state)
                 {
                 case D3DTSS_COLOROP:
@@ -837,18 +1335,23 @@ WWINLINE void DX8Wrapper::Set_DX8_Texture_Stage_State(unsigned stage, D3DTEXTURE
                         break;
                 case D3DTSS_ADDRESSU:
                         bgfx_state.textureAddressU[stage] = value;
+                        updateSampler = true;
                         break;
                 case D3DTSS_ADDRESSV:
                         bgfx_state.textureAddressV[stage] = value;
+                        updateSampler = true;
                         break;
                 case D3DTSS_MINFILTER:
                         bgfx_state.minFilter[stage] = value;
+                        updateSampler = true;
                         break;
                 case D3DTSS_MAGFILTER:
                         bgfx_state.magFilter[stage] = value;
+                        updateSampler = true;
                         break;
                 case D3DTSS_MIPFILTER:
                         bgfx_state.mipFilter[stage] = value;
+                        updateSampler = true;
                         break;
                 case D3DTSS_TEXTURETRANSFORMFLAGS:
                         bgfx_state.textureTransformFlags[stage] = value;
@@ -859,6 +1362,11 @@ WWINLINE void DX8Wrapper::Set_DX8_Texture_Stage_State(unsigned stage, D3DTEXTURE
                         break;
                 default:
                         break;
+                }
+
+                if (updateSampler)
+                {
+                        UpdateBgfxSamplerFlagsForStage(bgfx_state, stage);
                 }
 #endif
                 DX8_RECORD_TEXTURE_STAGE_STATE_CHANGE();
@@ -1334,12 +1842,41 @@ WWINLINE BgfxStateData::BgfxStateData()
         ambientSource(D3DMCS_MATERIAL),
         diffuseSource(D3DMCS_MATERIAL),
         emissiveSource(D3DMCS_MATERIAL),
+        specularSource(D3DMCS_MATERIAL),
+        specularEnabled(false),
+        localViewerEnabled(false),
+        fillMode(D3DFILL_SOLID),
+        shadeMode(D3DSHADE_GOURAUD),
+        ambientColor(0u),
         alphaTestEnabled(false),
         alphaFunc(D3DCMP_ALWAYS),
-        alphaReference(0.0f)
+        alphaReference(0.0f),
+        fogEnabled(false),
+        rangeFogEnabled(false),
+        fogColor(0u),
+        fogTableMode(D3DFOG_NONE),
+        fogVertexMode(D3DFOG_LINEAR),
+        fogStart(0.0f),
+        fogEnd(1.0f),
+        fogDensity(1.0f),
+        stencilEnabled(false),
+        stencilState(0u),
+        stencilRef(0u),
+        stencilReadMask(0xffu),
+        stencilWriteMask(0xffu),
+        stencilFunc(D3DCMP_ALWAYS),
+        stencilFailOp(D3DSTENCILOP_KEEP),
+        stencilDepthFailOp(D3DSTENCILOP_KEEP),
+        stencilPassOp(D3DSTENCILOP_KEEP),
+        depthBias(0.0f),
+        slopeScaleDepthBias(0.0f),
+        zBias(0)
 {
 #if WW3D_BGFX_AVAILABLE
         program.idx = bgfx::kInvalidHandle;
+        stencilState = BGFX_STENCIL_NONE;
+#else
+        stencilState = 0u;
 #endif
         worldTransform.Make_Identity();
         viewTransform.Make_Identity();

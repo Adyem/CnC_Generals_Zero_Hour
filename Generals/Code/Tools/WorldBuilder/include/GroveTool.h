@@ -24,7 +24,7 @@
 #ifndef GroveTool_H
 #define GroveTool_H
 
-#include "lib/Basetype.h"
+#include "Lib/BaseType.h"
 #include "Tool.h"
 #include "common/MapObject.h"
 class WorldHeightMapEdit;
