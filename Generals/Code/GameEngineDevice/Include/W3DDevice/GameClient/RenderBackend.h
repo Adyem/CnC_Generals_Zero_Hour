@@ -31,12 +31,15 @@
 #ifndef W3DDEVICE_GAMECLIENT_RENDERBACKEND_H
 #define W3DDEVICE_GAMECLIENT_RENDERBACKEND_H
 
+class TextureClass;
+
 class IRenderBackend
 {
 public:
     virtual ~IRenderBackend() {}
 
     virtual void HandleFocusChange(bool isActive) = 0;
+    virtual void BindTexture(unsigned stage, TextureClass* texture) = 0;
 };
 
 void SetRenderBackend(IRenderBackend* backend);

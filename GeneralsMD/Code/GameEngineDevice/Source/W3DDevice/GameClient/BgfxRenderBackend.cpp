@@ -16,19 +16,19 @@
 **      along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "WinMain.h"
-#include "Lib/BaseType.h"
+#include "W3DDevice/GameClient/BgfxRenderBackend.h"
 
-HINSTANCE ApplicationHInstance = NULL;
-HWND ApplicationHWnd = NULL;
-HDC ApplicationHDC = NULL;
-HGLRC ApplicationHGLRC = NULL;
-Bool ApplicationIsWindowed = false;
-GraphicsBackend ApplicationGraphicsBackend = GRAPHICS_BACKEND_BGFX;
-Win32Mouse* TheWin32Mouse = NULL;
-DWORD TheMessageTime = 0;
-BgfxNativeWindowData ApplicationBgfxNativeWindow;
+#include "WW3D2/dx8wrapper.h"
 
-const Char* g_strFile = "data\\Generals.str";
-const Char* g_csfFile = "data\\%s\\Generals.csf";
-char* gAppPrefix = "";
+void BgfxRenderBackend::HandleFocusChange(bool)
+{
+    // The bgfx backend currently does not require focus recovery logic.
+}
+
+void BgfxRenderBackend::BindTexture(unsigned stage, TextureClass* texture)
+{
+    DX8Wrapper::Set_Texture(stage, texture);
+}
+
+BgfxRenderBackend g_bgfxRenderBackend;
+

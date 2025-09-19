@@ -35,7 +35,6 @@ static void drawFramerateBar(void);
 
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 #include <stdlib.h>
-#include <windows.h>
 #include <io.h>
 #include <time.h>
 
@@ -94,6 +93,7 @@ static void drawFramerateBar(void);
 #include "WW3D2/SortingRenderer.h"
 #include "WW3D2/Textureloader.h"
 #include "WW3D2/DX8WebBrowser.h"
+#include "W3DDevice/GameClient/BgfxRenderBackend.h"
 #include "W3DDevice/GameClient/RenderBackend.h"
 #include "WW3D2/Mesh.h"
 #include "WW3D2/HLOD.h"
@@ -552,48 +552,6 @@ void W3DDisplay::setGamma(Real gamma, Real bright, Real contrast, Bool calibrate
 	DX8Wrapper::Set_Gamma(gamma,bright,contrast,calibrate, false);
 }
 
-class Dx8RenderBackend : public IRenderBackend
-{
-public:
-        virtual void HandleFocusChange(bool isActive)
-        {
-		if (TheDisplay && WW3D::Is_Initted() && !TheDisplay->getWindowed())
-		{
-			if (isActive)
-			{
-				WW3D::Set_Render_Device(WW3D::Get_Render_Device(), TheDisplay->getWidth(), TheDisplay->getHeight(),
-					TheDisplay->getBitDepth(), TheDisplay->getWindowed(), true, true);
-				OSVERSIONINFO osvi;
-				osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-				if (GetVersionEx(&osvi))
-				{
-					if (osvi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
-					{
-						WW3D::_Invalidate_Textures();
-					}
-				}
-			}
-			else
-			{
-				WW3D::Set_Render_Device(WW3D::Get_Render_Device(), TheDisplay->getWidth(), TheDisplay->getHeight(),
-					TheDisplay->getBitDepth(), TheDisplay->getWindowed(), true, true, false);
-			}
-		}
-	}
-};
-
-static Dx8RenderBackend g_dx8RenderBackend;
-
-class BgfxRenderBackend : public IRenderBackend
-{
-public:
-        virtual void HandleFocusChange(bool)
-        {
-                // No focus handling is required for the bgfx backend yet.
-        }
-};
-
-static BgfxRenderBackend g_bgfxRenderBackend;
 
 Bool W3DDisplay::setDisplayMode( UnsignedInt xres, UnsignedInt yres, UnsignedInt bitdepth, Bool windowed )
 {
@@ -748,14 +706,7 @@ void W3DDisplay::init( void )
 		SortingRendererClass::SetMinVertexBufferSize(1);
 	}
 	DX8Wrapper::Set_Active_Backend(ApplicationGraphicsBackend);
-	if (ApplicationGraphicsBackend == GRAPHICS_BACKEND_BGFX)
-	{
-		SetRenderBackend(&g_bgfxRenderBackend);
-	}
-	else
-	{
-		SetRenderBackend(&g_dx8RenderBackend);
-	}
+        SetRenderBackend(&g_bgfxRenderBackend);
 
 	if (WW3D::Init( ApplicationHWnd ) != WW3D_ERROR_OK)
 		throw ERROR_INVALID_D3D;	//failed to initialize.  User probably doesn't have DX 8.1

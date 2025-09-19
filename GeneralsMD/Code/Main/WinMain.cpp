@@ -88,7 +88,7 @@ HWND ApplicationHWnd = NULL;  ///< our application window handle
 HDC ApplicationHDC = NULL;  ///< device context for OpenGL rendering
 HGLRC ApplicationHGLRC = NULL; ///< OpenGL rendering context
 Bool ApplicationIsWindowed = false;
-GraphicsBackend ApplicationGraphicsBackend = GRAPHICS_BACKEND_DIRECT3D8;
+GraphicsBackend ApplicationGraphicsBackend = GRAPHICS_BACKEND_BGFX;
 Win32Mouse *TheWin32Mouse= NULL;  ///< for the WndProc() only
 DWORD TheMessageTime = 0;	///< For getting the time that a message was posted from Windows.
 

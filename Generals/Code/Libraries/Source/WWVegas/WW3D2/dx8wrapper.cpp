@@ -77,7 +77,7 @@
 #include "Main/WinMain.h"
 
 #ifndef WW3D_BGFX_AVAILABLE
-#define WW3D_BGFX_AVAILABLE 0
+#define WW3D_BGFX_AVAILABLE 1
 #endif
 
 #if WW3D_BGFX_AVAILABLE
@@ -196,6 +196,9 @@ static void ShutdownBgfx();
 static void UpdateBgfxDisplayParameters();
 static bgfx::UniformHandle GetBgfxTextureSamplerUniform(unsigned stage);
 static void DestroyBgfxTextureSamplerUniforms();
+static void SetBgfxViewForSize(uint16_t width, uint16_t height);
+static void SetBgfxRenderTargetHandle(bgfx::FrameBufferHandle framebuffer, uint16_t width, uint16_t height);
+static uint32_t PackBgfxClearColor(const Vector3& color, float alpha);
 #else
 static uint32_t ComputeBgfxSamplerFlags(const TextureClass*) { return 0; }
 #endif
@@ -383,10 +386,7 @@ static void UpdateBgfxDisplayParameters()
         bgfx::reset(static_cast<uint32_t>(DX8Wrapper::ResolutionWidth),
                 static_cast<uint32_t>(DX8Wrapper::ResolutionHeight),
                 resetFlags);
-        bgfx::setViewRect(0,
-                0,
-                0,
-                static_cast<uint16_t>(DX8Wrapper::ResolutionWidth),
+        SetBgfxViewForSize(static_cast<uint16_t>(DX8Wrapper::ResolutionWidth),
                 static_cast<uint16_t>(DX8Wrapper::ResolutionHeight));
 }
 #endif
@@ -828,6 +828,51 @@ static void DestroyBgfxMaterialUniforms()
         }
 
         g_bgfxMaterialUniformsInitialized = false;
+}
+
+static void SetBgfxViewForSize(uint16_t width, uint16_t height)
+{
+        if (!g_bgfxState.initialized)
+        {
+                return;
+        }
+
+        const uint16_t targetWidth = width != 0 ? width : static_cast<uint16_t>(DX8Wrapper::ResolutionWidth);
+        const uint16_t targetHeight = height != 0 ? height : static_cast<uint16_t>(DX8Wrapper::ResolutionHeight);
+        bgfx::setViewRect(0, 0, 0, targetWidth, targetHeight);
+}
+
+static void SetBgfxRenderTargetHandle(bgfx::FrameBufferHandle framebuffer, uint16_t width, uint16_t height)
+{
+        if (!g_bgfxState.initialized)
+        {
+                return;
+        }
+
+        if (bgfx::isValid(framebuffer))
+        {
+                bgfx::setViewFrameBuffer(0, framebuffer);
+        }
+        else
+        {
+                bgfx::setViewFrameBuffer(0, BGFX_INVALID_HANDLE);
+        }
+
+        SetBgfxViewForSize(width, height);
+}
+
+static uint32_t PackBgfxClearColor(const Vector3& color, float alpha)
+{
+        const float clampedR = Bound(color.X, 0.0f, 1.0f);
+        const float clampedG = Bound(color.Y, 0.0f, 1.0f);
+        const float clampedB = Bound(color.Z, 0.0f, 1.0f);
+        const float clampedA = Bound(alpha, 0.0f, 1.0f);
+
+        const uint8_t r = static_cast<uint8_t>(clampedR * 255.0f + 0.5f);
+        const uint8_t g = static_cast<uint8_t>(clampedG * 255.0f + 0.5f);
+        const uint8_t b = static_cast<uint8_t>(clampedB * 255.0f + 0.5f);
+        const uint8_t a = static_cast<uint8_t>(clampedA * 255.0f + 0.5f);
+        return bgfx::packRgba8(r, g, b, a);
 }
 
 static bgfx::UniformHandle GetBgfxTextureMatrixUniform(unsigned stage)
@@ -2637,6 +2682,30 @@ void DX8Wrapper::Flip_To_Primary(void)
 void DX8Wrapper::Clear(bool clear_color, bool clear_z_stencil, const Vector3 &color, float dest_alpha, float z, unsigned int stencil)
 {
 	DX8_THREAD_ASSERT();
+#if WW3D_BGFX_AVAILABLE
+	if (Is_Bgfx_Active())
+	{
+		uint16_t clearFlags = 0;
+		if (clear_color)
+		{
+			clearFlags |= BGFX_CLEAR_COLOR;
+		}
+		if (clear_z_stencil)
+		{
+			clearFlags |= BGFX_CLEAR_DEPTH;
+			clearFlags |= BGFX_CLEAR_STENCIL;
+		}
+
+		if (clearFlags != 0)
+		{
+			const uint32_t packedColor = PackBgfxClearColor(color, dest_alpha);
+			const uint8_t stencilValue = static_cast<uint8_t>(stencil & 0xffu);
+			bgfx::setViewClear(0, clearFlags, packedColor, z, stencilValue);
+			bgfx::touch(0);
+		}
+		return;
+	}
+#endif
 	// If we try to clear a stencil buffer which is not there, the entire call will fail
 	bool has_stencil = (	_PresentParameters.AutoDepthStencilFormat == D3DFMT_D15S1 ||
 								_PresentParameters.AutoDepthStencilFormat == D3DFMT_D24S8 ||
@@ -2655,6 +2724,22 @@ void DX8Wrapper::Clear(bool clear_color, bool clear_z_stencil, const Vector3 &co
 void DX8Wrapper::Set_Viewport(CONST D3DVIEWPORT8* pViewport)
 {
 	DX8_THREAD_ASSERT();
+#if WW3D_BGFX_AVAILABLE
+	if (Is_Bgfx_Active())
+	{
+		if (!pViewport)
+		{
+			return;
+		}
+
+		const uint16_t x = static_cast<uint16_t>(pViewport->X);
+		const uint16_t y = static_cast<uint16_t>(pViewport->Y);
+		const uint16_t width = static_cast<uint16_t>(pViewport->Width != 0 ? pViewport->Width : DX8Wrapper::ResolutionWidth);
+		const uint16_t height = static_cast<uint16_t>(pViewport->Height != 0 ? pViewport->Height : DX8Wrapper::ResolutionHeight);
+		bgfx::setViewRect(0, x, y, width, height);
+		return;
+	}
+#endif
 	DX8CALL(SetViewport(pViewport));
 }
 
@@ -3973,7 +4058,44 @@ DX8Wrapper::Create_Render_Target (int width, int height, bool alpha)
 void
 DX8Wrapper::Set_Render_Target (TextureClass * texture)
 {
+	DX8_THREAD_ASSERT();
 	WWASSERT(texture != NULL);
+	if (!texture)
+	{
+		Set_Render_Target(static_cast<IDirect3DSurface8*>(NULL));
+		return;
+	}
+
+#if WW3D_BGFX_AVAILABLE
+	if (Is_Bgfx_Active())
+	{
+		if (!g_bgfxState.initialized)
+		{
+			return;
+		}
+
+		if (texture->Has_Bgfx_Texture())
+		{
+			SetBgfxRenderTargetHandle(texture->m_bgfxData.framebuffer, texture->m_bgfxData.width, texture->m_bgfxData.height);
+			return;
+		}
+
+		IDirect3DTexture8* d3dTexture = texture->Peek_DX8_Texture();
+		if (d3dTexture != NULL)
+		{
+			texture->Create_Bgfx_Texture_From_D3D(d3dTexture, texture->Get_Texture_Format(), true);
+			if (texture->Has_Bgfx_Texture())
+			{
+				SetBgfxRenderTargetHandle(texture->m_bgfxData.framebuffer, texture->m_bgfxData.width, texture->m_bgfxData.height);
+				return;
+			}
+		}
+
+		SetBgfxRenderTargetHandle(BGFX_INVALID_HANDLE, static_cast<uint16_t>(ResolutionWidth), static_cast<uint16_t>(ResolutionHeight));
+		return;
+	}
+#endif
+
 	SurfaceClass * surf = texture->Get_Surface_Level();
 	WWASSERT(surf != NULL);
 	Set_Render_Target(surf->Peek_D3D_Surface()); 
@@ -3985,6 +4107,15 @@ DX8Wrapper::Set_Render_Target(IDirect3DSwapChain8 *swap_chain)
 {
 	DX8_THREAD_ASSERT();
 	WWASSERT (swap_chain != NULL);
+
+#if WW3D_BGFX_AVAILABLE
+	if (Is_Bgfx_Active())
+	{
+		// Additional swap chains are not supported under bgfx; fall back to the default framebuffer.
+		SetBgfxRenderTargetHandle(BGFX_INVALID_HANDLE, static_cast<uint16_t>(ResolutionWidth), static_cast<uint16_t>(ResolutionHeight));
+		return;
+	}
+#endif
 
 	//
 	//	Get the back buffer for the swap chain
@@ -4012,6 +4143,20 @@ void
 DX8Wrapper::Set_Render_Target(IDirect3DSurface8 *render_target)
 {
 	DX8_THREAD_ASSERT();
+#if WW3D_BGFX_AVAILABLE
+	if (Is_Bgfx_Active())
+	{
+		if (render_target == NULL)
+		{
+			SetBgfxRenderTargetHandle(BGFX_INVALID_HANDLE, static_cast<uint16_t>(ResolutionWidth), static_cast<uint16_t>(ResolutionHeight));
+		}
+		else
+		{
+			SetBgfxRenderTargetHandle(BGFX_INVALID_HANDLE, static_cast<uint16_t>(ResolutionWidth), static_cast<uint16_t>(ResolutionHeight));
+		}
+		return;
+	}
+#endif
 	DX8_Assert();
 
 	//
