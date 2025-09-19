@@ -57,7 +57,6 @@ struct ParsedArguments {
     BackendOption backend = BackendOption::Direct3D8;
     unsigned int bitDepth = 32;
     bool helpRequested = false;
-    bool useLegacyMilesAudio = false;
 };
 
 CriticalSection critSec1;
@@ -93,8 +92,7 @@ void printHelp() {
               << "      --opengl         Use the OpenGL renderer\n"
               << "      --bgfx           Use the bgfx renderer\n"
               << "      --d3d            Use the Direct3D 8 renderer (default)\n"
-              << "      --bitdepth <n>   Set color bit depth (default 32)\n"
-              << "      --legacy-miles-audio Use legacy Miles audio backend\n";
+              << "      --bitdepth <n>   Set color bit depth (default 32)\n";
 }
 
 std::optional<unsigned int> parseUnsigned(const std::string& value) {
@@ -293,11 +291,6 @@ ParsedArguments parseArguments(const std::vector<std::string>& arguments) {
             continue;
         }
 
-        if (argument == "--legacy-miles-audio") {
-            result.useLegacyMilesAudio = true;
-            continue;
-        }
-
         std::cerr << "Unrecognized option: '" << argument << "'\n";
     }
 
@@ -412,11 +405,7 @@ int main(int argc, char** argv) {
     SetMouseFactoryOverride(sfml_platform::CreateSfmlMouse);
     SetGameEngineFactoryOverride(CreateSfmlGameEngine);
 
-    if (parsed.useLegacyMilesAudio) {
-        SetAudioManagerFactoryOverride(NULL);
-    } else {
-        SetAudioManagerFactoryOverride(CreateSfmlAudioManager);
-    }
+    SetAudioManagerFactoryOverride(CreateSfmlAudioManager);
 
     try {
         GameMain(static_cast<int>(argvPointers.size()), argvPointers.data());

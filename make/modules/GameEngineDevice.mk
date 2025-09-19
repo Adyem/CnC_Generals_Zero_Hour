@@ -9,7 +9,6 @@ $(shell python3 build_tools/generate_make_fragment.py \
         $(GAME_ENGINE_DEVICE_OBJ_DIR) \
         $(GAME_ENGINE_DEVICE_SOURCES_MK) \
         --variable-prefix=GAME_ENGINE_DEVICE \
-        --exclude=MilesAudioDevice \
         --exclude=VideoDevice \
         --exclude=W3DDevice \
         --exclude=Win32Device)
