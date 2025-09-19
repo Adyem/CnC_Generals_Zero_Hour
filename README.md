@@ -14,9 +14,17 @@ If you wish to rebuild the source code and tools successfully you will need to f
 - NVASM - (expected path `\Code\Tools\NVASM\`)
 - BYTEmark - (expected path `\Code\Libraries\Source\Benchmark`)
 - Video playback dependencies provided by libVLC (e.g. install the libvlc development package for your platform)
-- GameSpy SDK - (expected path `\Code\Libraries\Source\GameSpy\`)
+- (legacy GameSpy SDK no longer required; online features run through the new
+  offline-friendly OnlineServices facade)
 - ZLib (1.1.4) - (expected path `\Code\Libraries\Source\Compression\ZLib\`)
 - LZH-Light (1.0) - (expected path `\Code\Libraries\Source\Compression\LZHCompress\CompLibSource` and `CompLibHeader`)
+
+
+## Online services status
+
+All GameSpy-powered multiplayer functionality is currently stubbed out. The
+shell keeps the online menus visible but every entry short-circuits to an
+offline notification while the replacement backend is under development.
 
 
 ## Compiling (Win32 Only)

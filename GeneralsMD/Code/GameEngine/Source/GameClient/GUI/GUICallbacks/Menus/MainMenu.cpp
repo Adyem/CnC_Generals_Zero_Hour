@@ -224,6 +224,11 @@ extern Bool dispChanged;
 //
 
 void diffReverseSide( void );
+static Bool isControlEnabled(GameWindow *control)
+{
+        return control && (control->winGetStatus() & WIN_STATUS_ENABLED);
+}
+
 void HandleCanceledDownload( Bool resetDropDown )
 {
 	buttonPushed = FALSE;
@@ -507,11 +512,19 @@ void MainMenuInit( WindowLayout *layout, void *userData )
 	parentMainMenu = TheWindowManager->winGetWindowFromId( NULL, mainMenuID );
 	//buttonCampaign = TheWindowManager->winGetWindowFromId( parentMainMenu, campaignID );
 	buttonSinglePlayer = TheWindowManager->winGetWindowFromId( parentMainMenu, buttonSinglePlayerID );
-	buttonMultiPlayer = TheWindowManager->winGetWindowFromId( parentMainMenu, buttonMultiPlayerID );
-	buttonSkirmish = TheWindowManager->winGetWindowFromId( parentMainMenu, skirmishID );
-	buttonOnline = TheWindowManager->winGetWindowFromId( parentMainMenu, onlineID );
-	buttonNetwork = TheWindowManager->winGetWindowFromId( parentMainMenu, networkID );
-	buttonOptions = TheWindowManager->winGetWindowFromId( parentMainMenu, optionsID );
+        buttonMultiPlayer = TheWindowManager->winGetWindowFromId( parentMainMenu, buttonMultiPlayerID );
+        buttonSkirmish = TheWindowManager->winGetWindowFromId( parentMainMenu, skirmishID );
+        buttonOnline = TheWindowManager->winGetWindowFromId( parentMainMenu, onlineID );
+        buttonNetwork = TheWindowManager->winGetWindowFromId( parentMainMenu, networkID );
+        if (buttonOnline)
+        {
+                buttonOnline->winEnable(FALSE);
+        }
+        if (buttonNetwork)
+        {
+                buttonNetwork->winEnable(FALSE);
+        }
+        buttonOptions = TheWindowManager->winGetWindowFromId( parentMainMenu, optionsID );
 	buttonExit = TheWindowManager->winGetWindowFromId( parentMainMenu, exitID );
 	buttonMOTD = TheWindowManager->winGetWindowFromId( parentMainMenu, motdID );
 	buttonWorldBuilder = TheWindowManager->winGetWindowFromId( parentMainMenu, worldBuilderID );
@@ -1081,13 +1094,15 @@ WindowMsgHandledType MainMenuSystem( GameWindow *window, UnsignedInt msg,
 
 		}  // end input
 		//---------------------------------------------------------------------------------------------
-		case GBM_MOUSE_ENTERING:
-		{
-			GameWindow *control = (GameWindow *)mData1;
-			Int controlID = control->winGetWindowId();
-			if(controlID == onlineID)
-			{
-				TheScriptEngine->signalUIInteract(TheShellHookNames[SHELL_SCRIPT_HOOK_MAIN_MENU_ONLINE_HIGHLIGHTED]);
+                case GBM_MOUSE_ENTERING:
+                {
+                        GameWindow *control = (GameWindow *)mData1;
+                        Int controlID = control->winGetWindowId();
+                        if (!isControlEnabled(control))
+                                break;
+                        if(controlID == onlineID)
+                        {
+                                TheScriptEngine->signalUIInteract(TheShellHookNames[SHELL_SCRIPT_HOOK_MAIN_MENU_ONLINE_HIGHLIGHTED]);
 			}
 			else if(controlID == networkID)
 			{
@@ -1300,14 +1315,17 @@ WindowMsgHandledType MainMenuSystem( GameWindow *window, UnsignedInt msg,
 		break;
 		}
 		//---------------------------------------------------------------------------------------------
-		case GBM_SELECTED:
-		{
-			
-			GameWindow *control = (GameWindow *)mData1;
-			Int controlID = control->winGetWindowId();
-			
-			if(buttonPushed)
-				break;
+                case GBM_SELECTED:
+                {
+
+                        GameWindow *control = (GameWindow *)mData1;
+                        Int controlID = control->winGetWindowId();
+
+                        if (!isControlEnabled(control))
+                                break;
+
+                        if(buttonPushed)
+                                break;
 #if defined _DEBUG || defined _INTERNAL || defined _PROFILE
 			if( control == buttonCampaign )
 			{
