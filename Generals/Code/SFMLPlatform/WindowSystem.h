@@ -2,7 +2,7 @@
 
 #include "WindowConfig.h"
 
-#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics.hpp>
 #include <functional>
 
 namespace sfml_platform {

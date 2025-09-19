@@ -8,7 +8,11 @@ $(shell python3 build_tools/generate_make_fragment.py \
         $(LIBRARIES_SRC_DIR) \
         $(LIBRARIES_OBJ_DIR) \
         $(LIBRARIES_SOURCES_MK) \
-        --variable-prefix=LIBRARIES)
+        --variable-prefix=LIBRARIES \
+        --exclude=Source/WWVegas/WW3D2 \
+        --exclude=Source/WWVegas/WWAudio \
+        --exclude=Source/WWVegas/WWDebug \
+        --exclude=Source/WWVegas/WWSaveLoad)
 
 include $(LIBRARIES_SOURCES_MK)
 

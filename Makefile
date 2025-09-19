@@ -73,6 +73,7 @@ TOTAL_C_SOURCE_COUNT   := 0
 STATIC_LIBS            :=
 
 include make/modules/SFMLPlatform.mk
+include make/modules/Compat.mk
 include make/modules/Main.mk
 include make/modules/GameEngine.mk
 include make/modules/GameEngineDevice.mk

@@ -43,8 +43,8 @@
 #include "GameClient/View.h"
 #include "W3DDevice/GameClient/W3DView.h"
 #include "WW3D2/render2d.h"
-#include "WW3D2/RendObj.h"
-#include "WW3D2/Line3D.h"
+#include "WW3D2/rendobj.h"
+#include "WW3D2/line3d.h"
 
 class HAnimClass;
 
