@@ -63,7 +63,7 @@
 #include "W3DDevice/GameClient/Module/W3DModelDraw.h"
 #include "WW3D2/Light.h"
 #include "WW3D2/RendObj.h"
-#include "WW3D2/ColType.h"
+#include "WW3D2/coltype.h"
 #include "WW3D2/ColTest.h"
 #include "WW3D2/assetmgr.h"
 

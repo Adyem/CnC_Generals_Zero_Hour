@@ -84,7 +84,7 @@
 
 #include "WW3D2/DX8Renderer.h"
 #include "WW3D2/Light.h"
-#include "WW3D2/Camera.h"
+#include "WW3D2/camera.h"
 #include "WW3D2/Coltype.h"
 #include "WW3D2/PredLod.h"
 #include "WW3D2/WW3D.h"

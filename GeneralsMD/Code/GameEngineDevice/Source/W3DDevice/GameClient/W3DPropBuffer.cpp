@@ -54,7 +54,7 @@
 #include "Common/PerfTimer.h"
 #include "Common/Player.h"
 #include "Common/PlayerList.h"
-#include "WW3D2/Camera.h"
+#include "WW3D2/camera.h"
 #include "WW3D2/RInfo.h"
 #include "WW3D2/Light.h"
 #include "WW3D2/DX8Wrapper.h"

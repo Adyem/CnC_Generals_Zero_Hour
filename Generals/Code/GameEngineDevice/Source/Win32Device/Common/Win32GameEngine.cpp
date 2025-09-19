@@ -49,6 +49,11 @@ void SetWindowsMessagePumpOverride( WindowsMessagePumpOverride pump )
         g_messagePumpOverride = pump;
 }
 
+WindowsMessagePumpOverride GetWindowsMessagePumpOverride()
+{
+        return g_messagePumpOverride;
+}
+
 //-------------------------------------------------------------------------------------------------
 /** Constructor for Win32GameEngine */
 //-------------------------------------------------------------------------------------------------

@@ -16,15 +16,26 @@ CC  ?= gcc
 AR  ?= ar
 RC  ?= windres
 
-CXXSTANDARD ?= c++03
+CXXSTANDARD ?= c++17
 CXXFLAGS   ?= -std=$(CXXSTANDARD) -Wall -Wextra -Wpedantic
 CFLAGS     ?= -Wall -Wextra -Wpedantic
 CPPFLAGS   ?=
 LDFLAGS    ?=
 LIBS       ?=
 
+APT_GET := $(shell command -v apt-get 2>/dev/null)
+BREW    := $(shell command -v brew 2>/dev/null)
+USER_ID := $(shell id -u 2>/dev/null)
+
+ifeq ($(USER_ID),0)
+SUDO :=
+else
+SUDO := sudo
+endif
+
 # Useful preprocessor definitions that roughly mirror the legacy MSVC project
 CPPFLAGS   += -DWIN32 -D_WINDOWS -DNOMINMAX -D_CRT_SECURE_NO_DEPRECATE
+CPPFLAGS   += -DBX_CONFIG_DEBUG=0
 
 # -----------------------------------------------------------------------------
 # Source discovery
@@ -33,16 +44,8 @@ SRC_DIR     := Generals/Code
 BUILD_DIR   := build
 OBJ_DIR     := $(BUILD_DIR)/obj
 BIN_DIR     := $(BUILD_DIR)/bin
+LIB_DIR     := $(BUILD_DIR)/lib
 TARGET      ?= $(BIN_DIR)/generals-sfml
-
-# Automatically generate object lists and per-file build rules.  The helper
-# script writes a makefile fragment to $(SOURCES_MK), which is then included
-# below so the generated rules become part of the build graph.
-SOURCES_MK := $(BUILD_DIR)/generated_sources.mk
-
-$(shell python3 build_tools/generate_make_fragment.py $(SRC_DIR) $(OBJ_DIR) $(SOURCES_MK))
-
-include $(SOURCES_MK)
 
 # -----------------------------------------------------------------------------
 # Include path configuration
@@ -61,6 +64,20 @@ STLPORT_DIR := $(wildcard $(SRC_DIR)/Libraries/STLport-4.5.3/stlport)
 ifneq ($(STLPORT_DIR),)
 CPPFLAGS   += -I$(STLPORT_DIR)
 endif
+
+# -----------------------------------------------------------------------------
+# Static library modules
+# -----------------------------------------------------------------------------
+TOTAL_CPP_SOURCE_COUNT := 0
+TOTAL_C_SOURCE_COUNT   := 0
+STATIC_LIBS            :=
+
+include make/modules/SFMLPlatform.mk
+include make/modules/Main.mk
+include make/modules/GameEngine.mk
+include make/modules/GameEngineDevice.mk
+include make/modules/Libraries.mk
+include make/modules/Tools.mk
 
 # -----------------------------------------------------------------------------
 # SFML bootstrap configuration
@@ -94,13 +111,13 @@ endif
 # -----------------------------------------------------------------------------
 # Primary targets
 # -----------------------------------------------------------------------------
-.PHONY: all clean distclean print-config
+.PHONY: all clean distclean print-config install-deps
 
 all: $(TARGET)
 
-$(TARGET): $(OBJECTS)
+$(TARGET): $(STATIC_LIBS)
 	@mkdir -p $(BIN_DIR)
-	$(CXX) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $@
+	$(CXX) $(LDFLAGS) -Wl,--start-group $(STATIC_LIBS) -Wl,--end-group $(LIBS) -o $@
 
 # -----------------------------------------------------------------------------
 # Per-file build rules
@@ -124,13 +141,30 @@ print-config:
 	@echo "SFML_MODULES = $(SFML_MODULES)"
 	@echo "SFML_CFLAGS = $(SFML_CFLAGS)"
 	@echo "SFML_LIBS   = $(SFML_LIBS)"
-	@echo "# of C++ files = $(CPP_SOURCE_COUNT)"
-	@echo "# of C files  = $(C_SOURCE_COUNT)"
+	@echo "Static libs = $(STATIC_LIBS)"
+	@echo "# of C++ files = $(TOTAL_CPP_SOURCE_COUNT)"
+	@echo "# of C files  = $(TOTAL_C_SOURCE_COUNT)"
 
 clean:
 	rm -rf $(OBJ_DIR)
+	rm -rf $(LIB_DIR)
+	rm -f $(BUILD_DIR)/*_sources.mk
 
 # Remove the entire build directory, including the binary output.
 distclean: clean
 	rm -rf $(BIN_DIR)
+
+# Best-effort dependency installer for common development environments.
+install-deps:
+ifdef APT_GET
+	echo "Installing dependencies via apt-get"
+	$(SUDO) apt-get update
+	$(SUDO) apt-get install -y build-essential pkg-config libsfml-dev
+else ifdef BREW
+	echo "Installing dependencies via Homebrew"
+	brew update
+	brew install pkg-config sfml
+else
+	echo "No supported package manager detected. Please install build essentials, pkg-config, and SFML manually."
+endif
 

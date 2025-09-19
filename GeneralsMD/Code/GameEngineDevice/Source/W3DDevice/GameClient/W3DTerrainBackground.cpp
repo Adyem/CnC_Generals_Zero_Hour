@@ -57,7 +57,7 @@
 #include "W3DDevice/GameClient/HeightMap.h"
 #include "WW3D2/DX8Wrapper.h"
 #include "WW3D2/DX8Renderer.h"
-#include "WW3D2/Camera.h"
+#include "WW3D2/camera.h"
 
 #ifdef _INTERNAL
 // for occasional debugging...

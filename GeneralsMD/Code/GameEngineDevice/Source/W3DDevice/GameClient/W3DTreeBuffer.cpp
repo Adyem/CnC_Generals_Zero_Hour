@@ -81,7 +81,7 @@ enum
 #include "W3DDevice/GameClient/W3DShadow.h"
 #include "W3DDevice/GameClient/W3DShroud.h"
 #include "W3DDevice/GameClient/W3DProjectedShadow.h"
-#include "WW3D2/Camera.h"
+#include "WW3D2/camera.h"
 #include "WW3D2/DX8Wrapper.h"
 #include "WW3D2/DX8Renderer.h"
 #include "WW3D2/Matinfo.h"

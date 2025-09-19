@@ -9,7 +9,7 @@
 #include <GameClient/Mouse.h>
 #include <Common/GameEngine.h>
 #include <Common/GameAudio.h>
-#include <Win32Device/Common/Win32GameEngine.h>
+#include <SfmlDevice/Common/SfmlGameEngine.h>
 #include <W3DDevice/GameClient/RenderBackend.h>
 
 #include <Main/WinMain.h>
@@ -62,14 +62,6 @@ CriticalSection critSec4;
 CriticalSection critSec5;
 
 WindowSystem* g_activeWindowSystem = nullptr;
-
-class SfmlGameEngine : public Win32GameEngine {
-public:
-    SfmlGameEngine() = default;
-    ~SfmlGameEngine() override = default;
-};
-
-GameEngine* CreateSfmlGameEngine() { return NEW SfmlGameEngine; }
 
 std::vector<std::string> toArgumentVector(int argc, char** argv) {
     std::vector<std::string> args;

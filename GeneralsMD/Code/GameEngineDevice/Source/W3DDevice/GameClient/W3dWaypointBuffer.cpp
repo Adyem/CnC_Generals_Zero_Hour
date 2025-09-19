@@ -74,7 +74,7 @@
 #include "W3DDevice/GameClient/TerrainTex.h"
 #include "W3DDevice/GameClient/HeightMap.h"
 
-#include "WW3D2/Camera.h"
+#include "WW3D2/camera.h"
 #include "WW3D2/DX8Wrapper.h"
 #include "WW3D2/DX8Renderer.h"
 #include "WW3D2/Mesh.h"

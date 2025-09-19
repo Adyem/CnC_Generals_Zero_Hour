@@ -55,12 +55,26 @@ def is_c_source(path: pathlib.Path) -> bool:
     return False
 
 
-def discover_sources(src_dir: pathlib.Path) -> Tuple[List[pathlib.Path], List[pathlib.Path]]:
+def is_excluded(path: pathlib.Path, src_dir: pathlib.Path, excludes: List[pathlib.Path]) -> bool:
+    rel_parts = path.relative_to(src_dir).parts
+    for excl in excludes:
+        excl_parts = excl.parts
+        if rel_parts[:len(excl_parts)] == excl_parts:
+            return True
+    return False
+
+
+def discover_sources(
+    src_dir: pathlib.Path, excludes: List[pathlib.Path]
+) -> Tuple[List[pathlib.Path], List[pathlib.Path]]:
     cpp_files: List[pathlib.Path] = []
     c_files: List[pathlib.Path] = []
 
     for path in sorted(src_dir.rglob("*")):
         if not path.is_file():
+            continue
+
+        if excludes and is_excluded(path, src_dir, excludes):
             continue
 
         if is_cpp_source(path):
@@ -100,6 +114,7 @@ def write_fragment(
     c_sources: List[pathlib.Path],
     src_dir: pathlib.Path,
     obj_dir: pathlib.Path,
+    variable_prefix: str,
 ) -> None:
     objects: List[str] = []
     entries: List[Tuple[str, str, str]] = []
@@ -110,16 +125,22 @@ def write_fragment(
     for path in c_sources:
         register_object(path, src_dir, obj_dir, "c", seen, objects, entries)
 
+    prefix = f"{variable_prefix}_" if variable_prefix else ""
+
+    cpp_var = f"{prefix}CPP_SOURCE_COUNT"
+    c_var = f"{prefix}C_SOURCE_COUNT"
+    objects_var = f"{prefix}OBJECTS"
+
     with out_path.open("w", encoding="utf-8", newline="\n") as fh:
-        fh.write(f"CPP_SOURCE_COUNT := {len(cpp_sources)}\n")
-        fh.write(f"C_SOURCE_COUNT := {len(c_sources)}\n")
+        fh.write(f"{cpp_var} := {len(cpp_sources)}\n")
+        fh.write(f"{c_var} := {len(c_sources)}\n")
         if objects:
-            fh.write("OBJECTS := \\\n")
+            fh.write(f"{objects_var} := \\\n")
             for index, obj in enumerate(objects):
                 suffix = " \\\n" if index < len(objects) - 1 else "\n"
                 fh.write(f"  {obj}{suffix}")
         else:
-            fh.write("OBJECTS :=\n")
+            fh.write(f"{objects_var} :=\n")
         for obj_name, dep, compiler in entries:
             fh.write(f"{obj_name}: {dep}\n")
             fh.write("\t@mkdir -p $(@D)\n")
@@ -134,11 +155,32 @@ def main() -> None:
     parser.add_argument("src_dir", type=pathlib.Path)
     parser.add_argument("obj_dir", type=pathlib.Path)
     parser.add_argument("output", type=pathlib.Path)
+    parser.add_argument(
+        "--variable-prefix",
+        dest="variable_prefix",
+        default="",
+        help="Prefix to apply to generated variable names",
+    )
+    parser.add_argument(
+        "--exclude",
+        dest="excludes",
+        action="append",
+        default=[],
+        help="Relative paths under src_dir that should be excluded",
+    )
     args = parser.parse_args()
 
-    cpp_sources, c_sources = discover_sources(args.src_dir)
+    exclude_paths = [pathlib.Path(item) for item in args.excludes]
+    cpp_sources, c_sources = discover_sources(args.src_dir, exclude_paths)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    write_fragment(args.output, cpp_sources, c_sources, args.src_dir, args.obj_dir)
+    write_fragment(
+        args.output,
+        cpp_sources,
+        c_sources,
+        args.src_dir,
+        args.obj_dir,
+        args.variable_prefix,
+    )
 
 
 if __name__ == "__main__":
