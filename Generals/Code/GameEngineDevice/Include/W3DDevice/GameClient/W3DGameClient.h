@@ -50,9 +50,6 @@
 #include "W3DDevice/GameClient/W3DGameFont.h"
 #include "W3DDevice/GameClient/W3DDisplayStringManager.h"
 #include "VideoDevice/Bink/BinkVideoPlayer.h"
-#if defined(ENABLE_LEGACY_DIRECTINPUT)
-#include "Win32Device/GameClient/Win32DIKeyboard.h"
-#endif
 #include "Win32Device/GameClient/Win32DIMouse.h"
 #include "Win32Device/GameClient/Win32Mouse.h"
 #include "W3DDevice/GameClient/W3DMouse.h"

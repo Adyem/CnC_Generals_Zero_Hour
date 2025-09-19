@@ -49,6 +49,7 @@
 #include "GameClient/GameClient.h"
 #include "GameClient/ParticleSys.h"
 #include "GameClient/RayEffect.h"
+#include "SFMLPlatform/SfmlKeyboardBridge.h"
 #include "W3DDevice/GameClient/W3DAssetManager.h"
 #include "W3DDevice/GameClient/W3DGameClient.h"
 #include "W3DDevice/GameClient/W3DStatusCircle.h"
@@ -86,12 +87,7 @@ Keyboard *W3DGameClient::createKeyboard( void )
 		}
 	}
 
-#if defined(ENABLE_LEGACY_DIRECTINPUT)
-	return NEW DirectInputKeyboard;
-#else
-	DEBUG_FATAL(( "No keyboard factory registered and legacy DirectInput support disabled." ));
-	return NULL;
-#endif
+        return sfml_platform::CreateSfmlKeyboard();
 }
 
 //-------------------------------------------------------------------------------------------------

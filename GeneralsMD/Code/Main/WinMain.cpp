@@ -66,6 +66,9 @@
 #include "Win32Device/GameClient/Win32Mouse.h"
 #include "Win32Device/Common/Win32GameEngine.h"
 #include "W3DDevice/GameClient/RenderBackend.h"
+#include "SFMLPlatform/SfmlKeyboardBridge.h"
+#include <SFML/Window/Event.hpp>
+#include <SFML/Window/Keyboard.hpp>
 #include "Common/Version.h"
 #include "BuildVersion.h"
 #include "GeneratedVersion.h"
@@ -125,6 +128,132 @@ static GraphicsDeviceSettings gRequestedGraphicsSettings =
         true,
         GRAPHICS_BACKEND_DIRECT3D8
 };
+
+namespace
+{
+
+sf::Keyboard::Key TranslateVirtualKey( WPARAM key )
+{
+        if( key >= 'A' && key <= 'Z' )
+        {
+                return static_cast< sf::Keyboard::Key >( sf::Keyboard::A + (key - 'A') );
+        }
+
+        if( key >= '0' && key <= '9' )
+        {
+                return static_cast< sf::Keyboard::Key >( sf::Keyboard::Num0 + (key - '0') );
+        }
+
+        switch( key )
+        {
+                case VK_ESCAPE:    return sf::Keyboard::Escape;
+                case VK_LCONTROL:  return sf::Keyboard::LControl;
+                case VK_RCONTROL:  return sf::Keyboard::RControl;
+                case VK_LSHIFT:    return sf::Keyboard::LShift;
+                case VK_RSHIFT:    return sf::Keyboard::RShift;
+                case VK_LMENU:     return sf::Keyboard::LAlt;
+                case VK_RMENU:     return sf::Keyboard::RAlt;
+                case VK_MENU:      return sf::Keyboard::Menu;
+                case VK_OEM_4:     return sf::Keyboard::LBracket;
+                case VK_OEM_6:     return sf::Keyboard::RBracket;
+                case VK_OEM_1:     return sf::Keyboard::Semicolon;
+                case VK_OEM_7:     return sf::Keyboard::Quote;
+                case VK_OEM_COMMA: return sf::Keyboard::Comma;
+                case VK_OEM_PERIOD:return sf::Keyboard::Period;
+                case VK_OEM_2:     return sf::Keyboard::Slash;
+                case VK_OEM_5:     return sf::Keyboard::Backslash;
+                case VK_OEM_3:     return sf::Keyboard::Tilde;
+                case VK_OEM_PLUS:  return sf::Keyboard::Equal;
+                case VK_OEM_MINUS: return sf::Keyboard::Hyphen;
+                case VK_SPACE:     return sf::Keyboard::Space;
+                case VK_RETURN:    return sf::Keyboard::Enter;
+                case VK_BACK:      return sf::Keyboard::Backspace;
+                case VK_TAB:       return sf::Keyboard::Tab;
+                case VK_PRIOR:     return sf::Keyboard::PageUp;
+                case VK_NEXT:      return sf::Keyboard::PageDown;
+                case VK_END:       return sf::Keyboard::End;
+                case VK_HOME:      return sf::Keyboard::Home;
+                case VK_INSERT:    return sf::Keyboard::Insert;
+                case VK_DELETE:    return sf::Keyboard::Delete;
+                case VK_ADD:       return sf::Keyboard::Add;
+                case VK_SUBTRACT:  return sf::Keyboard::Subtract;
+                case VK_MULTIPLY:  return sf::Keyboard::Multiply;
+                case VK_DIVIDE:    return sf::Keyboard::Divide;
+                case VK_LEFT:      return sf::Keyboard::Left;
+                case VK_RIGHT:     return sf::Keyboard::Right;
+                case VK_UP:        return sf::Keyboard::Up;
+                case VK_DOWN:      return sf::Keyboard::Down;
+                case VK_NUMPAD0:   return sf::Keyboard::Numpad0;
+                case VK_NUMPAD1:   return sf::Keyboard::Numpad1;
+                case VK_NUMPAD2:   return sf::Keyboard::Numpad2;
+                case VK_NUMPAD3:   return sf::Keyboard::Numpad3;
+                case VK_NUMPAD4:   return sf::Keyboard::Numpad4;
+                case VK_NUMPAD5:   return sf::Keyboard::Numpad5;
+                case VK_NUMPAD6:   return sf::Keyboard::Numpad6;
+                case VK_NUMPAD7:   return sf::Keyboard::Numpad7;
+                case VK_NUMPAD8:   return sf::Keyboard::Numpad8;
+                case VK_NUMPAD9:   return sf::Keyboard::Numpad9;
+                case VK_F1:        return sf::Keyboard::F1;
+                case VK_F2:        return sf::Keyboard::F2;
+                case VK_F3:        return sf::Keyboard::F3;
+                case VK_F4:        return sf::Keyboard::F4;
+                case VK_F5:        return sf::Keyboard::F5;
+                case VK_F6:        return sf::Keyboard::F6;
+                case VK_F7:        return sf::Keyboard::F7;
+                case VK_F8:        return sf::Keyboard::F8;
+                case VK_F9:        return sf::Keyboard::F9;
+                case VK_F10:       return sf::Keyboard::F10;
+                case VK_F11:       return sf::Keyboard::F11;
+                case VK_F12:       return sf::Keyboard::F12;
+                case VK_PAUSE:     return sf::Keyboard::Pause;
+                default:
+                        break;
+        }
+
+        return sf::Keyboard::Unknown;
+}
+
+void DispatchSfmlKeyboardEvent( UINT message, WPARAM wParam, LPARAM lParam )
+{
+        switch( message )
+        {
+                case WM_KEYDOWN:
+                case WM_SYSKEYDOWN:
+                case WM_KEYUP:
+                case WM_SYSKEYUP:
+                        break;
+                default:
+                        return;
+        }
+
+        sfml_platform::SfmlKeyboardBridge *keyboard = sfml_platform::GetActiveKeyboardBridge();
+        if( keyboard == NULL )
+        {
+                return;
+        }
+
+        const sf::Keyboard::Key code = TranslateVirtualKey( wParam );
+        if( code == sf::Keyboard::Unknown )
+        {
+                return;
+        }
+
+        sf::Event event = {};
+        event.type = (message == WM_KEYDOWN || message == WM_SYSKEYDOWN) ? sf::Event::KeyPressed : sf::Event::KeyReleased;
+        event.key.code = code;
+        event.key.alt = (GetAsyncKeyState( VK_MENU ) & 0x8000) != 0;
+        event.key.control = (GetAsyncKeyState( VK_CONTROL ) & 0x8000) != 0;
+        event.key.shift = (GetAsyncKeyState( VK_SHIFT ) & 0x8000) != 0;
+#if defined(VK_LWIN) && defined(VK_RWIN)
+        event.key.system = ((GetAsyncKeyState( VK_LWIN ) | GetAsyncKeyState( VK_RWIN )) & 0x8000) != 0;
+#else
+        event.key.system = FALSE;
+#endif
+
+        keyboard->handleEvent( event );
+}
+
+} // namespace
 
 static void ResetRequestedGraphicsSettings(void)
 {
@@ -427,18 +556,20 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message,
 	try
 	{
 		// First let the IME manager do it's stuff. 
-		if ( TheIMEManager )
-		{
-			if ( TheIMEManager->serviceIMEMessage( hWnd, message, wParam, lParam ) )
-			{
-				// The manager intercepted an IME message so return the result
-				return TheIMEManager->result();
-			}
-		}
-		
+                if ( TheIMEManager )
+                {
+                        if ( TheIMEManager->serviceIMEMessage( hWnd, message, wParam, lParam ) )
+                        {
+                                // The manager intercepted an IME message so return the result
+                                return TheIMEManager->result();
+                        }
+                }
+
+                DispatchSfmlKeyboardEvent( message, wParam, lParam );
+
 #ifdef DO_COPY_PROTECTION
-		// Check for messages from the launcher
-		CopyProtect::checkForMessage(message, lParam);
+                // Check for messages from the launcher
+                CopyProtect::checkForMessage(message, lParam);
 #endif
 
 #ifdef	DEBUG_WINDOWS_MESSAGES
