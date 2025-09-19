@@ -2695,7 +2695,7 @@ VideoBuffer*	W3DDisplay::createVideoBuffer( void )
 {
 	VideoBuffer::Type format = VideoBuffer::TYPE_UNKNOWN;
 
-	/// @todo query video player for supported formats - we assume bink formats here
+        /// @todo query video player for supported formats - we assume libVLC RGBA output here
 
 	// first try to use the native format
 

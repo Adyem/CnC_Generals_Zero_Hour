@@ -13,7 +13,7 @@ If you wish to rebuild the source code and tools successfully you will need to f
 - 3DSMax 4 SDK - (expected path `\Code\Libraries\Max4SDK\`)
 - NVASM - (expected path `\Code\Tools\NVASM\`)
 - BYTEmark - (expected path `\Code\Libraries\Source\Benchmark`)
-- RAD Bink SDK - (expected path `\Code\GameEngineDevice\Include\VideoDevice\Bink`)
+- Video playback dependencies provided by libVLC (e.g. install the libvlc development package for your platform)
 - GameSpy SDK - (expected path `\Code\Libraries\Source\GameSpy\`)
 - ZLib (1.1.4) - (expected path `\Code\Libraries\Source\Compression\ZLib\`)
 - LZH-Light (1.0) - (expected path `\Code\Libraries\Source\Compression\LZHCompress\CompLibSource` and `CompLibHeader`)

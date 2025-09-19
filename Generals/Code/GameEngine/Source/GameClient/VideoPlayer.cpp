@@ -179,8 +179,7 @@ VideoPlayer::~VideoPlayer()
 
 void	VideoPlayer::init( void )
 {
-	// Load this here so that WB doesn't have to link to BinkLib, costing us (potentially)
-	// an extra license.
+        // Load this here so that WB doesn't have to pull in platform-specific video codecs at startup.
 	INI ini;
 	ini.load( AsciiString( "Data\\INI\\Default\\Video.ini" ), INI_LOAD_OVERWRITE, NULL );
 	ini.load( AsciiString( "Data\\INI\\Video.ini" ), INI_LOAD_OVERWRITE, NULL );

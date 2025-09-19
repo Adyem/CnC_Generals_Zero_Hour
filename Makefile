@@ -118,6 +118,31 @@ LIBS     += $(SFML_LIBS)
 endif
 
 # -----------------------------------------------------------------------------
+# libVLC detection
+# -----------------------------------------------------------------------------
+LIBVLC_MODULE ?= libvlc
+LIBVLC_CFLAGS ?=
+LIBVLC_LIBS   ?=
+
+LIBVLC_PKGCONFIG_CFLAGS := $(strip $(shell $(PKG_CONFIG) --silence-errors --cflags $(LIBVLC_MODULE)))
+LIBVLC_PKGCONFIG_LIBS   := $(strip $(shell $(PKG_CONFIG) --silence-errors --libs $(LIBVLC_MODULE)))
+
+ifneq ($(LIBVLC_PKGCONFIG_CFLAGS),)
+LIBVLC_CFLAGS += $(LIBVLC_PKGCONFIG_CFLAGS)
+endif
+
+ifeq ($(strip $(LIBVLC_LIBS)),)
+LIBVLC_LIBS := $(LIBVLC_PKGCONFIG_LIBS)
+endif
+
+ifeq ($(strip $(LIBVLC_LIBS)),)
+LIBVLC_LIBS := -lvlc
+endif
+
+CPPFLAGS += $(LIBVLC_CFLAGS)
+LIBS     += $(LIBVLC_LIBS)
+
+# -----------------------------------------------------------------------------
 # Primary targets
 # -----------------------------------------------------------------------------
 .PHONY: all clean distclean print-config install-deps

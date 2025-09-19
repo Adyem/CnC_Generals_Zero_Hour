@@ -257,12 +257,9 @@ class AudioManager : public SubsystemInterface
 
     virtual Bool has3DSensitiveStreamsPlaying( void ) const = 0;
 
- 		virtual void *getHandleForBink( void ) = 0;
- 		virtual void releaseHandleForBink( void ) = 0;
-
-		// this function will play an audio event rts by loading it into memory. It should not be used
-		// by anything except for the load screens.
-		virtual void friend_forcePlayAudioEventRTS(const AudioEventRTS* eventToPlay) = 0;
+                // this function will play an audio event rts by loading it into memory. It should not be used
+                // by anything except for the load screens.
+                virtual void friend_forcePlayAudioEventRTS(const AudioEventRTS* eventToPlay) = 0;
 
 		// Update Listener position information
 		virtual void setListenerPosition( const Coord3D *newListenerPos, const Coord3D *newListenerOrientation );

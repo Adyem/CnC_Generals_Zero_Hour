@@ -74,9 +74,6 @@ public:
     void removePlayingAudio(AsciiString eventName) override;
     void removeAllDisabledAudio() override;
 
-    void* getHandleForBink() override;
-    void releaseHandleForBink() override;
-
     void friend_forcePlayAudioEventRTS(const AudioEventRTS* eventToPlay) override;
 
     void setPreferredProvider(AsciiString providerNdx) override;

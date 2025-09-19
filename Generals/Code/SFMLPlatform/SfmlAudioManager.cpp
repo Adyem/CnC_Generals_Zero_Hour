@@ -16,7 +16,8 @@
 #include "GameLogic/Object.h"
 #include "GameLogic/TerrainLogic.h"
 #include "Lib/BaseType.h"
-#include "bink.h"
+
+#include <vlc/vlc.h>
 
 #include <SFML/Audio/Listener.hpp>
 #include <SFML/Audio/Music.hpp>
@@ -58,9 +59,9 @@ inline bool equalsIgnoreCase(const AsciiString& lhs, const AsciiString& rhs) {
     return lhs.compareNoCase(rhs) == 0;
 }
 
-class SfmlBinkAudioStream : public sf::SoundStream {
+class SfmlVideoAudioStream : public sf::SoundStream {
 public:
-    SfmlBinkAudioStream() : m_running(false) {}
+    SfmlVideoAudioStream() : m_running(false) {}
 
     bool initializeStream(unsigned int channelCount, unsigned int sampleRate) {
         if (channelCount == 0 || sampleRate == 0) {
@@ -90,6 +91,12 @@ public:
         m_condition.notify_all();
     }
 
+    void clear() {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_pending.clear();
+        m_current.clear();
+    }
+
 protected:
     bool onGetData(Chunk& data) override {
         std::unique_lock<std::mutex> lock(m_mutex);
@@ -109,9 +116,7 @@ protected:
     }
 
     void onSeek(sf::Time) override {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_pending.clear();
-        m_current.clear();
+        clear();
     }
 
 private:
@@ -122,110 +127,127 @@ private:
     bool m_running;
 };
 
-class SfmlVideoSoundBridge : public VideoSoundBridge {
+class SfmlVlcAudioBridge : public VideoSoundBridge {
 public:
-    SfmlVideoSoundBridge()
-        : m_binkHandle(NULL), m_trackHandle(NULL), m_trackIndex(-1) {}
+    SfmlVlcAudioBridge()
+        : m_mediaPlayer(nullptr), m_channelCount(0), m_sampleRate(0) {}
 
-    ~SfmlVideoSoundBridge() override { detach(); }
+    ~SfmlVlcAudioBridge() override { detach(); }
 
-    Bool initialize() override {
-        BinkSetSoundTrack(0, 0);
-        return TRUE;
-    }
+    Bool initialize() override { return TRUE; }
 
     Bool attach(void* videoHandle) override {
         detach();
 
-        if (videoHandle == NULL) {
+        if (!videoHandle) {
             return FALSE;
         }
 
-        m_binkHandle = static_cast<HBINK>(videoHandle);
-
-        m_trackIndex = -1;
-        void* track = NULL;
-        for (Int i = 0; i < 16; ++i) {
-            track = BinkOpenTrack(m_binkHandle, i);
-            if (track != NULL) {
-                m_trackIndex = i;
-                break;
-            }
-        }
-
-        if (m_trackIndex < 0) {
-            m_binkHandle = NULL;
-            return FALSE;
-        }
-
-        UnsignedInt frequency = BinkGetTrackFrequency(m_binkHandle, m_trackIndex);
-        if (frequency == 0) {
-            BinkCloseTrack(m_binkHandle, track);
-            m_binkHandle = NULL;
-            m_trackIndex = -1;
-            return FALSE;
-        }
-
-        m_trackHandle = track;
-
-        UnsignedInt channelCount = 2;
-        UnsignedInt trackType = BinkGetTrackType(m_binkHandle, m_trackIndex);
-        if (trackType == 1) {
-            channelCount = 1;
-        } else if (trackType == 2 || trackType == 3 || trackType == 4) {
-            channelCount = 2;
-        }
-
-        m_stream.reset(new SfmlBinkAudioStream());
-        if (!m_stream->initializeStream(channelCount, frequency)) {
-            detach();
-            return FALSE;
-        }
-
-        m_stream->play();
+        m_mediaPlayer = static_cast<libvlc_media_player_t*>(videoHandle);
+        libvlc_audio_set_callbacks(m_mediaPlayer, &SfmlVlcAudioBridge::handlePlay,
+                                   &SfmlVlcAudioBridge::handlePause, &SfmlVlcAudioBridge::handleResume,
+                                   &SfmlVlcAudioBridge::handleFlush, &SfmlVlcAudioBridge::handleDrain, this);
+        libvlc_audio_set_format_callbacks(m_mediaPlayer, &SfmlVlcAudioBridge::handleSetup,
+                                          &SfmlVlcAudioBridge::handleCleanup);
         return TRUE;
     }
 
     void detach() override {
+        if (m_mediaPlayer) {
+            libvlc_audio_set_callbacks(m_mediaPlayer, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+            libvlc_audio_set_format_callbacks(m_mediaPlayer, nullptr, nullptr);
+        }
+
         if (m_stream) {
             m_stream->stopStream();
             m_stream->stop();
             m_stream.reset();
         }
 
-        if (m_binkHandle && m_trackHandle) {
-            BinkCloseTrack(m_binkHandle, m_trackHandle);
-        }
-
-        m_trackHandle = NULL;
-        m_binkHandle = NULL;
-        m_trackIndex = -1;
+        m_mediaPlayer = nullptr;
+        m_channelCount = 0;
+        m_sampleRate = 0;
     }
 
-    void onFrameDecoded(void* videoHandle) override {
-        if (!m_stream || videoHandle != m_binkHandle || !m_trackHandle) {
+    void onFrameDecoded(void*) override {}
+
+private:
+    static unsigned handleSetup(void** opaque, char* format, unsigned* rate, unsigned* channels) {
+        if (!opaque || !*opaque || !format || !rate || !channels) {
+            return 0;
+        }
+
+        auto* self = static_cast<SfmlVlcAudioBridge*>(*opaque);
+        *opaque = self;
+        std::memcpy(format, "S16N", 4);
+        self->m_channelCount = *channels;
+        self->m_sampleRate = *rate;
+        self->m_stream.reset(new SfmlVideoAudioStream());
+        if (!self->m_stream->initializeStream(self->m_channelCount, self->m_sampleRate)) {
+            self->m_stream.reset();
+            return 0;
+        }
+        self->m_stream->play();
+        return 1;
+    }
+
+    static void handleCleanup(void* opaque) {
+        auto* self = static_cast<SfmlVlcAudioBridge*>(opaque);
+        if (!self) {
+            return;
+        }
+        if (self->m_stream) {
+            self->m_stream->stopStream();
+            self->m_stream->stop();
+            self->m_stream.reset();
+        }
+        self->m_channelCount = 0;
+        self->m_sampleRate = 0;
+    }
+
+    static void handlePlay(void* opaque, const void* samples, unsigned count, int64_t) {
+        auto* self = static_cast<SfmlVlcAudioBridge*>(opaque);
+        if (!self || !self->m_stream || !samples || self->m_channelCount == 0) {
             return;
         }
 
-        void* data = NULL;
-        UnsignedInt dataSize = 0;
+        const sf::Int16* pcm = static_cast<const sf::Int16*>(samples);
+        const std::size_t totalSamples = static_cast<std::size_t>(count) * self->m_channelCount;
+        self->m_stream->enqueueSamples(pcm, totalSamples);
+    }
 
-        while (BinkGetTrackData(m_binkHandle, m_trackHandle, &data, &dataSize)) {
-            if (!data || dataSize == 0) {
-                break;
-            }
-
-            const sf::Int16* samples = static_cast<const sf::Int16*>(data);
-            std::size_t sampleCount = dataSize / sizeof(sf::Int16);
-            m_stream->enqueueSamples(samples, sampleCount);
+    static void handlePause(void* opaque, int64_t) {
+        auto* self = static_cast<SfmlVlcAudioBridge*>(opaque);
+        if (self && self->m_stream) {
+            self->m_stream->pause();
         }
     }
 
-private:
-    HBINK m_binkHandle;
-    void* m_trackHandle;
-    Int m_trackIndex;
-    std::unique_ptr<SfmlBinkAudioStream> m_stream;
+    static void handleResume(void* opaque, int64_t) {
+        auto* self = static_cast<SfmlVlcAudioBridge*>(opaque);
+        if (self && self->m_stream) {
+            self->m_stream->play();
+        }
+    }
+
+    static void handleFlush(void* opaque, int64_t) {
+        auto* self = static_cast<SfmlVlcAudioBridge*>(opaque);
+        if (self && self->m_stream) {
+            self->m_stream->clear();
+        }
+    }
+
+    static void handleDrain(void* opaque) {
+        auto* self = static_cast<SfmlVlcAudioBridge*>(opaque);
+        if (self && self->m_stream) {
+            self->m_stream->clear();
+        }
+    }
+
+    libvlc_media_player_t* m_mediaPlayer;
+    std::unique_ptr<SfmlVideoAudioStream> m_stream;
+    unsigned m_channelCount;
+    unsigned m_sampleRate;
 };
 
 } // namespace
@@ -615,10 +637,6 @@ void SfmlAudioManager::removeAllDisabledAudio() {
     }
 }
 
-void* SfmlAudioManager::getHandleForBink() { return nullptr; }
-
-void SfmlAudioManager::releaseHandleForBink() {}
-
 void SfmlAudioManager::friend_forcePlayAudioEventRTS(const AudioEventRTS* eventToPlay) {
     if (!eventToPlay) {
         return;
@@ -664,7 +682,7 @@ void SfmlAudioManager::closeAnySamplesUsingFile(const void*) {}
 
 std::unique_ptr<VideoSoundBridge> SfmlAudioManager::createVideoSoundBridge()
 {
-    return std::unique_ptr<VideoSoundBridge>(new SfmlVideoSoundBridge());
+    return std::unique_ptr<VideoSoundBridge>(new SfmlVlcAudioBridge());
 }
 
 void SfmlAudioManager::processRequestList() {
