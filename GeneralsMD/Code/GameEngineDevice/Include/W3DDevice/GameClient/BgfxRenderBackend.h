@@ -16,19 +16,16 @@
 **      along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "WinMain.h"
-#include "Lib/BaseType.h"
+#pragma once
 
-HINSTANCE ApplicationHInstance = NULL;
-HWND ApplicationHWnd = NULL;
-HDC ApplicationHDC = NULL;
-HGLRC ApplicationHGLRC = NULL;
-Bool ApplicationIsWindowed = false;
-GraphicsBackend ApplicationGraphicsBackend = GRAPHICS_BACKEND_BGFX;
-Win32Mouse* TheWin32Mouse = NULL;
-DWORD TheMessageTime = 0;
-BgfxNativeWindowData ApplicationBgfxNativeWindow;
+#include "W3DDevice/GameClient/RenderBackend.h"
 
-const Char* g_strFile = "data\\Generals.str";
-const Char* g_csfFile = "data\\%s\\Generals.csf";
-char* gAppPrefix = "";
+class BgfxRenderBackend : public IRenderBackend
+{
+public:
+    virtual void HandleFocusChange(bool isActive) override;
+    virtual void BindTexture(unsigned stage, TextureClass* texture) override;
+};
+
+extern BgfxRenderBackend g_bgfxRenderBackend;
+

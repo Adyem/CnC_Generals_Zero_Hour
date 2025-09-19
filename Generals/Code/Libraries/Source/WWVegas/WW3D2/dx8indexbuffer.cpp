@@ -44,7 +44,7 @@
 #include "sphere.h"
 #include "thread.h"
 #ifndef WW3D_BGFX_AVAILABLE
-#define WW3D_BGFX_AVAILABLE 0
+#define WW3D_BGFX_AVAILABLE 1
 #endif
 
 #if WW3D_BGFX_AVAILABLE

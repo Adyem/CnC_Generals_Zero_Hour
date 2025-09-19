@@ -36,6 +36,7 @@ class NullRenderBackend : public IRenderBackend
 {
 public:
     virtual void HandleFocusChange(bool) {}
+    virtual void BindTexture(unsigned, TextureClass*) {}
 };
 
 NullRenderBackend g_nullRenderBackend;
