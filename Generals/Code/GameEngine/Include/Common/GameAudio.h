@@ -46,6 +46,8 @@
 
 // Includes                                                      
 #include "Lib/BaseType.h"
+#include "Common/AudioAffect.h"
+#include "Common/AudioEventInfo.h"
 #include "Common/STLTypedefs.h"
 #include "Common/SubsystemInterface.h"
 
@@ -83,6 +85,7 @@ struct AudioEventInfo;
 struct AudioRequest;
 struct AudioSettings;
 struct MiscAudio;
+class AudioManager;
 
 typedef std::unordered_map<AsciiString, AudioEventInfo*, rts::hash<AsciiString>, rts::equal_to<AsciiString> > AudioEventInfoHash;
 typedef AudioEventInfoHash::iterator AudioEventInfoHashIt;

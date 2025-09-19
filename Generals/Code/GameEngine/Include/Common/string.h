@@ -48,9 +48,10 @@
 
 
 //----------------------------------------------------------------------------
-//           Includes                                                      
+//           Includes
 //----------------------------------------------------------------------------
 
+#include_next <string.h>
 #include "Lib/BaseType.h"
 
 //----------------------------------------------------------------------------
@@ -87,8 +88,8 @@ class WSYS_String
 	friend WSYS_String	operator+ (const WSYS_String &string1, const Char *string2);
 	const Char &				operator[] (Int index) const;
 	Char &							operator[] (Int index);
-											operator const Char * (void) const;
-											operator Char * (void) const ;
+											operator const Char*() const;
+											operator Char*() const ;
 
 	// methods
 	void								makeUpperCase( void );
@@ -109,8 +110,8 @@ class WSYS_String
 inline Char* WSYS_String::get( void ) const { return m_data;};
 inline const Char& WSYS_String::operator[] (Int index) const{ return m_data[index];};
 inline Char& WSYS_String::operator[] (Int index) { return m_data[index];};
-inline WSYS_String::operator const Char * (void) const { return m_data;};
-inline WSYS_String::operator Char * (void) const {return m_data;};
+inline WSYS_String::operator const Char*() const { return m_data;};
+inline WSYS_String::operator Char*() const {return m_data;};
 
 
 #endif // __WSYS_STRING_H

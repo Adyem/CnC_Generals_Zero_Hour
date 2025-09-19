@@ -32,8 +32,19 @@
 #ifndef _BASE_TYPE_H_
 #define _BASE_TYPE_H_
 
+#include <cmath>
 #include <math.h>
 #include <string.h>
+
+#if defined(__cplusplus) && !defined(_WIN32)
+#include <compat/string_compat.h>
+#endif
+
+#if !defined(_WIN32)
+#ifndef _cdecl
+#define _cdecl
+#endif
+#endif
 
 /*
 **	Turn off some unneeded warnings.
@@ -97,12 +108,24 @@
 //#define abs(x) (((x) < 0) ? -(x) : (x))
 //#endif
 
+#if defined(__cplusplus)
+#include <algorithm>
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
+using std::min;
+using std::max;
+#else
 #ifndef min
 #define min(x,y) (((x)<(y)) ? (x) : (y))
 #endif
 
 #ifndef max
 #define max(x,y) (((x)>(y)) ? (x) : (y))
+#endif
 #endif
 
 #ifndef TRUE
@@ -126,8 +149,18 @@ typedef int							Byte;							// 4 bytes	USED TO BE "SignedByte"
 typedef char							Char;							// 1 byte of text
 typedef bool							Bool;							// 
 // note, the types below should use "long long", but MSVC doesn't support it yet
+#if defined(_MSC_VER)
 typedef __int64						Int64;							// 8 bytes 
 typedef unsigned __int64	UnsignedInt64;	  	// 8 bytes 
+#else
+#if defined(__cplusplus)
+#include <cstdint>
+#else
+#include <stdint.h>
+#endif
+typedef int64_t						Int64;
+typedef uint64_t					UnsignedInt64;
+#endif
 
 #include "Lib/Trig.h"
 
@@ -174,16 +207,9 @@ inline Real deg2rad(Real rad) { return rad * (PI/180); }
 // note, this function depends on the cpu rounding mode, which we set to CHOP every frame, 
 // but apparently tends to be left in unpredictable modes by various system bits of
 // code, so use this function with caution -- it might not round in the way you want.
-__forceinline long fast_float2long_round(float f)
+inline long fast_float2long_round(float f)
 {
-	long i;
-
-	__asm {
-		fld [f]
-		fistp [i]
-	}
-
-	return i;
+return static_cast<long>(std::lround(f));
 }
 
 //-------------------------------------------------------------------------------------------------

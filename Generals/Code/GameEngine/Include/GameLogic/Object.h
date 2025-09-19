@@ -39,10 +39,14 @@
 #include "Common/Thing.h"
 
 #include "GameClient/Color.h"
+#include "Common/Radar.h"
 
+#include "GameLogic/HackerAttackMode.h"
+#include "GameLogic/Weapon.h"
 #include "GameLogic/WeaponBonusConditionFlags.h"
 #include "GameLogic/WeaponSet.h"
 #include "GameLogic/WeaponSetFlags.h"
+#include "GameLogic/WeaponStatus.h"
 
 //-----------------------------------------------------------------------------
 //           Forward References
@@ -100,17 +104,10 @@ class ObjectRepulsorHelper;
 class ObjectWeaponStatusHelper;
 class ObjectDefectionHelper;
 
-enum CommandSourceType;
-enum DamageType;
-enum HackerAttackMode;
 enum NameKeyType;
 enum SpecialPowerType;
-enum WeaponBonusConditionType;
 enum WeaponChoiceCriteria;
 enum WeaponSetConditionType;
-enum WeaponSetType;
-enum WeaponStatus;
-enum RadarPriorityType;
 enum CanAttackResult;
 
 // For ObjectStatusBits and TheObjectStatusBitNames
@@ -435,7 +432,7 @@ public:
 	void setCommandSetStringOverride( AsciiString newCommandSetString ) { m_commandSetStringOverride = newCommandSetString; }
 
  	/// People are faking their commandsets, and, Suprise!, they are authoritative.  Challenge everything.
- 	Bool Object::canProduceUpgrade( const UpgradeTemplate *upgrade );
+        Bool canProduceUpgrade( const UpgradeTemplate *upgrade );
 
 	// Weapons & Damage -------------------------------------------------------------------------------------------------
 	void reloadAllAmmo(Bool now);
@@ -448,7 +445,7 @@ public:
 	Weapon* getWeaponInWeaponSlot(WeaponSlotType wslot) const { return m_weaponSet.getWeaponInWeaponSlot(wslot); }
 
 	// see if this current weapon set's weapons has shared reload times
-	const Bool isReloadTimeShared() const { return m_weaponSet.isSharedReloadTime(); }
+        Bool isReloadTimeShared() const { return m_weaponSet.isSharedReloadTime(); }
 
 	Weapon* getCurrentWeapon(WeaponSlotType* wslot = NULL);
 	const Weapon* getCurrentWeapon(WeaponSlotType* wslot = NULL) const;

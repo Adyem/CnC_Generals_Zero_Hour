@@ -25,6 +25,8 @@ locale.h - REAL fonts
 #ifndef __LOCALE_H
 #define __LOCALE_H 1
 
+#include_next <locale.h>
+
 //#ifdef __cplusplus
 //extern "C" {
 //#endif

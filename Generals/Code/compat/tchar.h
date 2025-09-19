@@ -22,6 +22,7 @@ typedef const char* PCTSTR;
 #define TEXT(x) x
 
 #define _tcslen strlen
+#define _tcsclen strlen
 #define _tcsnlen strnlen
 #define _tcscmp strcmp
 #define _tcsicmp strcasecmp

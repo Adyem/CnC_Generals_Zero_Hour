@@ -36,6 +36,7 @@
 #include "Common/GameMemory.h"
 #include "Common/GameType.h"
 #include "GameLogic/Damage.h"
+#include "GameLogic/HackerAttackMode.h"
 #include "Common/STLTypedefs.h"
 
 class AIGroup;
@@ -52,7 +53,6 @@ class UpgradeTemplate;
 class WeaponTemplate;
 
 enum GUICommandType;
-enum HackerAttackMode;
 enum WeaponSetType;
 enum WeaponLockType;
 enum SpecialPowerType;

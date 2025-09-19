@@ -256,7 +256,11 @@ template <class T> class SimpleDynVecClass : public SimpleVecClass<T>
 {
 public:
 
-	SimpleDynVecClass(int size = 0);
+        using SimpleVecClass<T>::Vector;
+        using SimpleVecClass<T>::VectorMax;
+        using SimpleVecClass<T>::Length;
+
+        SimpleDynVecClass(int size = 0);
 	virtual ~SimpleDynVecClass(void);
 
 	// Array-like access (does not grow)

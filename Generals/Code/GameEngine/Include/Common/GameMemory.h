@@ -62,7 +62,7 @@
 
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 
-#include <new.h>
+#include <new>
 #include <stdio.h>
 #ifdef MEMORYPOOL_OVERRIDE_MALLOC
 	#include <malloc.h>
@@ -862,6 +862,8 @@ extern void userMemoryAdjustPoolSize(const char *poolName, Int& initialAllocatio
 
 	#define _OPERATOR_NEW_DEFINED_
 
+	#if defined(_WIN32)
+
 	extern void * __cdecl operator new		(size_t size);
 	extern void __cdecl operator delete		(void *p);
 
@@ -879,7 +881,9 @@ extern void userMemoryAdjustPoolSize(const char *poolName, Int& initialAllocatio
 	//inline void* __cdecl operator new							(size_t s, void *p) { return p; }
 	//inline void __cdecl operator delete						(void *, void *p)		{ }
 	inline void* __cdecl operator new[]						(size_t s, void *p) { return p; }
-	inline void __cdecl operator delete[]					(void *, void *p)		{ }
+	inline void __cdecl operator delete[]           (void *, void *p)          { }
+
+#endif  // defined(_WIN32)
 
 #endif
 

@@ -35,6 +35,7 @@
 #include "Common/ModelState.h"
 #include "Common/SparseMatchFinder.h"
 #include "Common/Snapshot.h"
+#include "GameLogic/Damage.h"
 
 //-------------------------------------------------------------------------------------------------
 class INI;
@@ -43,7 +44,6 @@ class Weapon;
 class WeaponTemplate;
 
 enum CommandSourceType;
-enum DamageType;
 
 // for WeaponSetType. Part of detangling.
 #include "GameLogic/WeaponSetType.h"

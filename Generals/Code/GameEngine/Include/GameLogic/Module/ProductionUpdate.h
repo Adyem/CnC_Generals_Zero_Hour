@@ -33,9 +33,11 @@
 #define __PRODUCTIONUPDATE_H_
 
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
+#include "Common/BuildAssistant.h"
 #include "Common/ModelState.h"
 #include "GameLogic/Module/DieModule.h"
 #include "GameLogic/Module/UpdateModule.h"
+#include "GameLogic/ProductionTypes.h"
 
 // FORWARD REFERNCES //////////////////////////////////////////////////////////////////////////////
 class ProductionEntry;
@@ -43,18 +45,6 @@ class ThingTemplate;
 class UpgradeTemplate;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-enum ProductionID
-{
-	PRODUCTIONID_INVALID = 0
-};
-
-enum ProductionType
-{
-	PRODUCTION_INVALID = 0,
-	PRODUCTION_UNIT,
-	PRODUCTION_UPGRADE
-};
-
 //-------------------------------------------------------------------------------------------------
 /** A ProductionEntry is a single entry representing something that we are supposed to 
 	* produce */
@@ -141,8 +131,6 @@ public:
 };
 
 //-------------------------------------------------------------------------------------------------
-enum CanMakeType;
-
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
 class ProductionUpdateInterface

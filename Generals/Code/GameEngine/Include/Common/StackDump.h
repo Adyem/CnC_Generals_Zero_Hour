@@ -27,6 +27,10 @@
 #ifndef __STACKDUMP_H_
 #define __STACKDUMP_H_
 
+#ifndef _WIN32
+#include <compat/win_compat.h>
+#endif
+
 #ifndef IG_DEGBUG_STACKTRACE
 #define IG_DEBUG_STACKTRACE	1
 #endif

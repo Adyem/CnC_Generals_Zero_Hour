@@ -30,9 +30,9 @@
 #ifndef _H_CommandXlat
 #define _H_CommandXlat
 
+#include "GameClient/ControlBar.h"
+#include "GameClient/FilterTypes.h"
 #include "GameClient/InGameUI.h"
-
-enum GUICommandType;
 
 //-----------------------------------------------------------------------------
 class CommandTranslator : public GameMessageTranslator
@@ -72,50 +72,16 @@ private:
 };
 
 
-enum FilterTypes
-{
-	FT_NULL_FILTER=0,
-	// The following are screen filter shaders, that modify the rendered viewport after it is drawn.
-	FT_VIEW_BW_FILTER,		//filter to apply a black & white filter to the screen.
-	FT_VIEW_MOTION_BLUR_FILTER, //filter to apply motion blur filter to screen.
-	FT_VIEW_CROSSFADE,				///<filter to apply a cross blend between previous/current views.
-	FT_MAX
-};
+// Filter types are declared in FilterTypes.h
 
-enum FilterModes
-{
-	FM_NULL_MODE = 0,
 
-	// These apply to FT_VIEW_BW_FILTER
-	FM_VIEW_BW_BLACK_AND_WHITE, // BW Filter to black & white
-	FM_VIEW_BW_RED_AND_WHITE, // BW Filter to red & white
-	FM_VIEW_BW_GREEN_AND_WHITE, // BW Filter to green & white
+// Filter modes are declared in FilterTypes.h
 
-	// These apply to FT_VIEW_CROSSFADE
-	FM_VIEW_CROSSFADE_CIRCLE,	// Fades from previous to current view using expanding circle.
-	FM_VIEW_CROSSFADE_FB_MASK,	// Fades from previous to current using mask stored in framebuffer alpha.
-
-	// These apply to FT_VIEW_MOTION_BLUR_FILTER 
-	FM_VIEW_MB_IN_AND_OUT_ALPHA, // Motion blur filter in and out alpha blur
-	FM_VIEW_MB_IN_AND_OUT_SATURATE, // Motion blur filter in and out saturated blur
-	FM_VIEW_MB_IN_ALPHA, // Motion blur filter in alpha blur
-	FM_VIEW_MB_OUT_ALPHA, // Motion blur filter out alpha blur
-	FM_VIEW_MB_IN_SATURATE, // Motion blur filter in saturated blur
-	FM_VIEW_MB_OUT_SATURATE, // Motion blur filter out saturated blur
-	FM_VIEW_MB_END_PAN_ALPHA, // Moton blur on screen pan (for camera tracks object mode)
-
-	
-	
-	// NOTE: This has to be the last entry in this enum.
-	// Add new entries before this one.  jba.
-	FM_VIEW_MB_PAN_ALPHA, // Moton blur on screen pan (for camera tracks object mode)
-
-};
 
 class PickAndPlayInfo
 {
 public:
-	PickAndPlayInfo::PickAndPlayInfo(); //INITIALIZE THE CONSTRUCTOR IN CPP
+        PickAndPlayInfo(); //INITIALIZE THE CONSTRUCTOR IN CPP
 
 	Bool						m_air;					//Are we attacking an airborned target?
 	Drawable				*m_drawTarget;	//Do we have an override draw target?

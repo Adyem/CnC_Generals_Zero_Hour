@@ -37,7 +37,11 @@
 #include "Common/GameType.h"
 #include "Common/Overridable.h"
 #include "Common/Science.h"
+#include "Common/Override.h"
 #include "GameClient/Color.h"
+#include "GameClient/Gadget.h"
+#include "GameClient/InGameUI.h"
+#include "GameLogic/ProductionTypes.h"
 
 // FORWARD REFERENCES /////////////////////////////////////////////////////////////////////////////
 class Drawable;
@@ -60,12 +64,8 @@ class UpgradeTemplate;
 class ControlBarResizer;
 class GameWindowTransitionsHandler;
 
-enum ProductionID;
-
 enum CommandSourceType;
-enum ProductionType;
 enum GadgetGameMessage;
-enum ScienceType;
 enum TimeOfDay;
 enum RadiusCursorType;
 
