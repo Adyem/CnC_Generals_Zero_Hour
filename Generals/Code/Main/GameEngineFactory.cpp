@@ -19,7 +19,7 @@
 #include "WinMain.h"
 #include "Common/GameEngine.h"
 #include "Common/GameMemory.h"
-#include "Win32Device/Common/Win32GameEngine.h"
+#include "SfmlDevice/Common/SfmlGameEngine.h"
 
 Bool gInitialEngineActiveState = true;
 
@@ -51,7 +51,7 @@ GameEngine* CreateGameEngine(void)
 
         if (engine == NULL)
         {
-                engine = NEW Win32GameEngine;
+                engine = NEW SfmlGameEngine;
         }
 
         engine->setIsActive(gInitialEngineActiveState);

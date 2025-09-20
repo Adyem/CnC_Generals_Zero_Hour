@@ -93,7 +93,6 @@ Int APIENTRY WinMain(HINSTANCE, HINSTANCE, LPSTR, Int) {
 #include "GameClient/Mouse.h"
 #include "GameClient/IMEManager.h"
 #include "Win32Device/GameClient/Win32Mouse.h"
-#include "Win32Device/Common/Win32GameEngine.h"
 #include "W3DDevice/GameClient/RenderBackend.h"
 #include "SFMLPlatform/SfmlKeyboardBridge.h"
 #include <SFML/Window/Event.hpp>
