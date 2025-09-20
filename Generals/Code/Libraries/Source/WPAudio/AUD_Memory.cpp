@@ -43,7 +43,8 @@
 **            Includes                                                      **
 *****************************************************************************/
 
-#include <string.h>
+#include <cstdint>
+#include <cstring>
 
 #include <wpaudio/altypes.h>
 #include <wpaudio/memory.h>
@@ -106,35 +107,47 @@ DBG_DECLARE_TYPE ( MemoryItem )
 /*                                                                */
 /******************************************************************/
 
-AudioMemoryPool*		MemoryPoolCreate( uint items, uint size )
+AudioMemoryPool* MemoryPoolCreate(std::size_t items, std::size_t size)
 {
-	uint		poolsize;
-	AudioMemoryPool	*pool;
-	MemoryItem 	*item;
-	uint		i;
+        DBG_ASSERT(items > 0);
+        DBG_ASSERT(size > 0);
 
-	
-	DBG_ASSERT ( items > 0 );
-	DBG_ASSERT ( size > 0 );
+        const std::size_t poolSize = items * (size + sizeof(MemoryItem)) + sizeof(AudioMemoryPool);
+        auto* pool = static_cast<AudioMemoryPool*>(AudioMemAllocZero(poolSize));
 
-	poolsize = items*(size + sizeof(MemoryItem)) + sizeof (AudioMemoryPool);
+        if (pool == NULL)
+        {
+                return NULL;
+        }
 
-	if ((pool = (AudioMemoryPool *) AudioMemAlloc ( poolsize )))
-	{
+        auto* item = reinterpret_cast<MemoryItem*>(
+                reinterpret_cast<std::uintptr_t>(pool) + sizeof(AudioMemoryPool));
 
-		item = (MemoryItem *)( (uint)pool + (uint) sizeof(AudioMemoryPool));
-		
-		pool->next = item;
-		DBG_CODE ( pool->itemsOut = 0;)
-		DBG_CODE ( pool->numItems = items;)
-		DBG_SET_TYPE ( pool, AudioMemoryPool );
+        pool->next = item;
+        pool->itemSize = size;
+        pool->itemCount = items;
+        pool->itemsOut = 0;
+        DBG_SET_TYPE(pool, AudioMemoryPool);
 
-		for ( i=0; i < items-1; i++)
-		{
-			DBG_SET_TYPE ( item, MemoryItem );
-			item->next = (MemoryItem *) ( (uint) item  + (uint) (sizeof(MemoryItem) + size) );
-			item = item->next;
-		}
+        for (std::size_t i = 0; i < items; ++i)
+        {
+                DBG_SET_TYPE(item, MemoryItem);
+
+                if (i + 1 < items)
+                {
+                        auto* next = reinterpret_cast<MemoryItem*>(
+                                reinterpret_cast<std::uintptr_t>(item) + sizeof(MemoryItem) + size);
+                        item->next = next;
+                        item = next;
+                }
+                else
+                {
+                        item->next = NULL;
+                }
+        }
+
+        return pool;
+}
 
 		item->next = NULL;
 		DBG_SET_TYPE ( item, MemoryItem );
@@ -171,53 +184,43 @@ void			MemoryPoolDestroy ( AudioMemoryPool *pool )
 /*                                                                */
 /******************************************************************/
 
-void 		  *MemoryPoolGetItem ( AudioMemoryPool *pool )
+void* MemoryPoolGetItem(AudioMemoryPool* pool)
 {
-	MemoryItem *item = NULL;
+        MemoryItem *item = NULL;
 
+        DBG_ASSERT_TYPE ( pool, AudioMemoryPool );
 
-	DBG_ASSERT_TYPE ( pool, AudioMemoryPool );
+        if (!(item = pool->next))
+        {
+                return NULL;
+        }
 
-	if (! (item = pool->next) )
-	{
-		return NULL;
-	}
-	
-	DBG_CODE ( pool->itemsOut++;)
-	
-	DBG_MSGASSERT ( pool->itemsOut <= pool->numItems,( "pool overflow" ));
+        DBG_CODE ( pool->itemsOut++;)
 
-	DBG_ASSERT_TYPE ( item, MemoryItem ); //  !!! Memory corruption !!!
-	
-	pool->next = item->next;
-	
-	return (void *) ( (uint) item + (uint) sizeof(MemoryItem));
+        DBG_MSGASSERT ( pool->itemsOut <= pool->itemCount,( "pool overflow" ));
 
+        DBG_ASSERT_TYPE ( item, MemoryItem ); //  !!! Memory corruption !!!
+
+        pool->next = item->next;
+
+        return reinterpret_cast<void*>(reinterpret_cast<std::uintptr_t>(item) + sizeof(MemoryItem));
 }
 
-/******************************************************************/
-/*                                                                */
-/*                                                                */
-/******************************************************************/
-
-void			MemoryPoolReturnItem ( AudioMemoryPool *pool, void *data )
+void MemoryPoolReturnItem(AudioMemoryPool* pool, void* data)
 {
-	MemoryItem	*item;
+        DBG_ASSERT_TYPE ( pool, AudioMemoryPool );
+        DBG_ASSERT_PTR ( data );
 
+        auto* item = reinterpret_cast<MemoryItem*>(reinterpret_cast<std::uintptr_t>(data) - sizeof(MemoryItem));
 
-	DBG_ASSERT_TYPE ( pool, AudioMemoryPool );
-	DBG_ASSERT_PTR ( data );
+        DBG_ASSERT_TYPE ( item, MemoryItem ); //  returning invalid item to pool
 
-	item = (MemoryItem *) ( (uint) data - (uint) sizeof(MemoryItem));
-	
-	DBG_ASSERT_TYPE ( item, MemoryItem ); //  returning invalid item to pool 
-	
-	item->next = pool->next;
-	pool->next = item;
-	
-	DBG_MSGASSERT ( pool->itemsOut > 0,( "Pool underflow" )); //  returning more items than were taken 
-	
-	DBG_CODE ( pool->itemsOut--; )
+        item->next = pool->next;
+        pool->next = item;
+
+        DBG_MSGASSERT ( pool->itemsOut > 0,( "Pool underflow" )); //  returning more items than were taken
+
+        DBG_CODE ( pool->itemsOut--; )
 }
 
 /******************************************************************/
