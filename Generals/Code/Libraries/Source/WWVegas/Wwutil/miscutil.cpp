@@ -31,7 +31,6 @@
 #include "rawfile.h"
 #include "wwdebug.h"
 #include "win.h"
-#include "mmsys.h"
 #include "ffactory.h"
 
 //
