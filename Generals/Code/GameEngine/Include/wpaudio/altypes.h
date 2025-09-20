@@ -2,6 +2,7 @@
 
 #include "always.h"
 #include "Lib/BaseType.h"
+#include "wpaudio/debug.h"
 
 #include <algorithm>
 #include <chrono>
@@ -16,8 +17,16 @@ inline TimeStamp MSECONDS(Int value) {
     return static_cast<TimeStamp>(value);
 }
 
+inline TimeStamp SECONDS(Int value) {
+    return static_cast<TimeStamp>(static_cast<int64_t>(value) * 1000);
+}
+
 inline Int IN_MSECONDS(TimeStamp value) {
     return static_cast<Int>(value);
+}
+
+inline Int IN_SECONDS(TimeStamp value) {
+    return static_cast<Int>(value / 1000);
 }
 
 inline TimeStamp AudioGetTime() {
