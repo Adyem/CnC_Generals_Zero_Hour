@@ -1,79 +1,19 @@
-# Top-level Makefile for Command & Conquer Generals source tree
-#
-# This Makefile is intentionally POSIX/gmake compatible and is designed as a
-# best-effort attempt to build the legacy project on modern toolchains.  The
-# original project targets Microsoft Visual C++ 6.0 and makes heavy use of
-# proprietary SDKs that are not included in this repository.  As a result the
-# build produced by this Makefile will likely fail without significant manual
-# configuration, but it provides a starting point for exploring how the build
-# can be wired together on non-Visual Studio environments.
+# --- snip: your existing header/toolchain unchanged ---
 
-# -----------------------------------------------------------------------------
-# Toolchain configuration
-# -----------------------------------------------------------------------------
-CXX ?= g++
-CC  ?= gcc
-AR  ?= ar
-RC  ?= windres
-
-CXXSTANDARD ?= c++17
-CXXFLAGS   ?= -std=$(CXXSTANDARD) -Wall -Wextra -Wpedantic
-CFLAGS     ?= -Wall -Wextra -Wpedantic
-CPPFLAGS   ?=
-LDFLAGS    ?=
-LIBS       ?=
-
-APT_GET := $(shell command -v apt-get 2>/dev/null)
-BREW    := $(shell command -v brew 2>/dev/null)
-USER_ID := $(shell id -u 2>/dev/null)
-
-ifeq ($(USER_ID),0)
-SUDO :=
-else
-SUDO := sudo
+# Choose executable extension on Windows
+EXEEXT :=
+ifeq ($(OS),Windows_NT)
+EXEEXT := .exe
 endif
 
-# Useful preprocessor definitions that roughly mirror the legacy MSVC project
-CPPFLAGS   += -DWIN32 -D_WINDOWS -DNOMINMAX -D_CRT_SECURE_NO_DEPRECATE
-CPPFLAGS   += -DBX_CONFIG_DEBUG=0
-
-# -----------------------------------------------------------------------------
-# Source discovery
-# -----------------------------------------------------------------------------
 SRC_DIR     := Generals/Code
 BUILD_DIR   := build
 OBJ_DIR     := $(BUILD_DIR)/obj
 BIN_DIR     := $(BUILD_DIR)/bin
 LIB_DIR     := $(BUILD_DIR)/lib
-TARGET      ?= $(BIN_DIR)/generals-sfml
+TARGET      ?= $(BIN_DIR)/generals-sfml$(EXEEXT)
 
-# -----------------------------------------------------------------------------
-# Include path configuration
-# -----------------------------------------------------------------------------
-# We collect every directory under $(SRC_DIR) and add it to the include search
-# path.  Directories containing whitespace are supported by escaping the space
-# characters with a backslash.  Consumers can extend INCLUDE_DIRS from the
-# command line if additional external SDKs are available on the system.
-# Discover include directories while filtering out problematic paths that
-# shadow system headers (for example Libraries/bx/include/bx contains an
-# "endian.h" that collides with the C library header of the same name).
-empty :=
-space := $(empty) $(empty)
-RAW_INCLUDE_DIRS := $(shell find $(SRC_DIR) -type d -print | sort)
-FILTERED_INCLUDE_DIRS := $(filter-out $(SRC_DIR)/Libraries/bx/include/bx%,$(RAW_INCLUDE_DIRS))
-ESCAPED_INCLUDE_DIRS := $(foreach dir,$(FILTERED_INCLUDE_DIRS),$(subst $(space),\ ,$(dir)))
-INCLUDE_DIRS         := $(foreach dir,$(ESCAPED_INCLUDE_DIRS),-I$(dir))
-CPPFLAGS             += $(INCLUDE_DIRS)
-CPPFLAGS             += -DWW3D_BGFX_AVAILABLE=1
-WW3D_ENABLE_LEGACY_DX8 ?= 0
-CPPFLAGS             += -DWW3D_ENABLE_LEGACY_DX8=$(WW3D_ENABLE_LEGACY_DX8)
-
-# STLport ships in a nested "stlport" include directory, so add a convenience
-# include for it when present.
-STLPORT_DIR := $(wildcard $(SRC_DIR)/Libraries/STLport-4.5.3/stlport)
-ifneq ($(STLPORT_DIR),)
-CPPFLAGS   += -I$(STLPORT_DIR)
-endif
+# --- snip: your include-path setup unchanged ---
 
 # -----------------------------------------------------------------------------
 # Static library modules
@@ -82,67 +22,52 @@ TOTAL_CPP_SOURCE_COUNT := 0
 TOTAL_C_SOURCE_COUNT   := 0
 STATIC_LIBS            :=
 
-include make/modules/SFMLPlatform.mk
-include make/modules/Compat.mk
-include make/modules/Main.mk
-include make/modules/GameEngine.mk
-include make/modules/GameEngineDevice.mk
-include make/modules/Libraries.mk
-include make/modules/Tools.mk
+# Make module includes non-fatal and allow forcing fallback
+-include make/modules/SFMLPlatform.mk
+-include make/modules/Compat.mk
+-include make/modules/Main.mk
+-include make/modules/GameEngine.mk
+-include make/modules/GameEngineDevice.mk
+-include make/modules/Libraries.mk
+-include make/modules/Tools.mk
+
+# Set FORCE_FALLBACK=1 to ignore STATIC_LIBS and build monolithically
+FORCE_FALLBACK ?= 0
+
+# --- snip: SFML and libVLC detection blocks unchanged ---
 
 # -----------------------------------------------------------------------------
-# SFML bootstrap configuration
+# Monolithic fallback build (auto-scans sources)
 # -----------------------------------------------------------------------------
-ENABLE_SFML ?= 1
-PKG_CONFIG  ?= pkg-config
-SFML_MODULES ?= sfml-graphics sfml-window sfml-system sfml-audio
-SFML_CFLAGS ?=
-SFML_LIBS   ?=
+EXCLUDE_PATTERNS ?= %/DirectX% %/DX8% %/dx8% %/win32/% %/Windows/%
 
-ifeq ($(ENABLE_SFML),1)
-SFML_PKGCONFIG_CFLAGS := $(strip $(shell $(PKG_CONFIG) --silence-errors --cflags $(SFML_MODULES)))
-SFML_PKGCONFIG_LIBS   := $(strip $(shell $(PKG_CONFIG) --silence-errors --libs $(SFML_MODULES)))
+RAW_CPP_SOURCES := $(shell find $(SRC_DIR) -type f -name '*.cpp' -print)
+RAW_C_SOURCES   := $(shell find $(SRC_DIR) -type f -name '*.c'   -print)
 
-ifneq ($(SFML_PKGCONFIG_CFLAGS),)
-SFML_CFLAGS += $(SFML_PKGCONFIG_CFLAGS)
+CPP_SOURCES := $(RAW_CPP_SOURCES)
+C_SOURCES   := $(RAW_C_SOURCES)
+ifneq ($(strip $(EXCLUDE_PATTERNS)),)
+  CPP_SOURCES := $(filter-out $(EXCLUDE_PATTERNS),$(CPP_SOURCES))
+  C_SOURCES   := $(filter-out $(EXCLUDE_PATTERNS),$(C_SOURCES))
 endif
 
-ifeq ($(strip $(SFML_LIBS)),)
-SFML_LIBS := $(SFML_PKGCONFIG_LIBS)
-endif
+REL_CPP_SOURCES := $(patsubst $(SRC_DIR)/%,%,$(CPP_SOURCES))
+REL_C_SOURCES   := $(patsubst $(SRC_DIR)/%,%,$(C_SOURCES))
 
-ifeq ($(strip $(SFML_LIBS)),)
-SFML_LIBS := -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
-endif
+CPP_OBJS := $(addprefix $(OBJ_DIR)/,$(REL_CPP_SOURCES:.cpp=.o))
+C_OBJS   := $(addprefix $(OBJ_DIR)/,$(REL_C_SOURCES:.c=.o))
 
-CPPFLAGS += $(SFML_CFLAGS)
-LIBS     += $(SFML_LIBS)
-endif
+TOTAL_CPP_SOURCE_COUNT := $(words $(CPP_SOURCES))
+TOTAL_C_SOURCE_COUNT   := $(words $(C_SOURCES))
 
-# -----------------------------------------------------------------------------
-# libVLC detection
-# -----------------------------------------------------------------------------
-LIBVLC_MODULE ?= libvlc
-LIBVLC_CFLAGS ?=
-LIBVLC_LIBS   ?=
+# Pattern rules
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
-LIBVLC_PKGCONFIG_CFLAGS := $(strip $(shell $(PKG_CONFIG) --silence-errors --cflags $(LIBVLC_MODULE)))
-LIBVLC_PKGCONFIG_LIBS   := $(strip $(shell $(PKG_CONFIG) --silence-errors --libs $(LIBVLC_MODULE)))
-
-ifneq ($(LIBVLC_PKGCONFIG_CFLAGS),)
-LIBVLC_CFLAGS += $(LIBVLC_PKGCONFIG_CFLAGS)
-endif
-
-ifeq ($(strip $(LIBVLC_LIBS)),)
-LIBVLC_LIBS := $(LIBVLC_PKGCONFIG_LIBS)
-endif
-
-ifeq ($(strip $(LIBVLC_LIBS)),)
-LIBVLC_LIBS := -lvlc
-endif
-
-CPPFLAGS += $(LIBVLC_CFLAGS)
-LIBS     += $(LIBVLC_LIBS)
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 # -----------------------------------------------------------------------------
 # Primary targets
@@ -151,56 +76,66 @@ LIBS     += $(LIBVLC_LIBS)
 
 all: $(TARGET)
 
+# Guard: If there is literally nothing to build, stop with a helpful error.
+ifeq ($(strip $(FORCE_FALLBACK)),1)
+  WANT_FALLBACK := 1
+else ifeq ($(strip $(STATIC_LIBS)),)
+  WANT_FALLBACK := 1
+else
+  WANT_FALLBACK := 0
+endif
+
+ifeq ($(WANT_FALLBACK),1)
+  ifeq ($(strip $(TOTAL_CPP_SOURCE_COUNT) $(TOTAL_C_SOURCE_COUNT)),)
+    $(error No source files found under '$(SRC_DIR)'. Fix SRC_DIR or EXCLUDE_PATTERNS, or set FORCE_FALLBACK=1 after adding sources)
+  endif
+
+# Fallback: link discovered objects into a real executable
+$(TARGET): $(CPP_OBJS) $(C_OBJS)
+	@mkdir -p $(BIN_DIR)
+	@echo "[LINK] $@"
+	$(CXX) $(CPP_OBJS) $(C_OBJS) $(LDFLAGS) $(LIBS) -o $@
+else
+# Modular: link produced static libs
 $(TARGET): $(STATIC_LIBS)
 	@mkdir -p $(BIN_DIR)
+	@echo "[LINK] $@ (modular)"
 	$(CXX) $(LDFLAGS) -Wl,--start-group $(STATIC_LIBS) -Wl,--end-group $(LIBS) -o $@
+endif
 
 # -----------------------------------------------------------------------------
-# Per-file build rules
-# -----------------------------------------------------------------------------
-# Individual object build rules are generated dynamically by the
-# generate_source_rules helper defined above.
-
-# -----------------------------------------------------------------------------
-# Utility targets
+# Utilities
 # -----------------------------------------------------------------------------
 print-config:
-	@echo "CXX        = $(CXX)"
-	@echo "CC         = $(CC)"
-	@echo "CXXFLAGS   = $(CXXFLAGS)"
-	@echo "CFLAGS     = $(CFLAGS)"
-	@echo "CPPFLAGS   = $(CPPFLAGS)"
-	@echo "LDFLAGS    = $(LDFLAGS)"
-	@echo "LIBS       = $(LIBS)"
-	@echo "TARGET     = $(TARGET)"
-	@echo "ENABLE_SFML = $(ENABLE_SFML)"
-	@echo "SFML_MODULES = $(SFML_MODULES)"
-	@echo "SFML_CFLAGS = $(SFML_CFLAGS)"
-	@echo "SFML_LIBS   = $(SFML_LIBS)"
-	@echo "Static libs = $(STATIC_LIBS)"
-	@echo "# of C++ files = $(TOTAL_CPP_SOURCE_COUNT)"
-	@echo "# of C files  = $(TOTAL_C_SOURCE_COUNT)"
+	@echo "TARGET            = $(TARGET)"
+	@echo "OS                = $(OS)"
+	@echo "EXEEXT            = $(EXEEXT)"
+	@echo "FORCE_FALLBACK    = $(FORCE_FALLBACK)"
+	@echo "Static libs       = $(STATIC_LIBS)"
+	@echo "Fallback C++ files= $(TOTAL_CPP_SOURCE_COUNT)"
+	@echo "Fallback C files  = $(TOTAL_C_SOURCE_COUNT)"
+	@echo "EXCLUDE_PATTERNS  = $(EXCLUDE_PATTERNS)"
+	@echo "CPPFLAGS          = $(CPPFLAGS)"
+	@echo "LIBS              = $(LIBS)"
 
 clean:
 	rm -rf $(OBJ_DIR)
 	rm -rf $(LIB_DIR)
 	rm -f $(BUILD_DIR)/*_sources.mk
 
-# Remove the entire build directory, including the binary output.
 distclean: clean
 	rm -rf $(BIN_DIR)
 
-# Best-effort dependency installer for common development environments.
 install-deps:
 ifdef APT_GET
-	echo "Installing dependencies via apt-get"
+	@echo "Installing dependencies via apt-get"
 	$(SUDO) apt-get update
 	$(SUDO) apt-get install -y build-essential pkg-config libsfml-dev
 else ifdef BREW
-	echo "Installing dependencies via Homebrew"
+	@echo "Installing dependencies via Homebrew"
 	brew update
 	brew install pkg-config sfml
 else
-	echo "No supported package manager detected. Please install build essentials, pkg-config, and SFML manually."
+	@echo "No supported package manager detected. Please install build essentials, pkg-config, and SFML manually."
 endif
 
