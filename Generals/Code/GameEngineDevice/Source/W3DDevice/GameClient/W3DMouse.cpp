@@ -29,7 +29,9 @@
 
 
 #include "Common/GameMemory.h"
+#if WW3D_ENABLE_LEGACY_DX8
 #include "WW3D2/DX8Wrapper.h"
+#endif
 #include "WW3D2/RendObj.h"
 #include "WW3D2/HAnim.h"
 #include "WW3D2/camera.h"
@@ -46,6 +48,11 @@
 #include "GameClient/InGameUI.h"
 #include "mutex.h"
 #include "thread.h"
+
+#if WW3D_ENABLE_LEGACY_DX8 && defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
 
 #ifdef _INTERNAL
 // for occasional debugging...
@@ -113,20 +120,25 @@ W3DMouse::W3DMouse( void )
 
 W3DMouse::~W3DMouse( void )
 {
+#if WW3D_ENABLE_LEGACY_DX8
 	LPDIRECT3DDEVICE8 m_pDev=DX8Wrapper::_Get_D3D_Device8();
 
 	if (m_pDev)
 	{
-		m_pDev->ShowCursor(FALSE);	//kill DX8 cursor
-		Win32Mouse::setCursor(ARROW); //enable default windows cursor
+		m_pDev->ShowCursor(FALSE);      //kill DX8 cursor
 	}
+#endif
 
+	platformRestoreDefaultCursor();
+
+#if WW3D_ENABLE_LEGACY_DX8
 	freeD3DAssets();
+#endif
 	freeW3DAssets();
 
 	thread.Stop();
 
-}  // end Win32Mouse
+}	// end Win32Mouse
 
 void W3DMouse::initPolygonAssets(void)
 {
@@ -158,103 +170,123 @@ void W3DMouse::freePolygonAssets(void)
 	}
 }
 
+#if WW3D_ENABLE_LEGACY_DX8
 /**Release the textures required to display the selected cursor*/
 Bool W3DMouse::releaseD3DCursorTextures(MouseCursor cursor)
 {
-	if (cursor == NONE || !cursorTextures[cursor][0])
-		return TRUE;	//no texture for this cursor or texture never loaded
+        if (cursor == NONE || !cursorTextures[cursor][0])
+                return TRUE;    //no texture for this cursor or texture never loaded
 
-	for (Int i=0; i<MAX_2D_CURSOR_ANIM_FRAMES; i++)
-	{
-		REF_PTR_RELEASE(m_currentD3DSurface[i]);
-		REF_PTR_RELEASE(cursorTextures[cursor][i]);
-	}
+        for (Int i=0; i<MAX_2D_CURSOR_ANIM_FRAMES; i++)
+        {
+                REF_PTR_RELEASE(m_currentD3DSurface[i]);
+                REF_PTR_RELEASE(cursorTextures[cursor][i]);
+        }
 
-	return TRUE;
+        return TRUE;
 }
 
 /**Load the textures required to display the selected cursor*/
 Bool W3DMouse::loadD3DCursorTextures(MouseCursor cursor)
 {
-	if (cursor == NONE || cursorTextures[cursor][0])
-		return TRUE;	//no texture for this cursor or texture already loaded
+        if (cursor == NONE || cursorTextures[cursor][0])
+                return TRUE;    //no texture for this cursor or texture already loaded
 
-	WW3DAssetManager *am=WW3DAssetManager::Get_Instance();
-	Int animFrames=m_cursorInfo[cursor].numFrames;
+        WW3DAssetManager *am=WW3DAssetManager::Get_Instance();
+        Int animFrames=m_cursorInfo[cursor].numFrames;
 
-	if (!animFrames)
-		return FALSE;	//no animation frames defined.
-	
-	const char *baseName=m_cursorInfo[cursor].textureName.str();
-	char FrameName[64];
+        if (!animFrames)
+                return FALSE;   //no animation frames defined.
 
-	//Clamp to reasonable number
-	if (animFrames > MAX_2D_CURSOR_ANIM_FRAMES)
-		animFrames = MAX_2D_CURSOR_ANIM_FRAMES;
+        const char *baseName=m_cursorInfo[cursor].textureName.str();
+        char FrameName[64];
 
-	m_currentFrames=0;
+        //Clamp to reasonable number
+        if (animFrames > MAX_2D_CURSOR_ANIM_FRAMES)
+                animFrames = MAX_2D_CURSOR_ANIM_FRAMES;
 
-	if (animFrames == 1)
-	{	//single animation frame without trailing numbers
-		sprintf(FrameName,"%s.tga",baseName);
-		cursorTextures[cursor][0]=	am->Get_Texture(FrameName);
-		m_currentD3DSurface[0]=cursorTextures[cursor][0]->Get_Surface_Level();
-		m_currentFrames = 1;
-	}
-	else
-	for (Int i=0; i<animFrames; i++)
-	{
-		sprintf(FrameName,"%s%04d.tga",baseName,i);
-		if ((cursorTextures[cursor][i]=am->Get_Texture(FrameName)) != NULL)
-		{	m_currentD3DSurface[m_currentFrames]=cursorTextures[cursor][i]->Get_Surface_Level();
-			m_currentFrames++;
-		}
-	}
-	return TRUE;
+        m_currentFrames=0;
+
+        if (animFrames == 1)
+        {       //single animation frame without trailing numbers
+                sprintf(FrameName,"%s.tga",baseName);
+                cursorTextures[cursor][0]=      am->Get_Texture(FrameName);
+                m_currentD3DSurface[0]=cursorTextures[cursor][0]->Get_Surface_Level();
+                m_currentFrames = 1;
+        }
+        else
+        for (Int i=0; i<animFrames; i++)
+        {
+                sprintf(FrameName,"%s%04d.tga",baseName,i);
+                if ((cursorTextures[cursor][i]=am->Get_Texture(FrameName)) != NULL)
+                {       m_currentD3DSurface[m_currentFrames]=cursorTextures[cursor][i]->Get_Surface_Level();
+                        m_currentFrames++;
+                }
+        }
+        return TRUE;
 }
 
 void W3DMouse::initD3DAssets(void)
 {
-	//Nothing to do here unless we want to preload all possible cursors which would
-	//probably not be practical for memory reasons.
+        //Nothing to do here unless we want to preload all possible cursors which would
+        //probably not be practical for memory reasons.
 
-	CriticalSectionClass::LockClass m(mutex);
+        CriticalSectionClass::LockClass m(mutex);
 
-	//don't allow the mouse thread to initialize
-	//wait for main app to do initialization.
-	if (isThread)
-		return;
+        //don't allow the mouse thread to initialize
+        //wait for main app to do initialization.
+        if (isThread)
+                return;
 
-	WW3DAssetManager *am=WW3DAssetManager::Get_Instance();
+        WW3DAssetManager *am=WW3DAssetManager::Get_Instance();
 
-	//Check if texture assets already loaded
-	if (m_currentRedrawMode == RM_DX8 && cursorTextures[1] == NULL && am)
-	{
-		for (Int i=0; i<NUM_MOUSE_CURSORS; i++)
-		{	
-			for (Int j=0; j < MAX_2D_CURSOR_ANIM_FRAMES; j++)
-			{
-				cursorTextures[i][j]=NULL;//am->Get_Texture(m_cursorInfo[i].textureName.str());
-				m_currentD3DSurface[i]=NULL;
-			}
-		}
-	}
+        //Check if texture assets already loaded
+        if (m_currentRedrawMode == RM_DX8 && cursorTextures[1] == NULL && am)
+        {
+                for (Int i=0; i<NUM_MOUSE_CURSORS; i++)
+                {
+                        for (Int j=0; j < MAX_2D_CURSOR_ANIM_FRAMES; j++)
+                        {
+                                cursorTextures[i][j]=NULL;//am->Get_Texture(m_cursorInfo[i].textureName.str());
+                                m_currentD3DSurface[i]=NULL;
+                        }
+                }
+        }
 }
 
 void W3DMouse::freeD3DAssets(void)
 {
-	//free pointers to texture surfaces.
-	for (Int i=0; i<MAX_2D_CURSOR_ANIM_FRAMES; i++)
-		REF_PTR_RELEASE(m_currentD3DSurface[i]);
+        //free pointers to texture surfaces.
+        for (Int i=0; i<MAX_2D_CURSOR_ANIM_FRAMES; i++)
+                REF_PTR_RELEASE(m_currentD3DSurface[i]);
 
-	//free textures.
-	for (i=0; i<NUM_MOUSE_CURSORS; i++)
-	{
-		for (Int j=0; j<MAX_2D_CURSOR_ANIM_FRAMES; j++)
-			REF_PTR_RELEASE(cursorTextures[i][j]);
-	}
+        //free textures.
+        for (i=0; i<NUM_MOUSE_CURSORS; i++)
+        {
+                for (Int j=0; j<MAX_2D_CURSOR_ANIM_FRAMES; j++)
+                        REF_PTR_RELEASE(cursorTextures[i][j]);
+        }
 
 }
+#else
+Bool W3DMouse::releaseD3DCursorTextures(MouseCursor)
+{
+        return TRUE;
+}
+
+Bool W3DMouse::loadD3DCursorTextures(MouseCursor)
+{
+        return FALSE;
+}
+
+void W3DMouse::initD3DAssets(void)
+{
+}
+
+void W3DMouse::freeD3DAssets(void)
+{
+}
+#endif
 
 void W3DMouse::initW3DAssets(void)
 {
@@ -361,6 +393,20 @@ void W3DMouse::reset( void )
 //-------------------------------------------------------------------------------------------------
 /** Super basic simplistic cursor */
 //-------------------------------------------------------------------------------------------------
+void W3DMouse::setVisibility(Bool visible)
+{
+	Mouse::setVisibility(visible);
+
+	if (visible)
+	{
+		setCursor(getMouseCursor());
+	}
+	else
+	{
+		platformClearCursor();
+	}
+}
+
 void W3DMouse::setCursor( MouseCursor cursor )
 {
 
@@ -374,22 +420,22 @@ void W3DMouse::setCursor( MouseCursor cursor )
 		m_currentPolygonCursor=NONE;
 		setCursorDirection(cursor);
 		if (m_drawing)	//only allow cursor to change when drawing the cursor (once per frame) to fix flickering.
-			Win32Mouse::setCursor(cursor);
+			platformSetCursor(cursor);
 		m_currentCursor = cursor;
 		return;
 	}
 
-	// extend 
+	// extend
 	Mouse::setCursor( cursor );
 
 	// if we're already on this cursor ignore the rest of code to stop cursor flickering.
 	if( m_currentCursor == cursor && m_currentD3DCursor == cursor)
 		return;
 
-	//make sure Windows didn't reset our cursor
+#if WW3D_ENABLE_LEGACY_DX8
 	if (m_currentRedrawMode == RM_DX8)
 	{
-		SetCursor(NULL);	//Kill Windows Cursor
+		platformClearCursor();
 
 		LPDIRECT3DDEVICE8 m_pDev=DX8Wrapper::_Get_D3D_Device8();
 		Bool doImageChange=FALSE;
@@ -403,7 +449,7 @@ void W3DMouse::setCursor( MouseCursor cursor )
 					//Since this type of cursor is updated from a non-D3D thread, we need
 					//to preallocate all surfaces in main thread.
 					loadD3DCursorTextures(cursor);
-				}	
+				}
 			}
 			if (m_currentD3DSurface[0])
 				doImageChange=TRUE;
@@ -412,28 +458,27 @@ void W3DMouse::setCursor( MouseCursor cursor )
 		//it didn't change.  This is needed to prevent the cursor from flickering.
 		if (doImageChange)
 		{
-			HRESULT res;
-			m_currentHotSpot = m_cursorInfo[cursor].hotSpotPosition;
-			m_currentFMS = m_cursorInfo[cursor].fps/1000.0f;
-			m_currentAnimFrame = 0;	//reset animation when cursor changes
-			res = m_pDev->SetCursorProperties(m_currentHotSpot.x,m_currentHotSpot.y,m_currentD3DSurface[(Int)m_currentAnimFrame]->Peek_D3D_Surface());
+			updateCursorMetadata(cursor);
+			HRESULT res = m_pDev->SetCursorProperties(m_currentHotSpot.x,m_currentHotSpot.y,m_currentD3DSurface[(Int)m_currentAnimFrame]->Peek_D3D_Surface());
+			(void)res;
 			m_pDev->ShowCursor(TRUE);	//Enable DX8 cursor
 			m_currentD3DFrame=(Int)m_currentAnimFrame;
 			m_currentD3DCursor = cursor;
-			m_lastAnimTime=timeGetTime();
 		}
 	}
-	else if (m_currentRedrawMode == RM_POLYGON)
+	else
+#endif
+	if (m_currentRedrawMode == RM_POLYGON)
 	{
-		SetCursor(NULL);	//Kill Windows Cursor
+		platformClearCursor();
 		m_currentD3DCursor=NONE;
 		m_currentW3DCursor=NONE;
 		m_currentPolygonCursor = cursor;
-		m_currentHotSpot = m_cursorInfo[cursor].hotSpotPosition;
+		updateCursorMetadata(cursor);
 	}
 	else if (m_currentRedrawMode == RM_W3D)
 	{
-		SetCursor(NULL);	//Kill Windows Cursor
+		platformClearCursor();
 		m_currentD3DCursor=NONE;
 		m_currentPolygonCursor=NONE;
 		if (cursor != m_currentW3DCursor)
@@ -470,9 +515,53 @@ void W3DMouse::setCursor( MouseCursor cursor )
 	// save current cursor
 	m_currentCursor = cursor;
 
-}  // end setCursor
+}
+void W3DMouse::updateCursorMetadata(MouseCursor cursor)
+{
+        if (cursor <= NONE || cursor >= Mouse::NUM_MOUSE_CURSORS)
+	{
+		return;
+	}
 
-extern HWND ApplicationHWnd;
+	m_currentHotSpot = m_cursorInfo[cursor].hotSpotPosition;
+	m_currentFMS = m_cursorInfo[cursor].fps/1000.0f;
+	Int frames = m_cursorInfo[cursor].numFrames;
+	m_currentFrames = (frames > 0) ? frames : 1;
+	m_currentAnimFrame = 0;
+	m_currentD3DFrame = 0;
+	m_lastAnimTime = timeGetTime();
+}
+
+void W3DMouse::platformSetCursor(MouseCursor cursor)
+{
+#if WW3D_ENABLE_LEGACY_DX8 && defined(_WIN32)
+        if (m_visible && cursor != NONE)
+        {
+                Win32Mouse::setCursor(cursor);
+        }
+        else
+        {
+                ::SetCursor(NULL);
+        }
+#else
+        (void)cursor;
+#endif
+}
+
+void W3DMouse::platformClearCursor()
+{
+#if WW3D_ENABLE_LEGACY_DX8 && defined(_WIN32)
+        ::SetCursor(NULL);
+#endif
+}
+
+void W3DMouse::platformRestoreDefaultCursor()
+{
+#if WW3D_ENABLE_LEGACY_DX8 && defined(_WIN32)
+        Win32Mouse::setCursor(ARROW);
+#endif
+}
+
 
 void W3DMouse::draw(void)
 {
@@ -483,6 +572,7 @@ void W3DMouse::draw(void)
 	//make sure the correct cursor image is selected
 	setCursor(m_currentCursor);
 
+#if WW3D_ENABLE_LEGACY_DX8
 	if (m_currentRedrawMode == RM_DX8 && m_currentD3DCursor != NONE)
 	{
 		//called from upate thread or rendering loop.  Tells D3D where
@@ -515,7 +605,9 @@ void W3DMouse::draw(void)
 			}
 		}
 	}
-	else if (m_currentRedrawMode == RM_POLYGON)
+	else
+#endif
+	if (m_currentRedrawMode == RM_POLYGON)
 	{	
 		const Image *image=cursorImages[m_currentPolygonCursor];
 		if (image)
@@ -644,6 +736,7 @@ void W3DMouse::setRedrawMode(RedrawMode mode)
 		}
 		break;
 
+#if WW3D_ENABLE_LEGACY_DX8
 		case RM_DX8:
 		{	//this cursor type is drawn by DX8 and can be refreshed
 			//independent of rendering rate.  Uses another thread to do
@@ -657,6 +750,7 @@ void W3DMouse::setRedrawMode(RedrawMode mode)
 			m_currentPolygonCursor = NONE;
 			break;
 		}
+#endif
 	}
 
 	setCursor(NONE);

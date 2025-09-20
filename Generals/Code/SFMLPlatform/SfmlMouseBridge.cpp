@@ -31,11 +31,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "SfmlMouseBridge.h"
+#include "WindowSystem.h"
 
-#if defined(_WIN32)
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#endif
+#include "Common/GlobalData.h"
 
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Mouse.hpp>
@@ -65,16 +63,18 @@ MouseIO createDefaultMouseEvent( UnsignedInt timestamp )
 
 UnsignedInt getPlatformDoubleClickTime()
 {
-#if defined(_WIN32)
-        return static_cast< UnsignedInt >( ::GetDoubleClickTime() );
-#else
+        if (TheWritableGlobalData != NULL)
+        {
+                return TheGlobalData->m_doubleClickTimeMS;
+        }
+
         return 500;
-#endif
 }
 
 } // unnamed namespace
 
 SfmlMouseBridge::SfmlMouseBridge()
+        : m_arrowCursorValid(false)
 {
         for( Int i = 0; i < BUTTON_COUNT; ++i )
         {
@@ -84,6 +84,12 @@ SfmlMouseBridge::SfmlMouseBridge()
         }
 
         m_doubleClickTime = getPlatformDoubleClickTime();
+
+        if (m_arrowCursor.loadFromSystem(sf::Cursor::Arrow))
+        {
+                m_arrowCursorValid = true;
+        }
+
         g_activeMouseBridge = this;
 }
 
@@ -302,12 +308,73 @@ UnsignedInt SfmlMouseBridge::currentFrame() const
 
 UnsignedInt SfmlMouseBridge::currentTimestamp() const
 {
-#if defined(_WIN32)
-        return static_cast< UnsignedInt >( ::GetTickCount() );
-#else
         using namespace std::chrono;
         return static_cast< UnsignedInt >( duration_cast< milliseconds >( steady_clock::now().time_since_epoch() ).count() );
-#endif
+}
+
+void SfmlMouseBridge::platformSetCursor(MouseCursor cursor)
+{
+        updateCursorMetadata(cursor);
+
+        if (!m_visible || cursor == NONE)
+        {
+                platformClearCursor();
+                return;
+        }
+
+        WindowSystem *system = GetActiveWindowSystem();
+        if (system == NULL)
+        {
+                return;
+        }
+
+        sf::RenderWindow &window = system->window();
+
+        if (!m_arrowCursorValid)
+        {
+                m_arrowCursorValid = m_arrowCursor.loadFromSystem(sf::Cursor::Arrow);
+        }
+
+        if (m_arrowCursorValid)
+        {
+                window.setMouseCursor(m_arrowCursor);
+        }
+
+        window.setMouseCursorVisible(true);
+}
+
+void SfmlMouseBridge::platformClearCursor()
+{
+        WindowSystem *system = GetActiveWindowSystem();
+        if (system == NULL)
+        {
+                return;
+        }
+
+        system->window().setMouseCursorVisible(false);
+}
+
+void SfmlMouseBridge::platformRestoreDefaultCursor()
+{
+        updateCursorMetadata(ARROW);
+
+        WindowSystem *system = GetActiveWindowSystem();
+        if (system == NULL)
+        {
+                return;
+        }
+
+        if (!m_arrowCursorValid)
+        {
+                m_arrowCursorValid = m_arrowCursor.loadFromSystem(sf::Cursor::Arrow);
+        }
+
+        if (m_arrowCursorValid)
+        {
+                system->window().setMouseCursor(m_arrowCursor);
+        }
+
+        system->window().setMouseCursorVisible(true);
 }
 
 SfmlMouseBridge::ButtonIndex SfmlMouseBridge::toButtonIndex( sf::Mouse::Button button )
