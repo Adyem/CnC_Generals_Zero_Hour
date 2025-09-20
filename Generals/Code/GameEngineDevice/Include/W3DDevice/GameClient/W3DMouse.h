@@ -77,6 +77,14 @@ public:
 	virtual void draw( void );		///< draw the cursor or refresh the image
 	virtual void setRedrawMode(RedrawMode mode);	///<set cursor drawing method.
 
+	virtual void setVisibility(Bool visible);
+
+protected:
+	void updateCursorMetadata(MouseCursor cursor);
+	virtual void platformSetCursor(MouseCursor cursor);
+	virtual void platformClearCursor();
+	virtual void platformRestoreDefaultCursor();
+
 private:
 	MouseCursor m_currentD3DCursor;	///< keep track of last cursor image sent to D3D.
 	SurfaceClass *m_currentD3DSurface[MAX_2D_CURSOR_ANIM_FRAMES];

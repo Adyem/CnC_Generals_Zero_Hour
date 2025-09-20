@@ -39,6 +39,7 @@
 #include <deque>
 
 #include <SFML/Window/Mouse.hpp>
+#include <SFML/Window/Cursor.hpp>
 
 #include "W3DDevice/GameClient/W3DMouse.h"
 
@@ -61,6 +62,9 @@ public:
 
 protected:
         virtual UnsignedByte getMouseEvent( MouseIO *result, Bool flush );
+        virtual void platformSetCursor(MouseCursor cursor) override;
+        virtual void platformClearCursor() override;
+        virtual void platformRestoreDefaultCursor() override;
 
 private:
         enum ButtonIndex
@@ -90,6 +94,8 @@ private:
         std::deque< MouseIO > m_pendingEvents;
         ClickState m_clickState[ BUTTON_COUNT ];
         UnsignedInt m_doubleClickTime;
+        sf::Cursor m_arrowCursor;
+        bool m_arrowCursorValid;
 };
 
 SfmlMouseBridge *GetActiveMouseBridge();
