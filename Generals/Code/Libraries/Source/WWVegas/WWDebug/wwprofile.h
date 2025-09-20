@@ -41,10 +41,10 @@
 #ifndef WWPROFILE_H
 #define WWPROFILE_H
 
-#ifdef _UNIX
-typedef signed long long __int64;
-typedef signed long long _int64;
-#endif
+#include <cstdint>
+
+using WWProfileTick = std::int64_t;
+
 	
 			
 /*
@@ -75,7 +75,7 @@ protected:
 	const char *					Name;
 	int								TotalCalls;
 	float								TotalTime;
-	__int64							StartTime;
+	WWProfileTick							StartTime;
 	int								RecursionCounter;
 
 	WWProfileHierachyNodeClass *	Parent;
@@ -162,7 +162,7 @@ private:
 	static	WWProfileHierachyNodeClass		Root;
 	static	WWProfileHierachyNodeClass *	CurrentNode;
 	static	int									FrameCounter;
-	static	__int64								ResetTime;
+	static	WWProfileTick								ResetTime;
 
 	friend	class		WWProfileInOrderIterator;
 };
@@ -201,7 +201,7 @@ public:
 	~WWTimeItClass( void );
 private:
 	const char * Name;
-	__int64	Time;
+	WWProfileTick	Time;
 };
 
 #ifdef WWDEBUG
@@ -223,7 +223,7 @@ public:
 	~WWMeasureItClass( void );
 
 private:
-	__int64	Time;
+	WWProfileTick	Time;
 	float *  PResult;
 };
 

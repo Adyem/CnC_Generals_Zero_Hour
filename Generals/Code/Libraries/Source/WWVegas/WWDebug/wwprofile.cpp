@@ -54,6 +54,7 @@
 #include "wwprofile.h"
 #include "wwdebug.h"
 #include "thread.h"
+#include <chrono>
 
 
 
@@ -69,24 +70,10 @@
  * HISTORY:                                                                                    *
  *   9/24/2000  gth : Created.                                                                 *
  *=============================================================================================*/
-inline void WWProfile_Get_Ticks(_int64 * ticks)
+inline void WWProfile_Get_Ticks(WWProfileTick * ticks)
 {
-#ifdef _UNIX
-	*ticks = 0;
-#else 
-	__asm
-	{
-		push edx;
-		push ecx;
-		mov ecx,ticks;
-		_emit 0Fh
-		_emit 31h
-		mov [ecx],eax;
-		mov [ecx+4],edx;
-		pop ecx;
-		pop edx;
-	}
-#endif
+	using namespace std::chrono;
+	*ticks = duration_cast<nanoseconds>(steady_clock::now().time_since_epoch()).count();
 }
 
 
@@ -104,19 +91,9 @@ inline void WWProfile_Get_Ticks(_int64 * ticks)
  *=============================================================================================*/
 inline float WWProfile_Get_Tick_Rate(void)
 {
-#ifdef _UNIX
-	return(0);
-#else
-	static float _CPUFrequency = -1.0f;
-	
-	if (_CPUFrequency == -1.0f) {
-		__int64 curr_rate = 0;
-		::QueryPerformanceFrequency ((LARGE_INTEGER *)&curr_rate);
-		_CPUFrequency = (float)curr_rate;
-	} 
-	
-	return _CPUFrequency;
-#endif
+	static const float kTicksPerSecond = static_cast<float>(std::chrono::nanoseconds::period::den) /
+		static_cast<float>(std::chrono::nanoseconds::period::num);
+	return kTicksPerSecond;
 }
 
 
@@ -269,7 +246,7 @@ bool	WWProfileHierachyNodeClass::Return( void )
 	if (--RecursionCounter == 0) {
 		if ( TotalCalls != 0 ) {
 			
-			__int64 time;
+			WWProfileTick time;
 			WWProfile_Get_Ticks(&time);
 			time-=StartTime;
 
@@ -293,7 +270,7 @@ bool	WWProfileHierachyNodeClass::Return( void )
 WWProfileHierachyNodeClass		WWProfileManager::Root( "Root", NULL );
 WWProfileHierachyNodeClass	*	WWProfileManager::CurrentNode = &WWProfileManager::Root;
 int									WWProfileManager::FrameCounter = 0;
-__int64								WWProfileManager::ResetTime = 0;
+WWProfileTick								WWProfileManager::ResetTime = 0;
 
 static unsigned int				ThreadID = static_cast<unsigned int>(-1);
 
@@ -414,7 +391,7 @@ void WWProfileManager::Increment_Frame_Counter( void )
  *=============================================================================================*/
 float WWProfileManager::Get_Time_Since_Reset( void )
 {
-	__int64 time;
+	WWProfileTick time;
 	WWProfile_Get_Ticks(&time);
 	time -= ResetTime;
 
@@ -604,7 +581,7 @@ WWTimeItClass::WWTimeItClass( const char * name )
 
 WWTimeItClass::~WWTimeItClass( void ) 
 { 
-	__int64 End; 
+	WWProfileTick End; 
 	WWProfile_Get_Ticks( &End );	
 	End -= Time; 
 #ifdef WWDEBUG
@@ -626,7 +603,7 @@ WWMeasureItClass::WWMeasureItClass( float * p_result )
 
 WWMeasureItClass::~WWMeasureItClass( void ) 
 { 
-	__int64 End; 
+	WWProfileTick End; 
 	WWProfile_Get_Ticks( &End );	
 	End -= Time; 
 	WWASSERT(PResult != NULL);

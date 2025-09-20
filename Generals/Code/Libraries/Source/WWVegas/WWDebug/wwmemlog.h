@@ -44,6 +44,8 @@
 #ifndef WWMEMLOG_H
 #define WWMEMLOG_H
 
+#include <cstddef>
+
 class MemLogClass;
 
 /**
@@ -111,7 +113,7 @@ public:
 	** implement global new and delete functions which call into these
 	** functions.
 	*/
-	static void *			Allocate_Memory(size_t size);
+	static void *			Allocate_Memory(std::size_t size);
 	static void				Release_Memory(void * mem);
 
 	static void				Reset_Counters();			// Reset allocate and free counters
@@ -127,7 +129,7 @@ protected:
 	static void				Pop_Active_Category(void);
 
 	static MemLogClass * Get_Log(void);
-	static void __cdecl Release_Log(void);
+	static void				Release_Log(void);
 
 	friend class WWMemorySampleClass;
 };
