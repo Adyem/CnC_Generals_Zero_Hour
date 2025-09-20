@@ -148,11 +148,13 @@ enum
 	-December 2002
 */
 
+struct AudioDeviceTag;
+
 class AudioManager : public SubsystemInterface
 {
-	public:
-		AudioManager();
-		virtual ~AudioManager();
+        public:
+                AudioManager();
+                virtual ~AudioManager();
 #if defined(_DEBUG) || defined(_INTERNAL)
 		virtual void audioDebugDisplay(DebugDisplayInterface *dd, void *userData, FILE *fp = NULL ) = 0;
 #endif
@@ -206,9 +208,11 @@ class AudioManager : public SubsystemInterface
 		virtual Bool isCurrentlyPlaying( AudioHandle handle );
 
 		// Device Dependent open and close functions
-		virtual void openDevice( void ) = 0;
-		virtual void closeDevice( void ) = 0;
+                virtual void openDevice( void ) = 0;
+                virtual void closeDevice( void ) = 0;
                virtual void *getDevice( void ) = 0;
+
+               virtual AudioDeviceTag *device() const;
 
                virtual std::unique_ptr<VideoSoundBridge> createVideoSoundBridge();
 
@@ -299,8 +303,10 @@ class AudioManager : public SubsystemInterface
 		virtual void setPreferredSpeaker(AsciiString speakerType) = 0;
 
 		// For Scripting
-		virtual Real getAudioLengthMS( const AudioEventRTS *event );
-		virtual Real getFileLengthMS( AsciiString strToLoad ) const = 0;
+                virtual Real getAudioLengthMS( const AudioEventRTS *event );
+                virtual Real getFileLengthMS( AsciiString strToLoad ) const = 0;
+
+                virtual Int convertRealVolume( Real volume ) const;
 
 		// For the file cache to know when to remove files.
 		virtual void closeAnySamplesUsingFile( const void *fileToClose ) = 0;

@@ -11,6 +11,7 @@ $(shell python3 build_tools/generate_make_fragment.py \
         --variable-prefix=LIBRARIES \
         --exclude=Source/WWVegas/WW3D2 \
         --exclude=Source/WWVegas/WWAudio \
+        --exclude=Source/WPAudio \
         --exclude=Source/WWVegas/WWDebug \
         --exclude=Source/WWVegas/WWSaveLoad)
 

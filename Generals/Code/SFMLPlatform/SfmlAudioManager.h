@@ -1,7 +1,9 @@
 #pragma once
 
 #include "Common/GameAudio.h"
+#include "wpaudio/device.h"
 
+#include <deque>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -49,6 +51,7 @@ public:
     void openDevice() override;
     void closeDevice() override;
     void* getDevice() override;
+    AudioDeviceTag* device() const override;
 
     void notifyOfAudioCompletion(UnsignedInt audioCompleted, UnsignedInt flags) override;
 
@@ -106,6 +109,8 @@ private:
     void updateActiveSounds();
     void applyVolume(ActiveSound& active);
     void applySpatialization(ActiveSound& active);
+    void applyStereoBalance(ActiveSound& active);
+    bool startNextBuffer(ActiveSound& active);
     void finishActiveSound(AudioHandle handle, Bool notifyCompletion);
     ActiveSound* findActiveSound(AudioHandle handle);
     std::vector<AudioHandle> collectHandlesMatching(const AsciiString& eventName) const;
@@ -138,5 +143,7 @@ private:
     AudioHandle m_currentMusicHandle;
     AsciiString m_currentMusicName;
     Bool m_musicCompleted;
+
+    AudioDeviceTag m_device;
 };
 

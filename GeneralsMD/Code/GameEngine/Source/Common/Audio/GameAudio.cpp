@@ -70,6 +70,9 @@
 
 #include "WWMath/matrix3d.h"
 
+#include "wpaudio/altypes.h"
+#include <algorithm>
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef _INTERNAL
 //#pragma optimize("", off)
@@ -1102,8 +1105,20 @@ Bool AudioManager::shouldPlayLocally(const AudioEventRTS *audioEvent)
 //-------------------------------------------------------------------------------------------------
 AudioHandle AudioManager::allocateNewHandle( void )
 {
-	// note, intenionally a post increment rather than a pre increment.
-	return theAudioHandlePool++;
+        // note, intenionally a post increment rather than a pre increment.
+        return theAudioHandlePool++;
+}
+
+AudioDeviceTag *AudioManager::device() const
+{
+        return NULL;
+}
+
+Int AudioManager::convertRealVolume( Real volume ) const
+{
+        const Real clamped = std::clamp(volume, static_cast<Real>(0.0f), static_cast<Real>(1.0f));
+        const Real scaled = clamped * static_cast<Real>(AUDIO_VOLUME_MAX);
+        return static_cast<Int>(scaled + static_cast<Real>(0.5f));
 }
 
 //-------------------------------------------------------------------------------------------------
