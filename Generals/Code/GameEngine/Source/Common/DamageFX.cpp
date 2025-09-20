@@ -31,7 +31,6 @@
 
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
-#define DEFINE_DAMAGE_NAMES						// for DamageNames[]
 
 #include "Common/INI.h"
 #include "Common/ThingFactory.h"

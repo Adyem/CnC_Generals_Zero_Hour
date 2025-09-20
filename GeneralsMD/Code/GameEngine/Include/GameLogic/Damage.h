@@ -198,34 +198,7 @@ enum DeathType
 	DEATH_NUM_TYPES			// keep this last
 };
 
-#ifdef DEFINE_DEATH_NAMES
-static const char *TheDeathNames[] = 
-{
-	"NORMAL",			
-	"NONE",			
-	"CRUSHED",					
-	"BURNED",		
-	"EXPLODED",
-	"POISONED",
-	"TOPPLED",
-	"FLOODED",
-	"SUICIDED",
-	"LASERED",
-	"DETONATED",
-	"SPLATTED",
-	"POISONED_BETA",	
-	"EXTRA_2",	
-	"EXTRA_3",	
-	"EXTRA_4",	
-	"EXTRA_5",	
-	"EXTRA_6",	
-	"EXTRA_7",	
-	"EXTRA_8",	
-	"POISONED_GAMMA",	
-
-	NULL
-};
-#endif // end DEFINE_DEATH_NAMES
+extern const char *const TheDeathNames[DEATH_NUM_TYPES + 1];
 
 
 //-------------------------------------------------------------------------------------------------

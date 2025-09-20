@@ -29,8 +29,6 @@
 
 #include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
 
-#define DEFINE_DAMAGE_NAMES
-#define DEFINE_DEATH_NAMES
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common\ThingTemplate.h"
