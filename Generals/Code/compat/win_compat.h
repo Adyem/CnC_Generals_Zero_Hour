@@ -49,6 +49,14 @@ using LPWSTR = wchar_t*;
 using LPCWSTR = const wchar_t*;
 using WCHAR = wchar_t;
 
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#ifndef FALSE
+#define FALSE 0
+#endif
+
 struct _EXCEPTION_POINTERS;
 using EXCEPTION_POINTERS = _EXCEPTION_POINTERS;
 

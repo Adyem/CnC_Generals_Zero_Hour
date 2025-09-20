@@ -30,6 +30,7 @@
 #include <cmath>
 #include <condition_variable>
 #include <cstdio>
+#include <cstring>
 #include <deque>
 #include <limits>
 #include <mutex>
@@ -172,9 +173,9 @@ public:
     void onFrameDecoded(void*) override {}
 
 private:
-    static unsigned handleSetup(void** opaque, char* format, unsigned* rate, unsigned* channels) {
+    static int handleSetup(void** opaque, char* format, unsigned* rate, unsigned* channels) {
         if (!opaque || !*opaque || !format || !rate || !channels) {
-            return 0;
+            return -1;
         }
 
         auto* self = static_cast<SfmlVlcAudioBridge*>(*opaque);
@@ -185,10 +186,10 @@ private:
         self->m_stream.reset(new SfmlVideoAudioStream());
         if (!self->m_stream->initializeStream(self->m_channelCount, self->m_sampleRate)) {
             self->m_stream.reset();
-            return 0;
+            return -1;
         }
         self->m_stream->play();
-        return 1;
+        return 0;
     }
 
     static void handleCleanup(void* opaque) {

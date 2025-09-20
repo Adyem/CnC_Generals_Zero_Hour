@@ -13,6 +13,21 @@ BIN_DIR     := $(BUILD_DIR)/bin
 LIB_DIR     := $(BUILD_DIR)/lib
 TARGET      ?= $(BIN_DIR)/generals-sfml$(EXEEXT)
 
+# Core include search paths shared by every module
+INCLUDE_DIRS := \
+        $(SRC_DIR) \
+        $(SRC_DIR)/GameEngine/Include \
+        $(SRC_DIR)/GameEngine/Include/Precompiled \
+        $(SRC_DIR)/GameEngineDevice/Include \
+        $(SRC_DIR)/Libraries/Include \
+        $(SRC_DIR)/Libraries/Source/WWVegas/WWLib \
+        $(SRC_DIR)/Libraries/Source/WWVegas/WWMath \
+        $(SRC_DIR)/Libraries/Source/WWVegas \
+        $(SRC_DIR)/Main \
+        $(SRC_DIR)/Main/Include
+
+CPPFLAGS += $(addprefix -I,$(INCLUDE_DIRS))
+
 # --- snip: your include-path setup unchanged ---
 
 # -----------------------------------------------------------------------------

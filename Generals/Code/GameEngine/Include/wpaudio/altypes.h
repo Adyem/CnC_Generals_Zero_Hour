@@ -1,6 +1,7 @@
 #pragma once
 
 #include "always.h"
+#include "Lib/BaseType.h"
 
 #include <algorithm>
 #include <chrono>
