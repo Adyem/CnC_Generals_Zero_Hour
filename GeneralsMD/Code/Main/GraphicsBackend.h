@@ -31,6 +31,10 @@
 #ifndef MAIN_GRAPHICSBACKEND_H
 #define MAIN_GRAPHICSBACKEND_H
 
+#ifndef WW3D_ENABLE_LEGACY_DX8
+#define WW3D_ENABLE_LEGACY_DX8 0
+#endif
+
 enum GraphicsBackend
 {
         GRAPHICS_BACKEND_DIRECT3D8 = 0,

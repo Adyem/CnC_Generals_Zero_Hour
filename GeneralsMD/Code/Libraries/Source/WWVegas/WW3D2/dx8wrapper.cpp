@@ -207,7 +207,11 @@ static DynamicVectorClass<StringClass>					_RenderDeviceNameTable;
 static DynamicVectorClass<StringClass>					_RenderDeviceShortNameTable;
 static DynamicVectorClass<RenderDeviceDescClass>	_RenderDeviceDescriptionTable;
 
+#if WW3D_ENABLE_LEGACY_DX8
 static GraphicsBackend g_activeBackend = GRAPHICS_BACKEND_DIRECT3D8;
+#else
+static GraphicsBackend g_activeBackend = GRAPHICS_BACKEND_BGFX;
+#endif
 
 #if WW3D_BGFX_AVAILABLE
 struct BgfxDeviceState
@@ -401,12 +405,19 @@ static void UpdateBgfxDisplayParameters()
 
 bool DX8Wrapper::Init(void * hwnd, bool lite)
 {
-	WWASSERT(!IsInitted);
+        WWASSERT(!IsInitted);
 
-	if (g_activeBackend == GRAPHICS_BACKEND_BGFX)
-	{
-		(void)lite;
-		return InitializeBgfx(hwnd);
+#if !WW3D_ENABLE_LEGACY_DX8
+        if (g_activeBackend == GRAPHICS_BACKEND_DIRECT3D8)
+        {
+                g_activeBackend = GRAPHICS_BACKEND_BGFX;
+        }
+#endif
+
+        if (g_activeBackend == GRAPHICS_BACKEND_BGFX)
+        {
+                (void)lite;
+                return InitializeBgfx(hwnd);
 	}
 
         // zero memory
@@ -863,13 +874,57 @@ bool DX8Wrapper::Create_Device(void)
 
 bool DX8Wrapper::Reset_Device(bool reload_assets)
 {
-	WWDEBUG_SAY(("Resetting device.\n"));
-	DX8_THREAD_ASSERT();
-	if ((IsInitted) && (D3DDevice != NULL)) {
-		// Release all non-MANAGED stuff
-		WW3D::_Invalidate_Textures();
+        WWDEBUG_SAY(("Resetting device.\n"));
+        DX8_THREAD_ASSERT();
+        if (Is_Bgfx_Active())
+        {
+#if WW3D_BGFX_AVAILABLE
+                if (!g_bgfxState.initialized)
+                {
+                        return false;
+                }
 
-		for (unsigned i=0;i<MAX_VERTEX_STREAMS;++i) 
+                Set_Vertex_Buffer(NULL);
+                Set_Index_Buffer(NULL, 0);
+                for (unsigned stage = 0; stage < MAX_TEXTURE_STAGES; ++stage)
+                {
+                        Set_Texture(stage, NULL);
+                }
+                Set_Material(NULL);
+
+                if (m_pCleanupHook)
+                {
+                        m_pCleanupHook->ReleaseResources();
+                }
+
+                DynamicVBAccessClass::_Deinit();
+                DynamicIBAccessClass::_Deinit();
+
+                Invalidate_Cached_Render_States();
+                Set_Default_Global_Render_States();
+                UpdateBgfxDisplayParameters();
+                SetBgfxRenderTargetHandle(BGFX_INVALID_HANDLE,
+                        static_cast<uint16_t>(ResolutionWidth),
+                        static_cast<uint16_t>(ResolutionHeight));
+
+                FrameCount = 0;
+
+                if (reload_assets && m_pCleanupHook)
+                {
+                        m_pCleanupHook->ReAcquireResources();
+                }
+
+                return true;
+#else
+                (void)reload_assets;
+                return false;
+#endif
+        }
+        if ((IsInitted) && (D3DDevice != NULL)) {
+                // Release all non-MANAGED stuff
+                WW3D::_Invalidate_Textures();
+
+                for (unsigned i=0;i<MAX_VERTEX_STREAMS;++i)
 		{
 			Set_Vertex_Buffer (NULL,i);
 		}
@@ -4873,11 +4928,23 @@ WW3DFormat	DX8Wrapper::getBackBufferFormat( void )
 
 void DX8Wrapper::Set_Active_Backend(GraphicsBackend backend)
 {
-	g_activeBackend = backend;
+#if !WW3D_ENABLE_LEGACY_DX8
+        if (backend == GRAPHICS_BACKEND_DIRECT3D8)
+        {
+                backend = GRAPHICS_BACKEND_BGFX;
+        }
+#endif
+        g_activeBackend = backend;
 }
 
 GraphicsBackend DX8Wrapper::Get_Active_Backend()
 {
+#if !WW3D_ENABLE_LEGACY_DX8
+        if (g_activeBackend == GRAPHICS_BACKEND_DIRECT3D8)
+        {
+                return GRAPHICS_BACKEND_BGFX;
+        }
+#endif
         return g_activeBackend;
 }
 

@@ -261,7 +261,7 @@ static GraphicsDeviceSettings gRequestedGraphicsSettings =
         32,
         false,
         true,
-        GRAPHICS_BACKEND_DIRECT3D8
+        GRAPHICS_BACKEND_BGFX
 };
 
 static void ResetRequestedGraphicsSettings(void)
@@ -1188,7 +1188,12 @@ Int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
                         if (stricmp(argument, "-opengl") == 0) {
                                 gRequestedGraphicsSettings.backend = GRAPHICS_BACKEND_OPENGL;
                         } else if (stricmp(argument, "-direct3d") == 0 || stricmp(argument, "-d3d") == 0) {
+#if WW3D_ENABLE_LEGACY_DX8
                                 gRequestedGraphicsSettings.backend = GRAPHICS_BACKEND_DIRECT3D8;
+#else
+                                DEBUG_LOG(("Ignoring request for Direct3D 8 backend; bgfx is the only renderer in this build.\n"));
+                                gRequestedGraphicsSettings.backend = GRAPHICS_BACKEND_BGFX;
+#endif
                         } else if (stricmp(argument, "-win") == 0 || stricmp(argument, "-windowed") == 0) {
                                 gRequestedGraphicsSettings.windowed = true;
                         } else if (stricmp(argument, "-nowin") == 0 || stricmp(argument, "-fullscreen") == 0) {
@@ -1224,6 +1229,13 @@ Int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
                 {
                         gRequestedGraphicsSettings.bitDepth = 32;
                 }
+
+#if !WW3D_ENABLE_LEGACY_DX8
+                if (gRequestedGraphicsSettings.backend == GRAPHICS_BACKEND_DIRECT3D8)
+                {
+                        gRequestedGraphicsSettings.backend = GRAPHICS_BACKEND_BGFX;
+                }
+#endif
 
                 if (argc>2 && strcmp(argv[1],"-DX")==0) {
 			Int i;

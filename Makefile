@@ -65,6 +65,8 @@ ESCAPED_INCLUDE_DIRS := $(foreach dir,$(FILTERED_INCLUDE_DIRS),$(subst $(space),
 INCLUDE_DIRS         := $(foreach dir,$(ESCAPED_INCLUDE_DIRS),-I$(dir))
 CPPFLAGS             += $(INCLUDE_DIRS)
 CPPFLAGS             += -DWW3D_BGFX_AVAILABLE=1
+WW3D_ENABLE_LEGACY_DX8 ?= 0
+CPPFLAGS             += -DWW3D_ENABLE_LEGACY_DX8=$(WW3D_ENABLE_LEGACY_DX8)
 
 # STLport ships in a nested "stlport" include directory, so add a convenience
 # include for it when present.

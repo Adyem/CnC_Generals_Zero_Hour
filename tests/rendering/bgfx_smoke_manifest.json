@@ -1,0 +1,9 @@
+[
+  {
+    "scene": "ShellMapIntro",
+    "camera": "DefaultCamera",
+    "reference_image": "shellmap_intro.png",
+    "reference_description": "Shell map flyover at frame 180 with default lighting.",
+    "notes": "Capture after camera settles to avoid motion blur."
+  }
+]

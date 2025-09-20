@@ -237,8 +237,13 @@ GraphicsBackend toGraphicsBackend(BackendOption backend) {
         case BackendOption::Bgfx:
             return GRAPHICS_BACKEND_BGFX;
         case BackendOption::Direct3D8:
+#if WW3D_ENABLE_LEGACY_DX8
         default:
             return GRAPHICS_BACKEND_DIRECT3D8;
+#else
+        default:
+            return GRAPHICS_BACKEND_BGFX;
+#endif
     }
 }
 

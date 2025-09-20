@@ -556,6 +556,7 @@ public:
 
         static void Set_Active_Backend(GraphicsBackend backend);
         static GraphicsBackend Get_Active_Backend();
+        static bool Is_Direct3D8_Backend_Build_Enabled() { return WW3D_ENABLE_LEGACY_DX8 != 0; }
         static bool Is_Bgfx_Active();
 
         static bool Init(void * hwnd);
