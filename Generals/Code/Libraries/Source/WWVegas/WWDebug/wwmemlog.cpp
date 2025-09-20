@@ -43,6 +43,9 @@
 #include "wwdebug.h"
 #include "vector.h"
 #include "thread.h"
+#include <mutex>
+#include <cstdlib>
+#include <new>
 
 #if (STEVES_NEW_CATCHER || PARAM_EDITING_ON)
 	#define DISABLE_MEMLOG	1
@@ -57,7 +60,7 @@ static unsigned FreeCount;
 ** Name for each memory category.  I'm padding the array with some "undefined" strings in case
 ** someone forgets to set the name when adding a new category.
 */
-static char * _MemoryCategoryNames[] =
+static const char * const _MemoryCategoryNames[] =
 {
 	"UNKNOWN",
 	"Geometry",
@@ -200,47 +203,33 @@ private:
 /**
 ** Static Variables
 ** _TheMemLog - object which encapsulates all logging. will be allocated on first use
-** _MemLogMutex - handle to the mutex used to arbtirate access to the logging data structures
 ** _MemLogLockCounter - count of the active mutex locks.
 */
 static MemLogClass *				_TheMemLog = NULL;
-static void *						_MemLogMutex = NULL;
 static int							_MemLogLockCounter = 0;
 static bool							_MemLogAllocated = false;
 
 
-/*
-** Use this code to get access to the mutex...
-*/
-void * Get_Mem_Log_Mutex(void)
+namespace {
+
+std::mutex & Get_Mem_Log_Mutex()
 {
-	if (_MemLogMutex == NULL) {
-		_MemLogMutex=CreateMutex(NULL,false,NULL);
-		WWASSERT(_MemLogMutex);
-	}
-	return _MemLogMutex;
+	static std::mutex mutex;
+	return mutex;
+}
+
 }
 
 void Lock_Mem_Log_Mutex(void)
 {
-	void * mutex = Get_Mem_Log_Mutex();
-#ifdef DEBUG_CRASHING
-	int res =
-#endif
-		WaitForSingleObject(mutex,INFINITE);
-	WWASSERT(res==WAIT_OBJECT_0);
+	Get_Mem_Log_Mutex().lock();
 	_MemLogLockCounter++;
 }
 
 void Unlock_Mem_Log_Mutex(void)
 {
-	void * mutex = Get_Mem_Log_Mutex();
 	_MemLogLockCounter--;
-#ifdef DEBUG_CRASHING
-	int res=
-#endif
-		ReleaseMutex(mutex);
-	WWASSERT(res);
+	Get_Mem_Log_Mutex().unlock();
 }
 
 class MemLogMutexLockClass
@@ -399,12 +388,6 @@ void WWMemoryLogClass::Register_Memory_Released(int category,int size)
 }
 
 
-static void __cdecl _MemLogCleanup(void)
-{
-	delete _TheMemLog;
-}
-
-
 MemLogClass * WWMemoryLogClass::Get_Log(void)
 {
 	MemLogMutexLockClass lock;
@@ -446,7 +429,7 @@ MemLogClass * WWMemoryLogClass::Get_Log(void)
  * HISTORY:                                                                                    *
  *   6/13/2001 8:55PM ST : Created                                                             *
  *=============================================================================================*/
-void __cdecl WWMemoryLogClass::Release_Log(void)
+void WWMemoryLogClass::Release_Log(void)
 {
 	MemLogMutexLockClass lock;
 	if (_TheMemLog) {
@@ -514,14 +497,14 @@ struct MemoryLogStruct
  * HISTORY:                                                                                    *
  *   5/29/2001  gth : Created.                                                                 *
  *=============================================================================================*/
-void * WWMemoryLogClass::Allocate_Memory(size_t size)
+void * WWMemoryLogClass::Allocate_Memory(std::size_t size)
 {
 #if DISABLE_MEMLOG
 	AllocateCount++;
 	return ::malloc(size);
 #else
 
-	__declspec( thread ) static bool reentrancy_test = false;
+	thread_local static bool reentrancy_test = false;
 	MemLogMutexLockClass lock;
 
 	if (reentrancy_test) {

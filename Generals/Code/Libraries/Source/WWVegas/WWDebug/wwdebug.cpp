@@ -43,13 +43,17 @@
 
 
 #include "wwdebug.h"
+#include <cstdlib>
+#include <cstdarg>
+#include <cstdio>
+#include <cassert>
+#include <cstring>
+#include <cerrno>
+
+#if defined(_WIN32)
 #include <windows.h>
 //#include "win.h" can use this if allowed to see wwlib
-#include <stdlib.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <assert.h>
-#include <string.h>
+#endif
 
 
 static PrintFunc			_CurMessageHandler = NULL;
@@ -63,21 +67,37 @@ static ProfileFunc		_CurProfileStopHandler = NULL;
 
 void Convert_System_Error_To_String(int id, char* buffer, int buf_len)
 {
-#ifndef _UNIX
-	FormatMessage(
-		FORMAT_MESSAGE_FROM_SYSTEM,
-		NULL,
-		id,
-		0,
-		buffer,
-		buf_len,
-		NULL);
+        if ((buffer == nullptr) || (buf_len <= 0)) {
+                return;
+        }
+
+#if defined(_WIN32)
+        FormatMessage(
+                FORMAT_MESSAGE_FROM_SYSTEM,
+                NULL,
+                id,
+                0,
+                buffer,
+                buf_len,
+                NULL);
+#else
+        const char * message = std::strerror(id);
+        if (message == nullptr) {
+                message = "Unknown error";
+        }
+        std::strncpy(buffer, message, static_cast<size_t>(buf_len));
+        buffer[static_cast<size_t>(buf_len) - 1] = '\0';
 #endif
 }
 
 int Get_Last_System_Error()
 {
-	return GetLastError();
+        
+#if defined(_WIN32)
+        return static_cast<int>(GetLastError());
+#else
+        return errno;
+#endif
 }
 
 /***********************************************************************************************
@@ -411,6 +431,7 @@ void WWDebug_Profile_Stop( const char * title)
  *=============================================================================================*/
 void WWDebug_DBWin32_Message_Handler( const char * str )
 {
+#if defined(_WIN32)
 
     HANDLE heventDBWIN;  /* DBWIN32 synchronization object */
     HANDLE heventData;   /* data passing synch object */
@@ -422,7 +443,7 @@ void WWDebug_DBWin32_Message_Handler( const char * str )
     if ( !heventDBWIN )
     {
         //MessageBox(NULL, "DBWIN_BUFFER_READY nonexistent", NULL, MB_OK);
-        return;            
+        return;
     }
 
     /* get a handle to the data synch object */
@@ -431,11 +452,11 @@ void WWDebug_DBWin32_Message_Handler( const char * str )
     {
         // MessageBox(NULL, "DBWIN_DATA_READY nonexistent", NULL, MB_OK);
         CloseHandle(heventDBWIN);
-        return;            
+        return;
     }
-    
+
     hSharedFile = CreateFileMapping((HANDLE)-1, NULL, PAGE_READWRITE, 0, 4096, "DBWIN_BUFFER");
-    if (!hSharedFile) 
+    if (!hSharedFile)
     {
         //MessageBox(NULL, "DebugTrace: Unable to create file mapping object DBWIN_BUFFER", "Error", MB_OK);
         CloseHandle(heventDBWIN);
@@ -444,7 +465,7 @@ void WWDebug_DBWin32_Message_Handler( const char * str )
     }
 
     lpszSharedMem = (LPSTR)MapViewOfFile(hSharedFile, FILE_MAP_WRITE, 0, 0, 512);
-    if (!lpszSharedMem) 
+    if (!lpszSharedMem)
     {
         //MessageBox(NULL, "DebugTrace: Unable to map shared memory", "Error", MB_OK);
         CloseHandle(heventDBWIN);
@@ -468,6 +489,9 @@ void WWDebug_DBWin32_Message_Handler( const char * str )
     CloseHandle(heventDBWIN);
 
     return;
+#else
+    (void)str;
+#endif
 }
 #endif // WWDEBUG
 

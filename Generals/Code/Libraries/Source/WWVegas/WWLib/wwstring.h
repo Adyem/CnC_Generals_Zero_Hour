@@ -45,7 +45,11 @@
 #include "mutex.h"
 #include <string.h>
 #include <stdarg.h>
+#if defined(_WIN32)
 #include <tchar.h>
+#else
+#include "compat/tchar.h"
+#endif
 #include <wwdebug.h>
 #ifdef _UNIX
 #include "osdep.h"
