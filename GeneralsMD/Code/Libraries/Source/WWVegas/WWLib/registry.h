@@ -1,19 +1,19 @@
 /*
-**	Command & Conquer Generals Zero Hour(tm)
-**	Copyright 2025 Electronic Arts Inc.
+**      Command & Conquer Generals Zero Hour(tm)
+**      Copyright 2025 Electronic Arts Inc.
 **
-**	This program is free software: you can redistribute it and/or modify
-**	it under the terms of the GNU General Public License as published by
-**	the Free Software Foundation, either version 3 of the License, or
-**	(at your option) any later version.
+**      This program is free software: you can redistribute it and/or modify
+**      it under the terms of the GNU General Public License as published by
+**      the Free Software Foundation, either version 3 of the License, or
+**      (at your option) any later version.
 **
-**	This program is distributed in the hope that it will be useful,
-**	but WITHOUT ANY WARRANTY; without even the implied warranty of
-**	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-**	GNU General Public License for more details.
+**      This program is distributed in the hope that it will be useful,
+**      but WITHOUT ANY WARRANTY; without even the implied warranty of
+**      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**      GNU General Public License for more details.
 **
-**	You should have received a copy of the GNU General Public License
-**	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+**      You should have received a copy of the GNU General Public License
+**      along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /***********************************************************************************************
@@ -48,80 +48,87 @@
 #include "wwstring.h"
 #include "widestring.h"
 
-class INIClass;
+#include <filesystem>
+#include <mutex>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
-/*
-**
-*/
-class	RegistryClass {
+class ConfigStore {
 public:
-	static bool Exists(const char* sub_key);
+        static bool Exists( const char * sub_key );
 
-	// Constructor & Destructor
-	RegistryClass( const char * sub_key, bool create = true );
-	~RegistryClass( void );
+        ConfigStore( const char * sub_key );
+        ~ConfigStore();
 
-	bool	Is_Valid( void )		{ return IsValid; }
+        bool    Is_Valid( void ) const          { return IsValid; }
 
-	// Int data type access
-	int	Get_Int( const char * name, int def_value = 0 );
-	void	Set_Int( const char * name, int value );
+        int     Get_Int( const char * name, int def_value = 0 );
+        void    Set_Int( const char * name, int value );
 
-	// Bool data type access
-	bool	Get_Bool( const char * name, bool def_value = false );
-	void	Set_Bool( const char * name, bool value );
+        bool    Get_Bool( const char * name, bool def_value = false );
+        void    Set_Bool( const char * name, bool value );
 
-	// Float data type access
-	float	Get_Float( const char * name, float def_value = 0.0f );
-	void	Set_Float( const char * name, float value );
+        float   Get_Float( const char * name, float def_value = 0.0f );
+        void    Set_Float( const char * name, float value );
 
-	// String data type access
-	char *Get_String( const char * name, char *value, int value_size,
-      const char * default_string = NULL );
-	void	Get_String( const char * name, StringClass &string, const char *default_string = NULL);
-	void	Set_String( const char * name, const char *value );
+        char *  Get_String( const char * name, char *value, int value_size,
+                                        const char * default_string = NULL );
+        void    Get_String( const char * name, StringClass &string, const char *default_string = NULL );
+        void    Set_String( const char * name, const char *value );
 
-	// Wide string data type access
-	void	Get_String( const WCHAR * name, WideStringClass &string, const WCHAR *default_string = NULL);
-	void	Set_String( const WCHAR * name, const WCHAR *value );
+        void    Get_String( const WCHAR * name, WideStringClass &string, const WCHAR *default_string = NULL );
+        void    Set_String( const WCHAR * name, const WCHAR *value );
 
-	// Binary data type access
-	void	Get_Bin( const char * name, void *buffer, int buffer_size );
-	int	Get_Bin_Size( const char * name );
-	void	Set_Bin( const char * name, const void *buffer, int buffer_size );
+        bool    Has_Value( const char * name ) const;
 
-	// Value enumeration support
-	void	Get_Value_List( DynamicVectorClass<StringClass> &list );
+        void    Get_Bin( const char * name, void *buffer, int buffer_size );
+        int     Get_Bin_Size( const char * name );
+        void    Set_Bin( const char * name, const void *buffer, int buffer_size );
 
-	// Delete support
-	void	Delete_Value( const char * name);
-	void	Deleta_All_Values( void );
+        void    Get_Value_List( DynamicVectorClass<StringClass> &list );
 
-	// Read only.
-	static void Set_Read_Only(bool set) {IsLocked = set;}
+        void    Delete_Value( const char * name );
+        void    Deleta_All_Values( void );
 
-	//
-	// Bulk registry operations. BE VERY VERY CAREFUL USING THESE
-	//
-	static void Delete_Registry_Tree(char *path);
-	static void Load_Registry(const char *filename, char *old_path, char *new_path);
-	static void Save_Registry(const char *filename, char *path);
-
+        static void Set_Read_Only( bool set );
 
 private:
+        enum EntryType
+        {
+                ENTRY_INT,
+                ENTRY_BOOL,
+                ENTRY_FLOAT,
+                ENTRY_STRING,
+                ENTRY_WIDE_STRING,
+                ENTRY_BINARY
+        };
 
-	static void Delete_Registry_Values(HKEY key);
-	static void Save_Registry_Tree(char *path, INIClass *ini);
-	static void Save_Registry_Values(HKEY key, char *path, INIClass *ini);
+        struct Entry
+        {
+                EntryType      Type;
+                std::string    Data;
+        };
 
+        void    Load_Unlocked();
+        void    Save_Unlocked();
+        void    Set_Value_Unlocked( const std::string &name, EntryType type, std::string value );
 
-	int	Key;
-	bool	IsValid;
+        static std::filesystem::path Resolve_Path( const char * sub_key );
+        static std::filesystem::path Config_Root();
+        static EntryType            Type_From_String( const std::string &text );
+        static std::string          Type_To_String( EntryType type );
+        static std::string          Encode_Binary( const void *buffer, int buffer_size );
+        static std::vector<unsigned char> Decode_Binary( const std::string &text );
+        static std::string          Narrow_From_Wide( const WCHAR *text );
+        static void                 Assign_Wide_From_Narrow( const std::string &text, WideStringClass &string );
 
-	//
-	// Use this to make the registry 'read only'. Useful for running multiple copies of the app.
-	//
-	static bool IsLocked;
+        mutable std::mutex                                  Mutex;
+        std::unordered_map<std::string, Entry>              Entries;
+        std::filesystem::path                               FilePath;
+        bool                                                IsValid;
+
+        static bool                                         IsLocked;
 };
 
 #endif // REGISTRY_H

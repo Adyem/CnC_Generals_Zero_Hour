@@ -37,10 +37,20 @@
 #ifndef WW_MOUSE_H
 #define WW_MOUSE_H
 
-#include	"win.h"
 #include	"xmouse.h"
 
+#include <atomic>
+#include <cstdint>
+
 class BSurface;
+
+namespace sf {
+	class Event;
+}
+
+namespace WWLib {
+	class SfmlMessagePump;
+}
 
 /*
 **	Handles the mouse as it relates to the C&C game engine. It is expected that only
@@ -51,7 +61,7 @@ class WWMouseClass : public Mouse {
 		/*
 		**	Private constructor.
 		*/
-		WWMouseClass(Surface * surfaceptr, HWND window);
+		WWMouseClass(Surface * surfaceptr, WWLib::SfmlMessagePump &pump);
 		virtual ~WWMouseClass(void);
 
 		/*
@@ -127,13 +137,13 @@ class WWMouseClass : public Mouse {
 		**	and the mouse class maintain a strict master/slave relationship, a
 		**	simple critial section flag is all that is needed.
 		*/
-		long Blocked;
+		std::atomic<long> Blocked;
 
 		/*
 		**	Mouse hide/show state. If zero or greater, the mouse is visible. Otherwise
 		**	it is invisible.
 		*/
-		long MouseState;
+		std::atomic<long> MouseState;
 
 		/*
 		**	If the mouse is being managed by this class (for the game), then this flag
@@ -154,12 +164,6 @@ class WWMouseClass : public Mouse {
 		**	to as it moves.
 		*/
 		Surface * SurfacePtr;
-
-		/*
-		**	This is the window handle that is used to bind and bias the mouse
-		**	position and drawing procedures.
-		*/
-		HWND Window;
 
 		/*
 		**	This specifies the rectangle that the game oriented mouse will be
@@ -212,10 +216,8 @@ class WWMouseClass : public Mouse {
 		Rect ConditionalRect;
 		int ConditionalState;
 
-		/*
-		**	Maintenance timer handle.
-		*/
-		MMRESULT TimerHandle;
+		WWLib::SfmlMessagePump *MessagePump;
+		std::uint64_t MessagePumpListenerId;
 
 		// Determines if there is valid mouse shape data available.
 		bool Is_Data_Valid(void) const;
@@ -226,17 +228,18 @@ class WWMouseClass : public Mouse {
 
 		Rect Matching_Rect(void) const;
 		void Raw_Draw_Mouse(Surface * surface, int xoffset, int yoffset);
+		void Process_Sfml_Event(const sf::Event &event);
 		void Get_Bounded_Position(int & x, int & y) const;
 		void Update_Mouse_Position(int x, int y);
 
 		void Low_Show_Mouse(void);
 		void Low_Hide_Mouse(void);
 
-		void Block_Mouse(void) {InterlockedIncrement(&Blocked);/*Blocked++;*/}
-		void Unblock_Mouse(void) {InterlockedDecrement(&Blocked);/*Blocked--;*/}
-		bool Is_Blocked(void) const {return(Blocked != 0);}
+		void Block_Mouse(void) { Blocked.fetch_add(1, std::memory_order_acq_rel); }
+		void Unblock_Mouse(void) { Blocked.fetch_sub(1, std::memory_order_acq_rel); }
+		bool Is_Blocked(void) const { return Blocked.load(std::memory_order_acquire) != 0; }
 
-		bool Is_Hidden(void) const {return(MouseState < 0);}
+		bool Is_Hidden(void) const { return MouseState.load(std::memory_order_acquire) < 0; }
 };
 
 #endif

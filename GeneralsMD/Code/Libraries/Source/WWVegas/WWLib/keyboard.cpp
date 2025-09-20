@@ -45,7 +45,7 @@
  *   WWKeyboardClass::Is_Buffer_Empty -- Checks to see if the keyboard buffer is empty.        *
  *   WWKeyboardClass::Is_Buffer_Full -- Determines if the keyboard buffer is full.             *
  *   WWKeyboardClass::Is_Mouse_Key -- Checks to see if specified key refers to the mouse.      *
- *   WWKeyboardClass::Message_Handler -- Process a windows message as it relates to the keyboar*
+ *   WWKeyboardClass::Process_Sfml_Event -- Handles SFML events for the keyboard queue        *
  *   WWKeyboardClass::Peek_Element -- Fetches the next element in the keyboard buffer.         *
  *   WWKeyboardClass::Put -- Logic to insert a key into the keybuffer]                         *
  *   WWKeyboardClass::Put_Element -- Put a keyboard data element into the buffer.              *
@@ -59,8 +59,147 @@
 #include	"_xmouse.h"
 #include "keyboard.h"
 //#include	"mono.h"
-#include	"msgloop.h"
+#include	"sfml_message_pump.h"
 
+#include <SFML/System/Vector2.hpp>
+#include <SFML/Window/Event.hpp>
+#include <SFML/Window/Keyboard.hpp>
+#include <SFML/Window/Mouse.hpp>
+#include <SFML/Window/Window.hpp>
+
+namespace
+{
+
+unsigned short Translate_Sfml_Key(sf::Keyboard::Key key)
+{
+	using sf::Keyboard;
+
+	switch (key) {
+	case Keyboard::A: return VK_A;
+	case Keyboard::B: return VK_B;
+	case Keyboard::C: return VK_C;
+	case Keyboard::D: return VK_D;
+	case Keyboard::E: return VK_E;
+	case Keyboard::F: return VK_F;
+	case Keyboard::G: return VK_G;
+	case Keyboard::H: return VK_H;
+	case Keyboard::I: return VK_I;
+	case Keyboard::J: return VK_J;
+	case Keyboard::K: return VK_K;
+	case Keyboard::L: return VK_L;
+	case Keyboard::M: return VK_M;
+	case Keyboard::N: return VK_N;
+	case Keyboard::O: return VK_O;
+	case Keyboard::P: return VK_P;
+	case Keyboard::Q: return VK_Q;
+	case Keyboard::R: return VK_R;
+	case Keyboard::S: return VK_S;
+	case Keyboard::T: return VK_T;
+	case Keyboard::U: return VK_U;
+	case Keyboard::V: return VK_V;
+	case Keyboard::W: return VK_W;
+	case Keyboard::X: return VK_X;
+	case Keyboard::Y: return VK_Y;
+	case Keyboard::Z: return VK_Z;
+	case Keyboard::Num0: return VK_0;
+	case Keyboard::Num1: return VK_1;
+	case Keyboard::Num2: return VK_2;
+	case Keyboard::Num3: return VK_3;
+	case Keyboard::Num4: return VK_4;
+	case Keyboard::Num5: return VK_5;
+	case Keyboard::Num6: return VK_6;
+	case Keyboard::Num7: return VK_7;
+	case Keyboard::Num8: return VK_8;
+	case Keyboard::Num9: return VK_9;
+	case Keyboard::Escape: return VK_ESCAPE;
+	case Keyboard::LControl:
+	case Keyboard::RControl: return VK_CONTROL;
+	case Keyboard::LShift:
+	case Keyboard::RShift: return VK_SHIFT;
+	case Keyboard::LAlt:
+	case Keyboard::RAlt: return VK_MENU;
+	case Keyboard::Menu: return VK_MENU;
+	case Keyboard::LSystem: return VK_NONE_5B;
+	case Keyboard::RSystem: return VK_NONE_5C;
+	case Keyboard::Space: return VK_SPACE;
+	case Keyboard::Enter: return VK_RETURN;
+	case Keyboard::Backspace: return VK_BACK;
+	case Keyboard::Tab: return VK_TAB;
+	case Keyboard::PageUp: return VK_PRIOR;
+	case Keyboard::PageDown: return VK_NEXT;
+	case Keyboard::End: return VK_END;
+	case Keyboard::Home: return VK_HOME;
+	case Keyboard::Insert: return VK_INSERT;
+	case Keyboard::Delete: return VK_DELETE;
+	case Keyboard::Left: return VK_LEFT;
+	case Keyboard::Right: return VK_RIGHT;
+	case Keyboard::Up: return VK_UP;
+	case Keyboard::Down: return VK_DOWN;
+	case Keyboard::Add: return VK_ADD;
+	case Keyboard::Subtract: return VK_SUBTRACT;
+	case Keyboard::Multiply: return VK_MULTIPLY;
+	case Keyboard::Divide: return VK_DIVIDE;
+	case Keyboard::Numpad0: return VK_NUMPAD0;
+	case Keyboard::Numpad1: return VK_NUMPAD1;
+	case Keyboard::Numpad2: return VK_NUMPAD2;
+	case Keyboard::Numpad3: return VK_NUMPAD3;
+	case Keyboard::Numpad4: return VK_NUMPAD4;
+	case Keyboard::Numpad5: return VK_NUMPAD5;
+	case Keyboard::Numpad6: return VK_NUMPAD6;
+	case Keyboard::Numpad7: return VK_NUMPAD7;
+	case Keyboard::Numpad8: return VK_NUMPAD8;
+	case Keyboard::Numpad9: return VK_NUMPAD9;
+	case Keyboard::F1: return VK_F1;
+	case Keyboard::F2: return VK_F2;
+	case Keyboard::F3: return VK_F3;
+	case Keyboard::F4: return VK_F4;
+	case Keyboard::F5: return VK_F5;
+	case Keyboard::F6: return VK_F6;
+	case Keyboard::F7: return VK_F7;
+	case Keyboard::F8: return VK_F8;
+	case Keyboard::F9: return VK_F9;
+	case Keyboard::F10: return VK_F10;
+	case Keyboard::F11: return VK_F11;
+	case Keyboard::F12: return VK_F12;
+	case Keyboard::Pause: return VK_SCROLL;
+	case Keyboard::Semicolon: return VK_NONE_BA;
+	case Keyboard::Equal: return VK_NONE_BB;
+	case Keyboard::Comma: return VK_NONE_BC;
+	case Keyboard::Hyphen: return VK_NONE_BD;
+	case Keyboard::Period: return VK_NONE_BE;
+	case Keyboard::Slash: return VK_NONE_BF;
+	case Keyboard::Backslash: return VK_NONE_DC;
+	case Keyboard::Tilde: return VK_NONE_C0;
+	case Keyboard::LBracket: return VK_NONE_DB;
+	case Keyboard::RBracket: return VK_NONE_DD;
+	case Keyboard::Quote: return VK_NONE_DE;
+	default: break;
+	}
+
+	return VK_NONE;
+}
+
+unsigned short Translate_Sfml_Mouse_Button(sf::Mouse::Button button)
+{
+	using sf::Mouse;
+
+	switch (button) {
+	case Mouse::Left: return VK_LBUTTON;
+	case Mouse::Right: return VK_RBUTTON;
+	case Mouse::Middle: return VK_MBUTTON;
+	default: break;
+	}
+
+	return VK_NONE;
+}
+
+} // anonymous namespace
+
+namespace
+{
+
+
+} // anonymous namespace
 
 #define	ARRAY_SIZE(x)		int(sizeof(x)/sizeof(x[0]))
 
@@ -84,9 +223,40 @@ WWKeyboardClass::WWKeyboardClass(void) :
 	MouseQX(0),
 	MouseQY(0),
 	Head(0),
-	Tail(0)
+	Tail(0),
+	MessagePump(NULL),
+	MessagePumpListenerId(0)
 {
 	memset(KeyState, '\0', sizeof(KeyState));
+}
+
+WWKeyboardClass::~WWKeyboardClass(void)
+{
+	Detach_From_Message_Pump();
+}
+
+void WWKeyboardClass::Attach_To_Message_Pump(WWLib::SfmlMessagePump &pump)
+{
+	if (MessagePump == &pump && MessagePumpListenerId != 0) {
+		return;
+	}
+
+	Detach_From_Message_Pump();
+
+	MessagePump = &pump;
+	MessagePumpListenerId = pump.AddEventListener([this](const sf::Event &event) {
+		Process_Sfml_Event(event);
+	});
+}
+
+void WWKeyboardClass::Detach_From_Message_Pump(void)
+{
+	if (MessagePump != NULL && MessagePumpListenerId != 0) {
+		MessagePump->RemoveEventListener(MessagePumpListenerId);
+	}
+
+	MessagePump = NULL;
+	MessagePumpListenerId = 0;
 }
 
 
@@ -524,16 +694,8 @@ bool WWKeyboardClass::Is_Buffer_Empty(void) const
  *=============================================================================================*/
 void WWKeyboardClass::Fill_Buffer_From_System(void)
 {
-	if (!Is_Buffer_Full()) {
-		Windows_Message_Handler();
-//		MSG	msg;
-//		while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
-//		  	if (!GetMessage( &msg, NULL, 0, 0 )) {
-//				return;
-//			}
-//			TranslateMessage(&msg);
-//			DispatchMessage(&msg);
-//		}
+	if (!Is_Buffer_Full() && MessagePump != NULL) {
+		MessagePump->PumpEvents();
 	}
 }
 
@@ -568,175 +730,68 @@ void WWKeyboardClass::Clear(void)
 	Fill_Buffer_From_System();
 	Head = Tail;
 }
-
-
 /***********************************************************************************************
- * WWKeyboardClass::Message_Handler -- Process a windows message as it relates to the keyboard *
+ * WWKeyboardClass::Process_Sfml_Event -- Handles sf::Event input for the keyboard buffer       *
  *                                                                                             *
- *    This routine will examine the Windows message specified. If the message relates to an    *
- *    event that the keyboard input system needs to process, then it will be processed         *
- *    accordingly.                                                                             *
+ *    This routine examines the SFML event supplied and, if it corresponds to keyboard or       *
+ *    mouse input that WWLib tracks, stores the translated result into the keyboard queue.      *
  *                                                                                             *
- * INPUT:   window   -- Handle to the window receiving the message.                            *
+ * INPUT:   event -- The SFML event to translate.                                               *
  *                                                                                             *
- *          message  -- The message number of this event.                                      *
- *                                                                                             *
- *          wParam   -- The windows specific word parameter (meaning depends on message).      *
- *                                                                                             *
- *          lParam   -- The windows specific long word parameter (meaning is message dependant)*
- *                                                                                             *
- * OUTPUT:  bool; Was this keyboard message recognized and processed? A 'false' return value   *
- *                means that the message should be processed normally.                         *
+ * OUTPUT:  none                                                                               *
  *                                                                                             *
  * WARNINGS:   none                                                                            *
  *                                                                                             *
  * HISTORY:                                                                                    *
- *   09/30/1996 JLB : Created.                                                                 *
- *=============================================================================================*/
-bool WWKeyboardClass::Message_Handler(HWND window, UINT message, UINT wParam, LONG lParam)
+ *   02/03/2025 JH : Created to replace Win32 message handling.                                 *
+ ***********************************************************************************************/
+void WWKeyboardClass::Process_Sfml_Event(const sf::Event &event)
 {
-	bool processed = false;
-
-	POINT point;
-	point.x = LOWORD(lParam);
-	point.y = HIWORD(lParam);
-	ClientToScreen(window, &point);
-	int x = point.x;
-	int y = point.y;
-
-	// Special conversion to game coordinates is needed here.
-	if (MouseCursor != NULL) MouseCursor->Convert_Coordinate(x, y);
-
-	/*
-	**	Examine the message to see if it is one that should be processed. Only keyboard and
-	**	pertinant mouse messages are processed.
-	*/
-	switch (message) {
-
-		/*
-		**	System key has been pressed. This is the normal keyboard event message.
-		*/
-		case WM_SYSKEYDOWN:
-		case WM_KEYDOWN:
-			if (wParam == VK_SCROLL) {
-				Stop_Execution();
-			} else {
-				Put_Key_Message((unsigned short)wParam);
-			}
-			processed = true;
+	switch (event.type) {
+	case sf::Event::KeyPressed:
+	case sf::Event::KeyReleased:
+	{
+		unsigned short vk_key = Translate_Sfml_Key(event.key.code);
+		if (vk_key == VK_NONE) {
 			break;
+		}
 
-		/*
-		**	The key has been released. This is the normal key release message.
-		*/
-		case WM_SYSKEYUP:
-		case WM_KEYUP:
-			Put_Key_Message((unsigned short)wParam, true);
-			processed = true;
-			break;
-
-		/*
-		**	Press of the left mouse button.
-		*/
-		case WM_LBUTTONDOWN:
-			Put_Mouse_Message(VK_LBUTTON, x, y);
-			processed = true;
-			break;
-
-		/*
-		**	Release of the left mouse button.
-		*/
-		case WM_LBUTTONUP:
-			Put_Mouse_Message(VK_LBUTTON, x, y, true);
-			processed = true;
-			break;
-
-		/*
-		**	Double click of the left mouse button. Fake this into being
-		**	just a rapid click of the left button twice.
-		*/
-		case WM_LBUTTONDBLCLK:
-			Put_Mouse_Message(VK_LBUTTON, x, y);
-			Put_Mouse_Message(VK_LBUTTON, x, y, true);
-			Put_Mouse_Message(VK_LBUTTON, x, y);
-			Put_Mouse_Message(VK_LBUTTON, x, y, true);
-			processed = true;
-			break;
-
-		/*
-		**	Press of the middle mouse button.
-		*/
-		case WM_MBUTTONDOWN:
-			Put_Mouse_Message(VK_MBUTTON, x, y);
-			processed = true;
-			break;
-
-		/*
-		**	Release of the middle mouse button.
-		*/
-		case WM_MBUTTONUP:
-			Put_Mouse_Message(VK_MBUTTON, x, y, true);
-			processed = true;
-			break;
-
-		/*
-		**	Middle button double click gets translated into two
-		**	regular middle button clicks.
-		*/
-		case WM_MBUTTONDBLCLK:
-			Put_Mouse_Message(VK_MBUTTON, x, y);
-			Put_Mouse_Message(VK_MBUTTON, x, y, true);
-			Put_Mouse_Message(VK_MBUTTON, x, y);
-			Put_Mouse_Message(VK_MBUTTON, x, y, true);
-			processed = true;
-			break;
-
-		/*
-		**	Right mouse button press.
-		*/
-		case WM_RBUTTONDOWN:
-			Put_Mouse_Message(VK_RBUTTON, x, y);
-			processed = true;
-			break;
-
-		/*
-		**	Right mouse button release.
-		*/
-		case WM_RBUTTONUP:
-			Put_Mouse_Message(VK_RBUTTON, x, y, true);
-			processed = true;
-			break;
-
-		/*
-		**	Translate a double click of the right button
-		**	into being just two regular right button clicks.
-		*/
-		case WM_RBUTTONDBLCLK:
-			Put_Mouse_Message(VK_RBUTTON, x, y);
-			Put_Mouse_Message(VK_RBUTTON, x, y, true);
-			Put_Mouse_Message(VK_RBUTTON, x, y);
-			Put_Mouse_Message(VK_RBUTTON, x, y, true);
-			processed = true;
-			break;
-
-		/*
-		**	If the message is not pertinant to the keyboard system,
-		**	then do nothing.
-		*/
-		default:
-			break;
+		if (event.type == sf::Event::KeyPressed && vk_key == VK_SCROLL) {
+			Stop_Execution();
+		} else {
+			Put_Key_Message(vk_key, event.type == sf::Event::KeyReleased);
+		}
+		break;
 	}
+	case sf::Event::MouseButtonPressed:
+	case sf::Event::MouseButtonReleased:
+	{
+		unsigned short vk_key = Translate_Sfml_Mouse_Button(event.mouseButton.button);
+		if (vk_key == VK_NONE) {
+			break;
+		}
 
-	/*
-	**	If this message has been processed, then pass it on to the system
-	**	directly.
-	*/
-	if (processed) {
-		DefWindowProc(window, message, wParam, lParam);
-		return(true);
+		int x = event.mouseButton.x;
+		int y = event.mouseButton.y;
+
+		if (MessagePump != NULL) {
+			sf::Vector2i window_position = MessagePump->GetWindow().getPosition();
+			x += window_position.x;
+			y += window_position.y;
+		}
+
+		if (MouseCursor != NULL) MouseCursor->Convert_Coordinate(x, y);
+
+		Put_Mouse_Message(vk_key, x, y, event.type == sf::Event::MouseButtonReleased);
+		break;
 	}
-	return(false);
+	default:
+		break;
+	}
 }
+
+
+
 
 
 /***********************************************************************************************
