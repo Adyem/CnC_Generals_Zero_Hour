@@ -27,7 +27,6 @@
 
 #ifdef _WIN32
 #include <eh.h>
-#include <windows.h>
 #endif
 
 using sfml_platform::WindowConfig;
@@ -285,11 +284,7 @@ int main(int argc, char** argv) {
 
     const NativeWindowHandle nativeHandle = windowSystem.nativeHandle();
 
-#ifdef _WIN32
     ApplicationHInstance = GetModuleHandle(nullptr);
-#else
-    ApplicationHInstance = nullptr;
-#endif
     ApplicationHWnd = reinterpret_cast<HWND>(nativeHandle.window);
     ApplicationBgfxNativeWindow.display = nativeHandle.display;
     ApplicationBgfxNativeWindow.window = nativeHandle.window;

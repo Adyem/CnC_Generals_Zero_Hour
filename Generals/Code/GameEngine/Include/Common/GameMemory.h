@@ -613,21 +613,24 @@ protected: \
 public: \
 	enum ARGCLASS##MagicEnum { ARGCLASS##_GLUE_NOT_IMPLEMENTED = 0 }; \
 public: \
-	inline void *operator new(size_t s, ARGCLASS##MagicEnum e DECLARE_LITERALSTRING_ARG2) \
-	{ \
-		DEBUG_ASSERTCRASH(s == sizeof(ARGCLASS), ("The wrong operator new is being called; ensure all objects in the hierarchy have MemoryPoolGlue set up correctly")); \
-		return ARGCLASS::getClassMemoryPool()->allocateBlockImplementation(PASS_LITERALSTRING_ARG1); \
-	} \
+        inline void *operator new(size_t s, ARGCLASS##MagicEnum e DECLARE_LITERALSTRING_ARG2) \
+        { \
+                static_cast<void>(s); \
+                static_cast<void>(e); \
+                DEBUG_ASSERTCRASH(s == sizeof(ARGCLASS), ("The wrong operator new is being called; ensure all objects in the hierarchy have MemoryPoolGlue set up correctly")); \
+                return ARGCLASS::getClassMemoryPool()->allocateBlockImplementation(PASS_LITERALSTRING_ARG1); \
+        } \
 public: \
 	/* \
 		Note that this delete operator can't be called directly; it is called \
 		only if the analogous new operator is called, AND the constructor \
 		throws an exception... \
 	*/ \
-	inline void operator delete(void *p, ARGCLASS##MagicEnum e DECLARE_LITERALSTRING_ARG2) \
-	{ \
-		ARGCLASS::getClassMemoryPool()->freeBlock(p); \
-	} \
+        inline void operator delete(void *p, ARGCLASS##MagicEnum e DECLARE_LITERALSTRING_ARG2) \
+        { \
+                static_cast<void>(e); \
+                ARGCLASS::getClassMemoryPool()->freeBlock(p); \
+        } \
 protected: \
 	/* \
 		Make normal new and delete protected, so they can't be called by the outside world. \
@@ -642,13 +645,13 @@ protected: \
 		instead -- it'd be nice if we could catch this at compile time, but catching it at \
 		runtime seems to be the best we can do... \
 	*/ \
-	inline void *operator new(size_t s) \
-	{ \
-		DEBUG_CRASH(("This operator new should normally never be called... please use new(char*) instead.")); \
-		DEBUG_ASSERTCRASH(s == sizeof(ARGCLASS), ("The wrong operator new is being called; ensure all objects in the hierarchy have MemoryPoolGlue set up correctly")); \
-		throw ERROR_BUG; \
-		return 0; \
-	} \
+        inline void *operator new(size_t s) \
+        { \
+                DEBUG_CRASH(("This operator new should normally never be called... please use new(char*) instead.")); \
+                DEBUG_ASSERTCRASH(s == sizeof(ARGCLASS), ("The wrong operator new is being called; ensure all objects in the hierarchy have MemoryPoolGlue set up correctly")); \
+                static_cast<void>(s); \
+                throw ERROR_BUG; \
+        } \
 	inline void operator delete(void *p) \
 	{ \
 		DEBUG_CRASH(("Please call deleteInstance instead of delete.")); \
@@ -684,36 +687,39 @@ protected: \
 public: \
 	enum ARGCLASS##MagicEnum { ARGCLASS##_GLUE_NOT_IMPLEMENTED = 0 }; \
 protected: \
-	inline void *operator new(size_t s, ARGCLASS##MagicEnum e DECLARE_LITERALSTRING_ARG2) \
-	{ \
-		DEBUG_CRASH(("this should be impossible to call (abstract base class)")); \
-		DEBUG_ASSERTCRASH(s == sizeof(ARGCLASS), ("The wrong operator new is being called; ensure all objects in the hierarchy have MemoryPoolGlue set up correctly")); \
-		throw ERROR_BUG; \
-		return 0; \
-	} \
+        inline void *operator new(size_t s, ARGCLASS##MagicEnum e DECLARE_LITERALSTRING_ARG2) \
+        { \
+                DEBUG_CRASH(("this should be impossible to call (abstract base class)")); \
+                DEBUG_ASSERTCRASH(s == sizeof(ARGCLASS), ("The wrong operator new is being called; ensure all objects in the hierarchy have MemoryPoolGlue set up correctly")); \
+                static_cast<void>(s); \
+                static_cast<void>(e); \
+                throw ERROR_BUG; \
+        } \
 protected: \
-	inline void operator delete(void *p, ARGCLASS##MagicEnum e DECLARE_LITERALSTRING_ARG2) \
-	{ \
-		DEBUG_CRASH(("this should be impossible to call (abstract base class)")); \
-	} \
+        inline void operator delete(void *p, ARGCLASS##MagicEnum e DECLARE_LITERALSTRING_ARG2) \
+        { \
+                DEBUG_CRASH(("this should be impossible to call (abstract base class)")); \
+                static_cast<void>(p); \
+                static_cast<void>(e); \
+        } \
 protected: \
-	inline void *operator new(size_t s) \
-	{ \
-		DEBUG_CRASH(("this should be impossible to call (abstract base class)")); \
-		DEBUG_ASSERTCRASH(s == sizeof(ARGCLASS), ("The wrong operator new is being called; ensure all objects in the hierarchy have MemoryPoolGlue set up correctly")); \
-		throw ERROR_BUG; \
-		return 0; \
-	} \
-	inline void operator delete(void *p) \
-	{ \
-		DEBUG_CRASH(("this should be impossible to call (abstract base class)")); \
-	} \
+        inline void *operator new(size_t s) \
+        { \
+                DEBUG_CRASH(("this should be impossible to call (abstract base class)")); \
+                DEBUG_ASSERTCRASH(s == sizeof(ARGCLASS), ("The wrong operator new is being called; ensure all objects in the hierarchy have MemoryPoolGlue set up correctly")); \
+                static_cast<void>(s); \
+                throw ERROR_BUG; \
+        } \
+        inline void operator delete(void *p) \
+        { \
+                DEBUG_CRASH(("this should be impossible to call (abstract base class)")); \
+                static_cast<void>(p); \
+        } \
 private: \
-	virtual MemoryPool *getObjectMemoryPool() \
-	{ \
-		throw ERROR_BUG; \
-		return 0; \
-	} \
+        virtual MemoryPool *getObjectMemoryPool() \
+        { \
+                throw ERROR_BUG; \
+        } \
 public: /* include this line at the end to reset visibility to 'public' */ 
 
 // ----------------------------------------------------------------------------
@@ -740,12 +746,21 @@ class MemoryPoolObject
 {
 protected:
 
-	/** ensure that all destructors are virtual */
-	virtual ~MemoryPoolObject() { }
+        /** ensure that all destructors are virtual */
+        virtual ~MemoryPoolObject() { }
 
-protected: 
-	inline void *operator new(size_t s) { DEBUG_CRASH(("This should be impossible")); return 0; }
-	inline void operator delete(void *p) { DEBUG_CRASH(("This should be impossible")); }
+protected:
+        inline void *operator new(size_t s)
+        {
+                DEBUG_CRASH(("This should be impossible"));
+                static_cast<void>(s);
+                throw ERROR_BUG;
+        }
+        inline void operator delete(void *p)
+        {
+                DEBUG_CRASH(("This should be impossible"));
+                static_cast<void>(p);
+        }
 
 protected: 
 
