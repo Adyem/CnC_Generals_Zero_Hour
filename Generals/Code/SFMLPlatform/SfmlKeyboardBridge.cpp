@@ -34,10 +34,6 @@
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
 
-#if defined(_WIN32)
-#include <windows.h>
-#endif
-
 namespace sfml_platform
 {
 
@@ -172,14 +168,6 @@ SfmlKeyboardBridge::SfmlKeyboardBridge()
         , m_capsLockActive( FALSE )
         , m_capsLockKeyDown( FALSE )
 {
-#if defined(_WIN32)
-        if( GetKeyState( VK_CAPITAL ) & 0x01 )
-        {
-                m_capsLockActive = TRUE;
-                m_modifiers |= KEY_STATE_CAPSLOCK;
-        }
-#endif
-
         g_activeKeyboardBridge = this;
 }
 

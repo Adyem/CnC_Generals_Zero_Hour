@@ -11,13 +11,7 @@
 #include <cstdint>
 #include <algorithm>
 
-#if defined(SFML_SYSTEM_WINDOWS)
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#include <windows.h>
-#include <SFML/OpenGL.hpp>
-#elif defined(SFML_SYSTEM_LINUX)
+#if defined(SFML_SYSTEM_LINUX)
 #include <SFML/OpenGL.hpp>
 #include <X11/Xlib.h>
 #include <GL/glx.h>
@@ -52,16 +46,13 @@ void destroyX11Window(void* window) {
     XDestroyWindow(display, nativeWindow);
     XFlush(display);
 }
-#elif defined(SFML_SYSTEM_WINDOWS)
-void destroyWin32Window(void* window) {
-    if (window == nullptr) {
-        return;
-    }
-
-    HWND hwnd = static_cast<HWND>(window);
-    PostMessage(hwnd, WM_CLOSE, 0, 0);
-}
 #endif
+
+void requestWindowShutdown(void*) {
+    if (g_activeWindowSystem != nullptr) {
+        g_activeWindowSystem->shutdown();
+    }
+}
 
 sf::VideoMode pickVideoMode(unsigned int width, unsigned int height, bool fullscreen) {
     if (!fullscreen) {
@@ -190,12 +181,8 @@ NativeWindowHandle WindowSystem::nativeHandle() const {
     handle.context = reinterpret_cast<void*>(glXGetCurrentContext());
     handle.backBuffer = reinterpret_cast<void*>(glXGetCurrentDrawable());
     handle.destroyWindow = destroyX11Window;
-#elif defined(SFML_SYSTEM_WINDOWS)
-    handle.context = reinterpret_cast<void*>(wglGetCurrentContext());
-    handle.backBuffer = reinterpret_cast<void*>(wglGetCurrentDC());
-    handle.destroyWindow = destroyWin32Window;
 #else
-    handle.display = nullptr;
+    handle.destroyWindow = requestWindowShutdown;
 #endif
 
     return handle;
