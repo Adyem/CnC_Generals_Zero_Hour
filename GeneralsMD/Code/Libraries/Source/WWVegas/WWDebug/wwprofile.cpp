@@ -53,7 +53,7 @@
 #include "wwprofile.h"
 #include "fastallocator.h"
 #include "wwdebug.h"
-#include <windows.h>
+#include "thread.h"
 //#include "systimer.h"
 #include "systimer.h"
 #include "rawfile.h"
@@ -389,7 +389,7 @@ static unsigned int				ThreadID = static_cast<unsigned int>(-1);
  *=============================================================================================*/
 void	WWProfileManager::Start_Profile( const char * name )
 {
-	if (::GetCurrentThreadId() != ThreadID) {
+    if (ThreadClass::_Get_Current_Thread_ID() != ThreadID) {
 		return;
 	}
 
@@ -403,7 +403,7 @@ void	WWProfileManager::Start_Profile( const char * name )
 
 void	WWProfileManager::Start_Root_Profile( const char * name )
 {
-	if (::GetCurrentThreadId() != ThreadID) {
+    if (ThreadClass::_Get_Current_Thread_ID() != ThreadID) {
 		return;
 	}
 
@@ -429,7 +429,7 @@ void	WWProfileManager::Start_Root_Profile( const char * name )
  *=============================================================================================*/
 void	WWProfileManager::Stop_Profile( void )
 {
-	if (::GetCurrentThreadId() != ThreadID) {
+    if (ThreadClass::_Get_Current_Thread_ID() != ThreadID) {
 		return;
 	}
 
@@ -442,7 +442,7 @@ void	WWProfileManager::Stop_Profile( void )
 
 void	WWProfileManager::Stop_Root_Profile( void )
 {
-	if (::GetCurrentThreadId() != ThreadID) {
+    if (ThreadClass::_Get_Current_Thread_ID() != ThreadID) {
 		return;
 	}
 
@@ -471,7 +471,7 @@ void	WWProfileManager::Stop_Root_Profile( void )
  *=============================================================================================*/
 void	WWProfileManager::Reset( void )
 {
-	ThreadID = ::GetCurrentThreadId();
+    ThreadID = ThreadClass::_Get_Current_Thread_ID();
 
 	Root.Reset();
 	FrameCounter = 0;

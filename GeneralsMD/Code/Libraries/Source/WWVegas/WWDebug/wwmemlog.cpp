@@ -43,7 +43,7 @@
 #include "wwdebug.h"
 #include "vector.h"
 #include "fastallocator.h"
-#include <windows.h>
+#include "thread.h"
 
 #define USE_FAST_ALLOCATOR
 
@@ -392,7 +392,7 @@ ActiveCategoryStackClass::operator = (const ActiveCategoryStackClass & that)
 ***************************************************************************************************/
 ActiveCategoryStackClass & ActiveCategoryClass::Get_Active_Stack(void)
 {
-	int current_thread = ::GetCurrentThreadId();
+        int current_thread = ThreadClass::_Get_Current_Thread_ID();
 
 	/*
 	** If we already have an allocated category stack for the current thread,

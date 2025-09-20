@@ -1,19 +1,19 @@
 /*
-**	Command & Conquer Generals(tm)
-**	Copyright 2025 Electronic Arts Inc.
+**      Command & Conquer Generals(tm)
+**      Copyright 2025 Electronic Arts Inc.
 **
-**	This program is free software: you can redistribute it and/or modify
-**	it under the terms of the GNU General Public License as published by
-**	the Free Software Foundation, either version 3 of the License, or
-**	(at your option) any later version.
+**      This program is free software: you can redistribute it and/or modify
+**      it under the terms of the GNU General Public License as published by
+**      the Free Software Foundation, either version 3 of the License, or
+**      (at your option) any later version.
 **
-**	This program is distributed in the hope that it will be useful,
-**	but WITHOUT ANY WARRANTY; without even the implied warranty of
-**	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-**	GNU General Public License for more details.
+**      This program is distributed in the hope that it will be useful,
+**      but WITHOUT ANY WARRANTY; without even the implied warranty of
+**      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**      GNU General Public License for more details.
 **
-**	You should have received a copy of the GNU General Public License
-**	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+**      You should have received a copy of the GNU General Public License
+**      along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef THREAD_H
@@ -28,6 +28,11 @@
 
 #include "always.h"
 
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
+
 
 // ****************************************************************************
 //
@@ -40,7 +45,7 @@
 // will clear the flag and expect you to exit from the thread. If you are
 // not exiting in certain time (defined as a parameter to Stop()) it will
 // force-kill the thread to prevent the program from halting.
-// 
+//
 // ****************************************************************************
 
 class ThreadClass
@@ -75,11 +80,14 @@ protected:
 	// User defined thread function. The thread function should check for "running" flag every now and then
 	// and exit the thread if running is false.
 	virtual void Thread_Function() = 0;
-	volatile bool running;
+	std::atomic<bool> running;
 
 private:
-	static void __cdecl Internal_Thread_Function(void*);
-	volatile unsigned long handle;
+	void Internal_Thread_Function();
+	std::thread thread_handle;
+	std::mutex thread_mutex;
+	std::condition_variable thread_cv;
+	bool thread_active;
 	int thread_priority;
 };
 
