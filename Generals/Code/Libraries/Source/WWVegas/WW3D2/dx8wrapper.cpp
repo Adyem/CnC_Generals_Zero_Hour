@@ -84,6 +84,7 @@
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
 #include <cstdio>
+#include "Common/Debug.h"
 #include "Common/AsciiString.h"
 #include "Common/File.h"
 #include "Common/FileSystem.h"
@@ -1022,6 +1023,21 @@ static std::string Dx8ResolveShaderCompilerPath()
         return s_compilerPath;
 }
 
+static const char *Dx8GetShaderCompilerPlatform()
+{
+#if defined(_WIN32)
+        return "windows";
+#elif defined(__APPLE__)
+        return "osx";
+#elif defined(__linux__)
+        return "linux";
+#elif defined(__FreeBSD__)
+        return "freebsd";
+#else
+        return NULL;
+#endif
+}
+
 static bool Dx8InvokeShaderCompiler(const std::string &compilerPath, const std::string &stage, const std::string &sourcePath,
         const std::string &outputPath, const std::string &profile, const std::string &varyingPath)
 {
@@ -1029,8 +1045,18 @@ static bool Dx8InvokeShaderCompiler(const std::string &compilerPath, const std::
         command << '"' << compilerPath << '"'
                 << " -f \"" << sourcePath << "\""
                 << " -o \"" << outputPath << "\""
-                << " --type " << stage
-                << " --platform windows";
+                << " --type " << stage;
+
+        const char *platform = Dx8GetShaderCompilerPlatform();
+        if (platform != NULL)
+        {
+                command << " --platform " << platform;
+        }
+        else
+        {
+                DEBUG_LOG(("BGFX shader compiler platform is unknown; invoking without explicit --platform for '%s'\n",
+                        sourcePath.c_str()));
+        }
 
         if (!profile.empty())
         {
@@ -1079,7 +1105,7 @@ static bool EnsureBgfxShaderBinaryLocal(const std::string &binaryPath, const std
                                 std::ostringstream message;
                                 message << "BGFX shader compiler not found; unable to build " << stageLabel
                                         << " shader '" << sourcePath << "'\n";
-                                OutputDebugStringA(message.str().c_str());
+                                DEBUG_LOG(("%s", message.str().c_str()));
                         }
                         return binaryExists;
                 }
@@ -1088,7 +1114,7 @@ static bool EnsureBgfxShaderBinaryLocal(const std::string &binaryPath, const std
                 {
                         std::ostringstream message;
                         message << "BGFX shader compilation failed for '" << sourcePath << "'\n";
-                        OutputDebugStringA(message.str().c_str());
+                        DEBUG_LOG(("%s", message.str().c_str()));
                         return false;
                 }
         }
@@ -1103,7 +1129,7 @@ static bgfx::ShaderHandle LoadBgfxShaderHandle(const std::string &path)
         {
                 std::ostringstream message;
                 message << "Unable to open bgfx shader binary '" << path << "'\n";
-                OutputDebugStringA(message.str().c_str());
+                DEBUG_LOG(("%s", message.str().c_str()));
                 return BGFX_INVALID_HANDLE;
         }
 
