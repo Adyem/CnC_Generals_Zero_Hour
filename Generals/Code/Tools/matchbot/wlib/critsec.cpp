@@ -18,25 +18,25 @@
 
 #include "critsec.h"
 #include <assert.h>
-#include "wlib/wdebug.h"
+#include "wdebug.h"
 
 
 
 CritSec::CritSec()
 {
-#ifdef _UNIX
+#if !CRITSEC_PLATFORM_WINDOWS
   pthread_mutex_init(&Mutex_, NULL);
   RefCount_ = 0;
-#elif defined(_WIN32)
+#elif CRITSEC_PLATFORM_WINDOWS
   InitializeCriticalSection(&CritSec_);
 #endif
 }
 
 CritSec::~CritSec()
 {
- #ifdef _UNIX
+ #if !CRITSEC_PLATFORM_WINDOWS
    pthread_mutex_destroy(&Mutex_);
- #elif defined(_WIN32)
+ #elif CRITSEC_PLATFORM_WINDOWS
    DeleteCriticalSection(&CritSec_);
  #endif
 }
@@ -51,7 +51,7 @@ CritSec::~CritSec()
 //
 sint32 CritSec::lock(int *refcount) RO 
 {
- #ifdef _UNIX
+ #if !CRITSEC_PLATFORM_WINDOWS
     sint32	status;
 
     // I TRY to get the lock. IF I succeed, OR if I fail because
@@ -83,19 +83,17 @@ sint32 CritSec::lock(int *refcount) RO
       *refcount=RefCount_;
 
     return(status);
- #elif defined(_WIN32)
+ #elif CRITSEC_PLATFORM_WINDOWS
    // TOFIX update the refcount
    EnterCriticalSection(&CritSec_);
    return(0);
-  #else
-    #error Must define either _WIN32 or _UNIX
  #endif
 }
 
 // The "unlock" function release the critical section.
 sint32 CritSec::unlock(void) RO 
 {
- #ifdef _UNIX
+ #if !CRITSEC_PLATFORM_WINDOWS
     sint32	status = 0;
     
     assert(RefCount_ >= 0);
@@ -122,7 +120,7 @@ sint32 CritSec::unlock(void) RO
 	    ERRMSG("pthread_mutex_lock: " << strerror(errno));
     }
     return status;
- #elif defined(_WIN32)
+ #elif CRITSEC_PLATFORM_WINDOWS
     LeaveCriticalSection(&CritSec_);
     return(0);
  #endif

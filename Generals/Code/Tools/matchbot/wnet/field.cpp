@@ -34,7 +34,7 @@
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 #include <string.h>
 #include <sys/types.h>
-#ifndef _WINDOWS
+#if defined(__unix__) || defined(__APPLE__) || defined(__linux__)
 #include <netinet/in.h>
 #else
 #define Win32_Winsock

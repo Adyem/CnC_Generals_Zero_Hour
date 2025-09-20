@@ -17,7 +17,7 @@
 */
 
 #include "udp.h"
-#include "wlib/wdebug.h"
+#include "../wlib/wdebug.h"
 
 UDP::UDP()
 {
@@ -60,7 +60,7 @@ sint32 UDP::Bind(uint32 IP,uint16 Port)
   addr.sin_port=Port;
   addr.sin_addr.s_addr=IP;
   fd=socket(AF_INET,SOCK_DGRAM,DEFAULT_PROTOCOL);
-  #ifdef _WINDOWS
+  #if UDP_PLATFORM_WINDOWS
   if (fd==SOCKET_ERROR)
     fd=-1;
   #endif
@@ -69,7 +69,7 @@ sint32 UDP::Bind(uint32 IP,uint16 Port)
 
   retval=bind(fd,(struct sockaddr *)&addr,sizeof(addr));
 
-  #ifdef _WINDOWS
+  #if UDP_PLATFORM_WINDOWS
     if (retval==SOCKET_ERROR)
       retval=-1;
   #endif
@@ -80,7 +80,7 @@ sint32 UDP::Bind(uint32 IP,uint16 Port)
     return(status);
   }
 
-  int namelen=sizeof(addr);
+  socklen_t namelen=sizeof(addr);
   getsockname(fd, (struct sockaddr *)&addr, &namelen); 
 
   myIP=ntohl(addr.sin_addr.s_addr);
@@ -104,7 +104,7 @@ bit8 UDP::getLocalAddr(uint32 &ip, uint16 &port)
 // private function
 sint32 UDP::SetBlocking(bit8 block)
 {
-  #ifdef _WINDOWS
+  #if UDP_PLATFORM_WINDOWS
    unsigned long flag=1;
    if (block)
      flag=0;
@@ -114,7 +114,7 @@ sint32 UDP::SetBlocking(bit8 block)
      return(UNKNOWN);
    else
      return(OK);
-  #else  // UNIX
+  #else  // POSIX
    int flags = fcntl(fd, F_GETFL, 0);
    if (block==FALSE)          // set nonblocking
      flags |= O_NONBLOCK;
@@ -145,7 +145,7 @@ sint32 UDP::Write(uint8 *msg,uint32 len,uint32 IP,uint16 port)
 
   ClearStatus();
   retval=sendto(fd,(char *)msg,len,0,(struct sockaddr *)&to,sizeof(to));
-  #ifdef _WINDOWS
+  #if UDP_PLATFORM_WINDOWS
   if (retval==SOCKET_ERROR)
     retval=-1;
   #endif
@@ -156,12 +156,12 @@ sint32 UDP::Write(uint8 *msg,uint32 len,uint32 IP,uint16 port)
 sint32 UDP::Read(uint8 *msg,uint32 len,sockaddr_in *from)
 {
   sint32 retval;
-  int    alen=sizeof(sockaddr_in);
+  socklen_t    alen=sizeof(sockaddr_in);
 
   if (from!=NULL)
   {
     retval=recvfrom(fd,(char *)msg,len,0,(struct sockaddr *)from,&alen);
-    #ifdef _WINDOWS
+    #if UDP_PLATFORM_WINDOWS
     if (retval==SOCKET_ERROR)
       retval=-1;
     #endif
@@ -169,7 +169,7 @@ sint32 UDP::Read(uint8 *msg,uint32 len,sockaddr_in *from)
   else
   {
     retval=recvfrom(fd,(char *)msg,len,0,NULL,NULL);
-    #ifdef _WINDOWS
+    #if UDP_PLATFORM_WINDOWS
     if (retval==SOCKET_ERROR)
       retval=-1;
     #endif
@@ -180,14 +180,14 @@ sint32 UDP::Read(uint8 *msg,uint32 len,sockaddr_in *from)
 
 void UDP::ClearStatus(void)
 {
-  #ifndef _WINDOWS
+  #if !UDP_PLATFORM_WINDOWS
   errno=0;
   #endif
 }
 
 UDP::sockStat UDP::GetStatus(void)
 {
- #ifdef _WINDOWS
+ #if UDP_PLATFORM_WINDOWS
   int status=WSAGetLastError();
   if (status==0) return(OK);
   else if (status==WSAEINTR) return(INTR);
@@ -310,7 +310,7 @@ int UDP::Wait(sint32 sec,sint32 usec,fd_set &givenSet,fd_set &returnSet)
 
 bit8 UDP::SetInputBuffer(uint32 bytes)
 {
-  #ifndef _WINDOWS
+  #if !UDP_PLATFORM_WINDOWS
    int retval,arg=bytes;
 
    retval=setsockopt(fd,SOL_SOCKET,SO_RCVBUF,
@@ -328,7 +328,7 @@ bit8 UDP::SetInputBuffer(uint32 bytes)
 
 bit8 UDP::SetOutputBuffer(uint32 bytes)
 {
-  #ifndef _WINDOWS
+  #if !UDP_PLATFORM_WINDOWS
    int retval,arg=bytes;
 
    retval=setsockopt(fd,SOL_SOCKET,SO_SNDBUF,
@@ -346,8 +346,9 @@ bit8 UDP::SetOutputBuffer(uint32 bytes)
 
 int UDP::GetInputBuffer(void)
 {
-  #ifndef _WINDOWS
-   int retval,arg=0,len=sizeof(int);
+  #if !UDP_PLATFORM_WINDOWS
+   int retval,arg=0;
+   socklen_t len=sizeof(arg);
 
    retval=getsockopt(fd,SOL_SOCKET,SO_RCVBUF,
      (char *)&arg,&len);
@@ -360,8 +361,9 @@ int UDP::GetInputBuffer(void)
 
 int UDP::GetOutputBuffer(void)
 {
-  #ifndef _WINDOWS
-   int retval,arg=0,len=sizeof(int);
+  #if !UDP_PLATFORM_WINDOWS
+   int retval,arg=0;
+   socklen_t len=sizeof(arg);
 
    retval=getsockopt(fd,SOL_SOCKET,SO_SNDBUF,
      (char *)&arg,&len);

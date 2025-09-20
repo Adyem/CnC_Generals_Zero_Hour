@@ -29,7 +29,7 @@ wtime                      Neal Kettler
 #include <assert.h>
 #include <sys/types.h>
 
-#ifndef _WINDOWS
+#if defined(__unix__) || defined(__APPLE__) || defined(__linux__)
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/time.h>

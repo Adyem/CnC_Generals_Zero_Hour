@@ -57,8 +57,11 @@ will you be ready to leave grasshopper.
 
 #include "wstypes.h"
 
-#ifdef _WINDOWS
+#if defined(_WIN32) && !defined(__unix__) && !defined(__APPLE__)
 #include <windows.h>
+#define WDEBUG_PLATFORM_WINDOWS 1
+#else
+#define WDEBUG_PLATFORM_WINDOWS 0
 #endif
 #include <iostream>
 #include <sstream>
@@ -186,7 +189,7 @@ extern CritSec DebugLibSemaphore;
 #define DBG(X) X
 
 // In Windows, send a copy to the debugger window
-#ifdef _WINDOWS
+#if WDEBUG_PLATFORM_WINDOWS
 
 // Print a variable
 #define PVAR(v) \
@@ -246,7 +249,7 @@ extern CritSec DebugLibSemaphore;
   DEBUGUNLOCK; \
 }
 
-#else // _WINDOWS
+#else // WDEBUG_PLATFORM_WINDOWS
 
 // Print a variable
 #define PVAR(v) \
@@ -286,7 +289,7 @@ extern CritSec DebugLibSemaphore;
      "]: " << ##X << std::endl; X \
   DEBUGUNLOCK; \
 }
-#endif // _WINDOWS
+#endif // WDEBUG_PLATFORM_WINDOWS
 
 #endif  // DEBUG
 

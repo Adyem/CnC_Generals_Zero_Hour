@@ -16,22 +16,21 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__unix__) && !defined(__APPLE__)
 #include <process.h>
 #endif
 
-#include <wstring.h>
-#include <tcp.h>
-#include <wdebug.h>
+#include "wlib/wstring.h"
+#include "wnet/tcp.h"
+#include "wlib/wdebug.h"
 #include "mydebug.h"
 
-#include <ghttp/ghttp.h>
 
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
 
-#ifdef _UNIX
+#if defined(__unix__) || defined(__APPLE__) || defined(__linux__)
 using namespace std;
 #endif
 

@@ -205,7 +205,33 @@ void Dictionary<K,V>::print(FILE *out) RO
 template <class K, class V>
 Dictionary<K,V> &Dictionary<K,V>::operator=(Dictionary<K,V> &other)
 {
-  _ASSERTE(0);
+  if (this == &other) {
+    return *this;
+  }
+
+  clear();
+  delete[] table;
+
+  size = other.size;
+  tableBits = other.tableBits;
+  log2Size = other.log2Size;
+  keepSize = other.keepSize;
+  entries = 0;
+  hashFunc = other.hashFunc;
+
+  table = new DNode<K,V>*[size];
+  assert(table != NULL);
+  memset(static_cast<void*>(table), 0, size * sizeof(DNode<K,V>*));
+
+  for (uint32 index = 0; index < other.size; ++index) {
+    DNode<K,V> *node = other.table[index];
+    while (node != NULL) {
+      add(node->key, node->value);
+      node = node->hashNext;
+    }
+  }
+
+  return *this;
 }
 
 

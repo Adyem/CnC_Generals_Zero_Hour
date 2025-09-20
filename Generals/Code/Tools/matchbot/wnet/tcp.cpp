@@ -45,7 +45,7 @@ TCP tcp(CLIENT);
 
 tcp.Bind((uint32)0,(uint16)0); // let system pick local IP and a Port for you 
 tcp.Connect("tango",13);       // can connect by name or "10.1.1.10"
-                               // or the integerﬂin host byte order
+                               // or the integer√üin host byte order
 
 fdSet=tcp.Wait(10,0);          // wait for UP TO 10 sec and 0 microseconds
 if (FD_ISSET(tcp.GetFD(),fdSet))   // Is there something to read?
@@ -99,7 +99,7 @@ while (1)
 #include "tcp.h"
 #include <stdarg.h>
 
-#ifndef _WINDOWS
+#if !TCP_PLATFORM_WINDOWS
 #include <errno.h>
 #define closesocket close
 #endif
@@ -170,7 +170,7 @@ sint32 TCP::SetBlocking(bit8 block,sint32 whichFD)
    if (whichFD==0)
      whichFD=fd;
 
-   #ifdef _WINDOWS
+   #if TCP_PLATFORM_WINDOWS
    unsigned long flag=1;
    if (block)
      flag=0;
@@ -219,7 +219,7 @@ sint32 TCP::Write(const uint8 *msg,uint32 len,sint32 whichFD)
   }
   SetBlocking(TRUE,whichFD); 
   retval=send(whichFD,(const char *)msg,len,0);
-  #ifdef _WINDOWS
+  #if TCP_PLATFORM_WINDOWS
     if (retval==SOCKET_ERROR)
       retval=-1;
   #endif
@@ -241,7 +241,7 @@ sint32 TCP::WriteNB(uint8 *msg,uint32 len,sint32 whichFD)
     whichFD=fd;
   }
   retval=send(whichFD,(const char *)msg,len,0);
-  #ifdef _WINDOWS
+  #if TCP_PLATFORM_WINDOWS
     if (retval==SOCKET_ERROR)
       retval=-1;
   #endif
@@ -378,7 +378,7 @@ sint32 TCP::Printf(sint32 whichFD,const char *format,...)
 uint32 TCP::GetRemoteIP(sint32 whichFD)
 {
   struct sockaddr_in sin;
-  int    sinSize=sizeof(sin);
+  socklen_t    sinSize=sizeof(sin);
 
   if (mode==CLIENT)
   {
@@ -399,7 +399,7 @@ uint32 TCP::GetRemoteIP(sint32 whichFD)
 uint16 TCP::GetRemotePort(sint32 whichFD)
 {
   struct sockaddr_in sin;
-  int    sinSize=sizeof(sin);
+  socklen_t    sinSize=sizeof(sin);
 
   if (mode==CLIENT)
   {
@@ -419,7 +419,7 @@ uint16 TCP::GetRemotePort(sint32 whichFD)
 bit8 TCP::IsConnected(sint32 whichFD)
 {
   struct sockaddr_in sin;
-  int    sinSize=sizeof(sin);
+  socklen_t    sinSize=sizeof(sin);
 
   if (mode==CLIENT)
     whichFD=fd;
@@ -942,7 +942,7 @@ bit8 TCP::Bind(uint32 IP,uint16 Port,bit8 reuseAddr)
   }
 
   retval=bind(fd,(struct sockaddr *)&addr,sizeof(addr));
-  #ifdef _WINDOWS
+  #if TCP_PLATFORM_WINDOWS
     if (retval==SOCKET_ERROR)
       retval=-1;
   #endif
@@ -1013,7 +1013,7 @@ bit8 TCP::Connect(uint32 IP,uint16 Port)
     result = connect(fd,(struct sockaddr *)&serverAddr, sizeof(serverAddr));
     status=GetStatus();
 
-    #ifdef _WINDOWS
+    #if TCP_PLATFORM_WINDOWS
       if (result==SOCKET_ERROR)
         result=-1;
     #endif
@@ -1033,7 +1033,7 @@ bit8 TCP::Connect(uint32 IP,uint16 Port)
       tries++;
       sleep_time.tv_sec = 0;
       sleep_time.tv_usec = (100000*(tries+1));
-      #ifdef WIN32
+      #if TCP_PLATFORM_WINDOWS
         Sleep((sleep_time.tv_usec)/1000);
       #else
         select(0, 0, 0, 0, &sleep_time);
@@ -1107,7 +1107,7 @@ bit8 TCP::ConnectAsync(uint32 IP,uint16 Port)
   connectErrno=errno;
   status=GetStatus();
 
-  #ifdef _WINDOWS
+  #if TCP_PLATFORM_WINDOWS
     if (result==SOCKET_ERROR)
     {
       DBGMSG("Socket error 1  " << status);
@@ -1124,7 +1124,7 @@ bit8 TCP::ConnectAsync(uint32 IP,uint16 Port)
     ClearStatus();
     result = connect(fd,(struct sockaddr *)&serverAddr, sizeof(serverAddr));
     status=GetStatus();
-    #ifdef _WINDOWS
+    #if TCP_PLATFORM_WINDOWS
       if (result==SOCKET_ERROR)
       {
         DBGMSG("Socket error 2  " << status);
@@ -1159,14 +1159,14 @@ bit8 TCP::ConnectAsync(uint32 IP,uint16 Port)
 
 void TCP::ClearStatus(void)
 {
-  #ifndef _WINDOWS
+  #if !TCP_PLATFORM_WINDOWS
   errno=0;
   #endif
 }
 
 int TCP::GetStatus(void)
 {
-  #ifdef _WINDOWS
+  #if TCP_PLATFORM_WINDOWS
   int status=WSAGetLastError();
   if (status==0) return(OK);
   else if (status==WSAEINTR) return(INTR);
@@ -1208,7 +1208,7 @@ sint32 TCP::GetConnection(void)
 
   sint32 clientFD;
   struct sockaddr_in clientAddr;
-  int addrlen=sizeof(clientAddr);
+  socklen_t addrlen=sizeof(clientAddr);
 
   clientFD=accept(fd,(struct sockaddr *)&clientAddr,&addrlen);
   if (clientFD!=-1)
@@ -1227,7 +1227,7 @@ sint32 TCP::GetConnection(struct sockaddr *clientAddr)
     return(-1);
 
   sint32 clientFD;
-  int addrlen=sizeof(struct sockaddr);
+  socklen_t addrlen=sizeof(struct sockaddr);
 
   clientFD=accept(fd,(struct sockaddr *)clientAddr,&addrlen);
   if (clientFD!=-1)

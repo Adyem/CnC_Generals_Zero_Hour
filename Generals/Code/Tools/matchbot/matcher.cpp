@@ -19,7 +19,7 @@
 #include "global.h"
 #include "matcher.h"
 #include "encrypt.h"
-#include "timezone.h"
+#include "wlib/timezone.h"
 #include "debug.h"
 
 #ifdef _WINDOWS

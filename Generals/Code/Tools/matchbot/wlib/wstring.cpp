@@ -34,6 +34,8 @@ string to it's own memory (for assignment or construction).
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <limits>
+#include <cstddef>
 
 #include "wstring.h"
 
@@ -375,7 +377,6 @@ bit8 Wstring::replace(IN char *replaceThis,IN char *withThis)
 {
   Wstring  dest;
   char    *foundStr, *src;
-  uint32   len;
 
   src=get();
   while(src && src[0])
@@ -383,9 +384,12 @@ bit8 Wstring::replace(IN char *replaceThis,IN char *withThis)
     foundStr = strstr(src, replaceThis);
     if(foundStr)
     {
-      len = (uint32)foundStr - (uint32)src;
-      if(len)
+      const ptrdiff_t diff = foundStr - src;
+      if(diff > 0)
       {
+        if(diff > static_cast<ptrdiff_t>(std::numeric_limits<uint32>::max()))
+          return(FALSE);
+        const uint32 len = static_cast<uint32>(diff);
         if(!dest.cat(len, src))
           return(FALSE);
       }

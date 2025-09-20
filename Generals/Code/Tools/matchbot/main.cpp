@@ -16,43 +16,45 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__unix__) && !defined(__APPLE__)
 #include <process.h>
 #endif
 #include <cstdlib>
 #include <csignal>
 #include <iostream>
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__unix__) && !defined(__APPLE__)
 #include <direct.h>
 #else
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
+#include <sys/resource.h>
 #endif
 
 //#define THREADSAFE_HEADER
 
-#include <wstring.h>
-#include <wdebug.h>
-#include <filed.h>
-#include <stdoutd.h>
-#include <wstypes.h>
-#include <xtime.h>
+#include "wlib/wstring.h"
+#include "wlib/wdebug.h"
+#include "wlib/filed.h"
+#include "wlib/stdoutd.h"
+#include "wlib/wstypes.h"
+#include "wlib/xtime.h"
 #include "global.h"
 #include "generals.h"
-#include "timezone.h"
-#include <threadfac.h>
+#include "wlib/timezone.h"
+#include "wlib/threadfac.h"
 
-#include <tcp.h>
+#include "wnet/tcp.h"
 #include "mydebug.h"
 
-#ifdef _UNIX
+#if defined(__unix__) || defined(__APPLE__) || defined(__linux__)
 using namespace std;
 #else
 #define sleep(x) Sleep(1000 * (x))
 #endif
 
-static char *Program_Usage = "A config filename can be given on the command line (default=matchbot.cfg)\n";
+static const char *Program_Usage = "A config filename can be given on the command line (default=matchbot.cfg)\n";
 void logMonitor(void *);
 void paranoidLogMonitor(void *);
 
@@ -68,10 +70,10 @@ void Signal_Quit(int)
 
 void Setup_Signals(void)
 {
-#ifdef _UNIX
-	struct sigaction act, oact;
-	act.sa_handler = Signal_Quit;
-	sigemptyset(&act.sa_mask);
+#if defined(__unix__) || defined(__APPLE__) || defined(__linux__)
+        struct sigaction act, oact;
+        act.sa_handler = Signal_Quit;
+        sigemptyset(&act.sa_mask);
 	act.sa_flags = 0;
 	sigaction(SIGTERM, &act, &oact);
 	sigaction(SIGINT, &act, &oact);
@@ -80,31 +82,31 @@ void Setup_Signals(void)
 
 int VerifyFileDescriptors(int requested)
 {
-#ifdef _UNIX
-	struct rlimit limit;
-	if (!getrlimit(_SC_OPEN_MAX, &limit))
-	{
-		INFMSG("Hard limit on file descriptors: " << limit.rlim_max);
-		if (limit.rlim_max < (unsigned int)requested)
+#if defined(__unix__) || defined(__APPLE__) || defined(__linux__)
+        struct rlimit limit;
+        if (!getrlimit(RLIMIT_NOFILE, &limit))
+        {
+                INFMSG("Hard limit on file descriptors: " << limit.rlim_max);
+                if (limit.rlim_max < (unsigned int)requested)
 		{
 			ERRMSG("Too many file descriptors requested");
 			ERRMSG("Hard Limit: " << limit.rlim_max << ", requested: " << requested);
 			requested = limit.rlim_max;
 		}
 
-		limit.rlim_cur = limit.rlim_max; /* make soft limit the max */
-		if (setrlimit(_SC_OPEN_MAX, &limit) == -1)
-		{
-			ERRMSG("Error setting max file descriptors to " << limit.rlim_cur);
-			exit(-1);
-		}
-		INFMSG("Soft limit on file descriptors: " << limit.rlim_cur);
-	}
-	else
-	{
-		ERRMSG("Couldn't get limit for _SC_OPEN_MAX");
-		exit(-1);
-	}
+                limit.rlim_cur = limit.rlim_max; /* make soft limit the max */
+                if (setrlimit(RLIMIT_NOFILE, &limit) == -1)
+                {
+                        ERRMSG("Error setting max file descriptors to " << limit.rlim_cur);
+                        exit(-1);
+                }
+                INFMSG("Soft limit on file descriptors: " << limit.rlim_cur);
+        }
+        else
+        {
+                ERRMSG("Couldn't get limit for RLIMIT_NOFILE");
+                exit(-1);
+        }
 #endif
 	return requested;
 }
@@ -183,10 +185,10 @@ int main(int argc, char ** argv)
 
 	Setup_Signals();
 
-#ifdef _WINDOWS
-	// ----- Initialize Winsock -----
-	WORD verReq = MAKEWORD(2, 2);
-	WSADATA wsadata;
+#if defined(_WIN32) && !defined(__unix__) && !defined(__APPLE__)
+        // ----- Initialize Winsock -----
+        WORD verReq = MAKEWORD(2, 2);
+        WSADATA wsadata;
 
 	int err = WSAStartup(verReq, &wsadata);
 	if (err != 0)
@@ -201,8 +203,8 @@ int main(int argc, char ** argv)
 		WSACleanup();
 		ERRMSG("Winsock Init failed.");
 		return 1;
-	}
-	INFMSG("Winsock Init done.");
+        }
+        INFMSG("Winsock Init done.");
 #endif
 
 	// Check game type & start matcher
@@ -319,10 +321,10 @@ void rotateOutput(void)
 	sprintf(filenamebuf, "%s/%02d%02d%04d_%02d%02d%02d_log", logpath.get(),
 	        xtime.getMonth(), xtime.getMDay(), xtime.getYear(), xtime.getHour(),
 	        xtime.getMinute(), xtime.getSecond());
-#ifdef _WINDOWS
-	mkdir(logpath.get());
+#if defined(_WIN32) && !defined(__unix__) && !defined(__APPLE__)
+        _mkdir(logpath.get());
 #else
-	mkdir(logpath.get(), 00666);
+        mkdir(logpath.get(), 0755);
 #endif
 	rename(newfilename.get(), filenamebuf);
 
@@ -332,8 +334,8 @@ void rotateOutput(void)
 
 void paranoidLogMonitor(void *)
 {
-#ifdef _UNIX
-	Xtime xtime;
+#if defined(__unix__) || defined(__APPLE__) || defined(__linux__)
+        Xtime xtime;
 	time_t curtime;
 	//char timebuf[40];
 	char filenamebuf[128];
@@ -395,10 +397,10 @@ void rotateParanoid(void)
 	sprintf(filenamebuf, "%s/%02d%02d%04d_%02d%02d%02d_log", logpath.get(),
 	        xtime.getMonth(), xtime.getMDay(), xtime.getYear(), xtime.getHour(),
 	        xtime.getMinute(), xtime.getSecond());
-#ifdef _WINDOWS
-	mkdir(logpath.get());
+#if defined(_WIN32) && !defined(__unix__) && !defined(__APPLE__)
+        _mkdir(logpath.get());
 #else
-	mkdir(logpath.get(), 00666);
+        mkdir(logpath.get(), 0755);
 #endif
 	rename(newfilename.get(), filenamebuf);
 
