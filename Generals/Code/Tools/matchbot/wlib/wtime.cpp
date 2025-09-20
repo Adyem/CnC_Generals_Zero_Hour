@@ -35,7 +35,7 @@ static char *FULLMONTHS[]={"January","February","March","April","May","June",
                "July","August","September","October","November","December"};
 
 // MDC: Windows doesn't provide a localtime_r, so make our own...
-#ifdef _WINDOWS
+#if defined(_WIN32) && !defined(__unix__) && !defined(__APPLE__)
 #ifdef _REENTRANT
 #include "critsec.h"
 static CritSec localtime_critsec;
@@ -54,7 +54,7 @@ static struct tm *localtime_r(const time_t *clockval, struct tm *res) {
 #endif
 	return res;
 }
-#endif // _WINDOWS
+#endif // platform-specific localtime_r
 
 Wtime::Wtime(void)
 {
@@ -82,19 +82,18 @@ Wtime::~Wtime()
 void Wtime::Update(void)
 {
  sign=POSITIVE;
- #ifdef _WINDOWS
-  struct _timeb    wintime;
-  _ftime(&wintime);
-  sec=wintime.time;
-  usec=(wintime.millitm)*1000;
- #endif
- #ifndef _WINDOWS
+#if defined(__unix__) || defined(__APPLE__) || defined(__linux__)
   struct timeval   unixtime;
   struct timezone  unixtzone;
   gettimeofday(&unixtime,&unixtzone);
   sec=unixtime.tv_sec;
   usec=unixtime.tv_usec;
- #endif
+#else
+  struct _timeb    wintime;
+  _ftime(&wintime);
+  sec=wintime.time;
+  usec=(wintime.millitm)*1000;
+#endif
 }
 
 

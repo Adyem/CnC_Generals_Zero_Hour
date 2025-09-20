@@ -25,14 +25,16 @@
 #include <errno.h>
 #include <string.h>
 
-#ifdef _WINDOWS
-#include <winsock.h>
+#if defined(_WIN32) && !defined(__unix__) && !defined(__APPLE__)
+#define UDP_PLATFORM_WINDOWS 1
+#include <winsock2.h>
 #include <io.h>
 #define close _close
 #define read  _read
 #define write _write
 
-#else  //UNIX
+#else  // POSIX
+#define UDP_PLATFORM_WINDOWS 0
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -50,8 +52,8 @@
 
 #define DEFAULT_PROTOCOL 0
 
-#include <wlib/wstypes.h>
-#include <wlib/wtime.h>
+#include "../wlib/wstypes.h"
+#include "../wlib/wtime.h"
 
 class UDP
 {

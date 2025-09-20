@@ -31,15 +31,17 @@ TCP                   Neal Kettler        neal@westwood.com
 #include <string.h>
 #include <assert.h>
 
-#ifdef _WINDOWS
+#if defined(_WIN32) && !defined(__unix__) && !defined(__APPLE__)
+#define TCP_PLATFORM_WINDOWS 1
 
-#include <winsock.h>
+#include <winsock2.h>
 #include <io.h>
 #define close _close
 #define read  _read
 #define write _write
 
-#else  //UNIX
+#else  // POSIX
+#define TCP_PLATFORM_WINDOWS 0
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -61,9 +63,9 @@ typedef signed int SOCKET;
 
 #define DEFAULT_PROTOCOL 0
 
-#include "wlib/wstypes.h"
-#include "wlib/wdebug.h"
-#include "wlib/wtime.h"
+#include "../wlib/wstypes.h"
+#include "../wlib/wdebug.h"
+#include "../wlib/wtime.h"
 
 class TCP
 {

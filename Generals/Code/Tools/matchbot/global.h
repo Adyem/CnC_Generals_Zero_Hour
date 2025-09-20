@@ -19,18 +19,18 @@
 #ifndef __GLOBAL_H__
 #define __GLOBAL_H__
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__unix__) && !defined(__APPLE__)
 #include <process.h>
 #ifdef IN
 #undef IN
 #endif
 #define IN const
 #endif
-#include <wstypes.h>
-#include <configfile.h>
-#include <critsec.h>
-#include <threadfac.h>
-#include <tcp.h>
+#include "wlib/wstypes.h"
+#include "wlib/configfile.h"
+#include "wlib/critsec.h"
+#include "wlib/threadfac.h"
+#include "wnet/tcp.h"
 #include "matcher.h"
 #include "rand.h"
 

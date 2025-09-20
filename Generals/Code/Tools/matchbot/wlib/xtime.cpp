@@ -29,7 +29,7 @@ long long after you'll be dead.
 
 #include <ctype.h>
 #include <time.h>
-#ifndef _WINDOWS
+#if defined(__unix__) || defined(__APPLE__) || defined(__linux__)
 #include <sys/time.h>
 #endif
 #include "xtime.h"
@@ -286,19 +286,18 @@ void Xtime::update(void)
   day_=719528;  // day_s from year 0 to Jan1, 1970
   msec_=0;
 
- #ifdef _WINDOWS
-  struct _timeb    wintime;
-  _ftime(&wintime);
-  addSeconds(wintime.time);
-  msec_+=wintime.millitm;
- #endif
- #ifndef _WINDOWS
+#if defined(__unix__) || defined(__APPLE__) || defined(__linux__)
   struct timeval   unixtime;
   struct timezone  unixtzone;
   gettimeofday(&unixtime,&unixtzone);
   addSeconds(unixtime.tv_sec);
   msec_+=(unixtime.tv_usec/1000);
- #endif
+#else
+  struct _timeb    wintime;
+  _ftime(&wintime);
+  addSeconds(wintime.time);
+  msec_+=wintime.millitm;
+#endif
 
   // Now normalize in case msec is > 1 days worth
   normalize();

@@ -19,7 +19,7 @@
 #ifndef __GENERALS_H__
 #define __GENERALS_H__
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__unix__) && !defined(__APPLE__)
 #include <process.h>
 #endif
 //#include <wstring.h>

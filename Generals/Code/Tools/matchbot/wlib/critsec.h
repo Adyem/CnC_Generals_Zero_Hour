@@ -20,12 +20,15 @@
 #define CRITSEC_HEADER
 
 #include "wstypes.h"
-#ifdef _WIN32
- #include <windows.h>
- #include <winbase.h>
-#elif defined(_UNIX)
-  #include <pthread.h>
-  #include <errno.h>
+
+#if defined(_WIN32) && !defined(__unix__) && !defined(__APPLE__)
+#define CRITSEC_PLATFORM_WINDOWS 1
+#include <windows.h>
+#include <winbase.h>
+#else
+#define CRITSEC_PLATFORM_WINDOWS 0
+#include <pthread.h>
+#include <errno.h>
 #endif
 
 // Windows headers have a tendency to redefine IN
@@ -50,7 +53,7 @@ class CritSec
   sint32		unlock(void) RO;
 
  protected:
-  #ifdef _WIN32
+  #if CRITSEC_PLATFORM_WINDOWS
     mutable CRITICAL_SECTION    CritSec_;
   #else
     mutable pthread_mutex_t	Mutex_;         // Mutex lock

@@ -55,23 +55,23 @@ will you be ready to leave grasshopper.
 
 #define USE_SEM
 
-#include "wstypes.h"
+#include "wlib/wstypes.h"
 
-#ifdef _WINDOWS
+#if defined(_WIN32) && !defined(__unix__) && !defined(__APPLE__)
 #include <windows.h>
 #endif
 #include <iostream>
 
 #ifdef USE_SEM
-#include "sem4.h"
+#include "wlib/sem4.h"
 #else
-#include "critsec.h"
+#include "wlib/critsec.h"
 #endif
-#include "odevice.h"
-#include "streamer.h"
-#include "xtime.h"
-#include "timezone.h" // MDC
-#include "filed.h"
+#include "wlib/odevice.h"
+#include "wlib/streamer.h"
+#include "wlib/xtime.h"
+#include "wlib/timezone.h" // MDC
+#include "wlib/filed.h"
 
 // This is needed because the streams return a pointer.  Every time you
 //  change the output device the old stream is deleted, and a new one

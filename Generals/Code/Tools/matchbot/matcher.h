@@ -19,19 +19,19 @@
 #ifndef __MATCHER_H__
 #define __MATCHER_H__
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__unix__) && !defined(__APPLE__)
 #include <process.h>
 #endif
-#include <configfile.h>
-#include <critsec.h>
-#include <threadfac.h>
-#include <tcp.h>
+#include "wlib/configfile.h"
+#include "wlib/critsec.h"
+#include "wlib/threadfac.h"
+#include "wnet/tcp.h"
 #include <cstdarg>
-#include <sem4.h>
+#include "wlib/sem4.h"
 
 #include <string>
 
-#include <peer/peer.h>
+#include "peer/peer.h"
 
 class MatcherClass
 {
