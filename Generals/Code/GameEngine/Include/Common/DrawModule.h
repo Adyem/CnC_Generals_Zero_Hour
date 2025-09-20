@@ -38,6 +38,7 @@
 #include "Common/ModelState.h"
 #include "GameClient/Color.h"
 #include "GameClient/Shadow.h"
+#include "GameClient/TerrainDecal.h"
 
 // FORWARD REFERENCES /////////////////////////////////////////////////////////////////////////////
 class Matrix3D;
@@ -55,7 +56,6 @@ class TracerDrawInterface;
 class RopeDrawInterface;
 class LaserDrawInterface;
 class FXList;
-enum TerrainDecalType;
 
 //class ModelConditionFlags;
 

@@ -26,6 +26,7 @@
 #pragma once
 
 #include "Common/MessageStream.h"
+#include "Common/SystemTime.h"
 #include "GameNetwork/GameInfo.h"
 
 /**
@@ -87,8 +88,8 @@ public:
 	{
 		AsciiString filename;
 		Bool forPlayback;
-		UnicodeString replayName;
-		SYSTEMTIME timeVal;
+                UnicodeString replayName;
+                SystemTime timeVal;
 		UnicodeString versionString;
 		UnicodeString versionTimeString;
 		UnsignedInt versionNumber;

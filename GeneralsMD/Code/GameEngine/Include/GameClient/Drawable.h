@@ -37,6 +37,7 @@
 #include "Common/Thing.h"
 #include "Common/Geometry.h"
 #include "GameClient/Color.h"
+#include "GameClient/TerrainDecal.h"
 #include "WWMath/matrix3d.h"
 #include "GameClient/DrawableInfo.h"
 
@@ -247,34 +248,6 @@ enum TintStatus
 	TINT_STATUS_FRENZY			= 0x00000010,///< When frenzied, we tint FRENZY_COLOR
 
 };
-
-//-----------------------------------------------------------------------------
-//Keep this enum in sync with the TerrainDecalTextureName array in drawable.cpp
-//
-// Note: these values are saved in save files, so you MUST NOT REMOVE OR CHANGE
-// existing values!
-//
-enum TerrainDecalType
-{
-#ifdef ALLOW_DEMORALIZE
-	TERRAIN_DECAL_DEMORALIZED = 0,
-#else
-	TERRAIN_DECAL_DEMORALIZED_OBSOLETE = 0,
-#endif
-	TERRAIN_DECAL_HORDE,
-	TERRAIN_DECAL_HORDE_WITH_NATIONALISM_UPGRADE,
-	TERRAIN_DECAL_HORDE_VEHICLE,
-	TERRAIN_DECAL_HORDE_WITH_NATIONALISM_UPGRADE_VEHICLE,
-	TERRAIN_DECAL_CRATE,
-    TERRAIN_DECAL_HORDE_WITH_FANATICISM_UPGRADE,
-	TERRAIN_DECAL_CHEMSUIT,
-	TERRAIN_DECAL_NONE,
-	TERRAIN_DECAL_SHADOW_TEXTURE,	//use the shadow texture as the terrain decal.
-
-	TERRAIN_DECAL_MAX	///< keep this last
-};
-
-//-----------------------------------------------------------------------------
 
 const Int DRAWABLE_FRAMES_PER_FLASH = LOGICFRAMES_PER_SECOND / 2;
 

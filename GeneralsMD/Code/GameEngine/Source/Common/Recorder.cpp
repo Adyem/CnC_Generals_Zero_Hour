@@ -30,6 +30,7 @@
 #include "Common/Player.h"
 #include "Common/GlobalData.h"
 #include "Common/GameEngine.h"
+#include "Common/SystemTime.h"
 #include "GameClient/GameWindow.h"
 #include "GameClient/GameWindowManager.h"
 #include "GameClient/InGameUI.h"
@@ -578,10 +579,9 @@ void RecorderClass::startRecording(GameDifficulty diff, Int originalGameMode, In
 	fwprintf(m_file, L"%ws", replayName.str());
 	fputwc(0, m_file);
 
-	// Date and Time
-	SYSTEMTIME systemTime;
-	GetLocalTime( &systemTime );
-	fwrite(&systemTime, sizeof(SYSTEMTIME), 1, m_file);
+        // Date and Time
+        SystemTime systemTime = getCurrentSystemTime();
+        fwrite(&systemTime, sizeof(SystemTime), 1, m_file);
 
 	// write out version info
 	UnicodeString versionString = TheVersion->getUnicodeVersion();
@@ -852,7 +852,7 @@ Bool RecorderClass::readReplayHeader(ReplayHeader& header)
 	header.replayName = readUnicodeString();
 
 	// Read the date and time.  We don't really do anything with this either. Oh well.
-	fread(&header.timeVal, sizeof(SYSTEMTIME), 1, m_file);
+        fread(&header.timeVal, sizeof(SystemTime), 1, m_file);
 
 	// Read in the Version info
 	header.versionString = readUnicodeString();

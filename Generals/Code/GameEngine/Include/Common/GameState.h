@@ -36,6 +36,7 @@
 #include "Common/STLTypedefs.h"
 #include "Common/Snapshot.h"
 #include "Common/SubsystemInterface.h"
+#include "Common/SystemTime.h"
 #include "Common/UnicodeString.h"
 #include "GameNetwork/NetworkDefs.h"
 
@@ -240,8 +241,8 @@ private:
 extern GameState *TheGameState;	
 
 
-UnicodeString getUnicodeTimeBuffer(SYSTEMTIME timeVal); 
-UnicodeString getUnicodeDateBuffer(SYSTEMTIME timeVal); 
+UnicodeString getUnicodeTimeBuffer(const SystemTime& timeVal);
+UnicodeString getUnicodeDateBuffer(const SystemTime& timeVal);
 
 
 #endif  // end __GAME_STATE_H_
