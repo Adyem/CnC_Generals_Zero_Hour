@@ -39,9 +39,9 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-const char* DamageTypeFlags::s_bitNameList[] = 
+const char* DamageTypeFlags::s_bitNameList[] =
 {
-	"EXPLOSION",			
+        "EXPLOSION",
 	"CRUSH",					
 	"ARMOR_PIERCING",
 	"SMALL_ARMS",		
@@ -80,8 +80,38 @@ const char* DamageTypeFlags::s_bitNameList[] =
 	"KILL_GARRISONED",
 	"STATUS",
 
-	NULL
+        NULL
 };
+
+const char *const TheDeathNames[DEATH_NUM_TYPES + 1] =
+{
+        "NORMAL",
+        "NONE",
+        "CRUSHED",
+        "BURNED",
+        "EXPLODED",
+        "POISONED",
+        "TOPPLED",
+        "FLOODED",
+        "SUICIDED",
+        "LASERED",
+        "DETONATED",
+        "SPLATTED",
+        "POISONED_BETA",
+        "EXTRA_2",
+        "EXTRA_3",
+        "EXTRA_4",
+        "EXTRA_5",
+        "EXTRA_6",
+        "EXTRA_7",
+        "EXTRA_8",
+        "POISONED_GAMMA",
+
+        NULL
+};
+
+static_assert((sizeof(TheDeathNames) / sizeof(*TheDeathNames)) == DEATH_NUM_TYPES + 1,
+        "TheDeathNames must match DEATH_NUM_TYPES plus terminator");
 
 DamageTypeFlags DAMAGE_TYPE_FLAGS_NONE; 	// inits to all zeroes
 DamageTypeFlags DAMAGE_TYPE_FLAGS_ALL;
