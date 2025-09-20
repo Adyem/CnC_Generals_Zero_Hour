@@ -59,6 +59,8 @@
 #include "GameLogic/SidesList.h"
 #include "GameLogic/TerrainLogic.h"
 
+#include <cwchar>
+
 #ifdef _INTERNAL
 // for occasional debugging...
 //#pragma optimize("", off)
@@ -210,71 +212,33 @@ GameState::SnapshotBlock *GameState::findBlockInfoByToken( AsciiString token, Sn
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-UnicodeString getUnicodeDateBuffer(SYSTEMTIME timeVal) 
-{
-	// setup date buffer for local region date format
-	#define DATE_BUFFER_SIZE 256
-	OSVERSIONINFO	osvi;
-	osvi.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
-	UnicodeString displayDateBuffer;
-	if (GetVersionEx(&osvi))
-	{	//check if we're running Win9x variant since they may need different characters
-		if (osvi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
-		{		
-			char dateBuffer[ DATE_BUFFER_SIZE ];
-			GetDateFormat( LOCALE_SYSTEM_DEFAULT,
-										 DATE_SHORTDATE,
-										 &timeVal,
-										 NULL,
-										 dateBuffer, sizeof(dateBuffer) );
-			displayDateBuffer.translate(dateBuffer);
-			return displayDateBuffer;
-		}	
-	}
-	wchar_t dateBuffer[ DATE_BUFFER_SIZE ];
-	GetDateFormatW( LOCALE_SYSTEM_DEFAULT,
-								 DATE_SHORTDATE,
-								 &timeVal,
-								 NULL,
-								 dateBuffer, sizeof(dateBuffer) );
-	displayDateBuffer.set(dateBuffer);
-	return displayDateBuffer;
-	//displayDateBuffer.format( L"%ls", dateBuffer );
-}															
 
-UnicodeString getUnicodeTimeBuffer(SYSTEMTIME timeVal) 
+UnicodeString getUnicodeDateBuffer(const SystemTime& timeVal)
 {
-	// setup time buffer for local region time format
-	UnicodeString displayTimeBuffer;
-	OSVERSIONINFO	osvi;
-	osvi.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
-	if (GetVersionEx(&osvi))
-	{	//check if we're running Win9x variant since they may need different characters
-		if (osvi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
-		{		
-			char timeBuffer[ DATE_BUFFER_SIZE ];
-			GetTimeFormat( LOCALE_SYSTEM_DEFAULT,
-										 TIME_NOSECONDS|TIME_FORCE24HOURFORMAT|TIME_NOTIMEMARKER,
-										 &timeVal,
-										 NULL,
-										 timeBuffer, sizeof(timeBuffer) );
-			displayTimeBuffer.translate(timeBuffer);
-			return displayTimeBuffer;
-		}
-	}
-	// setup time buffer for local region time format
-	#define TIME_BUFFER_SIZE 256
-	wchar_t timeBuffer[ TIME_BUFFER_SIZE ];
-	GetTimeFormatW( LOCALE_SYSTEM_DEFAULT,
-								 TIME_NOSECONDS,
-								 &timeVal,
-								 NULL,
-								 timeBuffer,
-								 sizeof(timeBuffer) );
-	displayTimeBuffer.set(timeBuffer);
-	return displayTimeBuffer;
+        UnicodeString displayDateBuffer;
+        WideChar dateBuffer[32];
+        std::swprintf(dateBuffer,
+                sizeof(dateBuffer) / sizeof(WideChar),
+                L"%04u-%02u-%02u",
+                static_cast<unsigned>(timeVal.year),
+                static_cast<unsigned>(timeVal.month),
+                static_cast<unsigned>(timeVal.day));
+        displayDateBuffer.set(dateBuffer);
+        return displayDateBuffer;
 }
 
+UnicodeString getUnicodeTimeBuffer(const SystemTime& timeVal)
+{
+        UnicodeString displayTimeBuffer;
+        WideChar timeBuffer[32];
+        std::swprintf(timeBuffer,
+                sizeof(timeBuffer) / sizeof(WideChar),
+                L"%02u:%02u",
+                static_cast<unsigned>(timeVal.hour),
+                static_cast<unsigned>(timeVal.minute));
+        displayTimeBuffer.set(timeBuffer);
+        return displayTimeBuffer;
+}
 
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
@@ -1179,7 +1143,7 @@ void GameState::populateSaveGameListbox( GameWindow *listbox, SaveLoadLayoutType
 	// add all games found to the list box
 	AvailableGameInfo *info;
 	SaveGameInfo *saveGameInfo;
-	SYSTEMTIME systemTime;
+	SystemTime systemTime{};
 	UnsignedInt count = 0;
 	for( info = m_availableGames; info; info = info->next, count++ )
 	{
@@ -1188,14 +1152,14 @@ void GameState::populateSaveGameListbox( GameWindow *listbox, SaveLoadLayoutType
 		saveGameInfo = &info->saveGameInfo;
 
 		// setup a system time structure given the data we saved in the file
-		systemTime.wYear = saveGameInfo->date.year;
-		systemTime.wMonth = saveGameInfo->date.month;
-		systemTime.wDayOfWeek = saveGameInfo->date.dayOfWeek;
-		systemTime.wDay = saveGameInfo->date.day;
-		systemTime.wHour = saveGameInfo->date.hour;
-		systemTime.wMinute = saveGameInfo->date.minute;
-		systemTime.wSecond = saveGameInfo->date.second;
-		systemTime.wMilliseconds = saveGameInfo->date.milliseconds;
+		systemTime.year = saveGameInfo->date.year;
+		systemTime.month = saveGameInfo->date.month;
+		systemTime.dayOfWeek = saveGameInfo->date.dayOfWeek;
+		systemTime.day = saveGameInfo->date.day;
+		systemTime.hour = saveGameInfo->date.hour;
+		systemTime.minute = saveGameInfo->date.minute;
+		systemTime.second = saveGameInfo->date.second;
+		systemTime.milliseconds = saveGameInfo->date.milliseconds;
 
 		// setup date buffer for local region date format
 		UnicodeString displayDateBuffer = getUnicodeDateBuffer(systemTime);
@@ -1584,17 +1548,17 @@ void GameState::xfer( Xfer *xfer )
 	}  // end if
 
 	// current system time
-	SYSTEMTIME systemTime;
+	SystemTime systemTime{};
 	GetLocalTime( &systemTime );
 
 	// date and time
-	saveGameInfo->date.year = systemTime.wYear;
+	saveGameInfo->date.year = systemTime.year;
 	xfer->xferUnsignedShort( &saveGameInfo->date.year );
-	saveGameInfo->date.month = systemTime.wMonth;
+	saveGameInfo->date.month = systemTime.month;
 	xfer->xferUnsignedShort( &saveGameInfo->date.month );
 	saveGameInfo->date.day = systemTime.wDay;
 	xfer->xferUnsignedShort( &saveGameInfo->date.day );
-	saveGameInfo->date.dayOfWeek = systemTime.wDayOfWeek;
+	saveGameInfo->date.dayOfWeek = systemTime.dayOfWeek;
 	xfer->xferUnsignedShort( &saveGameInfo->date.dayOfWeek );
 	saveGameInfo->date.hour = systemTime.wHour;
 	xfer->xferUnsignedShort( &saveGameInfo->date.hour );

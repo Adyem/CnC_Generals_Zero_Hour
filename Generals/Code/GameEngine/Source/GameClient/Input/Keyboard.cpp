@@ -35,6 +35,8 @@
 #include "GameClient/Keyboard.h"
 #include "GameClient/KeyDefs.h"
 
+#include <cstdint>
+
 
 // PUBLIC DATA ////////////////////////////////////////////////////////////////////////////////////
 Keyboard *TheKeyboard = NULL;
@@ -346,16 +348,19 @@ void Keyboard::initKeyNames( void )
 
 	_set_keyname_(L' ',		L' ',		L'\0',	KEY_SPACE  );
 
-	HKL kLayout = GetKeyboardLayout(0);
-
-	Int low = (UnsignedInt)kLayout & 0xFFFF;
 	LanguageID currentLanguage = OurLanguage;
+#if defined(_WIN32)
+	HKL kLayout = GetKeyboardLayout(0);
+	Int low = static_cast<Int>(reinterpret_cast<std::uintptr_t>(kLayout) & 0xFFFF);
 	if(low == 0x040c
 		 || low == 0x080c
 		 || low == 0x0c0c
 		 || low == 0x100c
 		 || low == 0x140c)
+	{
 		currentLanguage = LANGUAGE_ID_FRENCH;
+	}
+#endif
 
 	switch( currentLanguage )
 	{
@@ -992,8 +997,8 @@ Bool Keyboard::isAlt()
 
 WideChar Keyboard::getPrintableKey( UnsignedByte key,  Int state )
 {
-	if((key < 0 || key >=KEY_NAMES_COUNT) || ( state < 0 || state >= MAX_KEY_STATES))
-		return L'';
+        if((key < 0 || key >=KEY_NAMES_COUNT) || ( state < 0 || state >= MAX_KEY_STATES))
+                return L'\0';
 	if(state == 0)
 		return m_keyNames[key].stdKey;
 	else if(state == 1)

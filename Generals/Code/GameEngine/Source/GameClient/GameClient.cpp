@@ -77,6 +77,16 @@
 #include "GameClient/VideoPlayer.h"
 #include "GameClient/WindowXlat.h"
 #include "GameLogic/FPUControl.h"
+
+#include <cstdint>
+
+#if defined(__linux__)
+#include <sys/sysinfo.h>
+#elif defined(__APPLE__)
+#include <mach/mach.h>
+#include <mach/mach_host.h>
+#include <sys/sysctl.h>
+#endif
 #include "GameLogic/GameLogic.h"
 #include "GameLogic/GhostObject.h"
 #include "GameLogic/Object.h"
@@ -91,6 +101,84 @@
 
 /// The GameClient singleton instance
 GameClient *TheGameClient = NULL;
+
+namespace
+{
+
+struct MemorySnapshot
+{
+        std::uint64_t availPageFile = 0;
+        std::uint64_t availPhys = 0;
+        std::uint64_t availVirtual = 0;
+};
+
+MemorySnapshot CaptureMemorySnapshot()
+{
+        MemorySnapshot snapshot{};
+
+#if defined(_WIN32)
+        MEMORYSTATUS status{};
+        status.dwLength = sizeof(status);
+        GlobalMemoryStatus(&status);
+        snapshot.availPageFile = status.dwAvailPageFile;
+        snapshot.availPhys = status.dwAvailPhys;
+        snapshot.availVirtual = status.dwAvailVirtual;
+#elif defined(__linux__)
+        struct sysinfo info
+        {
+        };
+        if (sysinfo(&info) == 0)
+        {
+                snapshot.availPageFile = static_cast<std::uint64_t>(info.freeswap) * info.mem_unit;
+                snapshot.availPhys = static_cast<std::uint64_t>(info.freeram) * info.mem_unit;
+                snapshot.availVirtual = static_cast<std::uint64_t>(info.totalswap) * info.mem_unit;
+        }
+#elif defined(__APPLE__)
+        int64_t pageSize = 0;
+        size_t length = sizeof(pageSize);
+        if (sysctlbyname("hw.pagesize", &pageSize, &length, nullptr, 0) == 0 && pageSize > 0)
+        {
+                mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
+                vm_statistics64_data_t stats{};
+                if (host_statistics64(mach_host_self(), HOST_VM_INFO64, reinterpret_cast<host_info64_t>(&stats), &count) == KERN_SUCCESS)
+                {
+                        const std::uint64_t pageBytes = static_cast<std::uint64_t>(pageSize);
+                        snapshot.availPhys = static_cast<std::uint64_t>(stats.free_count) * pageBytes;
+                        snapshot.availVirtual = snapshot.availPhys;
+                        snapshot.availPageFile = 0;
+                }
+        }
+#endif
+
+        return snapshot;
+}
+
+void LogMemoryDelta(const MemorySnapshot& before, const MemorySnapshot& after)
+{
+#if defined(DEBUG_LOGGING)
+        const long long pageFileDelta = static_cast<long long>(before.availPageFile) - static_cast<long long>(after.availPageFile);
+        const long long physDelta = static_cast<long long>(before.availPhys) - static_cast<long long>(after.availPhys);
+        const long long virtualDelta = static_cast<long long>(before.availVirtual) - static_cast<long long>(after.availVirtual);
+
+        DEBUG_LOG(("Preloading memory availPageFile %llu --> %llu : %lld\n",
+                static_cast<unsigned long long>(before.availPageFile),
+                static_cast<unsigned long long>(after.availPageFile),
+                pageFileDelta));
+        DEBUG_LOG(("Preloading memory availPhys     %llu --> %llu : %lld\n",
+                static_cast<unsigned long long>(before.availPhys),
+                static_cast<unsigned long long>(after.availPhys),
+                physDelta));
+        DEBUG_LOG(("Preloading memory availVirtual  %llu --> %llu : %lld\n",
+                static_cast<unsigned long long>(before.availVirtual),
+                static_cast<unsigned long long>(after.availVirtual),
+                virtualDelta));
+#else
+        static_cast<void>(before);
+        static_cast<void>(after);
+#endif
+}
+
+} // namespace
 
 //-------------------------------------------------------------------------------------------------
 GameClient::GameClient()
@@ -430,8 +518,8 @@ void GameClient::init( void )
 void GameClient::reset( void )
 {
 	Drawable *draw, *nextDraw;
-	m_drawableHash.clear();
-	m_drawableHash.resize(DRAWABLE_HASH_SIZE);
+    m_drawableHash.clear();
+    m_drawableHash.reserve(DRAWABLE_HASH_SIZE);
 	
 	// need to reset the in game UI to clear drawables before they are destroyed
 	TheInGameUI->reset();
@@ -1011,9 +1099,7 @@ void GameClient::allocateShadows(void)
 //-------------------------------------------------------------------------------------------------
 void GameClient::preloadAssets( TimeOfDay timeOfDay )
 {
-
-	MEMORYSTATUS before, after;
-	GlobalMemoryStatus(&before);
+	MemorySnapshot before = CaptureMemorySnapshot();
 
 	// first, for every drawable in the map load the assets for all states we care about
 	Drawable *draw;
@@ -1024,13 +1110,12 @@ void GameClient::preloadAssets( TimeOfDay timeOfDay )
 	// now create a temporary drawble for each of the faction things we can create, preload
 	// their assets, and dump the drawable
 	//
-	AsciiString side;
-	const ThingTemplate *tTemplate;
-	for( tTemplate = TheThingFactory->firstTemplate();
-			 tTemplate;
-			 tTemplate = tTemplate->friend_getNextTemplate() )
+        const ThingTemplate *tTemplate;
+        for( tTemplate = TheThingFactory->firstTemplate();
+                tTemplate;
+                tTemplate = tTemplate->friend_getNextTemplate() )
 	{
-			
+
 		// if this isn't one of the objects that can be preloaded ignore it
 		if( tTemplate->isKindOf( KINDOF_PRELOAD ) == FALSE && !TheGlobalData->m_preloadEverything )
 			continue;
@@ -1049,57 +1134,28 @@ void GameClient::preloadAssets( TimeOfDay timeOfDay )
 		}  // end if
 
 	}  // end for
-	GlobalMemoryStatus(&after);
 
-	DEBUG_LOG(("Preloading memory dwAvailPageFile %d --> %d : %d\n",
-		before.dwAvailPageFile, after.dwAvailPageFile, before.dwAvailPageFile - after.dwAvailPageFile));
-	DEBUG_LOG(("Preloading memory dwAvailPhys     %d --> %d : %d\n",
-		before.dwAvailPhys, after.dwAvailPhys, before.dwAvailPhys - after.dwAvailPhys));
-	DEBUG_LOG(("Preloading memory dwAvailVirtual  %d --> %d : %d\n",
-		before.dwAvailVirtual, after.dwAvailVirtual, before.dwAvailVirtual - after.dwAvailVirtual));
-	/*
-	DEBUG_LOG(("Preloading memory dwLength        %d --> %d : %d\n",
-		before.dwLength, after.dwLength, before.dwLength - after.dwLength));
-	DEBUG_LOG(("Preloading memory dwMemoryLoad    %d --> %d : %d\n",
-		before.dwMemoryLoad, after.dwMemoryLoad, before.dwMemoryLoad - after.dwMemoryLoad));
-	DEBUG_LOG(("Preloading memory dwTotalPageFile %d --> %d : %d\n",
-		before.dwTotalPageFile, after.dwTotalPageFile, before.dwTotalPageFile - after.dwTotalPageFile));
-	DEBUG_LOG(("Preloading memory dwTotalPhys     %d --> %d : %d\n",
-		before.dwTotalPhys , after.dwTotalPhys, before.dwTotalPhys - after.dwTotalPhys));
-	DEBUG_LOG(("Preloading memory dwTotalVirtual  %d --> %d : %d\n",
-		before.dwTotalVirtual , after.dwTotalVirtual, before.dwTotalVirtual - after.dwTotalVirtual));
-	*/
+	MemorySnapshot after = CaptureMemorySnapshot();
+	LogMemoryDelta(before, after);
 
-	GlobalMemoryStatus(&before);
-	extern std::vector<AsciiString>	debrisModelNamesGlobalHack;
-	for (Int i=0; i<debrisModelNamesGlobalHack.size(); ++i)
-	{
-		TheDisplay->preloadModelAssets(debrisModelNamesGlobalHack[i]);
-	}
-	GlobalMemoryStatus(&after);
+	before = CaptureMemorySnapshot();
+        extern std::vector<AsciiString> debrisModelNamesGlobalHack;
+        for (const AsciiString& name : debrisModelNamesGlobalHack)
+        {
+                TheDisplay->preloadModelAssets(name);
+        }
+	after = CaptureMemorySnapshot();
 	debrisModelNamesGlobalHack.clear();
-
-	DEBUG_LOG(("Preloading memory dwAvailPageFile %d --> %d : %d\n",
-		before.dwAvailPageFile, after.dwAvailPageFile, before.dwAvailPageFile - after.dwAvailPageFile));
-	DEBUG_LOG(("Preloading memory dwAvailPhys     %d --> %d : %d\n",
-		before.dwAvailPhys, after.dwAvailPhys, before.dwAvailPhys - after.dwAvailPhys));
-	DEBUG_LOG(("Preloading memory dwAvailVirtual  %d --> %d : %d\n",
-		before.dwAvailVirtual, after.dwAvailVirtual, before.dwAvailVirtual - after.dwAvailVirtual));
+	LogMemoryDelta(before, after);
 
 	TheControlBar->preloadAssets( timeOfDay );
 
-	GlobalMemoryStatus(&before);
+	before = CaptureMemorySnapshot();
 	TheParticleSystemManager->preloadAssets( timeOfDay );
-	GlobalMemoryStatus(&after);
+	after = CaptureMemorySnapshot();
+	LogMemoryDelta(before, after);
 
-	DEBUG_LOG(("Preloading memory dwAvailPageFile %d --> %d : %d\n",
-		before.dwAvailPageFile, after.dwAvailPageFile, before.dwAvailPageFile - after.dwAvailPageFile));
-	DEBUG_LOG(("Preloading memory dwAvailPhys     %d --> %d : %d\n",
-		before.dwAvailPhys, after.dwAvailPhys, before.dwAvailPhys - after.dwAvailPhys));
-	DEBUG_LOG(("Preloading memory dwAvailVirtual  %d --> %d : %d\n",
-		before.dwAvailVirtual, after.dwAvailVirtual, before.dwAvailVirtual - after.dwAvailVirtual));
-
-	char *textureNames[] = {
+	const char* textureNames[] = {
 		"ptspruce01.tga",
 		"exrktflame.tga",
 		"cvlimo3_d2.tga",
@@ -1141,20 +1197,22 @@ void GameClient::preloadAssets( TimeOfDay timeOfDay )
 		""
 	};
 
-	GlobalMemoryStatus(&before);
-	for (i=0; *textureNames[i]; ++i)
-		TheDisplay->preloadTextureAssets(textureNames[i]);
-	GlobalMemoryStatus(&after);
+	before = CaptureMemorySnapshot();
+	for (const char* textureName : textureNames)
+	{
+		if (textureName[0] == '\0')
+		{
+			break;
+		}
 
-	DEBUG_LOG(("Preloading memory dwAvailPageFile %d --> %d : %d\n",
-		before.dwAvailPageFile, after.dwAvailPageFile, before.dwAvailPageFile - after.dwAvailPageFile));
-	DEBUG_LOG(("Preloading memory dwAvailPhys     %d --> %d : %d\n",
-		before.dwAvailPhys, after.dwAvailPhys, before.dwAvailPhys - after.dwAvailPhys));
-	DEBUG_LOG(("Preloading memory dwAvailVirtual  %d --> %d : %d\n",
-		before.dwAvailVirtual, after.dwAvailVirtual, before.dwAvailVirtual - after.dwAvailVirtual));
+		TheDisplay->preloadTextureAssets(textureName);
+	}
+	after = CaptureMemorySnapshot();
+	LogMemoryDelta(before, after);
 
-//	preloadTextureNamesGlobalHack2 = preloadTextureNamesGlobalHack;
-//	preloadTextureNamesGlobalHack.clear();
+	//	preloadTextureNamesGlobalHack2 = preloadTextureNamesGlobalHack;
+	//	preloadTextureNamesGlobalHack.clear();
+
 
 }  // end preloadAssets
 

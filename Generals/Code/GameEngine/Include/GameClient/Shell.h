@@ -98,14 +98,12 @@
 #define __SHELL_H_
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
+#include "GameClient/AnimateWindowManager.h"
 
 // FORWARD REFERENCES /////////////////////////////////////////////////////////////////////////////
 class WindowLayout;
-class AnimateWindowManager;
 class GameWindow;
 class ShellMenuSchemeManager;
-
-enum AnimTypes;
 
 //-------------------------------------------------------------------------------------------------
 /** This is the interface to the shell system to load, display, and
