@@ -53,10 +53,8 @@ SysTimeClass SystemTime;
  * HISTORY:                                                                                    *
  *   01/04/2003 : Created by Mark Wilczynski (EAP)                                             *
  *=============================================================================================*/
-SysTimeClass::SysTimeClass(void)
+SysTimeClass::SysTimeClass(void) : StartTime(clock_type::now())
 {
-	//tell windows we need single ms precision.
-	timeBeginPeriod(1);
 }
 
 /***********************************************************************************************
@@ -73,11 +71,7 @@ SysTimeClass::SysTimeClass(void)
  * HISTORY:                                                                                    *
  *   01/04/2003 : Created by Mark Wilczynski (EAP)                                             *
  *=============================================================================================*/
-SysTimeClass::~SysTimeClass(void)
-{
-	//tell windows we need single ms precision.
-	timeEndPeriod(1);
-}
+SysTimeClass::~SysTimeClass(void) = default;
 
 /***********************************************************************************************
  * SysTimeClass::Reset -- Reset class to good state                                            *
@@ -95,8 +89,7 @@ SysTimeClass::~SysTimeClass(void)
  *=============================================================================================*/
 void SysTimeClass::Reset(void)
 {
-	StartTime = timeGetTime();
-	WrapAdd = 0 - StartTime;
+	StartTime = clock_type::now();
 }
 
 
@@ -121,10 +114,7 @@ bool SysTimeClass::Is_Getting_Late(void)
 	** Even though the timers are all unsigned so we have a max time of 0xffffffff the game casts it to int in various places
 	** so it's safer to assume a signed max value.
 	*/
-	if (Get() > 0x6fffffff) {
-		return(true);
-	}
-	return(false);
+	return(Get_Milliseconds() > 0x6fffffffULL);
 }
 
 

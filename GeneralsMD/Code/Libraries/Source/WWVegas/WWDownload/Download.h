@@ -24,6 +24,7 @@
 //#include "../resource.h"       // main symbols
 #include "WWDownload/ftp.h"
 #include "WWDownload/downloaddefs.h"
+#include <cstdint>
 
 /////////////////////////////////////////////////////////////////////////////
 // CDownload
@@ -83,7 +84,7 @@ private:
 
 	char m_RegKey[ 256 ];
 	int  m_Status;
-	int  m_TimeStarted;
+	std::uint64_t  m_TimeStarted;
 	int  m_StartPosition;
 	int  m_FileSize;
 	int  m_BytesRead;

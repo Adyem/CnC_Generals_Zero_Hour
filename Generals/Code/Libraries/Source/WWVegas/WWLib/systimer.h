@@ -38,8 +38,8 @@
 #ifndef _SYSTIMER_H
 
 #include "always.h"
-#include <windows.h>
-#include "mmsys.h"
+#include <chrono>
+#include <cstdint>
 
 #define TIMEGETTIME SystemTime.Get
 
@@ -53,12 +53,16 @@ class SysTimeClass
 
 	public:
 
+		using clock_type = std::chrono::steady_clock;
+		using duration_type = std::chrono::milliseconds;
+
 		SysTimeClass(void);	//default constructor
 		~SysTimeClass();	//default destructor
 
 		/*
 		** Get. Use everywhere you would use timeGetTime
 		*/
+		WWINLINE std::uint64_t Get_Milliseconds(void);
 		WWINLINE unsigned long Get(void);
 		WWINLINE unsigned long operator () (void) {return(Get());}
 		WWINLINE operator unsigned long(void) {return(Get());}
@@ -75,15 +79,12 @@ class SysTimeClass
 
 	private:
 
+		duration_type Get_Duration(void);
+
 		/*
 		** Time we were first called.
 		*/
-		unsigned long StartTime;
-
-		/*
-		** Time to add after timer wraps.
-		*/
-		unsigned long WrapAdd;
+		clock_type::time_point StartTime;
 
 };
 
@@ -104,7 +105,7 @@ extern SysTimeClass SystemTime;
  * HISTORY:                                                                                    *
  *   10/25/2001 1:38PM ST : Created                                                            *
  *=============================================================================================*/
-WWINLINE unsigned long SysTimeClass::Get(void)
+WWINLINE SysTimeClass::duration_type SysTimeClass::Get_Duration(void)
 {
 	/*
 	** This has to be static here since we don't know if we will get called in a global constructor of another object before our
@@ -117,15 +118,17 @@ WWINLINE unsigned long SysTimeClass::Get(void)
 		is_init = true;
 	}
 
-	unsigned long time = timeGetTime();
-	if (time > StartTime) {
-		return(time - StartTime);
-	}
+	return std::chrono::duration_cast<duration_type>(clock_type::now() - StartTime);
+}
 
-	/*
-	** Timer wrapped around. Eeek.
-	*/
-	return(time + WrapAdd);
+WWINLINE std::uint64_t SysTimeClass::Get_Milliseconds(void)
+{
+	return static_cast<std::uint64_t>(Get_Duration().count());
+}
+
+WWINLINE unsigned long SysTimeClass::Get(void)
+{
+	return static_cast<unsigned long>(Get_Milliseconds());
 }
 
 
