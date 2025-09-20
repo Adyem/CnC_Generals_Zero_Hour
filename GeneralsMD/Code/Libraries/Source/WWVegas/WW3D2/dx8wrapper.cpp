@@ -60,7 +60,7 @@
 #include "rddesc.h"
 #include "lightenvironment.h"
 #include "statistics.h"
-#include "registry.h"
+#include "WWLib/registry.h"
 #include "boxrobj.h"
 #include "pointgr.h"
 #include "render2d.h"
@@ -1619,25 +1619,32 @@ bool DX8Wrapper::Registry_Save_Render_Device( const char * sub_key )
 
 bool DX8Wrapper::Registry_Save_Render_Device( const char *sub_key, int device, int width, int height, int depth, bool windowed, int texture_depth)
 {
-	RegistryClass * registry = W3DNEW RegistryClass( sub_key );
-	WWASSERT( registry );
+	const char *device_name = _RenderDeviceShortNameTable[device];
+	bool wrote = false;
 
-	if ( !registry->Is_Valid() ) {
-		delete registry;
-		WWDEBUG_SAY(( "Error getting Registry\n" ));
-		return false;
+	ConfigStore config_store( kRenderDeviceConfigPath );
+	if (config_store.Is_Valid()) {
+		Persist_Render_Device_Config( config_store, device_name, width, height, depth, windowed, texture_depth );
+		wrote = true;
 	}
 
-	registry->Set_String( VALUE_NAME_RENDER_DEVICE_NAME,
-		_RenderDeviceShortNameTable[device] );
-	registry->Set_Int( VALUE_NAME_RENDER_DEVICE_WIDTH,	width );
-	registry->Set_Int( VALUE_NAME_RENDER_DEVICE_HEIGHT, height );
-	registry->Set_Int( VALUE_NAME_RENDER_DEVICE_DEPTH, depth );
-	registry->Set_Int( VALUE_NAME_RENDER_DEVICE_WINDOWED, windowed );
-	registry->Set_Int( VALUE_NAME_RENDER_DEVICE_TEXTURE_DEPTH, texture_depth );
+	if (sub_key != NULL) {
+		ConfigStore legacy_store( sub_key );
+		if (legacy_store.Is_Valid()) {
+			Persist_Render_Device_Config( legacy_store, device_name, width, height, depth, windowed, texture_depth );
+			wrote = true;
+		}
+	}
 
-	delete registry;
-	return true;
+	return wrote;
+}
+
+bool DX8Wrapper::Registry_Save_Render_Device( const char * sub_key )
+{
+	int width, height, depth;
+	bool windowed;
+	Get_Device_Resolution(width, height, depth, windowed);
+	return Registry_Save_Render_Device(sub_key, CurRenderDevice, ResolutionWidth, ResolutionHeight, BitDepth, IsWindowed, TextureBitDepth);
 }
 
 bool DX8Wrapper::Registry_Load_Render_Device( const char * sub_key, bool resize_window )
@@ -1733,28 +1740,63 @@ bool DX8Wrapper::Registry_Load_Render_Device( const char * sub_key, bool resize_
 
 bool DX8Wrapper::Registry_Load_Render_Device( const char * sub_key, char *device, int device_len, int &width, int &height, int &depth, int &windowed, int &texture_depth)
 {
-	RegistryClass registry( sub_key );
-
-	if ( registry.Is_Valid() ) {
-		registry.Get_String( VALUE_NAME_RENDER_DEVICE_NAME,
-			device, device_len);
-
-		width =		registry.Get_Int( VALUE_NAME_RENDER_DEVICE_WIDTH, -1 );
-		height =		registry.Get_Int( VALUE_NAME_RENDER_DEVICE_HEIGHT, -1 );
-		depth =		registry.Get_Int( VALUE_NAME_RENDER_DEVICE_DEPTH, -1 );
-		windowed =	registry.Get_Int( VALUE_NAME_RENDER_DEVICE_WINDOWED, -1 );
-		texture_depth = registry.Get_Int( VALUE_NAME_RENDER_DEVICE_TEXTURE_DEPTH, -1 );
+	ConfigStore config_store( kRenderDeviceConfigPath );
+	if (config_store.Is_Valid() && Load_Render_Device_Config( config_store, device, device_len, width, height, depth, windowed, texture_depth )) {
 		return true;
 	}
-	*device=0;
-	width=-1;
-	height=-1;
-	depth=-1;
-	windowed=-1;
-	texture_depth=-1;
+
+	if (sub_key != NULL) {
+		ConfigStore legacy_store( sub_key );
+		if (legacy_store.Is_Valid() && Load_Render_Device_Config( legacy_store, device, device_len, width, height, depth, windowed, texture_depth )) {
+			if (config_store.Is_Valid()) {
+				Persist_Render_Device_Config( config_store, device, width, height, depth, windowed != 0, texture_depth );
+			}
+			return true;
+		}
+	}
+
 	return false;
 }
 
+bool DX8Wrapper::Registry_Load_Render_Device( const char * sub_key, bool resize_window )
+{
+	char name[ 200 ];
+	int width,height,depth,windowed;
+
+	if (Registry_Load_Render_Device( sub_key,
+			name,
+			sizeof(name),
+			width,
+			height,
+			depth,
+			windowed,
+			TextureBitDepth) &&
+		(*name != 0))
+	{
+		WWDEBUG_SAY(( "Device %s (%d X %d) %d bit windowed:%d
+", name,width,height,depth,windowed));
+
+		if (TextureBitDepth==16 || TextureBitDepth==32) {
+//			WWDEBUG_SAY(( "Texture depth %d
+", TextureBitDepth));
+		} else {
+			WWDEBUG_SAY(( "Invalid texture depth %d, switching to 16 bits
+", TextureBitDepth));
+			TextureBitDepth=16;
+		}
+
+		if ( Set_Render_Device( name, width,height,depth,windowed, resize_window ) != true) {
+			return Set_Any_Render_Device();
+		}
+
+		return true;
+	}
+
+	WWDEBUG_SAY(( "Error getting Registry
+" ));
+
+	return Set_Any_Render_Device();
+}
 
 bool DX8Wrapper::Find_Color_And_Z_Mode(int resx,int resy,int bitdepth,D3DFORMAT * set_colorbuffer,D3DFORMAT * set_backbuffer,D3DFORMAT * set_zmode)
 {
@@ -4843,3 +4885,54 @@ bool DX8Wrapper::Is_Bgfx_Active()
 {
         return g_activeBackend == GRAPHICS_BACKEND_BGFX;
 }
+#include <cstring>
+#include <limits>
+
+namespace
+{
+        constexpr char kRenderDeviceConfigPath[] = "ww3d/render_device";
+        constexpr char kRenderDeviceUnsetName[] = "__unset__";
+        constexpr int kRenderDeviceUnsetInt = std::numeric_limits<int>::min();
+
+        void Persist_Render_Device_Config( ConfigStore &store, const char *device_name, int width, int height, int depth, bool windowed, int texture_depth )
+        {
+                store.Set_String( VALUE_NAME_RENDER_DEVICE_NAME, device_name != NULL ? device_name : "" );
+                store.Set_Int( VALUE_NAME_RENDER_DEVICE_WIDTH, width );
+                store.Set_Int( VALUE_NAME_RENDER_DEVICE_HEIGHT, height );
+                store.Set_Int( VALUE_NAME_RENDER_DEVICE_DEPTH, depth );
+                store.Set_Int( VALUE_NAME_RENDER_DEVICE_WINDOWED, windowed ? 1 : 0 );
+                store.Set_Int( VALUE_NAME_RENDER_DEVICE_TEXTURE_DEPTH, texture_depth );
+        }
+
+        bool Load_Render_Device_Config( ConfigStore &store, char *device, int device_len, int &width, int &height, int &depth, int &windowed, int &texture_depth )
+        {
+                char name_buffer[200] = { 0 };
+                store.Get_String( VALUE_NAME_RENDER_DEVICE_NAME, name_buffer, device_len, kRenderDeviceUnsetName );
+
+                const int width_value = store.Get_Int( VALUE_NAME_RENDER_DEVICE_WIDTH, kRenderDeviceUnsetInt );
+                const int height_value = store.Get_Int( VALUE_NAME_RENDER_DEVICE_HEIGHT, kRenderDeviceUnsetInt );
+                const int depth_value = store.Get_Int( VALUE_NAME_RENDER_DEVICE_DEPTH, kRenderDeviceUnsetInt );
+                const int windowed_value = store.Get_Int( VALUE_NAME_RENDER_DEVICE_WINDOWED, kRenderDeviceUnsetInt );
+                const int texture_value = store.Get_Int( VALUE_NAME_RENDER_DEVICE_TEXTURE_DEPTH, kRenderDeviceUnsetInt );
+
+                if (std::strcmp( name_buffer, kRenderDeviceUnsetName ) == 0 || width_value == kRenderDeviceUnsetInt ||
+                        height_value == kRenderDeviceUnsetInt || depth_value == kRenderDeviceUnsetInt ||
+                        windowed_value == kRenderDeviceUnsetInt || texture_value == kRenderDeviceUnsetInt)
+                {
+                        return false;
+                }
+
+                if (device != NULL && device_len > 0) {
+                        std::strncpy( device, name_buffer, device_len );
+                        device[device_len - 1] = '\0';
+                }
+
+                width = width_value;
+                height = height_value;
+                depth = depth_value;
+                windowed = windowed_value;
+                texture_depth = texture_value;
+                return true;
+        }
+}
+

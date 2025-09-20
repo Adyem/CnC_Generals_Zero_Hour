@@ -49,7 +49,7 @@
 #include "SoundScene.H"
 #include "SoundPseudo3D.H"
 #include "FFactory.H"
-#include "Registry.H"
+#include "WWLib/registry.h"
 #include "Threads.H"
 #include "LogicalSound.h"
 #include "LogicalListener.h"
@@ -57,11 +57,107 @@
 #include "wwmemlog.h"
 #include "wwprofile.h"
 
+#include <cstring>
+#include <limits>
+
 
 #ifdef G_CODE_BASE
 #include "..\wwlib\argv.h"
 #endif
 
+
+namespace
+{
+    constexpr char kAudioConfigPath[] = "wwaudio/settings";
+    constexpr char kAudioDisabledKey[] = "disabled";
+    constexpr char kLegacyAudioConfigPath[] = "SOFTWARE\\Westwood\\WWAudio";
+    constexpr char kLegacyAudioDisabledKey[] = "Disabled";
+    constexpr int kAudioUnsetInt = std::numeric_limits<int>::min();
+    constexpr float kAudioUnsetFloat = std::numeric_limits<float>::lowest();
+    constexpr char kAudioUnsetString[] = "__unset__";
+
+    bool Load_Audio_Settings_From_Config(
+            ConfigStore &store,
+            StringClass &device_name,
+            bool &is_stereo,
+            int &bits,
+            int &hertz,
+            bool &sound_enabled,
+            bool &music_enabled,
+            float &sound_volume,
+            float &music_volume)
+    {
+        char temp_buffer[256] = { 0 };
+        store.Get_String( VALUE_NAME_DEVICE_NAME, temp_buffer, sizeof( temp_buffer ), kAudioUnsetString );
+        if (std::strcmp( temp_buffer, kAudioUnsetString ) == 0) {
+            return false;
+        }
+
+        const int stereo_value = store.Get_Int( VALUE_NAME_IS_STEREO, kAudioUnsetInt );
+        const int bits_value = store.Get_Int( VALUE_NAME_BITS, kAudioUnsetInt );
+        const int hertz_value = store.Get_Int( VALUE_NAME_HERTZ, kAudioUnsetInt );
+        const int sound_enabled_value = store.Get_Int( VALUE_NAME_SOUND_ENABLED, kAudioUnsetInt );
+        const int music_enabled_value = store.Get_Int( VALUE_NAME_MUSIC_ENABLED, kAudioUnsetInt );
+
+        const int music_volume_int = store.Get_Int( VALUE_NAME_MUSIC_VOL, kAudioUnsetInt );
+        const int sound_volume_int = store.Get_Int( VALUE_NAME_SOUND_VOL, kAudioUnsetInt );
+        const float music_volume_float = store.Get_Float( VALUE_NAME_MUSIC_VOL, kAudioUnsetFloat );
+        const float sound_volume_float = store.Get_Float( VALUE_NAME_SOUND_VOL, kAudioUnsetFloat );
+
+        if (stereo_value == kAudioUnsetInt || bits_value == kAudioUnsetInt || hertz_value == kAudioUnsetInt ||
+                sound_enabled_value == kAudioUnsetInt || music_enabled_value == kAudioUnsetInt)
+        {
+            return false;
+        }
+
+        const bool have_int_volumes = (music_volume_int != kAudioUnsetInt) && (sound_volume_int != kAudioUnsetInt);
+        const bool have_float_volumes = (music_volume_float != kAudioUnsetFloat) && (sound_volume_float != kAudioUnsetFloat);
+        if (!have_int_volumes && !have_float_volumes) {
+            return false;
+        }
+
+        device_name = temp_buffer;
+        is_stereo = (stereo_value != 0);
+        bits = bits_value;
+        hertz = hertz_value;
+        sound_enabled = (sound_enabled_value != 0);
+        music_enabled = (music_enabled_value != 0);
+
+        if (have_int_volumes) {
+            sound_volume = WWMath::Clamp( sound_volume_int / 100.0f, 0.0f, 1.0f );
+            music_volume = WWMath::Clamp( music_volume_int / 100.0f, 0.0f, 1.0f );
+        } else {
+            sound_volume = WWMath::Clamp( sound_volume_float, 0.0f, 1.0f );
+            music_volume = WWMath::Clamp( music_volume_float, 0.0f, 1.0f );
+        }
+
+        return true;
+    }
+
+    void Persist_Audio_Settings(
+            ConfigStore &store,
+            const StringClass &device_name,
+            bool is_stereo,
+            int bits,
+            int hertz,
+            bool sound_enabled,
+            bool music_enabled,
+            float sound_volume,
+            float music_volume)
+    {
+        const float clamped_sound = WWMath::Clamp( sound_volume, 0.0f, 1.0f );
+        const float clamped_music = WWMath::Clamp( music_volume, 0.0f, 1.0f );
+
+        store.Set_String( VALUE_NAME_DEVICE_NAME, device_name );
+        store.Set_Int( VALUE_NAME_IS_STEREO, is_stereo ? 1 : 0 );
+        store.Set_Int( VALUE_NAME_BITS, bits );
+        store.Set_Int( VALUE_NAME_HERTZ, hertz );
+        store.Set_Int( VALUE_NAME_SOUND_ENABLED, sound_enabled ? 1 : 0 );
+        store.Set_Int( VALUE_NAME_MUSIC_ENABLED, music_enabled ? 1 : 0 );
+        store.Set_Int( VALUE_NAME_SOUND_VOL, static_cast<int>( clamped_sound * 100.0f + 0.5f ) );
+        store.Set_Int( VALUE_NAME_MUSIC_VOL, static_cast<int>( clamped_music * 100.0f + 0.5f ) );
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	Static member initialization
@@ -2074,13 +2170,29 @@ WWAudioClass::Is_Disabled (void) const
 		#endif
 
 		//
-		//	Read the disabled key from the registry
+		//	Read the disabled key from configuration storage
 		//
-		RegistryClass registry ("SOFTWARE\\Westwood\\WWAudio");
-		if (registry.Is_Valid ()) {
-			if (registry.Get_Int ("Disabled", 0) == 1) {
+		ConfigStore config_store( kAudioConfigPath );
+		if (config_store.Is_Valid()) {
+			const int stored_value = config_store.Get_Int( kAudioDisabledKey, kAudioUnsetInt );
+			if (stored_value != kAudioUnsetInt) {
+				_disabled = (stored_value != 0);
+				if (_disabled) {
+					WWDEBUG_SAY (("WWAudio: Audio system disabled in configuration.\r\n"));
+				}
+			} else {
+				ConfigStore legacy_store( kLegacyAudioConfigPath );
+				if (legacy_store.Is_Valid() && legacy_store.Get_Int( kLegacyAudioDisabledKey, 0 ) == 1) {
+					_disabled = true;
+					WWDEBUG_SAY (("WWAudio: Audio system disabled in legacy registry.\r\n"));
+					config_store.Set_Bool( kAudioDisabledKey, true );
+				}
+			}
+		} else {
+			ConfigStore legacy_store( kLegacyAudioConfigPath );
+			if (legacy_store.Is_Valid() && legacy_store.Get_Int( kLegacyAudioDisabledKey, 0 ) == 1) {
 				_disabled = true;
-				WWDEBUG_SAY (("WWAudio: Audio system disabled in registry.\r\n"));
+				WWDEBUG_SAY (("WWAudio: Audio system disabled in legacy registry.\r\n"));
 			}
 		}
 	}
@@ -2610,55 +2722,60 @@ WWAudioClass::Load_From_Registry
 (
 	const char *	subkey_name,
 	StringClass &	device_name,
-	bool &			is_stereo,
-	int &				bits,
-	int &				hertz,
+	bool &		is_stereo,
+	int &			bits,
+	int &			hertz,
 	bool &			sound_enabled,
 	bool &			music_enabled,
 	float &			sound_volume,
 	float &			music_volume
 )
 {
-	bool retval = false;
-
-	//
-	//	Attempt to open the registry key
-	//
-	RegistryClass registry (subkey_name);
-	if (registry.Is_Valid ()) {
-
-		//
-		//	Read the device name into a string object
-		//
-		char temp_buffer[256] = { 0 };
-		registry.Get_String (VALUE_NAME_DEVICE_NAME, temp_buffer, sizeof (temp_buffer));
-		device_name = temp_buffer;
-
-		//
-		//	Read the 2D settings
-		//
-		is_stereo	= (registry.Get_Int (VALUE_NAME_IS_STEREO, true) == 1);
-		bits			= registry.Get_Int (VALUE_NAME_BITS, 16);
-		hertz			= registry.Get_Int (VALUE_NAME_HERTZ, 44100);
-
-		//
-		//	Read the sound/music enabled settings
-		//
-		music_enabled	= (registry.Get_Int (VALUE_NAME_MUSIC_ENABLED, 1) == 1);
-		sound_enabled	= (registry.Get_Int (VALUE_NAME_SOUND_ENABLED, 1) == 1);
-
-		//
-		//	Read the volume information
-		//
-		music_volume	= registry.Get_Int (VALUE_NAME_MUSIC_VOL, 100) / 100.0F;
-		sound_volume	= registry.Get_Int (VALUE_NAME_SOUND_VOL, 100) / 100.0F;
-		music_volume	= WWMath::Clamp (music_volume, 0, 1.0F);
-		sound_volume	= WWMath::Clamp (sound_volume, 0, 1.0F);
-
-		retval		= true;
+	ConfigStore config_store( kAudioConfigPath );
+	if (config_store.Is_Valid() && Load_Audio_Settings_From_Config(
+			config_store,
+			device_name,
+			is_stereo,
+			bits,
+			hertz,
+			sound_enabled,
+			music_enabled,
+			sound_volume,
+			music_volume ))
+	{
+		return true;
 	}
 
-	return retval;
+	if (subkey_name != NULL) {
+		ConfigStore legacy_store( subkey_name );
+		if (legacy_store.Is_Valid() && Load_Audio_Settings_From_Config(
+				legacy_store,
+				device_name,
+				is_stereo,
+				bits,
+				hertz,
+				sound_enabled,
+				music_enabled,
+				sound_volume,
+				music_volume ))
+		{
+			if (config_store.Is_Valid()) {
+				Persist_Audio_Settings(
+					config_store,
+					device_name,
+					is_stereo,
+					bits,
+					hertz,
+					sound_enabled,
+					music_enabled,
+					sound_volume,
+					music_volume );
+			}
+			return true;
+		}
+	}
+
+	return false;
 }
 
 
@@ -2705,40 +2822,51 @@ WWAudioClass::Save_To_Registry
 (
 	const char *			subkey_name,
 	const StringClass &	device_name,
-	bool						is_stereo,
-	int						bits,
-	int						hertz,
-	bool						sound_enabled,
-	bool						music_enabled,
-	float						sound_volume,
-	float						music_volume
+	bool				is_stereo,
+	int				bits,
+	int				hertz,
+	bool				sound_enabled,
+	bool				music_enabled,
+	float				sound_volume,
+	float				music_volume
 
 )
 {
-	bool retval = false;
+	bool wrote = false;
 
-	//
-	//	Attempt to open the registry key
-	//
-	RegistryClass registry (subkey_name);
-	if (registry.Is_Valid ()) {
-
-		//
-		//	Save the settings to the registry
-		//
-		registry.Set_String (VALUE_NAME_DEVICE_NAME, device_name);
-		registry.Set_Int (VALUE_NAME_IS_STEREO, is_stereo);
-		registry.Set_Int (VALUE_NAME_BITS, bits);
-		registry.Set_Int (VALUE_NAME_HERTZ, hertz);
-		registry.Set_Int (VALUE_NAME_MUSIC_ENABLED,	music_enabled);
-		registry.Set_Int (VALUE_NAME_SOUND_ENABLED,	sound_enabled);
-		registry.Set_Int (VALUE_NAME_MUSIC_VOL,		music_volume * 100);
-		registry.Set_Int (VALUE_NAME_SOUND_VOL,		sound_volume * 100);
-
-		retval = true;
+	ConfigStore config_store( kAudioConfigPath );
+	if (config_store.Is_Valid()) {
+		Persist_Audio_Settings(
+			config_store,
+			device_name,
+			is_stereo,
+			bits,
+			hertz,
+			sound_enabled,
+			music_enabled,
+			sound_volume,
+			music_volume );
+		wrote = true;
 	}
 
-	return retval;
+	if (subkey_name != NULL) {
+		ConfigStore legacy_store( subkey_name );
+		if (legacy_store.Is_Valid()) {
+			Persist_Audio_Settings(
+				legacy_store,
+				device_name,
+				is_stereo,
+				bits,
+				hertz,
+				sound_enabled,
+				music_enabled,
+				sound_volume,
+				music_volume );
+			wrote = true;
+		}
+	}
+
+	return wrote;
 }
 
 

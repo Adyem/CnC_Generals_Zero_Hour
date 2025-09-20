@@ -80,7 +80,7 @@ static void drawFramerateBar(void);
 #include "WW3D2/dx8wrapper.h"
 #include "W3DDevice/GameClient/W3DShroud.h"
 #include "WWMath/WWMath.h"
-#include "WWLib/Registry.h"
+#include "WWLib/registry.h"
 #include "WW3D2/WW3D.h"
 #include "WW3D2/PredLod.h"
 #include "WW3D2/Part_Emt.h"
@@ -1095,13 +1095,25 @@ void W3DDisplay::gatherDebugStats( void )
 
 #endif
 		// check for debug D3D
-		Bool debugD3D=false;
-		RegistryClass registry ("Software\\Microsoft\\Direct3d");
-		if (registry.Is_Valid ()) {
-			if (registry.Get_Int ("LoadDebugRuntime", 0) == 1) {
-				debugD3D = true;
-			}
-		}
+                Bool debugD3D = false;
+                ConfigStore debug_config( kW3dDebugConfigPath );
+                if (debug_config.Is_Valid()) {
+                        const int stored_value = debug_config.Get_Int( kW3dDebugRuntimeKey, kConfigUnset );
+                        if (stored_value != kConfigUnset) {
+                                debugD3D = (stored_value != 0);
+                        } else {
+                                ConfigStore legacy_config( kLegacyDebugRuntimePath );
+                                if (legacy_config.Is_Valid() && legacy_config.Get_Int( kLegacyDebugRuntimeKey, 0 ) == 1) {
+                                        debugD3D = true;
+                                        debug_config.Set_Bool( kW3dDebugRuntimeKey, true );
+                                }
+                        }
+                } else {
+                        ConfigStore legacy_config( kLegacyDebugRuntimePath );
+                        if (legacy_config.Is_Valid() && legacy_config.Get_Int( kLegacyDebugRuntimeKey, 0 ) == 1) {
+                                debugD3D = true;
+                        }
+                }
 		if (debugD3D) {
 			unibuffer.concat(L", DEBUG D3D");
 		}
@@ -3193,3 +3205,14 @@ static void drawFramerateBar(void)
 	TheDisplay->drawFillRect(1, 1, width, 15, colorToUse);
 	prevTime = now;
 }
+#include <climits>
+
+namespace
+{
+        constexpr char kW3dDebugConfigPath[] = "ww3d/debug";
+        constexpr char kW3dDebugRuntimeKey[] = "load_debug_runtime";
+        constexpr char kLegacyDebugRuntimePath[] = "Software\\Microsoft\\Direct3d";
+        constexpr char kLegacyDebugRuntimeKey[] = "LoadDebugRuntime";
+        constexpr int kConfigUnset = INT_MIN;
+}
+

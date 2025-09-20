@@ -40,6 +40,15 @@
 
 #include	"_xmouse.h"
 #include	"win.h"
+#include <cstdint>
+
+namespace sf {
+        class Event;
+}
+
+namespace WWLib {
+        class SfmlMessagePump;
+}
 
 /*
 **	The "bool" integral type was defined by the C++ comittee in
@@ -65,6 +74,7 @@ class WWKeyboardClass
 	public:
 		/* Define the base constructor and destructors for the class			*/
 		WWKeyboardClass();
+		~WWKeyboardClass();
 
 		/* Define the functions which work with the Keyboard Class				*/
 		unsigned short Check(void) const;
@@ -74,10 +84,10 @@ class WWKeyboardClass
 		char To_ASCII(unsigned short num);
 		bool Down(unsigned short key);
 
-		/* Define the main hook for the message processing loop.					*/
-		bool Message_Handler(HWND hwnd, UINT message, UINT wParam, LONG lParam);
+		void Attach_To_Message_Pump(WWLib::SfmlMessagePump &pump);
+		void Detach_From_Message_Pump(void);
 
-		/* Define the public access variables which are used with the			*/
+				/* Define the public access variables which are used with the			*/
 		/*   Keyboard Class.																	*/
 		int MouseQX;
 		int MouseQY;
@@ -107,6 +117,7 @@ class WWKeyboardClass
 		bool Put_Key_Message(unsigned short vk_key, bool release = false);
 		bool Put_Mouse_Message(unsigned short vk_key, int x, int y, bool release = false);
 		int Available_Buffer_Room(void) const;
+		void Process_Sfml_Event(const sf::Event &event);
 
 		/*
 		**	These are the tracking pointers to maintain the
@@ -114,6 +125,9 @@ class WWKeyboardClass
 		*/
 		int Head;
 		int Tail;
+
+		WWLib::SfmlMessagePump *MessagePump;
+		std::uint64_t MessagePumpListenerId;
 };
 
 

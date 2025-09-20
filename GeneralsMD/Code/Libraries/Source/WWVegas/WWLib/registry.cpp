@@ -1,746 +1,561 @@
 /*
-**	Command & Conquer Generals Zero Hour(tm)
-**	Copyright 2025 Electronic Arts Inc.
+**      Command & Conquer Generals Zero Hour(tm)
+**      Copyright 2025 Electronic Arts Inc.
 **
-**	This program is free software: you can redistribute it and/or modify
-**	it under the terms of the GNU General Public License as published by
-**	the Free Software Foundation, either version 3 of the License, or
-**	(at your option) any later version.
+**      This program is free software: you can redistribute it and/or modify
+**      it under the terms of the GNU General Public License as published by
+**      the Free Software Foundation, either version 3 of the License, or
+**      (at your option) any later version.
 **
-**	This program is distributed in the hope that it will be useful,
-**	but WITHOUT ANY WARRANTY; without even the implied warranty of
-**	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-**	GNU General Public License for more details.
+**      This program is distributed in the hope that it will be useful,
+**      but WITHOUT ANY WARRANTY; without even the implied warranty of
+**      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**      GNU General Public License for more details.
 **
-**	You should have received a copy of the GNU General Public License
-**	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+**      You should have received a copy of the GNU General Public License
+**      along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /***********************************************************************************************
  ***              C O N F I D E N T I A L  ---  W E S T W O O D  S T U D I O S               ***
  ***********************************************************************************************
  *                                                                                             *
- *                 Project Name : Westwood Library                                             *
+ *                 Project Name : Commando / G Library                                         *
  *                                                                                             *
  *                     $Archive:: /Commando/Code/wwlib/registry.cpp                           $*
  *                                                                                             *
  *                      $Author:: Steve_t                                                     $*
  *                                                                                             *
- *                     $Modtime:: 11/27/01 2:03p                                              $*
+ *                     $Modtime:: 11/21/01 3:46p                                              $*
  *                                                                                             *
- *                    $Revision:: 14                                                          $*
+ *                    $Revision:: 12                                                          $*
  *                                                                                             *
  *---------------------------------------------------------------------------------------------*
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #include "registry.h"
-#include "rawfile.h"
-#include "ini.h"
-#include "inisup.h"
-#include <assert.h>
-#include <windows.h>
 
-//#include "wwdebug.h"
+#include <algorithm>
+#include <cctype>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <iomanip>
+#include <limits>
+#include <sstream>
+#include <vector>
 
-bool RegistryClass::IsLocked = false;
-
-
-bool RegistryClass::Exists(const char* sub_key)
+namespace
 {
-	HKEY hKey;
-	LONG result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, sub_key, 0, KEY_READ, &hKey);
-
-	if (ERROR_SUCCESS == result) {
-		RegCloseKey(hKey);
-		return true;
-	}
-
-	return false;
+        int Hex_Digit( char ch )
+        {
+                if (ch >= '0' && ch <= '9') {
+                        return ch - '0';
+                }
+                if (ch >= 'a' && ch <= 'f') {
+                        return 10 + (ch - 'a');
+                }
+                if (ch >= 'A' && ch <= 'F') {
+                        return 10 + (ch - 'A');
+                }
+                return -1;
+        }
 }
 
-/*
-**
-*/
-RegistryClass::RegistryClass( const char * sub_key, bool create ) :
-	IsValid( false )
+bool ConfigStore::IsLocked = false;
+
+bool ConfigStore::Exists( const char * sub_key )
 {
-	HKEY key;
-	assert( sizeof(HKEY) == sizeof(int) );
-
-	LONG result = -1;
-
-	if (create && !IsLocked) {
-		DWORD disposition;
-		result = RegCreateKeyEx(HKEY_LOCAL_MACHINE, sub_key, 0, NULL, 0,
-			KEY_ALL_ACCESS, NULL, &key, &disposition);
-	} else {
-		result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, sub_key, 0, IsLocked ? KEY_READ : KEY_ALL_ACCESS, &key);
-	}
-
-	if (ERROR_SUCCESS == result) {
-		IsValid = true;
-		Key = (int)key;
-	}
+        return std::filesystem::exists( Resolve_Path( sub_key ) );
 }
 
-RegistryClass::~RegistryClass( void )
+ConfigStore::ConfigStore( const char * sub_key ) :
+        FilePath(),
+        IsValid( false )
 {
-	if ( IsValid ) {
-		if (::RegCloseKey( (HKEY)Key ) != ERROR_SUCCESS) {		// Close the reg key
-		}
-		IsValid = false;
-	}
+        try {
+                FilePath = Resolve_Path( sub_key );
+                std::filesystem::create_directories( FilePath.parent_path() );
+                IsValid = true;
+                std::lock_guard<std::mutex> lock( Mutex );
+                Load_Unlocked();
+        } catch ( ... ) {
+                IsValid = false;
+        }
 }
 
-int	RegistryClass::Get_Int( const char * name, int def_value )
+ConfigStore::~ConfigStore() = default;
+
+int ConfigStore::Get_Int( const char * name, int def_value )
 {
-	assert( IsValid );
-	DWORD type, data = 0, data_len = sizeof( data );
-	if (( ::RegQueryValueEx( (HKEY)Key, name, NULL, &type, (LPBYTE)&data, &data_len ) ==
-		ERROR_SUCCESS ) && ( type == REG_DWORD )) {
-	} else {
-		data = def_value;
-	}
-	return data;
+        if (!IsValid) {
+                return def_value;
+        }
+
+        std::lock_guard<std::mutex> lock( Mutex );
+        auto it = Entries.find( name != NULL ? name : "" );
+        if (it == Entries.end()) {
+                return def_value;
+        }
+
+        if (it->second.Type == ENTRY_INT || it->second.Type == ENTRY_BOOL) {
+                try {
+                        return std::stoi( it->second.Data );
+                } catch ( ... ) {
+                }
+        }
+
+        return def_value;
 }
 
-void	RegistryClass::Set_Int( const char * name, int value )
+void ConfigStore::Set_Int( const char * name, int value )
 {
-	assert( IsValid );
-	if (IsLocked) {
-		return;
-	}
-	if (::RegSetValueEx( (HKEY)Key, name, 0, REG_DWORD, (LPBYTE)&value, sizeof( DWORD ) ) !=
-			ERROR_SUCCESS) {
-	}
+        if (!IsValid || IsLocked) {
+                return;
+        }
+
+        std::lock_guard<std::mutex> lock( Mutex );
+        Set_Value_Unlocked( name != NULL ? name : "", ENTRY_INT, std::to_string( value ) );
 }
 
-
-bool	RegistryClass::Get_Bool( const char * name, bool def_value )
+bool ConfigStore::Get_Bool( const char * name, bool def_value )
 {
-	return (Get_Int( name, def_value ) != 0);
+        return (Get_Int( name, def_value ? 1 : 0 ) != 0);
 }
 
-void	RegistryClass::Set_Bool( const char * name, bool value )
+void ConfigStore::Set_Bool( const char * name, bool value )
 {
-	Set_Int( name, value ? 1 : 0 );
+        Set_Int( name, value ? 1 : 0 );
 }
 
-
-float	RegistryClass::Get_Float( const char * name, float def_value )
+float ConfigStore::Get_Float( const char * name, float def_value )
 {
-	assert( IsValid );
-	float data = 0;
-	DWORD type, data_len = sizeof( data );
-	if (( ::RegQueryValueEx( (HKEY)Key, name, NULL, &type, (LPBYTE)&data, &data_len ) ==
-		ERROR_SUCCESS ) && ( type == REG_DWORD )) {
-	} else {
-		data = def_value;
-	}
-	return data;
+        if (!IsValid) {
+                return def_value;
+        }
+
+        std::lock_guard<std::mutex> lock( Mutex );
+        auto it = Entries.find( name != NULL ? name : "" );
+        if (it == Entries.end()) {
+                return def_value;
+        }
+
+        if (it->second.Type == ENTRY_FLOAT || it->second.Type == ENTRY_INT || it->second.Type == ENTRY_BOOL) {
+                try {
+                        return std::stof( it->second.Data );
+                } catch ( ... ) {
+                }
+        }
+
+        return def_value;
 }
 
-void	RegistryClass::Set_Float( const char * name, float value )
+void ConfigStore::Set_Float( const char * name, float value )
 {
-	assert( IsValid );
-	if (IsLocked) {
-		return;
-	}
-	if (::RegSetValueEx( (HKEY)Key, name, 0, REG_DWORD, (LPBYTE)&value, sizeof( DWORD ) ) !=
-			ERROR_SUCCESS) {
-	}
+        if (!IsValid || IsLocked) {
+                return;
+        }
+
+        std::ostringstream stream;
+        stream << std::setprecision( std::numeric_limits<float>::max_digits10 ) << value;
+
+        std::lock_guard<std::mutex> lock( Mutex );
+        Set_Value_Unlocked( name != NULL ? name : "", ENTRY_FLOAT, stream.str() );
 }
 
-int RegistryClass::Get_Bin_Size( const char * name )
+int ConfigStore::Get_Bin_Size( const char * name )
 {
-	assert( IsValid );
+        if (!IsValid) {
+                return 0;
+        }
 
-	unsigned long size = 0;
-	::RegQueryValueEx( (HKEY)Key, name, NULL, NULL, NULL, &size );
-	return size;
+        std::lock_guard<std::mutex> lock( Mutex );
+        auto it = Entries.find( name != NULL ? name : "" );
+        if (it == Entries.end() || it->second.Type != ENTRY_BINARY) {
+                return 0;
+        }
+
+        return static_cast<int>( it->second.Data.length() / 2 );
 }
 
-
-void RegistryClass::Get_Bin( const char * name, void *buffer, int buffer_size )
+void ConfigStore::Get_Bin( const char * name, void *buffer, int buffer_size )
 {
-	assert( IsValid );
-	assert( buffer != NULL );
-	assert( buffer_size > 0 );
+        if (buffer == NULL || buffer_size <= 0) {
+                return;
+        }
 
-	unsigned long size = buffer_size;
-	::RegQueryValueEx( (HKEY)Key, name, NULL, NULL, (LPBYTE)buffer, &size );
-	return ;
+        std::memset( buffer, 0, buffer_size );
+
+        if (!IsValid) {
+                return;
+        }
+
+        std::lock_guard<std::mutex> lock( Mutex );
+        auto it = Entries.find( name != NULL ? name : "" );
+        if (it == Entries.end() || it->second.Type != ENTRY_BINARY) {
+                return;
+        }
+
+        std::vector<unsigned char> data = Decode_Binary( it->second.Data );
+        int copy_size = static_cast<int>( std::min<std::size_t>( data.size(), static_cast<std::size_t>( buffer_size ) ) );
+        if (copy_size > 0) {
+                std::memcpy( buffer, data.data(), copy_size );
+        }
 }
 
-void	RegistryClass::Set_Bin( const char * name, const void *buffer, int buffer_size )
+void ConfigStore::Set_Bin( const char * name, const void *buffer, int buffer_size )
 {
-	assert( IsValid );
-	assert( buffer != NULL );
-	assert( buffer_size > 0 );
+        if (!IsValid || IsLocked || buffer == NULL || buffer_size <= 0) {
+                return;
+        }
 
-	if (IsLocked) {
-		return;
-	}
-	::RegSetValueEx( (HKEY)Key, name, 0, REG_BINARY, (LPBYTE)buffer, buffer_size );
-	return ;
+        std::lock_guard<std::mutex> lock( Mutex );
+        Set_Value_Unlocked( name != NULL ? name : "", ENTRY_BINARY, Encode_Binary( buffer, buffer_size ) );
 }
 
-void	RegistryClass::Get_String( const char * name, StringClass &string, const char *default_string )
+void ConfigStore::Get_String( const char * name, StringClass &string, const char *default_string )
 {
-	assert( IsValid );
-	string = (default_string == NULL) ? "" : default_string;
+        const char * fallback = (default_string != NULL) ? default_string : "";
+        string = fallback;
 
-	//
-	//	Get the size of the entry
-	//
-	DWORD data_size = 0;
-	DWORD type = 0;
-	LONG result = ::RegQueryValueEx ((HKEY)Key, name, NULL, &type, NULL, &data_size);
-	if (result == ERROR_SUCCESS && type == REG_SZ) {
+        if (!IsValid) {
+                return;
+        }
 
-		//
-		//	Read the entry from the registry
-		//
-		::RegQueryValueEx ((HKEY)Key, name, NULL, &type,
-			(LPBYTE)string.Get_Buffer (data_size), &data_size);
-	}
+        std::lock_guard<std::mutex> lock( Mutex );
+        auto it = Entries.find( name != NULL ? name : "" );
+        if (it == Entries.end()) {
+                return;
+        }
 
-	return ;
+        if (it->second.Type == ENTRY_STRING || it->second.Type == ENTRY_WIDE_STRING) {
+                string = it->second.Data.c_str();
+        }
 }
 
-
-char *RegistryClass::Get_String( const char * name, char *value, int value_size,
-   const char * default_string )
+char * ConfigStore::Get_String( const char * name, char *value, int value_size, const char * default_string )
 {
-	assert( IsValid );
-	DWORD type = 0;
-	if (( ::RegQueryValueEx( (HKEY)Key, name, NULL, &type, (LPBYTE)value, (DWORD*)&value_size ) ==
-			ERROR_SUCCESS ) && ( type == REG_SZ )) {
-	} else {
-		//*value = 0;
-		//value = (char *) default_string;
-      if (default_string == NULL) {
-		   *value = 0;
-      } else {
-         assert(strlen(default_string) < (unsigned int) value_size);
-         strcpy(value, default_string);
-      }
-	}
-	return value;
+        if (value == NULL || value_size <= 0) {
+                return value;
+        }
+
+        std::string result = (default_string != NULL) ? default_string : "";
+
+        if (IsValid) {
+                std::lock_guard<std::mutex> lock( Mutex );
+                auto it = Entries.find( name != NULL ? name : "" );
+                if (it != Entries.end() && (it->second.Type == ENTRY_STRING || it->second.Type == ENTRY_WIDE_STRING)) {
+                        result = it->second.Data;
+                }
+        }
+
+        std::size_t copy_size = std::min<std::size_t>( result.size(), static_cast<std::size_t>( value_size - 1 ) );
+        std::memcpy( value, result.data(), copy_size );
+        value[copy_size] = '\0';
+        return value;
 }
 
-void	RegistryClass::Set_String( const char * name, const char *value )
+void ConfigStore::Set_String( const char * name, const char *value )
 {
-	assert( IsValid );
-   int size = strlen( value ) + 1; // must include NULL
-	if (IsLocked) {
-		return;
-	}
-	if (::RegSetValueEx( (HKEY)Key, name, 0, REG_SZ, (LPBYTE)value, size ) !=
-		ERROR_SUCCESS ) {
-	}
+        if (!IsValid || IsLocked) {
+                return;
+        }
+
+        const char * text = (value != NULL) ? value : "";
+
+        std::lock_guard<std::mutex> lock( Mutex );
+        Set_Value_Unlocked( name != NULL ? name : "", ENTRY_STRING, text );
 }
 
-void	RegistryClass::Get_Value_List( DynamicVectorClass<StringClass> &list )
+bool ConfigStore::Has_Value( const char * name ) const
 {
-	char value_name[128];
+        if (!IsValid) {
+                return false;
+        }
 
-	//
-	//	Simply enumerate all the values in this key
-	//
-	int index = 0;
-	unsigned long sizeof_name = sizeof (value_name);
-	while (::RegEnumValue ((HKEY)Key, index ++,
-					value_name, &sizeof_name, 0, NULL, NULL, NULL) == ERROR_SUCCESS)
-	{
-		sizeof_name = sizeof (value_name);
-
-		//
-		//	Add this value name to the list
-		//
-		list.Add( value_name );
-	}
-
-	return ;
+        std::lock_guard<std::mutex> lock( Mutex );
+        return Entries.find( name != NULL ? name : "" ) != Entries.end();
 }
 
-void	RegistryClass::Delete_Value( const char * name)
+void ConfigStore::Get_String( const WCHAR * name, WideStringClass &string, const WCHAR *default_string )
 {
-	if (IsLocked) {
-		return;
-	}
-	::RegDeleteValue( (HKEY)Key, name );
-	return ;
+        string = (default_string != NULL) ? default_string : L"";
+
+        if (!IsValid) {
+                return;
+        }
+
+        std::string key = Narrow_From_Wide( name );
+
+        std::lock_guard<std::mutex> lock( Mutex );
+        auto it = Entries.find( key );
+        if (it == Entries.end()) {
+                return;
+        }
+
+        if (it->second.Type == ENTRY_STRING || it->second.Type == ENTRY_WIDE_STRING) {
+                Assign_Wide_From_Narrow( it->second.Data, string );
+        }
 }
 
-void	RegistryClass::Deleta_All_Values( void )
+void ConfigStore::Set_String( const WCHAR * name, const WCHAR *value )
 {
-	if (IsLocked) {
-		return;
-	}
-	//
-	//	Build a list of the values in this key
-	//
-	DynamicVectorClass<StringClass> value_list;
-	Get_Value_List (value_list);
+        if (!IsValid || IsLocked) {
+                return;
+        }
 
-	//
-	//	Loop over and delete each value
-	//
-	for (int index = 0; index < value_list.Count (); index ++) {
-		Delete_Value( value_list[index] );
-	}
+        std::string key = Narrow_From_Wide( name );
+        WideStringClass wide_value( value != NULL ? value : L"" );
+        StringClass narrow_value;
+        wide_value.Convert_To( narrow_value );
 
-	return ;
+        std::lock_guard<std::mutex> lock( Mutex );
+        Set_Value_Unlocked( key, ENTRY_WIDE_STRING, static_cast<const char *>( narrow_value ) );
 }
 
-
-void	RegistryClass::Get_String( const WCHAR * name, WideStringClass &string, const WCHAR *default_string )
+void ConfigStore::Get_Value_List( DynamicVectorClass<StringClass> &list )
 {
-	assert( IsValid );
-	string = (default_string == NULL) ? L"" : default_string;
+        if (!IsValid) {
+                return;
+        }
 
-	//
-	//	Get the size of the entry
-	//
-	DWORD data_size = 0;
-	DWORD type = 0;
-	LONG result = ::RegQueryValueExW ((HKEY)Key, name, NULL, &type, NULL, &data_size);
-	if (result == ERROR_SUCCESS && type == REG_SZ) {
-
-		//
-		//	Read the entry from the registry
-		//
-		::RegQueryValueExW ((HKEY)Key, name, NULL, &type,
-			(LPBYTE)string.Get_Buffer ((data_size / 2) + 1), &data_size);
-	}
-
-	return ;
+        std::lock_guard<std::mutex> lock( Mutex );
+        for (const auto & entry : Entries) {
+                list.Add( entry.first.c_str() );
+        }
 }
 
-
-void	RegistryClass::Set_String( const WCHAR * name, const WCHAR *value )
+void ConfigStore::Delete_Value( const char * name )
 {
-	assert( IsValid );
+        if (!IsValid || IsLocked) {
+                return;
+        }
 
-   //
-	//	Determine the size
-	//
-	int size = wcslen( value ) + 1;
-	size		= size * 2;
-
-	//
-	//	Set the registry key
-	//
-	if (IsLocked) {
-		return;
-	}
-	::RegSetValueExW ( (HKEY)Key, name, 0, REG_SZ, (LPBYTE)value, size );
-	return ;
+        std::lock_guard<std::mutex> lock( Mutex );
+        if (Entries.erase( name != NULL ? name : "" ) > 0) {
+                Save_Unlocked();
+        }
 }
 
-
-
-
-
-
-
-
-
-/***********************************************************************************************
- * RegistryClass::Save_Registry_Values -- Save values in a key to an .ini file                 *
- *                                                                                             *
- *                                                                                             *
- *                                                                                             *
- * INPUT:    Handle to key                                                                     *
- *           Path to key                                                                       *
- *           INI                                                                               *
- *                                                                                             *
- * OUTPUT:   Nothing                                                                           *
- *                                                                                             *
- * WARNINGS: None                                                                              *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/21/2001 3:32PM ST : Created                                                            *
- *=============================================================================================*/
-void RegistryClass::Save_Registry_Values(HKEY key, char *path, INIClass *ini)
+void ConfigStore::Deleta_All_Values( void )
 {
-	int index = 0;
-	long result = ERROR_SUCCESS;
-	char save_name[512];
+        if (!IsValid || IsLocked) {
+                return;
+        }
 
-	while (result == ERROR_SUCCESS) {
-		unsigned long type = 0;
-		unsigned char data[8192];
-		unsigned long data_size = sizeof(data);
-		char value_name[256];
-		unsigned long value_name_size = sizeof(value_name);
-
-		result = RegEnumValue(key, index, value_name, &value_name_size, 0, &type, data, &data_size);
-
-		if (result == ERROR_SUCCESS) {
-			switch (type) {
-
-				/*
-				** Handle dword values.
-				*/
-				case REG_DWORD:
-					strcpy(save_name, "DWORD_");
-					strcat(save_name, value_name);
-					ini->Put_Int(path, save_name, *((unsigned long*)data));
-					break;
-
-				/*
-				** Handle string values.
-				*/
-				case REG_SZ:
-					strcpy(save_name, "STRING_");
-					strcat(save_name, value_name);
-					ini->Put_String(path, save_name, (char*)data);
-					break;
-
-				/*
-				** Handle binary values.
-				*/
-				case REG_BINARY:
-					strcpy(save_name, "BIN_");
-					strcat(save_name, value_name);
-					ini->Put_UUBlock(path, save_name, (char*)data, data_size);
-					break;
-
-				/*
-				** Anything else isn't handled yet.
-				*/
-				default:
-					WWASSERT(type == REG_DWORD || type == REG_SZ || type == REG_BINARY);
-					break;
-			}
-		}
-		index++;
-	}
+        std::lock_guard<std::mutex> lock( Mutex );
+        if (!Entries.empty()) {
+                Entries.clear();
+                Save_Unlocked();
+        }
 }
 
-
-
-
-
-/***********************************************************************************************
- * RegistryClass::Save_Registry_Tree -- Save out a whole chunk or registry as an .INI          *
- *                                                                                             *
- *                                                                                             *
- *                                                                                             *
- * INPUT:    Registry path                                                                     *
- *           INI to write to                                                                   *
- *                                                                                             *
- * OUTPUT:   Nothing                                                                           *
- *                                                                                             *
- * WARNINGS: None                                                                              *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/21/2001 3:33PM ST : Created                                                            *
- *=============================================================================================*/
-void RegistryClass::Save_Registry_Tree(char *path, INIClass *ini)
+void ConfigStore::Set_Read_Only( bool set )
 {
-	HKEY base_key;
-	HKEY sub_key;
-	int index = 0;
-	char name[256];
-	unsigned long name_size = sizeof(name);
-	char class_name[256];
-	unsigned long class_name_size = sizeof(class_name);
-	FILETIME file_time;
-	memset(&file_time, 0, sizeof(file_time));
-
-
-	long result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, path, 0, KEY_ALL_ACCESS, &base_key);
-
-	WWASSERT(result == ERROR_SUCCESS);
-
-	if (result == ERROR_SUCCESS) {
-
-		Save_Registry_Values(base_key, path, ini);
-
-		while (result == ERROR_SUCCESS) {
-			class_name_size = sizeof(class_name);
-			name_size = sizeof(name);
-			result = RegEnumKeyEx(base_key, index, name, &name_size, 0, class_name, &class_name_size, &file_time);
-			if (result == ERROR_SUCCESS) {
-
-				/*
-				** See if there are sub keys.
-				*/
-				char new_key_path[512];
-				strcpy(new_key_path, path);
-				strcat(new_key_path, "\\");
-				strcat(new_key_path, name);
-
-				unsigned long num_subs = 0;
-				unsigned long num_values = 0;
-
-				long new_result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, new_key_path, 0, KEY_ALL_ACCESS, &sub_key);
-				if (new_result == ERROR_SUCCESS) {
-					new_result = RegQueryInfoKey(sub_key, NULL, NULL, 0, &num_subs, NULL, NULL, &num_values, NULL, NULL, NULL, NULL);
-
-					/*
-					** If there are sun keys then enumerate those.
-					*/
-					if (num_subs > 0) {
-						Save_Registry_Tree(new_key_path, ini);
-					}
-
-					if (num_values > 0) {
-						Save_Registry_Values(sub_key, new_key_path, ini);
-					}
-					RegCloseKey(sub_key);
-				}
-			}
-			index++;
-		}
-		RegCloseKey(base_key);
-	}
+        IsLocked = set;
 }
 
-
-
-
-
-/***********************************************************************************************
- * RegistryClass::Save_Registry -- Save a chunk of registry to an .ini file.                   *
- *                                                                                             *
- *                                                                                             *
- *                                                                                             *
- * INPUT:    File name                                                                         *
- *           Registry path                                                                     *
- *                                                                                             *
- * OUTPUT:   Nothing                                                                           *
- *                                                                                             *
- * WARNINGS: None                                                                              *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/21/2001 3:36PM ST : Created                                                            *
- *=============================================================================================*/
-void RegistryClass::Save_Registry(const char *filename, char *path)
+void ConfigStore::Load_Unlocked()
 {
-	RawFileClass file(filename);
-	INIClass ini;
-	Save_Registry_Tree(path, &ini);
-	ini.Save(file);
+        Entries.clear();
+
+        if (!std::filesystem::exists( FilePath )) {
+                return;
+        }
+
+        std::ifstream input( FilePath, std::ios::binary );
+        if (!input) {
+                return;
+        }
+
+        std::string line;
+        while (std::getline( input, line )) {
+                if (line.empty()) {
+                        continue;
+                }
+
+                std::istringstream stream( line );
+                std::string name;
+                std::string type;
+                std::string data;
+                if (!(stream >> std::quoted( name ) >> type >> std::quoted( data ))) {
+                        continue;
+                }
+
+                Entry entry;
+                entry.Type = Type_From_String( type );
+                entry.Data = data;
+                Entries[name] = entry;
+        }
 }
 
-
-
-/***********************************************************************************************
- * RegistryClass::Load_Registry -- Load a chunk of registry from an .INI file                  *
- *                                                                                             *
- *                                                                                             *
- *                                                                                             *
- * INPUT:    Nothing                                                                           *
- *                                                                                             *
- * OUTPUT:   Nothing                                                                           *
- *                                                                                             *
- * WARNINGS: None                                                                              *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/21/2001 3:35PM ST : Created                                                            *
- *=============================================================================================*/
-void RegistryClass::Load_Registry(const char *filename, char *old_path, char *new_path)
+void ConfigStore::Save_Unlocked()
 {
-	if (!IsLocked) {
-		RawFileClass file(filename);
-		INIClass ini;
-		ini.Load(file);
+        try {
+                std::filesystem::create_directories( FilePath.parent_path() );
+                std::ofstream output( FilePath, std::ios::binary | std::ios::trunc );
+                if (!output) {
+                        return;
+                }
 
-		int old_path_len = strlen(old_path);
-		char path[1024];
-		char string[1024];
-		unsigned char buffer[8192];
+                std::vector<std::string> keys;
+                keys.reserve( Entries.size() );
+                for (const auto & entry : Entries) {
+                        keys.push_back( entry.first );
+                }
+                std::sort( keys.begin(), keys.end() );
 
-
-		List<INISection *> &section_list = ini.Get_Section_List();
-
-		for (INISection *section = section_list.First() ; section != NULL ; section = section->Next_Valid()) {
-
-			/*
-			** Build the new path to use in the registry.
-			*/
-			char *section_name = section->Section;
-			strcpy(path, new_path);
-			char *cut = strstr(section_name, old_path);
-			if (cut) {
-				strcat(path, cut + old_path_len);
-			}
-
-			/*
-			** Create the registry key.
-			*/
-			RegistryClass reg(path);
-			if (reg.Is_Valid()) {
-
-				char *entry = (char*)1;
-				int index = 0;
-
-				while (entry) {
-					entry = (char*)ini.Get_Entry(section_name, index++);
-					if (entry) {
-
-						if (strncmp(entry, "BIN_", 4) == 0) {
-							int len = ini.Get_UUBlock(section_name, entry, buffer, sizeof(buffer));
-							reg.Set_Bin(entry+4, buffer, len);
-						} else {
-							if (strncmp(entry, "DWORD_", 6) == 0) {
-								int temp = ini.Get_Int(section_name, entry, 0);
-								reg.Set_Int(entry+6, temp);
-							} else {
-					 			if (strncmp(entry, "STRING_", 7) == 0) {
-									ini.Get_String(section_name, entry, "", string, sizeof(string));
-									reg.Set_String(entry+7, string);
-								} else {
-									WWASSERT(false);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+                for (const std::string & key : keys) {
+                        const Entry &entry = Entries[key];
+                        output << std::quoted( key ) << ' ' << Type_To_String( entry.Type ) << ' ' << std::quoted( entry.Data ) << '\n';
+                }
+        } catch ( ... ) {
+        }
 }
 
-
-
-
-
-
-/***********************************************************************************************
- * RegistryClass::Delete_Registry_Values -- Delete all values under the given key              *
- *                                                                                             *
- *                                                                                             *
- *                                                                                             *
- * INPUT:    Key handle                                                                        *
- *                                                                                             *
- * OUTPUT:   Nothing                                                                           *
- *                                                                                             *
- * WARNINGS: None                                                                              *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/21/2001 3:37PM ST : Created                                                            *
- *=============================================================================================*/
-void RegistryClass::Delete_Registry_Values(HKEY key)
+void ConfigStore::Set_Value_Unlocked( const std::string &name, EntryType type, std::string value )
 {
-	int index = 0;
-	long result = ERROR_SUCCESS;
+        if (IsLocked) {
+                return;
+        }
 
-	while (result == ERROR_SUCCESS) {
-		unsigned long type = 0;
-		unsigned char data[8192];
-		unsigned long data_size = sizeof(data);
-		char value_name[256];
-		unsigned long value_name_size = sizeof(value_name);
+        if (!IsValid) {
+                return;
+        }
 
-		result = RegEnumValue(key, index, value_name, &value_name_size, 0, &type, data, &data_size);
-
-		if (result == ERROR_SUCCESS) {
-			result = RegDeleteValue(key, value_name);
-		}
-	}
+        Entries[name] = Entry{ type, std::move( value ) };
+        Save_Unlocked();
 }
 
-
-
-
-/***********************************************************************************************
- * RegistryClass::Delete_Registry_Tree -- Delete all values and sub keys of a registry key     *
- *                                                                                             *
- *                                                                                             *
- *                                                                                             *
- * INPUT:    Registry path to delete                                                           *
- *                                                                                             *
- * OUTPUT:   Nothing                                                                           *
- *                                                                                             *
- * WARNINGS: !!!!! DANGER DANGER !!!!!                                                         *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/21/2001 3:38PM ST : Created                                                            *
- *=============================================================================================*/
-void RegistryClass::Delete_Registry_Tree(char *path)
+std::filesystem::path ConfigStore::Config_Root()
 {
-	if (!IsLocked) {
-		HKEY base_key;
-		HKEY sub_key;
-		int index = 0;
-		char name[256];
-		unsigned long name_size = sizeof(name);
-		char class_name[256];
-		unsigned long class_name_size = sizeof(class_name);
-		FILETIME file_time;
-		memset(&file_time, 0, sizeof(file_time));
-		int max_times = 1000;
+        if (const char * environment = std::getenv( "WW_CONFIG_DIR" )) {
+                if (*environment != '\0') {
+                        return std::filesystem::path( environment );
+                }
+        }
 
-
-		long result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, path, 0, KEY_ALL_ACCESS, &base_key);
-
-		if (result == ERROR_SUCCESS) {
-			Delete_Registry_Values(base_key);
-
-			index = 0;
-			while (result == ERROR_SUCCESS) {
-				class_name_size = sizeof(class_name);
-				name_size = sizeof(name);
-				result = RegEnumKeyEx(base_key, index, name, &name_size, 0, class_name, &class_name_size, &file_time);
-				if (result == ERROR_SUCCESS) {
-
-					/*
-					** See if there are sub keys.
-					*/
-					char new_key_path[512];
-					strcpy(new_key_path, path);
-					strcat(new_key_path, "\\");
-					strcat(new_key_path, name);
-
-					unsigned long num_subs = 0;
-					unsigned long num_values = 0;
-
-					long new_result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, new_key_path, 0, KEY_ALL_ACCESS, &sub_key);
-					if (new_result == ERROR_SUCCESS) {
-						new_result = RegQueryInfoKey(sub_key, NULL, NULL, 0, &num_subs, NULL, NULL, &num_values, NULL, NULL, NULL, NULL);
-
-						/*
-						** If there are sub keys then enumerate those.
-						*/
-						if (num_subs > 0) {
-							Delete_Registry_Tree(new_key_path);
-						}
-
-						if (num_values > 0) {
-							Delete_Registry_Values(sub_key);
-						}
-
-						RegCloseKey(sub_key);
-
-						RegDeleteKey(base_key, name);
-					}
-				}
-				max_times--;
-				if (max_times <= 0) {
-					break;
-				}
-			}
-			RegCloseKey(base_key);
-
-			RegDeleteKey(HKEY_LOCAL_MACHINE, path);
-		}
-	}
+        try {
+                return std::filesystem::current_path() / "config";
+        } catch ( ... ) {
+                return std::filesystem::path( "config" );
+        }
 }
 
+std::filesystem::path ConfigStore::Resolve_Path( const char * sub_key )
+{
+        std::filesystem::path path = Config_Root();
+        std::string key = (sub_key != NULL) ? sub_key : "";
 
+        std::vector<std::string> components;
+        std::string component;
+        for (char ch : key) {
+                if (ch == '\\' || ch == '/') {
+                        if (!component.empty()) {
+                                components.push_back( component );
+                                component.clear();
+                        }
+                } else if (ch != '\0') {
+                        component.push_back( ch );
+                }
+        }
 
+        if (!component.empty()) {
+                components.push_back( component );
+        }
 
+        if (components.empty()) {
+                path /= "default.cfg";
+        } else {
+                for (std::size_t index = 0; index + 1 < components.size(); ++index) {
+                        path /= components[index];
+                }
+                path /= components.back();
+                path += ".cfg";
+        }
 
+        return path;
+}
 
+ConfigStore::EntryType ConfigStore::Type_From_String( const std::string &text )
+{
+        if (text == "int") {
+                return ENTRY_INT;
+        }
+        if (text == "bool") {
+                return ENTRY_BOOL;
+        }
+        if (text == "float") {
+                return ENTRY_FLOAT;
+        }
+        if (text == "wstring") {
+                return ENTRY_WIDE_STRING;
+        }
+        if (text == "binary") {
+                return ENTRY_BINARY;
+        }
+        return ENTRY_STRING;
+}
 
+std::string ConfigStore::Type_To_String( EntryType type )
+{
+        switch (type) {
+                case ENTRY_INT:           return "int";
+                case ENTRY_BOOL:          return "bool";
+                case ENTRY_FLOAT:         return "float";
+                case ENTRY_STRING:        return "string";
+                case ENTRY_WIDE_STRING:   return "wstring";
+                case ENTRY_BINARY:        return "binary";
+        }
+        return "string";
+}
 
+std::string ConfigStore::Encode_Binary( const void *buffer, int buffer_size )
+{
+        const unsigned char * bytes = static_cast<const unsigned char *>( buffer );
+        std::ostringstream stream;
+        stream << std::hex << std::setfill( '0' );
+        for (int index = 0; index < buffer_size; ++index) {
+                stream << std::setw( 2 ) << static_cast<unsigned int>( bytes[index] );
+        }
+        return stream.str();
+}
 
+std::vector<unsigned char> ConfigStore::Decode_Binary( const std::string &text )
+{
+        std::vector<unsigned char> data;
+        if ((text.length() % 2) != 0) {
+                return data;
+        }
 
+        data.reserve( text.length() / 2 );
+        for (std::size_t index = 0; index < text.length(); index += 2) {
+                int high = Hex_Digit( text[index] );
+                int low  = Hex_Digit( text[index + 1] );
+                if (high < 0 || low < 0) {
+                        data.clear();
+                        return data;
+                }
+                data.push_back( static_cast<unsigned char>( (high << 4) | low ) );
+        }
 
+        return data;
+}
 
+std::string ConfigStore::Narrow_From_Wide( const WCHAR *text )
+{
+        if (text == NULL) {
+                return std::string();
+        }
 
+        WideStringClass wide( text );
+        StringClass narrow;
+        wide.Convert_To( narrow );
+        const char * buffer = narrow;
+        return (buffer != NULL) ? buffer : std::string();
+}
+
+void ConfigStore::Assign_Wide_From_Narrow( const std::string &text, WideStringClass &string )
+{
+        string.Convert_From( text.c_str() );
+}
