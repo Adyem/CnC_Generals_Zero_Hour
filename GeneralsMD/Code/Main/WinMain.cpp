@@ -64,7 +64,7 @@
 #include "GameClient/Mouse.h"
 #include "GameClient/IMEManager.h"
 #include "Win32Device/GameClient/Win32Mouse.h"
-#include "Win32Device/Common/Win32GameEngine.h"
+#include "SfmlDevice/Common/SfmlGameEngine.h"
 #include "W3DDevice/GameClient/RenderBackend.h"
 #include "SFMLPlatform/SfmlKeyboardBridge.h"
 #include <SFML/Window/Event.hpp>
@@ -1415,17 +1415,17 @@ Int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 }  // end WinMain
 
 // CreateGameEngine ===========================================================
-/** Create the Win32 game engine we're going to use */
+/** Create the SFML-backed game engine we're going to use */
 //=============================================================================
 GameEngine *CreateGameEngine( void )
 {
-	Win32GameEngine *engine;
+        SfmlGameEngine *engine;
 
-	engine = NEW Win32GameEngine;
-	//game engine may not have existed when app got focus so make sure it
-	//knows about current focus state.
-	engine->setIsActive(isWinMainActive);
+        engine = NEW SfmlGameEngine;
+        //game engine may not have existed when app got focus so make sure it
+        //knows about current focus state.
+        engine->setIsActive(isWinMainActive);
 
-	return engine;
+        return engine;
 
 }  // end CreateGameEngine
