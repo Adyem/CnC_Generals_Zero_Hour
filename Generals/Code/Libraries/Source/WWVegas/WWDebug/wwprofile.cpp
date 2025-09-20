@@ -53,7 +53,7 @@
 #include "always.h"
 #include "wwprofile.h"
 #include "wwdebug.h"
-#include <windows.h>
+#include "thread.h"
 
 
 
@@ -318,7 +318,7 @@ static unsigned int				ThreadID = static_cast<unsigned int>(-1);
  *=============================================================================================*/
 void	WWProfileManager::Start_Profile( const char * name )
 {
-	if (::GetCurrentThreadId() != ThreadID) {
+        if (ThreadClass::_Get_Current_Thread_ID() != ThreadID) {
 		return;
 	}
 
@@ -345,7 +345,7 @@ void	WWProfileManager::Start_Profile( const char * name )
  *=============================================================================================*/
 void	WWProfileManager::Stop_Profile( void )
 {
-	if (::GetCurrentThreadId() != ThreadID) {
+        if (ThreadClass::_Get_Current_Thread_ID() != ThreadID) {
 		return;
 	}
 
@@ -374,7 +374,7 @@ void	WWProfileManager::Stop_Profile( void )
  *=============================================================================================*/
 void	WWProfileManager::Reset( void )
 { 
-	ThreadID = ::GetCurrentThreadId();
+        ThreadID = ThreadClass::_Get_Current_Thread_ID();
 
 	Root.Reset(); 
 	FrameCounter = 0;

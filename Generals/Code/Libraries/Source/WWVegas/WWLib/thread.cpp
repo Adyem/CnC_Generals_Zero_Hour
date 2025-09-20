@@ -1,123 +1,124 @@
 /*
-**	Command & Conquer Generals(tm)
-**	Copyright 2025 Electronic Arts Inc.
+**      Command & Conquer Generals(tm)
+**      Copyright 2025 Electronic Arts Inc.
 **
-**	This program is free software: you can redistribute it and/or modify
-**	it under the terms of the GNU General Public License as published by
-**	the Free Software Foundation, either version 3 of the License, or
-**	(at your option) any later version.
+**      This program is free software: you can redistribute it and/or modify
+**      it under the terms of the GNU General Public License as published by
+**      the Free Software Foundation, either version 3 of the License, or
+**      (at your option) any later version.
 **
-**	This program is distributed in the hope that it will be useful,
-**	but WITHOUT ANY WARRANTY; without even the implied warranty of
-**	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-**	GNU General Public License for more details.
+**      This program is distributed in the hope that it will be useful,
+**      but WITHOUT ANY WARRANTY; without even the implied warranty of
+**      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**      GNU General Public License for more details.
 **
-**	You should have received a copy of the GNU General Public License
-**	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+**      You should have received a copy of the GNU General Public License
+**      along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#define _WIN32_WINNT 0x0400
 
 #include "thread.h"
 #include "wwdebug.h"
-#include <process.h>
-#include <windows.h>
-#pragma warning ( push )
-#pragma warning ( disable : 4201 ) 
-#include <mmsystem.h>
-#pragma warning ( pop )
 
-ThreadClass::ThreadClass() : handle(0), running(false), thread_priority(0)
+#include <chrono>
+#include <functional>
+
+ThreadClass::ThreadClass() : running(false), thread_active(false), thread_priority(0)
 {
 }
 
 ThreadClass::~ThreadClass()
 {
-	Stop();
+        Stop();
 }
 
-void __cdecl ThreadClass::Internal_Thread_Function(void* params)
+void ThreadClass::Internal_Thread_Function()
 {
-	ThreadClass* tc=reinterpret_cast<ThreadClass*>(params);
-	tc->running=true;
-	tc->Thread_Function();
-	tc->handle=0;
+        running = true;
+
+        struct Cleanup
+        {
+                ThreadClass *self;
+                ~Cleanup()
+                {
+                        self->running = false;
+                        {
+                                std::lock_guard<std::mutex> lock(self->thread_mutex);
+                                self->thread_active = false;
+                        }
+                        self->thread_cv.notify_all();
+                }
+        } cleanup{this};
+
+        Thread_Function();
 }
 
 void ThreadClass::Execute()
 {
-	WWASSERT(!handle);	// Only one thread at a time!
-	#ifdef _UNIX
-		// assert(0);
-		return;
-	#else
-		handle=_beginthread(&Internal_Thread_Function,0,this);
-		SetThreadPriority((HANDLE)handle,THREAD_PRIORITY_NORMAL+thread_priority);
-	#endif
+        std::lock_guard<std::mutex> lock(thread_mutex);
+        WWASSERT(!thread_handle.joinable());
+        thread_active = true;
+        try {
+                thread_handle = std::thread(&ThreadClass::Internal_Thread_Function, this);
+        } catch (...) {
+                thread_active = false;
+                thread_cv.notify_all();
+                throw;
+        }
 }
 
 void ThreadClass::Set_Priority(int priority)
 {
-	#ifdef _UNIX
-		// assert(0);
-		return;
-	#else
-		thread_priority=priority;
-		if (handle) SetThreadPriority((HANDLE)handle,THREAD_PRIORITY_NORMAL+thread_priority);
-	#endif
+        thread_priority = priority;
 }
 
 void ThreadClass::Stop(unsigned ms)
 {
-	#ifdef _UNIX
-		// assert(0);
-		return;
-	#else
-		running=false;
-		unsigned time=timeGetTime();
-		while (handle) {
-			if ((timeGetTime()-time)>ms) {
-				int res=TerminateThread((HANDLE)handle,0);
-				res;	// just to silence compiler warnings
-				WWASSERT(res);	// Thread still not killed!
-				handle=0;
-			}
-			Sleep(0);
-		}
-	#endif
+        running = false;
+        std::thread local_thread;
+        {
+                std::unique_lock<std::mutex> lock(thread_mutex);
+                if (!thread_handle.joinable()) {
+                        thread_active = false;
+                        return;
+                }
+
+                auto predicate = [this]() { return !thread_active; };
+                bool finished = true;
+                if (ms == 0) {
+                        thread_cv.wait(lock, predicate);
+                } else {
+                        finished = thread_cv.wait_for(lock, std::chrono::milliseconds(ms), predicate);
+                }
+                WWASSERT(finished);
+
+                local_thread = std::move(thread_handle);
+                thread_active = false;
+        }
+
+        if (local_thread.joinable()) {
+                local_thread.join();
+        }
 }
 
 void ThreadClass::Sleep_Ms(unsigned ms)
 {
-	Sleep(ms);
+        std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
-
-#ifndef _UNIX
-HANDLE test_event = ::CreateEvent (NULL, FALSE, FALSE, "");
-#endif
 
 void ThreadClass::Switch_Thread()
 {
-	#ifdef _UNIX
-		return;
-	#else
-		//	::SwitchToThread ();
-		::WaitForSingleObject (test_event, 1);
-		//	Sleep(1);	// Note! Parameter can not be 0 (or the thread switch doesn't occur)
-	#endif
+        std::this_thread::yield();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
 }
 
 // Return calling thread's unique thread id
 unsigned ThreadClass::_Get_Current_Thread_ID()
 {
-	#ifdef _UNIX
-		return 0;
-	#else
-		return GetCurrentThreadId();
-	#endif
+        const auto value = std::hash<std::thread::id>{}(std::this_thread::get_id());
+        return static_cast<unsigned>(value ^ (value >> 32));
 }
 
 bool ThreadClass::Is_Running()
 {
-	return !!handle;
+        return running.load();
 }
