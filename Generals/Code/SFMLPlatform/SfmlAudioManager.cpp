@@ -258,13 +258,22 @@ struct SfmlAudioManager::ActiveSound {
     std::unique_ptr<AudioEventRTS> event;
     std::unique_ptr<sf::Sound> sound;
     std::unique_ptr<sf::Music> stream;
-    std::shared_ptr<sf::SoundBuffer> buffer;
     AsciiString filename;
     Bool paused;
     Bool volumeOverridden;
     Real overriddenVolume;
+    std::deque<std::shared_ptr<sf::SoundBuffer>> pendingBuffers;
+    std::shared_ptr<sf::SoundBuffer> currentBuffer;
+    std::shared_ptr<sf::SoundBuffer> loopingBuffer;
+    Bool loopMain;
 
-    ActiveSound() : handle(0), type(ChannelType::Sample2D), paused(FALSE), volumeOverridden(FALSE), overriddenVolume(0.0f) {}
+    ActiveSound()
+        : handle(0),
+          type(ChannelType::Sample2D),
+          paused(FALSE),
+          volumeOverridden(FALSE),
+          overriddenVolume(0.0f),
+          loopMain(FALSE) {}
 
     Bool isStream() const { return type == ChannelType::Stream; }
     Bool is3D() const { return type == ChannelType::Sample3D; }
@@ -487,6 +496,10 @@ void SfmlAudioManager::closeDevice() {
 }
 
 void* SfmlAudioManager::getDevice() { return nullptr; }
+
+AudioDeviceTag* SfmlAudioManager::device() const {
+    return const_cast<AudioDeviceTag*>(&m_device);
+}
 
 void SfmlAudioManager::notifyOfAudioCompletion(UnsignedInt audioCompleted, UnsignedInt) {
     finishActiveSound(static_cast<AudioHandle>(audioCompleted), TRUE);
@@ -757,20 +770,13 @@ void SfmlAudioManager::playAudioEvent(AudioEventRTS* event) {
             return;
         }
         music->setLoop(BitTest(info->m_control, AC_LOOP));
+        music->setPitch(static_cast<float>(active->event->getPitchShift()));
         music->play();
         active->type = ChannelType::Stream;
         active->stream = std::move(music);
         m_sound->notifyOf2DSampleStart();
     } else {
-        auto buffer = loadBuffer(filename);
-        if (!buffer) {
-            releaseAudioEventRTS(active->event.release());
-            return;
-        }
-
         auto sound = std::make_unique<sf::Sound>();
-        sound->setBuffer(*buffer);
-        sound->setLoop(BitTest(info->m_control, AC_LOOP));
         sound->setPitch(static_cast<float>(active->event->getPitchShift()));
 
         if (active->event->isPositionalAudio()) {
@@ -789,9 +795,38 @@ void SfmlAudioManager::playAudioEvent(AudioEventRTS* event) {
             m_sound->notifyOf2DSampleStart();
         }
 
-        sound->play();
-        active->buffer = buffer;
+        const Bool loopMain = BitTest(info->m_control, AC_LOOP);
+        active->loopMain = loopMain;
+
+        AsciiString attackName = active->event->getAttackFilename();
+        if (!attackName.isEmpty()) {
+            if (auto attackBuffer = loadBuffer(attackName)) {
+                active->pendingBuffers.push_back(attackBuffer);
+            }
+        }
+
+        auto mainBuffer = loadBuffer(filename);
+        if (!mainBuffer) {
+            releaseAudioEventRTS(active->event.release());
+            return;
+        }
+        active->loopingBuffer = mainBuffer;
+        active->pendingBuffers.push_back(mainBuffer);
+
+        if (!loopMain) {
+            AsciiString decayName = active->event->getDecayFilename();
+            if (!decayName.isEmpty()) {
+                if (auto decayBuffer = loadBuffer(decayName)) {
+                    active->pendingBuffers.push_back(decayBuffer);
+                }
+            }
+        }
+
         active->sound = std::move(sound);
+        if (!startNextBuffer(*active)) {
+            releaseAudioEventRTS(active->event.release());
+            return;
+        }
     }
 
     applyVolume(*active);
@@ -858,6 +893,8 @@ void SfmlAudioManager::updateActiveSounds() {
 
         if (active->is3D()) {
             applySpatialization(*active);
+        } else if (active->sound) {
+            applyStereoBalance(*active);
         }
 
         if (m_volumeHasChanged) {
@@ -870,6 +907,9 @@ void SfmlAudioManager::updateActiveSounds() {
         }
 
         if (source->getStatus() == sf::SoundSource::Stopped && !active->paused) {
+            if (active->sound && startNextBuffer(*active)) {
+                continue;
+            }
             finished.push_back(entry.first);
         }
     }
@@ -910,6 +950,50 @@ void SfmlAudioManager::applySpatialization(ActiveSound& active) {
     active.sound->setPosition(static_cast<float>(pos->x), static_cast<float>(pos->y), static_cast<float>(pos->z));
 }
 
+void SfmlAudioManager::applyStereoBalance(ActiveSound& active) {
+    if (!active.sound) {
+        return;
+    }
+
+    active.sound->setRelativeToListener(true);
+    const Coord3D* pos = active.event ? active.event->getCurrentPosition() : nullptr;
+    if (pos) {
+        active.sound->setPosition(static_cast<float>(pos->x), static_cast<float>(pos->y), static_cast<float>(pos->z));
+    } else {
+        active.sound->setPosition(0.0f, 0.0f, 0.0f);
+    }
+}
+
+bool SfmlAudioManager::startNextBuffer(ActiveSound& active) {
+    if (!active.sound) {
+        return false;
+    }
+
+    if (active.pendingBuffers.empty()) {
+        return false;
+    }
+
+    auto nextBuffer = active.pendingBuffers.front();
+    active.pendingBuffers.pop_front();
+    if (!nextBuffer) {
+        return false;
+    }
+
+    active.currentBuffer = nextBuffer;
+    active.sound->setBuffer(*nextBuffer);
+    active.sound->setLoop(active.loopMain && nextBuffer == active.loopingBuffer);
+
+    if (active.is3D()) {
+        applySpatialization(active);
+    } else {
+        applyStereoBalance(active);
+    }
+
+    applyVolume(active);
+    active.sound->play();
+    return true;
+}
+
 void SfmlAudioManager::finishActiveSound(AudioHandle handle, Bool notifyCompletion) {
     auto it = m_activeSounds.find(handle);
     if (it == m_activeSounds.end()) {
@@ -922,6 +1006,10 @@ void SfmlAudioManager::finishActiveSound(AudioHandle handle, Bool notifyCompleti
     if (!active) {
         return;
     }
+
+    active->pendingBuffers.clear();
+    active->currentBuffer.reset();
+    active->loopingBuffer.reset();
 
     if (active->type == ChannelType::Sample3D) {
         m_sound->notifyOf3DSampleCompletion();

@@ -151,11 +151,13 @@ enum
 	-December 2002
 */
 
+struct AudioDeviceTag;
+
 class AudioManager : public SubsystemInterface
 {
-	public:
-		AudioManager();
-		virtual ~AudioManager();
+        public:
+                AudioManager();
+                virtual ~AudioManager();
 #if defined(_DEBUG) || defined(_INTERNAL)
 		virtual void audioDebugDisplay(DebugDisplayInterface *dd, void *userData, FILE *fp = NULL ) = 0;
 #endif
@@ -213,9 +215,11 @@ class AudioManager : public SubsystemInterface
 		virtual Bool isCurrentlyPlaying( AudioHandle handle );
 
 		// Device Dependent open and close functions
-		virtual void openDevice( void ) = 0;
-		virtual void closeDevice( void ) = 0;
+                virtual void openDevice( void ) = 0;
+                virtual void closeDevice( void ) = 0;
                virtual void *getDevice( void ) = 0;
+
+               virtual AudioDeviceTag *device() const;
 
                virtual std::unique_ptr<VideoSoundBridge> createVideoSoundBridge();
 
@@ -248,11 +252,11 @@ class AudioManager : public SubsystemInterface
 
 		virtual void adjustVolumeOfPlayingAudio(AsciiString eventName, Real newVolume) = 0;
 		virtual void removePlayingAudio( AsciiString eventName ) = 0;
-		virtual void removeAllDisabledAudio() = 0;
-		
-		// Is the audio device on? We can skip a lot of audio processing if not.
-		virtual Bool isOn( AudioAffect whichToGet ) const;
-		virtual void setOn( Bool turnOn, AudioAffect whichToAffect );
+                virtual void removeAllDisabledAudio() = 0;
+
+                // Is the audio device on? We can skip a lot of audio processing if not.
+                virtual Bool isOn( AudioAffect whichToGet ) const;
+                virtual void setOn( Bool turnOn, AudioAffect whichToAffect );
 
 		// Set and get the device Volume
 		virtual void setVolume( Real volume, AudioAffect whichToAffect );
@@ -303,8 +307,10 @@ class AudioManager : public SubsystemInterface
 		virtual void setPreferredSpeaker(AsciiString speakerType) = 0;
 
 		// For Scripting
-		virtual Real getAudioLengthMS( const AudioEventRTS *event );
-		virtual Real getFileLengthMS( AsciiString strToLoad ) const = 0;
+                virtual Real getAudioLengthMS( const AudioEventRTS *event );
+                virtual Real getFileLengthMS( AsciiString strToLoad ) const = 0;
+
+                virtual Int convertRealVolume( Real volume ) const;
 
 		// For the file cache to know when to remove files.
 		virtual void closeAnySamplesUsingFile( const void *fileToClose ) = 0;
