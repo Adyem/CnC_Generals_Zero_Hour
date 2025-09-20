@@ -161,7 +161,7 @@ TOTAL_C_SOURCE_COUNT   := $(words $(C_SOURCES))
 # -----------------------------------------------------------------------------
 # Build rules
 # -----------------------------------------------------------------------------
-.PHONY: all clean distclean print-config install-deps relink
+.PHONY: all clean fclean distclean re print-config install-deps relink
 
 # Loud error if nothing to build
 ifeq ($(strip $(TOTAL_CPP_SOURCE_COUNT) $(TOTAL_C_SOURCE_COUNT)),)
@@ -207,10 +207,15 @@ relink:
 	$(MAKE) $(MAKEFLAGS) $(TARGET)
 
 clean:
-	rm -rf $(OBJ_DIR)
+	@if [ -n "$(BUILD_DIR)" ]; then rm -rf "$(BUILD_DIR)"; fi
 
-distclean: clean
+fclean: clean
 	@rm -f "$(TARGET)"
+
+distclean: fclean
+
+re: fclean
+	$(MAKE) $(MAKEFLAGS) all
 
 # Best-effort dependency installer for common development environments.
 install-deps:
