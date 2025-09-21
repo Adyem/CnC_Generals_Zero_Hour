@@ -42,6 +42,7 @@
 #include <cstdio>
 #include <cstring>
 #include <string>
+#include <climits>
 
 #include <vlc/libvlc_media.h>
 
@@ -78,6 +79,14 @@ inline std::string normalizePath(const char* path)
 }
 }
 
+#ifndef _MAX_PATH
+#ifdef PATH_MAX
+#define _MAX_PATH PATH_MAX
+#else
+#define _MAX_PATH 4096
+#endif
+#endif
+
 //----------------------------------------------------------------------------
 //         VlcVideoStream
 //----------------------------------------------------------------------------
@@ -104,9 +113,15 @@ VlcVideoStream::~VlcVideoStream()
 
 void VlcVideoStream::shutdown()
 {
-        if (m_player && m_player->getAudioBridge())
+        if (m_player)
         {
-                m_player->getAudioBridge()->detach();
+                if (VlcVideoPlayer* vlcPlayer = dynamic_cast<VlcVideoPlayer*>(m_player))
+                {
+                        if (VideoSoundBridge* bridge = vlcPlayer->getAudioBridge())
+                        {
+                                bridge->detach();
+                        }
+                }
         }
 
         std::lock_guard<std::mutex> lock(m_frameMutex);
