@@ -68,6 +68,7 @@ INCLUDE_DIRS := \
         $(SRC_DIR)/Libraries/Source/WWVegas/WWMath \
         $(SRC_DIR)/Libraries/Source/WWVegas/WWDebug \
         $(SRC_DIR)/Libraries/Source/WWVegas \
+        $(SRC_DIR)/Libraries/Source/Compression \
         $(SRC_DIR)/Main \
         $(SRC_DIR)/Main/Include
 

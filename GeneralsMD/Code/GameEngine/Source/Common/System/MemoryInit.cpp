@@ -43,11 +43,19 @@
 // ----------------------------------------------------------------------------
 #include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
 
+#include <array>
+#include <cstdio>
+#include <cstring>
+#include <filesystem>
+#include <string>
+#include <system_error>
+
 // SYSTEM INCLUDES
 
 // USER INCLUDES 
 #include "Lib/BaseType.h"
 #include "Common/GameMemory.h"
+#include "compat/win_compat.h"
 
 #ifdef _INTERNAL
 // for occasional debugging...
@@ -759,31 +767,66 @@ void userMemoryManagerInitPools()
 	// (not even AsciiString. thanks.)
 	
 	// since we're called prior to main, the cur dir might not be what
-	// we expect. so do it the hard way.
-	char buf[_MAX_PATH];
-	::GetModuleFileName(NULL, buf, sizeof(buf));
-	char* pEnd = buf + strlen(buf);
-	while (pEnd != buf) 
+	// we expect. Resolve the location of the memory pool configuration relative to the executable when possible.
+	auto resolveMemoryPoolConfig = []() -> std::filesystem::path
 	{
-		if (*pEnd == '\\') 
+		namespace fs = std::filesystem;
+		std::array<char, 4096> modulePath{};
+		fs::path baseDir;
+		const auto length = ::GetModuleFileName(nullptr, modulePath.data(), static_cast<unsigned long>(modulePath.size()));
+		if (length > 0)
 		{
-			*pEnd = 0;
-			break;
+			baseDir = fs::path(modulePath.data()).parent_path();
 		}
-		--pEnd;
-	}
-	strcat(buf, "\\Data\\INI\\MemoryPools.ini");
+		else
+		{
+			std::error_code ec;
+			baseDir = fs::current_path(ec);
+			if (ec)
+			{
+				baseDir.clear();
+			}
+		}
+		auto buildPath = [](const fs::path& root) {
+			fs::path result = root;
+			result /= "Data";
+			result /= "INI";
+			result /= "MemoryPools.ini";
+			return result;
+		};
 
-	FILE* fp = fopen(buf, "r");
+		std::error_code ec;
+		if (!baseDir.empty())
+		{
+			fs::path candidate = buildPath(baseDir);
+			if (fs::exists(candidate, ec))
+			{
+				return candidate;
+			}
+		}
+
+		fs::path fallback = buildPath(fs::path{});
+		if (fs::exists(fallback, ec))
+		{
+			return fallback;
+		}
+
+		return baseDir.empty() ? fallback : buildPath(baseDir);
+	};
+
+	const std::filesystem::path configPath = resolveMemoryPoolConfig();
+	const std::string configPathString = configPath.string();
+	FILE* fp = std::fopen(configPathString.c_str(), "r");
 	if (fp)
 	{
 		char poolName[256];
 		int initial, overflow;
-		while (fgets(buf, _MAX_PATH, fp))
+		std::array<char, 1024> buffer{};
+		while (std::fgets(buffer.data(), static_cast<int>(buffer.size()), fp))
 		{
-			if (buf[0] == ';')
+			if (buffer[0] == ';')
 				continue;
-			if (sscanf(buf, "%s %d %d", poolName, &initial, &overflow ) == 3)
+			if (std::sscanf(buffer.data(), "%s %d %d", poolName, &initial, &overflow) == 3)
 			{
 				for (PoolSizeRec* p = sizes; p->name != NULL; ++p)
 				{
@@ -792,12 +835,13 @@ void userMemoryManagerInitPools()
 						// currently, these must be multiples of 4. so round up.
 						p->initial = roundUpMemBound(initial);
 						p->overflow = roundUpMemBound(overflow);
-						break;	// from for-p
+						break;  // from for-p
 					}
 				}
 			}
 		}
-		fclose(fp);
+		std::fclose(fp);
 	}
+
 }
 

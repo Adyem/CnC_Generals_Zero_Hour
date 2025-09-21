@@ -40,8 +40,13 @@
 #include "GameLogic/GameLogic.h"
 #include "GameNetwork/GameInfo.h"
 
+#include <algorithm>
+#include <cctype>
+#include <filesystem>
+#include <string>
+
 // GLOBALS ////////////////////////////////////////////////////////////////////////////////////////
-GameStateMap *TheGameStateMap = NULL;
+GameStateMap *TheGameStateMap = nullptr;
 
 #ifdef _INTERNAL
 // for occasional debugging...
@@ -79,7 +84,7 @@ static void embedPristineMap( AsciiString map, Xfer *xfer )
  
 	// open the map file
 	File *file = TheFileSystem->openFile( map.str(), File::READ | File::BINARY );
-	if( file == NULL )
+	if( file == nullptr )
 	{
 
 		DEBUG_CRASH(( "embedPristineMap - Error opening source file '%s'\n", map.str() ));
@@ -95,7 +100,7 @@ static void embedPristineMap( AsciiString map, Xfer *xfer )
 
 	// allocate buffer big enough to hold the entire map file
 	char *buffer = new char[ fileSize ];
-	if( buffer == NULL )
+	if( buffer == nullptr )
 	{
 
 		DEBUG_CRASH(( "embedPristineMap - Unable to allocate buffer for file '%s'\n", map.str() ));
@@ -135,7 +140,7 @@ static void embedInUseMap( AsciiString map, Xfer *xfer )
 	FILE *fp = fopen( map.str(), "rb" );
 
 	// sanity
-	if( fp == NULL )
+	if( fp == nullptr )
 	{
 
 		DEBUG_CRASH(( "embedInUseMap - Unable to open file '%s'\n", map.str() ));
@@ -152,7 +157,7 @@ static void embedInUseMap( AsciiString map, Xfer *xfer )
 
 	// allocate a buffer big enough for the entire file
 	char *buffer = new char[ fileSize ];
-	if( buffer == NULL )
+	if( buffer == nullptr )
 	{
 
 		DEBUG_CRASH(( "embedInUseMap - Unable to allocate buffer for file '%s'\n", map.str() ));
@@ -191,7 +196,7 @@ static void extractAndSaveMap( AsciiString mapToSave, Xfer *xfer )
 
 	// open handle to output file
 	FILE *fp = fopen( mapToSave.str(), "w+b" );
-	if( fp == NULL )
+	if( fp == nullptr )
 	{
 
 		DEBUG_CRASH(( "extractAndSaveMap - Unable to open file '%s'\n", mapToSave.str() ));
@@ -204,7 +209,7 @@ static void extractAndSaveMap( AsciiString mapToSave, Xfer *xfer )
 
 	// allocate buffer big enough for the entire map file
 	char *buffer = new char[ dataSize ];
-	if( buffer == NULL )
+	if( buffer == nullptr )
 	{
 
 		DEBUG_CRASH(( "extractAndSaveMap - Unable to allocate buffer for file '%s'\n", mapToSave.str() ));
@@ -411,7 +416,7 @@ void GameStateMap::xfer( Xfer *xfer )
 	TheGameClient->setDrawableIDCounter( highDrawableID );
 
 	if (TheGameLogic->getGameMode()==GAME_SKIRMISH) {
-		if (TheSkirmishGameInfo==NULL) {
+		if (TheSkirmishGameInfo==nullptr) {
 			TheSkirmishGameInfo = NEW SkirmishGameInfo;
 			TheSkirmishGameInfo->init();  
 			TheSkirmishGameInfo->clearSlotList();
@@ -421,7 +426,7 @@ void GameStateMap::xfer( Xfer *xfer )
 	} else {
 		if (TheSkirmishGameInfo) {
 			delete TheSkirmishGameInfo;
-			TheSkirmishGameInfo = NULL;
+			TheSkirmishGameInfo = nullptr;
 		}
 	}
 
@@ -445,68 +450,34 @@ void GameStateMap::xfer( Xfer *xfer )
 void GameStateMap::clearScratchPadMaps( void )
 {
 
-	// remember the current directory
-	char currentDirectory[ _MAX_PATH ];
-	GetCurrentDirectory( _MAX_PATH, currentDirectory );
+	if( TheGameState == nullptr )
+		return;
 
-	// switch into the save directory
-	SetCurrentDirectory( TheGameState->getSaveDirectory().str() );
+	namespace fs = std::filesystem;
+	const fs::path saveDirectoryPath( TheGameState->getSaveDirectory().str() );
 
-	// iterate all items in the directory
-	AsciiString fileToDelete;
-	WIN32_FIND_DATA item;  // search item
-	HANDLE hFile = INVALID_HANDLE_VALUE;  // handle for search resources
-	Bool done = FALSE;
-	Bool first = TRUE;
-	while( done == FALSE )
+	std::error_code ec;
+	if( fs::exists( saveDirectoryPath, ec ) == false || fs::is_directory( saveDirectoryPath, ec ) == false )
+		return;
+
+	for( fs::directory_iterator iter( saveDirectoryPath, ec ); !ec && iter != fs::directory_iterator(); iter.increment( ec ) )
 	{
+		const fs::directory_entry &entry = *iter;
 
-		// first, clear flag for deleting file
-		fileToDelete.clear();
-
-		// if our first time through we need to start the search
-		if( first )
+		std::error_code statusError;
+		if( entry.is_regular_file( statusError ) == false )
 		{
+			continue;
+		}
 
-			// start search
-			hFile = FindFirstFile( "*", &item );
-			if( hFile == INVALID_HANDLE_VALUE )
-				return;
-
-			// we are no longer on our first item
-			first = FALSE;
-
-		}  // end if, first
-
-		// see if this is a file, and therefore a possible .map file
-		if( !(item.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) )
+		std::string extension = entry.path().extension().string();
+		std::transform( extension.begin(), extension.end(), extension.begin(), []( unsigned char ch ) { return static_cast<char>( std::tolower( ch ) ); } );
+		if( extension != ".map" )
 		{
+			continue;
+		}
 
-			// see if there is a ".map" at end of this filename
-			Char *c = strrchr( item.cFileName, '.' );
-			if( c && stricmp( c, ".map" ) == 0 )
-				fileToDelete.set( item.cFileName );  // we want to delete this one
-
-		}  // end if
-
-		//
-		// find the next file before we delete this one, this is probably not necessary
-		// to strcuture things this way so that the find next occurs before the file
-		// delete, but it seems more correct to do so
-		//
-		if( FindNextFile( hFile, &item ) == 0 )
-			done = TRUE;
-
-		// delete file if set
-		if( fileToDelete.isEmpty() == FALSE )
-			DeleteFile( fileToDelete.str() );
-
-	}  // end while
-
-	// close search resources
-	FindClose( hFile );
-
-	// restore our directory to the current directory
-	SetCurrentDirectory( currentDirectory );
-
+		std::error_code removeError;
+		fs::remove( entry.path(), removeError );
+	}
 }  // end clearScratchPadMaps

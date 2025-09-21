@@ -30,13 +30,22 @@
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
 #include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
 
-#define DEFINE_UPGRADE_TYPE_NAMES
 #define DEFINE_VETERANCY_NAMES
 #include "Common/Upgrade.h"
 #include "Common/Player.h"
 #include "Common/Xfer.h"
 #include "GameClient/InGameUI.h"
 #include "GameClient/Image.h"
+
+namespace
+{
+	constexpr const char* const kUpgradeTypeNames[] =
+	{
+		"PLAYER",
+		"OBJECT",
+		nullptr
+	};
+} // namespace
 
 // PUBLIC /////////////////////////////////////////////////////////////////////////////////////////
 class UpgradeCenter *TheUpgradeCenter = NULL;
@@ -108,7 +117,7 @@ const FieldParse UpgradeTemplate::m_upgradeFieldParseTable[] =
 {
 
 	{ "DisplayName",				INI::parseAsciiString,		NULL, offsetof( UpgradeTemplate, m_displayNameLabel ) },
-	{ "Type",								INI::parseIndexList,			UpgradeTypeNames, offsetof( UpgradeTemplate, m_type ) },
+	{ "Type",								INI::parseIndexList,			kUpgradeTypeNames, offsetof( UpgradeTemplate, m_type ) },
 	{ "BuildTime",					INI::parseReal,						NULL, offsetof( UpgradeTemplate, m_buildTime ) },
 	{ "BuildCost",					INI::parseInt,						NULL, offsetof( UpgradeTemplate, m_cost ) },
 	{ "ButtonImage",				INI::parseAsciiString,		NULL, offsetof( UpgradeTemplate, m_buttonImageName ) },
@@ -366,7 +375,7 @@ UpgradeTemplate *UpgradeCenter::newUpgrade( const AsciiString& name )
 
 	// Make a unique bitmask for this new template by keeping track of what bits have been assigned
 	// damn MSFT! proper ANSI syntax for a proper 64-bit constant is "1LL", but MSVC doesn't recognize it
-	Int64 newMask = 1i64 << m_nextTemplateMaskBit;
+	Int64 newMask = static_cast<Int64>(1) << m_nextTemplateMaskBit;
 	m_nextTemplateMaskBit++;
 	DEBUG_ASSERTCRASH( m_nextTemplateMaskBit < 64, ("Can't have over 64 types of Upgrades and have a Bitfield function.") );
 	newUpgrade->friend_setUpgradeMask( newMask );

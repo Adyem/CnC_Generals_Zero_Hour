@@ -36,6 +36,7 @@
 #include "Common/ModelState.h"
 #include "Common/Snapshot.h"
 #include "Common/Xfer.h"
+#include <algorithm>
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -97,7 +98,7 @@ inline StateReturnType MIN_SLEEP(UnsignedInt encloserSleep, StateReturnType encl
 	if (IS_STATE_SLEEP(encloseeResult))
 	{
 		UnsignedInt encloseeSleep = GET_STATE_SLEEP_FRAMES(encloseeResult);
-		return STATE_SLEEP(min(encloserSleep, encloseeSleep));
+		return STATE_SLEEP(std::min(encloserSleep, encloseeSleep));
 	}
 	else
 	{

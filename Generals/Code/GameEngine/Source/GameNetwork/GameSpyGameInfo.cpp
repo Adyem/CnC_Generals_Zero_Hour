@@ -38,7 +38,7 @@
 #include "GameNetwork/GameSpy/PeerDefs.h"
 #include "GameNetwork/GameSpyGameInfo.h"
 #include "GameNetwork/NetworkInterface.h"
-#include "GameNetwork/NetworkUtil.h"
+#include "GameNetwork/networkutil.h"
 #include "GameNetwork/NetworkDefs.h"
 #include "GameNetwork/NAT.h"
 #include "GameNetwork/addressresolver.h"

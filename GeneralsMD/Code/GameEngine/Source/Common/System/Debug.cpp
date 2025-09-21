@@ -44,6 +44,9 @@
 
 // SYSTEM INCLUDES 
 #include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
+#include <filesystem>
+#include <system_error>
+#include <string>
 
 
 // USER INCLUDES 
@@ -52,6 +55,8 @@
 #include "Common/CriticalSection.h"
 #endif
 #include "Common/Debug.h"
+#include "WWLib/registry.h"
+#include "Common/Registry.h"
 #include "Common/SystemInfo.h"
 #include "Common/UnicodeString.h"
 #include "GameClient/GameText.h"
@@ -105,6 +110,35 @@ static FILE *theLogFile = NULL;
 static char theBuffer[ LARGE_BUFFER ];	// make it big to avoid weird overflow bugs in debug mode
 static int theDebugFlags = 0;
 static DWORD theMainThreadID = 0;
+
+namespace
+{
+namespace fs = std::filesystem;
+
+fs::path getUserDataDirectory()
+{
+	const char* basePath = (TheGlobalData != NULL) ? TheGlobalData->getPath_UserData().str() : NULL;
+	if (basePath == NULL || basePath[0] == '\0')
+	{
+		return fs::path{};
+	}
+	return fs::path(basePath);
+}
+
+fs::path rotateCrashLogs(const char* currentName, const char* previousName)
+{
+	const fs::path userDataDirectory = getUserDataDirectory();
+	const fs::path currentPath = userDataDirectory / currentName;
+	const fs::path previousPath = userDataDirectory / previousName;
+
+	std::error_code ec;
+	fs::remove(previousPath, ec);
+	ec.clear();
+	fs::rename(currentPath, previousPath, ec);
+
+	return currentPath;
+}
+} // namespace
 // ----------------------------------------------------------------------------
 // PUBLIC DATA 
 // ----------------------------------------------------------------------------
@@ -664,22 +698,14 @@ void ReleaseCrash(const char *reason)
 //	::MessageBox(NULL, "Sorry, a serious error occurred.", "Technical Difficulties...", MB_OK|MB_TASKMODAL|MB_ICONERROR);
 //#endif
 
-	char prevbuf[ _MAX_PATH ];
-	char curbuf[ _MAX_PATH ];
-
-	if (TheGlobalData==NULL) {
+		if (TheGlobalData==NULL) {
 		return; // We are shutting down, and TheGlobalData has been freed.  jba. [4/15/2003]
 	}
 
-	strcpy(prevbuf, TheGlobalData->getPath_UserData().str());
-	strcat(prevbuf, RELEASECRASH_FILE_NAME_PREV);
-	strcpy(curbuf, TheGlobalData->getPath_UserData().str());
-	strcat(curbuf, RELEASECRASH_FILE_NAME);
+		const fs::path crashLogPath = rotateCrashLogs(RELEASECRASH_FILE_NAME, RELEASECRASH_FILE_NAME_PREV);
+		const std::string crashLogPathString = crashLogPath.string();
 
- 	remove(prevbuf);
-	rename(curbuf, prevbuf);
-
-	theReleaseCrashLogFile = fopen(curbuf, "w");
+	theReleaseCrashLogFile = fopen(crashLogPathString.c_str(), "w");
 	if (theReleaseCrashLogFile)
 	{
 		fprintf(theReleaseCrashLogFile, "Release Crash at %s; Reason %s\n", getCurrentTimeString(), reason);
@@ -731,6 +757,8 @@ void ReleaseCrashLocalized(const AsciiString& p, const AsciiString& m)
 
 	UnicodeString prompt = TheGameText->fetch(p);
 	UnicodeString mesg = TheGameText->fetch(m);
+	AsciiString mesgAscii;
+	mesgAscii.translate(mesg);
 
 
 	/// do additional reporting on the crash, if possible
@@ -749,29 +777,20 @@ void ReleaseCrashLocalized(const AsciiString& p, const AsciiString& m)
 	{
 		// However, if we're using the default version of the message box, we need to 
 		// translate the string into an AsciiString
-		AsciiString promptA, mesgA;
+		AsciiString promptA;
 		promptA.translate(prompt);
-		mesgA.translate(mesg);
 		//Make sure main window is not TOP_MOST
 		::SetWindowPos(ApplicationHWnd, HWND_NOTOPMOST, 0, 0, 0, 0,SWP_NOSIZE |SWP_NOMOVE);
-		::MessageBoxA(NULL, mesgA.str(), promptA.str(), MB_OK|MB_TASKMODAL|MB_ICONERROR);
+		::MessageBoxA(NULL, mesgAscii.str(), promptA.str(), MB_OK|MB_TASKMODAL|MB_ICONERROR);
 	}
 
-	char prevbuf[ _MAX_PATH ];
-	char curbuf[ _MAX_PATH ];
+		const fs::path crashLogPath = rotateCrashLogs(RELEASECRASH_FILE_NAME, RELEASECRASH_FILE_NAME_PREV);
+		const std::string crashLogPathString = crashLogPath.string();
 
-	strcpy(prevbuf, TheGlobalData->getPath_UserData().str());
-	strcat(prevbuf, RELEASECRASH_FILE_NAME_PREV);
-	strcpy(curbuf, TheGlobalData->getPath_UserData().str());
-	strcat(curbuf, RELEASECRASH_FILE_NAME);
-
- 	remove(prevbuf);
-	rename(curbuf, prevbuf);
-
-	theReleaseCrashLogFile = fopen(curbuf, "w");
+	theReleaseCrashLogFile = fopen(crashLogPathString.c_str(), "w");
 	if (theReleaseCrashLogFile)
 	{
-		fprintf(theReleaseCrashLogFile, "Release Crash at %s; Reason %s\n", getCurrentTimeString(), mesg.str());
+		fprintf(theReleaseCrashLogFile, "Release Crash at %s; Reason %s\n", getCurrentTimeString(), mesgAscii.str());
 
 		const int STACKTRACE_SIZE	= 12;
 		const int STACKTRACE_SKIP = 6;

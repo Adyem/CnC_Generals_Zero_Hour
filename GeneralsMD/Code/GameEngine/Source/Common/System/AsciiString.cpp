@@ -44,6 +44,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
 
+#include <cstdio>
+
 #include "Common/CriticalSection.h"
 
 
@@ -285,7 +287,8 @@ void AsciiString::format_va(const AsciiString& format, va_list args)
 {
 	validate();
 	char buf[MAX_FORMAT_BUF_LEN];
-  if (_vsnprintf(buf, sizeof(buf)/sizeof(char)-1, format.str(), args) < 0)
+        const int written = std::vsnprintf( buf, sizeof(buf), format.str(), args );
+        if( written < 0 || static_cast<size_t>( written ) >= sizeof( buf ) )
 			throw ERROR_OUT_OF_MEMORY;
 	set(buf);
 	validate();
@@ -296,7 +299,8 @@ void AsciiString::format_va(const char* format, va_list args)
 {
 	validate();
 	char buf[MAX_FORMAT_BUF_LEN];
-  if (_vsnprintf(buf, sizeof(buf)/sizeof(char)-1, format, args) < 0)
+        const int written = std::vsnprintf( buf, sizeof(buf), format, args );
+        if( written < 0 || static_cast<size_t>( written ) >= sizeof( buf ) )
 			throw ERROR_OUT_OF_MEMORY;
 	set(buf);
 	validate();

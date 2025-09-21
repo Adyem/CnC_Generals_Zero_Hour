@@ -59,6 +59,11 @@
 #include "GameLogic/SidesList.h"
 #include "GameLogic/TerrainLogic.h"
 
+#include <algorithm>
+#include <cctype>
+#include <cstring>
+#include <filesystem>
+#include <string>
 #include <cwchar>
 
 #ifdef _INTERNAL
@@ -68,7 +73,7 @@
 #endif
 
 // PUBLIC DATA ////////////////////////////////////////////////////////////////////////////////////
-GameState *TheGameState = NULL;
+GameState *TheGameState = nullptr;
 
 // PRIVATE DATA ///////////////////////////////////////////////////////////////////////////////////
 static const Char *SAVE_FILE_EOF       = "SG_EOF";
@@ -187,7 +192,7 @@ GameState::SnapshotBlock *GameState::findBlockInfoByToken( AsciiString token, Sn
 
 	// sanity
 	if( token.isEmpty() )
-		return NULL;
+		return nullptr;
 
 	// search for match our list
 	SnapshotBlock *blockInfo;
@@ -205,7 +210,7 @@ GameState::SnapshotBlock *GameState::findBlockInfoByToken( AsciiString token, Sn
 	}  // end for
 
 	// not found
-	return NULL;
+	return nullptr;
 
 }  // end findLexiconEntryByToken
 
@@ -245,7 +250,7 @@ UnicodeString getUnicodeTimeBuffer(const SystemTime& timeVal)
 GameState::GameState( void )
 {
 
-	m_availableGames = NULL;
+	m_availableGames = nullptr;
 	m_isInLoadGame = FALSE;
 
 }  // end GameState
@@ -345,7 +350,7 @@ void GameState::addSnapshotBlock( AsciiString blockName, Snapshot *snapshot, Sna
 {
 
 	// sanity
-	if( blockName.isEmpty() || snapshot == NULL )
+	if( blockName.isEmpty() || snapshot == nullptr )
 	{
 
 		DEBUG_CRASH(( "addSnapshotBlock: Invalid parameters\n" ));
@@ -462,18 +467,22 @@ AsciiString GameState::findNextSaveFilename( UnicodeString desc )
 		AsciiString fullPath;
 		Int i = 0;
 
-		while( TRUE )
-		{
+        while( TRUE )
+        {
 
-			// construct filename (########.sav)
-			filename.format( "%08d%s", i, SAVE_GAME_EXTENSION );
+                // construct filename (########.sav)
+                filename.format( "%08d%s", i, SAVE_GAME_EXTENSION );
 
-			// construct full path to file given the filename
-			fullPath = getFilePathInSaveDirectory(filename);
+                // construct full path to file given the filename
+                fullPath = getFilePathInSaveDirectory(filename);
 
-			// if file does not exist we're all good
-			if( _access( fullPath.str(), 0 ) == -1 )
-				return filename;
+                const std::filesystem::path candidatePath( fullPath.str() );
+                std::error_code existsError;
+                const bool fileExists = std::filesystem::exists( candidatePath, existsError );
+                if( existsError || fileExists == false )
+                {
+                        return filename;
+                }
 
 			// test the text filename
 			i++;
@@ -519,7 +528,9 @@ SaveCode GameState::saveGame( AsciiString filename, UnicodeString desc,
 	}  // end if
 
 	// make absolutely sure the save directory exists
-	CreateDirectory( getSaveDirectory().str(), NULL );
+        const AsciiString saveDirectory = getSaveDirectory();
+        std::error_code createDirError;
+        std::filesystem::create_directories( std::filesystem::path( saveDirectory.str() ), createDirError );
 
 	// construct path to file
 	AsciiString filepath = getFilePathInSaveDirectory(filename);
@@ -569,7 +580,7 @@ SaveCode GameState::saveGame( AsciiString filename, UnicodeString desc,
 		UnicodeString msg;
 		msg.format( TheGameText->fetch("GUI:ErrorSavingGame"), ufilepath.str() );
 
-		MessageBoxOk(TheGameText->fetch("GUI:Error"), msg, NULL);
+		MessageBoxOk(TheGameText->fetch("GUI:Error"), msg, nullptr);
 
 		// close the file and get out of here
 		xferSave.close();
@@ -695,7 +706,7 @@ SaveCode GameState::loadGame( AvailableGameInfo gameInfo )
 		UnicodeString msg;
 		msg.format( TheGameText->fetch("GUI:ErrorLoadingGame"), ufilepath.str() );
 
-		MessageBoxOk(TheGameText->fetch("GUI:Error"), msg, NULL);
+		MessageBoxOk(TheGameText->fetch("GUI:Error"), msg, nullptr);
 
 		return SC_INVALID_DATA;	// you can't use a naked "throw" outside of a catch statement!
 
@@ -753,18 +764,19 @@ Bool GameState::isInSaveDirectory(const AsciiString& path) const
 // ------------------------------------------------------------------------------------------------
 AsciiString GameState::getMapLeafName(const AsciiString& in) const
 {
-	char* p = strrchr(in.str(), '\\');
-	if (p)
-	{
-		//
-		// p points to the last '\' (if found), however, if a '\' was found there better
-		// be another character beyond it, otherwise the map filename would actually
-		// be a *directory*  Just move to the first character beyond it so we are looking
-		// at the name only
-		//
-		++p;
-		DEBUG_ASSERTCRASH( p != NULL && *p != 0, ("GameState::xfer - Illegal map name encountered\n") );
-		return p;
+        const char *path = in.str();
+        const char *p = std::strrchr( path, '\\' );
+        if (p)
+        {
+                //
+                // p points to the last '\' (if found), however, if a '\' was found there better
+                // be another character beyond it, otherwise the map filename would actually
+                // be a *directory*  Just move to the first character beyond it so we are looking
+                // at the name only
+                //
+                ++p;
+                DEBUG_ASSERTCRASH( p != nullptr && *p != 0, ("GameState::xfer - Illegal map name encountered\n") );
+                return AsciiString( p );
 	}
 	else
 	{
@@ -781,7 +793,7 @@ static const char* findLastBackslashInRangeInclusive(const char* start, const ch
 			return end;
 		--end;
 	}
-	return NULL;
+	return nullptr;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -941,7 +953,7 @@ void GameState::getSaveGameInfoFromFile( AsciiString filename, SaveGameInfo *sav
 	SnapshotBlock *blockInfo;
 
 	// sanity
-	if( filename.isEmpty() == TRUE || saveGameInfo == NULL )
+	if( filename.isEmpty() == TRUE || saveGameInfo == nullptr )
 	{
 
 		DEBUG_CRASH(( "GameState::getSaveGameInfoFromFile - Illegal parameters\n" ));
@@ -980,7 +992,7 @@ void GameState::getSaveGameInfoFromFile( AsciiString filename, SaveGameInfo *sav
 
 			// find matching token in the save file lexicon
 			blockInfo = findBlockInfoByToken( token, SNAPSHOT_SAVELOAD );
-			if( blockInfo == NULL )
+			if( blockInfo == nullptr )
 				throw SC_UNKNOWN_BLOCK;
 
 			// read the data size of this block
@@ -1043,7 +1055,7 @@ static void addGameToAvailableList( AsciiString filename, void *userData )
 	AvailableGameInfo **listHead = (AvailableGameInfo **)userData;
 
 	// sanity
-	DEBUG_ASSERTCRASH( listHead != NULL, ("addGameToAvailableList - Illegal parameters\n") );
+	DEBUG_ASSERTCRASH( listHead != nullptr, ("addGameToAvailableList - Illegal parameters\n") );
 	DEBUG_ASSERTCRASH( filename.isEmpty() == FALSE, ("addGameToAvailableList - Illegal filename\n") );
  
 	try {
@@ -1055,20 +1067,20 @@ static void addGameToAvailableList( AsciiString filename, void *userData )
 	AvailableGameInfo *newInfo = new AvailableGameInfo;
 
 	// assign data
-	newInfo->prev = NULL;
-	newInfo->next = NULL;
+	newInfo->prev = nullptr;
+	newInfo->next = nullptr;
 	newInfo->saveGameInfo = saveGameInfo;
 	newInfo->filename = filename;
 
 	// attach to list
-	if( *listHead == NULL )
+	if( *listHead == nullptr )
 		*listHead = newInfo;
 	else
 	{
 		AvailableGameInfo *curr, *prev;
 
 		// insert this info so that the most recent games are always at the top of this list
-		for( curr = *listHead; curr != NULL; curr = curr->next )
+		for( curr = *listHead; curr != nullptr; curr = curr->next )
 		{
 
 			// save current as previous
@@ -1093,7 +1105,7 @@ static void addGameToAvailableList( AsciiString filename, void *userData )
 		}  // end for
 
 		// if not inserted, put at end
-		if( curr == NULL )
+		if( curr == nullptr )
 		{
 
 			prev->next = newInfo;
@@ -1117,7 +1129,7 @@ void GameState::populateSaveGameListbox( GameWindow *listbox, SaveLoadLayoutType
 	Int index;
 
 	// sanity
-	if( listbox == NULL )
+	if( listbox == nullptr )
 		return;
 
 	// first clear all entries in the listbox
@@ -1130,7 +1142,7 @@ void GameState::populateSaveGameListbox( GameWindow *listbox, SaveLoadLayoutType
 		Color newGameColor = GameMakeColor( 200, 200, 255, 255 );
 
 		index = GadgetListBoxAddEntryText( listbox, newGameText, newGameColor, -1 );
-		GadgetListBoxSetItemData( listbox, NULL, index );
+		GadgetListBoxSetItemData( listbox, nullptr, index );
 	
 	}  // end if
 
@@ -1213,71 +1225,38 @@ void GameState::populateSaveGameListbox( GameWindow *listbox, SaveLoadLayoutType
 void GameState::iterateSaveFiles( IterateSaveFileCallback callback, void *userData )
 {
 
-	// sanity
-	if( callback == NULL )
+	if( callback == nullptr )
 		return;
 
-	// save the current directory
-	char currentDirectory[ _MAX_PATH ];
-	GetCurrentDirectory( _MAX_PATH, currentDirectory );
+	namespace fs = std::filesystem;
+	const fs::path saveDirectoryPath( getSaveDirectory().str() );
 
-	// switch into the save directory
-	SetCurrentDirectory( getSaveDirectory().str() );
+	std::error_code ec;
+	if( fs::exists( saveDirectoryPath, ec ) == false || fs::is_directory( saveDirectoryPath, ec ) == false )
+		return;
 
-	// iterate all items in the directory
-	WIN32_FIND_DATA item;  // search item
-	HANDLE hFile = INVALID_HANDLE_VALUE;  // handle for search resources
-	Bool done = FALSE;
-	Bool first = TRUE;
-	while( done == FALSE )
+	for( fs::directory_iterator iter( saveDirectoryPath, ec ); !ec && iter != fs::directory_iterator(); iter.increment( ec ) )
 	{
+		const fs::directory_entry &entry = *iter;
 
-		// if our first time through we need to start the search
-		if( first )
+		std::error_code statusError;
+		if( entry.is_regular_file( statusError ) == false )
 		{
+			continue;
+		}
 
-			// start search
-			hFile = FindFirstFile( "*", &item );
-			if( hFile == INVALID_HANDLE_VALUE )
-				return;
-
-			// we are no longer on our first item
-			first = FALSE;
-
-		}  // end if, first
-
-		// see if this is a file, and therefore a possible save file
-		if( !(item.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) )
+		std::string extension = entry.path().extension().string();
+		std::transform( extension.begin(), extension.end(), extension.begin(), []( unsigned char ch ) { return static_cast<char>( std::tolower( ch ) ); } );
+		if( extension != ".sav" )
 		{
+			continue;
+		}
 
-			// see if there is a ".sav" at end of this filename
-			Char *c = strrchr( item.cFileName, '.' );
-			if( c && stricmp( c, ".sav" ) == 0 )
-			{
-
-				// construction asciistring filename
-				AsciiString filename;
-				filename.set( item.cFileName );
-
-				// call the callback
-				callback( filename, userData );
-
-			}  // end if, a save file
-
-		}  // end if
-
-		// on to the next file
-		if( FindNextFile( hFile, &item ) == 0 )
-			done = TRUE;
-
-	}  // end while
-
-	// close search resources
-	FindClose( hFile );
-
-	// restore the current directory
-	SetCurrentDirectory( currentDirectory );
-
+		AsciiString filename;
+		const std::string name = entry.path().filename().string();
+		filename.set( name.c_str() );
+		callback( filename, userData );
+	}
 }  // end iterateSaveFiles
 
 // ------------------------------------------------------------------------------------------------
@@ -1302,7 +1281,7 @@ void GameState::xferSaveData( Xfer *xfer, SnapshotType which )
 {
 
 	// sanity
-	if( xfer == NULL )
+	if( xfer == nullptr )
 		throw SC_INVALID_XFER;
 
 	// save or load all blocks
@@ -1397,7 +1376,7 @@ void GameState::xferSaveData( Xfer *xfer, SnapshotType which )
 
 				// find matching token in the save file lexicon
 				blockInfo = findBlockInfoByToken( token, which );
-				if( blockInfo == NULL )
+				if( blockInfo == nullptr )
 				{
 
 					// log the block not found
@@ -1452,7 +1431,7 @@ void GameState::addPostProcessSnapshot( Snapshot *snapshot )
 {
 
 	// sanity
-	if( snapshot == NULL )
+	if( snapshot == nullptr )
 	{
 
 		DEBUG_CRASH(( "GameState::addPostProcessSnapshot - invalid parameters\n" ));
@@ -1548,25 +1527,24 @@ void GameState::xfer( Xfer *xfer )
 	}  // end if
 
 	// current system time
-	SystemTime systemTime{};
-	GetLocalTime( &systemTime );
+        SystemTime systemTime = getCurrentSystemTime();
 
 	// date and time
 	saveGameInfo->date.year = systemTime.year;
 	xfer->xferUnsignedShort( &saveGameInfo->date.year );
 	saveGameInfo->date.month = systemTime.month;
 	xfer->xferUnsignedShort( &saveGameInfo->date.month );
-	saveGameInfo->date.day = systemTime.wDay;
+	saveGameInfo->date.day = systemTime.day;
 	xfer->xferUnsignedShort( &saveGameInfo->date.day );
 	saveGameInfo->date.dayOfWeek = systemTime.dayOfWeek;
 	xfer->xferUnsignedShort( &saveGameInfo->date.dayOfWeek );
-	saveGameInfo->date.hour = systemTime.wHour;
+	saveGameInfo->date.hour = systemTime.hour;
 	xfer->xferUnsignedShort( &saveGameInfo->date.hour );
-	saveGameInfo->date.minute = systemTime.wMinute;
+	saveGameInfo->date.minute = systemTime.minute;
 	xfer->xferUnsignedShort( &saveGameInfo->date.minute );
-	saveGameInfo->date.second = systemTime.wSecond;
+	saveGameInfo->date.second = systemTime.second;
 	xfer->xferUnsignedShort( &saveGameInfo->date.second );
-	saveGameInfo->date.milliseconds = systemTime.wMilliseconds;
+	saveGameInfo->date.milliseconds = systemTime.milliseconds;
 	xfer->xferUnsignedShort( &saveGameInfo->date.milliseconds );
 
 	// user description
@@ -1580,17 +1558,15 @@ void GameState::xfer( Xfer *xfer )
 	// if no label was found, we'll use the map name (just filename, no directory info)
 	if( exists == FALSE || saveGameInfo->mapLabel == AsciiString::TheEmptyString )
 	{
-		char string[ _MAX_PATH ];
+		const char *mapName = TheGlobalData->m_mapName.str();
 
-		strcpy( string, TheGlobalData->m_mapName.str() );
-		char *p = strrchr( string, '\\' );
-		if( p == NULL )
+		const char *p = std::strrchr( mapName, '\\' );
+		if( p == nullptr )
 			saveGameInfo->mapLabel = TheGlobalData->m_mapName;
 		else
 		{
 
-			p++;  // skip the '\' we're on
-			saveGameInfo->mapLabel.set( p );
+			saveGameInfo->mapLabel.set( p + 1 );
 
 		}  // end else
 

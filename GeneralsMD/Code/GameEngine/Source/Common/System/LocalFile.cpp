@@ -49,9 +49,9 @@
 
 #include <stdio.h>
 #include <fcntl.h>
-#include <io.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <ctype.h>
 
@@ -142,7 +142,7 @@ LocalFile::~LocalFile()
 #else
 	if( m_handle != -1 )
 	{
-		_close( m_handle );
+		::close( m_handle );
 		m_handle = -1;
 		--s_totalOpen;
 	}
@@ -230,48 +230,51 @@ Bool LocalFile::open( const Char *filename, Int access )
 
 #else
 
-	int flags = 0;
+        int flags = 0;
+        mode_t mode = 0666;
+        bool needsMode = false;
 
-	if (m_access & CREATE)
-	{
-		flags |= _O_CREAT;
-	}
-	if (m_access & TRUNCATE)
-	{
-		flags |= _O_TRUNC;
-	}
-	if (m_access & APPEND)
-	{
-		flags |= _O_APPEND;
-	}
-	if (m_access & TEXT)
-	{
-		flags |= _O_TEXT;
-	}
-	if (m_access & BINARY)
-	{
-		flags |= _O_BINARY;
-	}
+        if (m_access & CREATE)
+        {
+                flags |= O_CREAT;
+                needsMode = true;
+        }
+        if (m_access & TRUNCATE)
+        {
+                flags |= O_TRUNC;
+        }
+        if (m_access & APPEND)
+        {
+                flags |= O_APPEND;
+        }
 
-	if((m_access & READWRITE )== READWRITE )
-	{
-		flags |= _O_RDWR;
-	}
-	else if(m_access & WRITE)
-	{
-		flags |= _O_WRONLY;
-		flags |= _O_CREAT;
-	}
-	else
-	{
-		flags |= _O_RDONLY;
-	}
+        if((m_access & READWRITE )== READWRITE )
+        {
+                flags |= O_RDWR;
+        }
+        else if(m_access & WRITE)
+        {
+                flags |= O_WRONLY;
+                flags |= O_CREAT;
+                needsMode = true;
+        }
+        else
+        {
+                flags |= O_RDONLY;
+        }
 
-	m_handle = _open( filename, flags , _S_IREAD | _S_IWRITE);
+        if (needsMode)
+        {
+                m_handle = ::open(filename, flags, mode);
+        }
+        else
+        {
+                m_handle = ::open(filename, flags);
+        }
 
-	if( m_handle == -1 )
-	{
-		goto error;
+        if( m_handle == -1 )
+        {
+                goto error;
 	}
 
 #endif
@@ -326,7 +329,7 @@ Int LocalFile::read( void *buffer, Int bytes )
 #ifdef USE_BUFFERED_IO
 		fseek(m_file, bytes, SEEK_CUR);
 #else
-		_lseek(m_handle, bytes, SEEK_CUR);
+		::lseek(m_handle, bytes, SEEK_CUR);
 #endif
 		return bytes;
 	}
@@ -334,7 +337,7 @@ Int LocalFile::read( void *buffer, Int bytes )
 #ifdef USE_BUFFERED_IO
 	Int ret = fread(buffer, 1, bytes, m_file);
 #else
-	Int ret = _read( m_handle, buffer, bytes );
+	Int ret = ::read( m_handle, buffer, bytes );
 #endif
 
 	return ret;
@@ -355,7 +358,7 @@ Int LocalFile::write( const void *buffer, Int bytes )
 #ifdef USE_BUFFERED_IO
 	Int ret = fwrite(buffer, 1, bytes, m_file);
 #else
-	Int ret = _write( m_handle, buffer, bytes );
+	Int ret = ::write( m_handle, buffer, bytes );
 #endif
 	return ret;
 }
@@ -392,7 +395,7 @@ Int LocalFile::seek( Int pos, seekMode mode)
 	else
 		return -1;
 #else
-	Int ret = _lseek( m_handle, pos, lmode );
+	Int ret = ::lseek( m_handle, pos, lmode );
 #endif
 	return ret;
 }
@@ -414,7 +417,7 @@ Bool LocalFile::scanInt(Int &newInt)
 #ifdef USE_BUFFERED_IO
 		val = fread(&c, 1, 1, m_file);
 #else
-		val = _read( m_handle, &c, 1);
+		val = ::read( m_handle, &c, 1);
 #endif
 	} while ((val != 0) && (((c < '0') || (c > '9')) && (c != '-')));
 
@@ -427,7 +430,7 @@ Bool LocalFile::scanInt(Int &newInt)
 #ifdef USE_BUFFERED_IO
 		val = fread(&c, 1, 1, m_file);
 #else
-		val = _read( m_handle, &c, 1);
+		val = ::read( m_handle, &c, 1);
 #endif
 	} while ((val != 0) && ((c >= '0') && (c <= '9')));
 
@@ -436,7 +439,7 @@ Bool LocalFile::scanInt(Int &newInt)
 #ifdef USE_BUFFERED_IO
 		fseek(m_file, -1, SEEK_CUR);
 #else
-		_lseek(m_handle, -1, SEEK_CUR);
+		::lseek(m_handle, -1, SEEK_CUR);
 #endif
 	}
 
@@ -462,7 +465,7 @@ Bool LocalFile::scanReal(Real &newReal)
 #ifdef USE_BUFFERED_IO
 		val = fread(&c, 1, 1, m_file);
 #else
-		val = _read( m_handle, &c, 1);
+		val = ::read( m_handle, &c, 1);
 #endif
 	} while ((val != 0) && (((c < '0') || (c > '9')) && (c != '-') && (c != '.')));
 
@@ -478,7 +481,7 @@ Bool LocalFile::scanReal(Real &newReal)
 #ifdef USE_BUFFERED_IO
 		val = fread(&c, 1, 1, m_file);
 #else
-		val = _read(m_handle, &c, 1);
+		val = ::read(m_handle, &c, 1);
 #endif
 	} while ((val != 0) && (((c >= '0') && (c <= '9')) || ((c == '.') && !sawDec)));
 
@@ -486,7 +489,7 @@ Bool LocalFile::scanReal(Real &newReal)
 #ifdef USE_BUFFERED_IO
 		fseek(m_file, -1, SEEK_CUR);
 #else
-		_lseek(m_handle, -1, SEEK_CUR);
+		::lseek(m_handle, -1, SEEK_CUR);
 #endif
 	}
 
@@ -511,7 +514,7 @@ Bool LocalFile::scanString(AsciiString &newString)
 #ifdef USE_BUFFERED_IO
 		val = fread(&c, 1, 1, m_file);
 #else
-		val = _read(m_handle, &c, 1);
+		val = ::read(m_handle, &c, 1);
 #endif
 	} while ((val != 0) && (isspace(c)));
 
@@ -524,7 +527,7 @@ Bool LocalFile::scanString(AsciiString &newString)
 #ifdef USE_BUFFERED_IO
 		val = fread(&c, 1, 1, m_file);
 #else
-		val = _read(m_handle, &c, 1);
+		val = ::read(m_handle, &c, 1);
 #endif
 	} while ((val != 0) && (!isspace(c)));
 
@@ -532,7 +535,7 @@ Bool LocalFile::scanString(AsciiString &newString)
 #ifdef USE_BUFFERED_IO
 		fseek(m_file, -1, SEEK_CUR);
 #else
-		_lseek(m_handle, -1, SEEK_CUR);
+		::lseek(m_handle, -1, SEEK_CUR);
 #endif
 	}
 
@@ -555,13 +558,13 @@ void LocalFile::nextLine(Char *buf, Int bufSize)
 #ifdef USE_BUFFERED_IO
 			val = fread(&c, 1, 1, m_file);
 #else
-			val = _read(m_handle, &c, 1);
+			val = ::read(m_handle, &c, 1);
 #endif
 		} else {
 #ifdef USE_BUFFERED_IO
 			val = fread(buf + i, 1, 1, m_file);
 #else
-			val = _read(m_handle, buf + i, 1);
+			val = ::read(m_handle, buf + i, 1);
 #endif
 			c = buf[i];
 		}

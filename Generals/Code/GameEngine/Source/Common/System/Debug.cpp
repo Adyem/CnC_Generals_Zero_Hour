@@ -44,6 +44,9 @@
 
 // SYSTEM INCLUDES 
 #include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
+#include <filesystem>
+#include <system_error>
+#include <string>
 
 
 // USER INCLUDES 
@@ -52,7 +55,8 @@
 #include "Common/CriticalSection.h"
 #endif
 #include "Common/Debug.h"
-#include "Common/registry.h"
+#include "WWLib/registry.h"
+#include "Common/Registry.h"
 #include "Common/SystemInfo.h"
 #include "Common/UnicodeString.h"
 #include "GameClient/GameText.h"
@@ -104,6 +108,35 @@ static FILE *theLogFile = NULL;
 static char theBuffer[ LARGE_BUFFER ];	// make it big to avoid weird overflow bugs in debug mode
 static int theDebugFlags = 0;
 static DWORD theMainThreadID = 0;
+
+namespace
+{
+namespace fs = std::filesystem;
+
+fs::path getUserDataDirectory()
+{
+	const char* basePath = (TheGlobalData != NULL) ? TheGlobalData->getPath_UserData().str() : NULL;
+	if (basePath == NULL || basePath[0] == '\0')
+	{
+		return fs::path{};
+	}
+	return fs::path(basePath);
+}
+
+fs::path rotateCrashLogs(const char* currentName, const char* previousName)
+{
+	const fs::path userDataDirectory = getUserDataDirectory();
+	const fs::path currentPath = userDataDirectory / currentName;
+	const fs::path previousPath = userDataDirectory / previousName;
+
+	std::error_code ec;
+	fs::remove(previousPath, ec);
+	ec.clear();
+	fs::rename(currentPath, previousPath, ec);
+
+	return currentPath;
+}
+} // namespace
 // ----------------------------------------------------------------------------
 // PUBLIC DATA 
 // ----------------------------------------------------------------------------
@@ -656,18 +689,10 @@ void ReleaseCrash(const char *reason)
 	/// do additional reporting on the crash, if possible
 
 
-	char prevbuf[ _MAX_PATH ];
-	char curbuf[ _MAX_PATH ];
+		const fs::path crashLogPath = rotateCrashLogs(RELEASECRASH_FILE_NAME, RELEASECRASH_FILE_NAME_PREV);
+		const std::string crashLogPathString = crashLogPath.string();
 
-	strcpy(prevbuf, TheGlobalData->getPath_UserData().str());
-	strcat(prevbuf, RELEASECRASH_FILE_NAME_PREV);
-	strcpy(curbuf, TheGlobalData->getPath_UserData().str());
-	strcat(curbuf, RELEASECRASH_FILE_NAME);
-
- 	remove(prevbuf);
-	rename(curbuf, prevbuf);
-
-	theReleaseCrashLogFile = fopen(curbuf, "w");
+	theReleaseCrashLogFile = fopen(crashLogPathString.c_str(), "w");
 	if (theReleaseCrashLogFile)
 	{
 		fprintf(theReleaseCrashLogFile, "Release Crash at %s; Reason %s\n", getCurrentTimeString(), reason);
@@ -700,21 +725,14 @@ void ReleaseCrash(const char *reason)
 
 	if (!GetRegistryLanguage().compareNoCase("german2") || !GetRegistryLanguage().compareNoCase("german") )
 	{
-		::MessageBox(NULL, "Es ist ein gravierender Fehler aufgetreten. Solche Fehler können durch viele verschiedene Dinge wie Viren, überhitzte Hardware und Hardware, die den Mindestanforderungen des Spiels nicht entspricht, ausgelöst werden. Tipps zur Vorgehensweise findest du in den Foren unter www.generals.ea.com, Informationen zum Technischen Kundendienst im Handbuch zum Spiel.", "Fehler...", MB_OK|MB_TASKMODAL|MB_ICONERROR);
-	} 
-	else
-	{
-		::MessageBox(NULL, "You have encountered a serious error.  Serious errors can be caused by many things including viruses, overheated hardware and hardware that does not meet the minimum specifications for the game. Please visit the forums at www.generals.ea.com for suggested courses of action or consult your manual for Technical Support contact information.", "Technical Difficulties...", MB_OK|MB_TASKMODAL|MB_ICONERROR);
-	}
-
-#endif
-
-	_exit(1);
-}  
-
-void ReleaseCrashLocalized(const AsciiString& p, const AsciiString& m)
-{
-	if (!TheGameText) {
+	AsciiString mesgAscii;
+	mesgAscii.translate(mesg);
+		AsciiString promptA;
+		::MessageBoxA(NULL, mesgAscii.str(), promptA.str(), MB_OK|MB_TASKMODAL|MB_ICONERROR);
+		const fs::path crashLogPath = rotateCrashLogs(RELEASECRASH_FILE_NAME, RELEASECRASH_FILE_NAME_PREV);
+		const std::string crashLogPathString = crashLogPath.string();
+	theReleaseCrashLogFile = fopen(crashLogPathString.c_str(), "w");
+		fprintf(theReleaseCrashLogFile, "Release Crash at %s; Reason %s\n", getCurrentTimeString(), mesgAscii.str());
 		ReleaseCrash(m.str());
 		// This won't ever return
 		return;

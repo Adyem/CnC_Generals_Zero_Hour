@@ -45,7 +45,7 @@
 #include "GameNetwork/LANAPICallbacks.h"
 #include "GameNetwork/NAT.h"
 #include "GameNetwork/NetCommandWrapperList.h"
-#include "GameNetwork/NetworkUtil.h"
+#include "GameNetwork/networkutil.h"
 #include "GameLogic/GameLogic.h"
 #include "GameLogic/ScriptActions.h"
 #include "GameLogic/ScriptEngine.h"

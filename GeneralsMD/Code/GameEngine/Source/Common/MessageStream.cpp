@@ -112,14 +112,18 @@ GameMessageArgumentDataType GameMessage::getArgumentDataType( Int argIndex )
 	if (argIndex >= m_argCount) {
 		return ARGUMENTDATATYPE_UNKNOWN;
 	}
-	int i=0;
-	for (GameMessageArgument *a = m_argList; a && (i < argIndex); a=a->m_next, ++i );
+    int i = 0;
+    GameMessageArgument *arg = m_argList;
+    for (; arg && (i < argIndex); arg = arg->m_next, ++i)
+    {
+            // continue walking the list until we reach the requested index
+    }
 
-	if (a != NULL)
-	{
-		return a->m_type;
-	}
-	return ARGUMENTDATATYPE_UNKNOWN;
+    if (arg != NULL)
+    {
+            return arg->m_type;
+    }
+    return ARGUMENTDATATYPE_UNKNOWN;
 }
 
 /**
