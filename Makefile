@@ -38,7 +38,7 @@ endif
 # Useful preprocessor definitions similar to the legacy MSVC project
 CPPFLAGS   += -DWIN32 -D_WINDOWS -DNOMINMAX -D_CRT_SECURE_NO_DEPRECATE
 CPPFLAGS   += -DBX_CONFIG_DEBUG=0
-CPPFLAGS   += -DWW3D_BGFX_AVAILABLE=1
+CPPFLAGS   += -DWW3D_BGFX_AVAILABLE=0
 WW3D_ENABLE_LEGACY_DX8 ?= 0
 CPPFLAGS   += -DWW3D_ENABLE_LEGACY_DX8=$(WW3D_ENABLE_LEGACY_DX8)
 
@@ -67,8 +67,11 @@ INCLUDE_DIRS := \
         $(SRC_DIR)/Libraries/Source/WWVegas/WWLib \
         $(SRC_DIR)/Libraries/Source/WWVegas/WWMath \
         $(SRC_DIR)/Libraries/Source/WWVegas/WWDebug \
+        $(SRC_DIR)/Libraries/Source/WWVegas/WW3D2 \
         $(SRC_DIR)/Libraries/Source/WWVegas \
+        $(SRC_DIR)/Libraries/Source/WWVegas/WWSaveLoad \
         $(SRC_DIR)/Libraries/Source/Compression \
+        $(SRC_DIR)/Compat/D3D \
         $(SRC_DIR)/Main \
         $(SRC_DIR)/Main/Include
 

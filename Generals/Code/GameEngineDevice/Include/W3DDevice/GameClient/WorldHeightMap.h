@@ -36,7 +36,7 @@
 #include "WWLib/RefCount.h"
 #include "WWMath/Vector3.h"
 #include "W3DDevice/GameClient/TileData.h"
-#include "../../gameengine/include/common/MapObject.h"
+#include "GameEngine/Include/Common/MapObject.h"
 
 #include "Common/STLTypedefs.h"
 typedef std::vector<ICoord2D> VecICoord2D;
