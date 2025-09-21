@@ -56,6 +56,7 @@ using LPCVOID = const void*;
 using LPBYTE = BYTE*;
 using LPSTR = char*;
 using LPCSTR = const char*;
+using WCHAR = wchar_t;
 using LPWSTR = wchar_t*;
 using LPCWSTR = const wchar_t*;
 using LPTSTR = char*;
@@ -98,6 +99,27 @@ struct SIZE
     LONG cy;
 };
 
+struct EXCEPTION_RECORD
+{
+    DWORD ExceptionCode;
+    DWORD ExceptionFlags;
+    void* ExceptionRecord;
+    void* ExceptionAddress;
+    DWORD NumberParameters;
+    ULONG_PTR ExceptionInformation[15];
+};
+
+struct CONTEXT
+{
+    DWORD ContextFlags;
+};
+
+struct EXCEPTION_POINTERS
+{
+    EXCEPTION_RECORD* ExceptionRecord;
+    CONTEXT* ContextRecord;
+};
+
 #define cnc_WINAPI
 #define cnc_CALLBACK
 #define cnc_APIENTRY
@@ -117,15 +139,11 @@ inline UINT timeEndPeriod(UINT)
     return 0;
 }
 
+DWORD GetTickCount();
+
 inline DWORD timeGetTime()
 {
-    using namespace std::chrono;
-    return static_cast<DWORD>(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
-}
-
-inline DWORD GetTickCount()
-{
-    return timeGetTime();
+    return GetTickCount();
 }
 
 inline void ZeroMemory(void* destination, std::size_t size)
@@ -147,6 +165,37 @@ constexpr BOOL TRUE_VALUE = 1;
 constexpr BOOL FALSE_VALUE = 0;
 constexpr DWORD INFINITE = 0xffffffffu;
 constexpr DWORD MAX_PATH = 260;
+constexpr std::size_t _MAX_PATH = 260;
+
+constexpr UINT MB_OK = 0x00000000u;
+constexpr UINT MB_OKCANCEL = 0x00000001u;
+constexpr UINT MB_ABORTRETRYIGNORE = 0x00000002u;
+constexpr UINT MB_YESNOCANCEL = 0x00000003u;
+constexpr UINT MB_YESNO = 0x00000004u;
+constexpr UINT MB_RETRYCANCEL = 0x00000005u;
+constexpr UINT MB_ICONERROR = 0x00000010u;
+constexpr UINT MB_ICONWARNING = 0x00000030u;
+constexpr UINT MB_ICONINFORMATION = 0x00000040u;
+constexpr UINT MB_SYSTEMMODAL = 0x00001000u;
+constexpr UINT MB_TASKMODAL = 0x00002000u;
+constexpr UINT MB_APPLMODAL = 0x00000000u;
+constexpr UINT MB_DEFBUTTON3 = 0x00000300u;
+
+constexpr UINT SWP_NOSIZE = 0x0001u;
+constexpr UINT SWP_NOMOVE = 0x0002u;
+
+constexpr int SW_HIDE = 0;
+constexpr int SW_SHOW = 5;
+
+constexpr int IDOK = 1;
+constexpr int IDCANCEL = 2;
+constexpr int IDABORT = 3;
+constexpr int IDRETRY = 4;
+constexpr int IDIGNORE = 5;
+constexpr int IDYES = 6;
+constexpr int IDNO = 7;
+
+inline constexpr HWND HWND_NOTOPMOST = nullptr;
 
 constexpr HRESULT S_OK = 0;
 constexpr HRESULT S_FALSE = 1;
@@ -321,21 +370,33 @@ inline int lstrlenA(LPCSTR value)
     return static_cast<int>(std::strlen(value));
 }
 
-inline void OutputDebugStringA(LPCSTR message)
-{
-    if (message)
-    {
-        std::fprintf(stderr, "%s", message);
-    }
-}
+void OutputDebugStringA(LPCSTR message);
 
-inline DWORD GetLastError()
-{
-    return 0;
-}
+DWORD GetLastError();
 
-inline void SetLastError(DWORD)
+void SetLastError(DWORD value);
+
+DWORD GetCurrentThreadId();
+
+void DebugBreak();
+
+BOOL ShowWindow(HWND window, int command);
+
+BOOL SetWindowPos(HWND window,
+                  HWND insertAfter,
+                  int x,
+                  int y,
+                  int cx,
+                  int cy,
+                  UINT flags);
+
+int MessageBoxA(HWND window, LPCSTR text, LPCSTR caption, UINT type);
+
+int MessageBoxW(HWND window, LPCWSTR text, LPCWSTR caption, UINT type);
+
+inline int MessageBox(HWND window, LPCSTR text, LPCSTR caption, UINT type)
 {
+    return MessageBoxA(window, text, caption, type);
 }
 
 } // namespace cnc::windows
@@ -376,6 +437,7 @@ using cnc::windows::HKEY;
 using cnc::windows::LPVOID;
 using cnc::windows::LPCVOID;
 using cnc::windows::LPBYTE;
+using cnc::windows::WCHAR;
 using cnc::windows::LPSTR;
 using cnc::windows::LPCSTR;
 using cnc::windows::LPWSTR;
@@ -402,6 +464,9 @@ using cnc::windows::LPCOLESTR;
 using cnc::windows::RECT;
 using cnc::windows::POINT;
 using cnc::windows::SIZE;
+using cnc::windows::EXCEPTION_RECORD;
+using cnc::windows::CONTEXT;
+using cnc::windows::EXCEPTION_POINTERS;
 using cnc::windows::GUID;
 using cnc::windows::IID;
 using cnc::windows::CLSID;
@@ -418,6 +483,7 @@ using cnc::windows::TRUE_VALUE;
 using cnc::windows::FALSE_VALUE;
 using cnc::windows::INFINITE;
 using cnc::windows::MAX_PATH;
+using cnc::windows::_MAX_PATH;
 using cnc::windows::S_OK;
 using cnc::windows::S_FALSE;
 using cnc::windows::E_FAIL;
@@ -427,6 +493,31 @@ using cnc::windows::E_NOTIMPL;
 using cnc::windows::E_NOINTERFACE;
 using cnc::windows::VARIANT_TRUE;
 using cnc::windows::VARIANT_FALSE;
+using cnc::windows::MB_OK;
+using cnc::windows::MB_OKCANCEL;
+using cnc::windows::MB_ABORTRETRYIGNORE;
+using cnc::windows::MB_YESNOCANCEL;
+using cnc::windows::MB_YESNO;
+using cnc::windows::MB_RETRYCANCEL;
+using cnc::windows::MB_ICONERROR;
+using cnc::windows::MB_ICONWARNING;
+using cnc::windows::MB_ICONINFORMATION;
+using cnc::windows::MB_SYSTEMMODAL;
+using cnc::windows::MB_TASKMODAL;
+using cnc::windows::MB_APPLMODAL;
+using cnc::windows::MB_DEFBUTTON3;
+using cnc::windows::SWP_NOSIZE;
+using cnc::windows::SWP_NOMOVE;
+using cnc::windows::SW_HIDE;
+using cnc::windows::SW_SHOW;
+using cnc::windows::IDOK;
+using cnc::windows::IDCANCEL;
+using cnc::windows::IDABORT;
+using cnc::windows::IDRETRY;
+using cnc::windows::IDIGNORE;
+using cnc::windows::IDYES;
+using cnc::windows::IDNO;
+using cnc::windows::HWND_NOTOPMOST;
 
 using cnc::windows::Sleep;
 using cnc::windows::timeBeginPeriod;
@@ -446,6 +537,13 @@ using cnc::windows::lstrlenA;
 using cnc::windows::OutputDebugStringA;
 using cnc::windows::GetLastError;
 using cnc::windows::SetLastError;
+using cnc::windows::ShowWindow;
+using cnc::windows::SetWindowPos;
+using cnc::windows::MessageBoxA;
+using cnc::windows::MessageBoxW;
+using cnc::windows::MessageBox;
+using cnc::windows::GetCurrentThreadId;
+using cnc::windows::DebugBreak;
 
 #define WINAPI cnc_WINAPI
 #define CALLBACK cnc_CALLBACK

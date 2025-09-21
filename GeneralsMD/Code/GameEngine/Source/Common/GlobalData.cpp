@@ -43,7 +43,7 @@
 #include "Common/FileSystem.h"
 #include "Common/GameAudio.h"
 #include "Common/INI.h"
-#include "Common/registry.h"
+#include "WWLib/registry.h"
 #include "Common/UserPreferences.h"
 #include "Common/Version.h"
 

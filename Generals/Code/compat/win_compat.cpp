@@ -7,161 +7,304 @@
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
+#include <functional>
 #include <string>
 #include <system_error>
+#include <csignal>
 
 #include <dlfcn.h>
 #include <unistd.h>
 
-namespace {
+namespace cnc::windows
+{
+namespace
+{
+thread_local DWORD g_lastError = ERROR_SUCCESS;
 
-thread_local unsigned long g_lastError = ERROR_SUCCESS;
+int resolveDefaultMessageBoxResponse(UINT type)
+{
+    if (type & MB_ABORTRETRYIGNORE)
+    {
+        return IDIGNORE;
+    }
+    if (type & MB_RETRYCANCEL)
+    {
+        return IDCANCEL;
+    }
+    if (type & MB_YESNOCANCEL)
+    {
+        return IDYES;
+    }
+    if (type & MB_YESNO)
+    {
+        return IDYES;
+    }
+    return IDOK;
+}
 
+std::string wideToUtf8(LPCWSTR text)
+{
+    if (text == nullptr)
+    {
+        return std::string{};
+    }
+
+    std::mbstate_t state{};
+    const wchar_t* source = text;
+    std::size_t required = std::wcsrtombs(nullptr, &source, 0, &state);
+    if (required == static_cast<std::size_t>(-1))
+    {
+        return std::string{};
+    }
+
+    std::string buffer(required, '\0');
+    source = text;
+    state = std::mbstate_t{};
+    std::wcsrtombs(buffer.data(), &source, buffer.size(), &state);
+    return buffer;
+}
 } // namespace
 
-unsigned long GetLastError() { return g_lastError; }
+DWORD GetLastError()
+{
+    return g_lastError;
+}
 
-void SetLastError(unsigned long error) { g_lastError = error; }
+void SetLastError(DWORD error)
+{
+    g_lastError = error;
+}
 
-HMODULE LoadLibraryA(const char* fileName) {
+DWORD GetCurrentThreadId()
+{
+    auto id = std::this_thread::get_id();
+    auto hash = std::hash<std::thread::id>{}(id);
+    return static_cast<DWORD>(hash);
+}
+
+void DebugBreak()
+{
+#ifdef SIGTRAP
+    std::raise(SIGTRAP);
+#else
+    std::abort();
+#endif
+}
+
+BOOL ShowWindow(HWND, int)
+{
+    return TRUE_VALUE;
+}
+
+BOOL SetWindowPos(HWND,
+                  HWND,
+                  int,
+                  int,
+                  int,
+                  int,
+                  UINT)
+{
+    return TRUE_VALUE;
+}
+
+int MessageBoxA(HWND,
+                LPCSTR text,
+                LPCSTR caption,
+                UINT type)
+{
+    const char* resolvedCaption = caption != nullptr ? caption : "";
+    const char* resolvedText = text != nullptr ? text : "";
+    std::fprintf(stderr, "[MessageBox] %s: %s\n", resolvedCaption, resolvedText);
+    return resolveDefaultMessageBoxResponse(type);
+}
+
+int MessageBoxW(HWND window,
+                LPCWSTR text,
+                LPCWSTR caption,
+                UINT type)
+{
+    std::string convertedText = wideToUtf8(text);
+    std::string convertedCaption = wideToUtf8(caption);
+    return MessageBoxA(window, convertedText.c_str(), convertedCaption.c_str(), type);
+}
+
+HMODULE LoadLibraryA(const char* fileName)
+{
     void* handle = dlopen(fileName, RTLD_NOW | RTLD_GLOBAL);
-    if (handle == nullptr) {
+    if (handle == nullptr)
+    {
         g_lastError = ERROR_CALL_NOT_IMPLEMENTED;
     }
     return reinterpret_cast<HMODULE>(handle);
 }
 
-FARPROC GetProcAddressA(HMODULE handle, const char* procName) {
-    if (handle == nullptr) {
+FARPROC GetProcAddressA(HMODULE handle, const char* procName)
+{
+    if (handle == nullptr)
+    {
         g_lastError = ERROR_CALL_NOT_IMPLEMENTED;
         return nullptr;
     }
     void* symbol = dlsym(handle, procName);
-    if (symbol == nullptr) {
+    if (symbol == nullptr)
+    {
         g_lastError = ERROR_CALL_NOT_IMPLEMENTED;
         return nullptr;
     }
     return reinterpret_cast<FARPROC>(symbol);
 }
 
-BOOL FreeLibrary(HMODULE handle) {
-    if (handle == nullptr) {
+BOOL FreeLibrary(HMODULE handle)
+{
+    if (handle == nullptr)
+    {
         return FALSE;
     }
     return dlclose(handle) == 0 ? TRUE : FALSE;
 }
 
-int LoadStringA(HINSTANCE, unsigned int, char*, int) {
+int LoadStringA(HINSTANCE, unsigned int, char*, int)
+{
     g_lastError = ERROR_CALL_NOT_IMPLEMENTED;
     return 0;
 }
 
-HRSRC FindResourceA(HINSTANCE, const char*, const char*) {
+HRSRC FindResourceA(HINSTANCE, const char*, const char*)
+{
     g_lastError = ERROR_CALL_NOT_IMPLEMENTED;
     return nullptr;
 }
 
-HGLOBAL LoadResource(HINSTANCE, HRSRC) {
+HGLOBAL LoadResource(HINSTANCE, HRSRC)
+{
     g_lastError = ERROR_CALL_NOT_IMPLEMENTED;
     return nullptr;
 }
 
-void* LockResource(HGLOBAL) { return nullptr; }
+void* LockResource(HGLOBAL)
+{
+    return nullptr;
+}
 
-DWORD SizeofResource(HINSTANCE, HRSRC) { return 0; }
+DWORD SizeofResource(HINSTANCE, HRSRC)
+{
+    return 0;
+}
 
-unsigned long GetTickCount() {
+DWORD GetTickCount()
+{
     using namespace std::chrono;
     auto now = steady_clock::now().time_since_epoch();
-    return static_cast<unsigned long>(duration_cast<milliseconds>(now).count());
+    return static_cast<DWORD>(duration_cast<milliseconds>(now).count());
 }
 
-int FindExecutableA(const char* file, const char* directory, char* result) {
-    if (result == nullptr) {
+int FindExecutableA(const char* file, const char* directory, char* result)
+{
+    if (result == nullptr)
+    {
         return 1;
     }
 
     std::string path;
-    if (file != nullptr) {
+    if (file != nullptr)
+    {
         path = file;
-        if (!path.empty() && access(path.c_str(), X_OK) == 0) {
+        if (!path.empty() && access(path.c_str(), X_OK) == 0)
+        {
             std::snprintf(result, MAX_PATH, "%s", path.c_str());
             return 0;
         }
     }
 
-    if (directory != nullptr && file != nullptr) {
+    if (directory != nullptr && file != nullptr)
+    {
         std::string combined = std::string(directory) + "/" + file;
-        if (access(combined.c_str(), X_OK) == 0) {
+        if (access(combined.c_str(), X_OK) == 0)
+        {
             std::snprintf(result, MAX_PATH, "%s", combined.c_str());
             return 0;
         }
     }
 
     const char* pathEnv = std::getenv("PATH");
-    if (pathEnv != nullptr && file != nullptr) {
+    if (pathEnv != nullptr && file != nullptr)
+    {
         std::string current;
-        for (const char* iter = pathEnv; ; ++iter) {
-            if (*iter == ':' || *iter == '\0') {
-                if (!current.empty()) {
+        for (const char* iter = pathEnv;; ++iter)
+        {
+            if (*iter == ':' || *iter == '\0')
+            {
+                if (!current.empty())
+                {
                     std::string candidate = current + "/" + file;
-                    if (access(candidate.c_str(), X_OK) == 0) {
+                    if (access(candidate.c_str(), X_OK) == 0)
+                    {
                         std::snprintf(result, MAX_PATH, "%s", candidate.c_str());
                         return 0;
                     }
                 }
                 current.clear();
-                if (*iter == '\0') {
+                if (*iter == '\0')
+                {
                     break;
                 }
-            } else {
+            }
+            else
+            {
                 current.push_back(*iter);
             }
         }
     }
 
-    if (result != nullptr) {
+    if (result != nullptr)
+    {
         result[0] = '\0';
     }
     g_lastError = ERROR_CALL_NOT_IMPLEMENTED;
     return 2;
 }
 
-unsigned long FormatMessageA(unsigned long,
-                             const void*,
-                             unsigned long messageId,
-                             unsigned long,
-                             char* buffer,
-                             unsigned long size,
-                             va_list*) {
-    if (buffer == nullptr || size == 0) {
+DWORD FormatMessageA(DWORD,
+                     const void*,
+                     DWORD messageId,
+                     DWORD,
+                     char* buffer,
+                     DWORD size,
+                     va_list*)
+{
+    if (buffer == nullptr || size == 0)
+    {
         return 0;
     }
 
     std::error_code ec(static_cast<int>(messageId), std::generic_category());
     std::string message = ec.message();
-    if (message.empty()) {
+    if (message.empty())
+    {
         message = "Unknown error";
     }
 
     std::snprintf(buffer, size, "%s (error %lu)", message.c_str(), messageId);
-    return static_cast<unsigned long>(std::strlen(buffer));
+    return static_cast<DWORD>(std::strlen(buffer));
 }
 
-unsigned long FormatMessageW(unsigned long flags,
-                             const void* source,
-                             unsigned long messageId,
-                             unsigned long languageId,
-                             wchar_t* buffer,
-                             unsigned long size,
-                             va_list* arguments) {
-    if (buffer == nullptr || size == 0) {
+DWORD FormatMessageW(DWORD flags,
+                     const void* source,
+                     DWORD messageId,
+                     DWORD languageId,
+                     wchar_t* buffer,
+                     DWORD size,
+                     va_list* arguments)
+{
+    if (buffer == nullptr || size == 0)
+    {
         return 0;
     }
 
     char temp[1024];
-    unsigned long written = FormatMessageA(flags, source, messageId, languageId, temp, sizeof(temp), arguments);
-    if (written == 0) {
+    DWORD written = FormatMessageA(flags, source, messageId, languageId, temp, sizeof(temp), arguments);
+    if (written == 0)
+    {
         return 0;
     }
 
@@ -169,13 +312,16 @@ unsigned long FormatMessageW(unsigned long flags,
     const char* src = temp;
     wchar_t* dst = buffer;
     size_t remaining = size - 1;
-    while (remaining > 0) {
+    while (remaining > 0)
+    {
         wchar_t wc;
         size_t res = std::mbrtowc(&wc, src, std::strlen(src), &state);
-        if (res == static_cast<size_t>(-1) || res == static_cast<size_t>(-2)) {
+        if (res == static_cast<size_t>(-1) || res == static_cast<size_t>(-2))
+        {
             break;
         }
-        if (res == 0) {
+        if (res == 0)
+        {
             break;
         }
         *dst++ = wc;
@@ -183,25 +329,44 @@ unsigned long FormatMessageW(unsigned long flags,
         --remaining;
     }
     *dst = L'\0';
-    return static_cast<unsigned long>(dst - buffer);
+    return static_cast<DWORD>(dst - buffer);
 }
 
-void LocalFree(void* memory) { std::free(memory); }
+void LocalFree(void* memory)
+{
+    std::free(memory);
+}
 
-void OutputDebugStringA(const char* message) {
-    if (message != nullptr) {
+void OutputDebugStringA(LPCSTR message)
+{
+    if (message != nullptr)
+    {
         std::fprintf(stderr, "%s", message);
     }
 }
 
-HMODULE GetModuleHandleA(const char*) { return nullptr; }
+HMODULE GetModuleHandleA(LPCSTR)
+{
+    return nullptr;
+}
 
-unsigned long GetModuleFileNameA(HMODULE, char* buffer, unsigned long size) {
-    if (buffer == nullptr || size == 0) {
+DWORD GetModuleFileNameA(HMODULE, LPSTR buffer, DWORD size)
+{
+    if (buffer == nullptr || size == 0)
+    {
         return 0;
     }
-    buffer[0] = '\0';
-    return 0;
+
+    ssize_t len = readlink("/proc/self/exe", buffer, size - 1);
+    if (len == -1)
+    {
+        buffer[0] = '\0';
+        return 0;
+    }
+    buffer[len] = '\0';
+    return static_cast<DWORD>(len);
 }
+
+} // namespace cnc::windows
 
 #endif // !_WIN32

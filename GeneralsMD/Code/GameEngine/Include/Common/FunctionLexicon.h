@@ -47,12 +47,14 @@ class FunctionLexicon : public SubsystemInterface
 
 public:
 
-	struct TableEntry
-	{
-		NameKeyType key;
-		const char *name;
-		void *func;
-	};
+        using RawFunctionPointer = void (*)();
+
+        struct TableEntry
+        {
+                NameKeyType key;
+                const char *name;
+                RawFunctionPointer func;
+        };
 
 	enum TableIndex
 	{
@@ -116,12 +118,12 @@ protected:
 
 	/** given a key find the function, the index parameter can limit the search
 	to a single table or to ANY of the tables */
-	void *findFunction( NameKeyType key, TableIndex index );
-	
+        RawFunctionPointer findFunction( NameKeyType key, TableIndex index );
+
 #ifdef NOT_IN_USE
-	const char *funcToName( void *func, TableEntry *table );  ///< internal searching
+        const char *funcToName( RawFunctionPointer func, TableEntry *table );  ///< internal searching
 #endif
-	void *keyToFunc( NameKeyType key, TableEntry *table );  ///< internal searching
+        RawFunctionPointer keyToFunc( NameKeyType key, TableEntry *table );  ///< internal searching
 
 	TableEntry *m_tables[ MAX_FUNCTION_TABLES ];  ///< the lookup tables
 
@@ -134,16 +136,16 @@ inline FunctionLexicon::TableEntry *FunctionLexicon::getTable( TableIndex index 
 	{ return m_tables[ index ]; }
 
 inline GameWinSystemFunc FunctionLexicon::gameWinSystemFunc( NameKeyType key, TableIndex index )
-	{ return (GameWinSystemFunc)findFunction( key, index ); }
+        { return reinterpret_cast<GameWinSystemFunc>( findFunction( key, index ) ); }
 inline GameWinInputFunc FunctionLexicon::gameWinInputFunc( NameKeyType key, TableIndex index )
-	{ return (GameWinInputFunc)findFunction( key, index ); }
+        { return reinterpret_cast<GameWinInputFunc>( findFunction( key, index ) ); }
 inline GameWinTooltipFunc FunctionLexicon::gameWinTooltipFunc( NameKeyType key, TableIndex index )
-	{ return (GameWinTooltipFunc)findFunction( key, index ); }
+        { return reinterpret_cast<GameWinTooltipFunc>( findFunction( key, index ) ); }
 
 inline WindowLayoutUpdateFunc FunctionLexicon::winLayoutUpdateFunc( NameKeyType key, TableIndex index )
-	{ return (WindowLayoutUpdateFunc)findFunction( key, index ); }
+        { return reinterpret_cast<WindowLayoutUpdateFunc>( findFunction( key, index ) ); }
 inline WindowLayoutShutdownFunc FunctionLexicon::winLayoutShutdownFunc( NameKeyType key, TableIndex index )
-	{ return (WindowLayoutShutdownFunc)findFunction( key, index ); }
+        { return reinterpret_cast<WindowLayoutShutdownFunc>( findFunction( key, index ) ); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // EXTERNALS 
