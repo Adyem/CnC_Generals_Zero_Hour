@@ -74,12 +74,12 @@ template <class T>
 class DLDestroyListClass : public DLListClass<T>
 {
 public:
-	virtual ~DLDestroyListClass()
-	{
-		while (T* t=Head()) {		
-			delete t;
-		}
-	}
+        virtual ~DLDestroyListClass()
+        {
+                while (T* t = this->Head()) {
+                        delete t;
+                }
+        }
 };
 
 template <class T>

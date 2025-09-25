@@ -11,6 +11,7 @@
 #include <cstdint>
 
 #include "d3d8types.h"
+#include "../Windows/windows_compat.h"
 
 using HRESULT = long;
 
@@ -21,29 +22,6 @@ using DWORD = std::uint32_t;
 #ifndef D3DCOLOR
 using D3DCOLOR = std::uint32_t;
 #endif
-
-struct IDirect3D8;
-struct IDirect3DDevice8;
-struct IDirect3DTexture8;
-struct IDirect3DSurface8;
-struct IDirect3DBaseTexture8;
-struct IDirect3DVertexBuffer8;
-struct IDirect3DIndexBuffer8;
-struct IDirect3DStateBlock8;
-struct IDirect3DVolumeTexture8;
-struct IDirect3DCubeTexture8;
-struct IDirect3DSwapChain8;
-
-using LPDIRECT3D8 = IDirect3D8*;
-using LPDIRECT3DDEVICE8 = IDirect3DDevice8*;
-using LPDIRECT3DTEXTURE8 = IDirect3DTexture8*;
-using LPDIRECT3DSURFACE8 = IDirect3DSurface8*;
-using LPDIRECT3DVERTEXBUFFER8 = IDirect3DVertexBuffer8*;
-using LPDIRECT3DINDEXBUFFER8 = IDirect3DIndexBuffer8*;
-using LPDIRECT3DSTATEBLOCK8 = IDirect3DStateBlock8*;
-using LPDIRECT3DVOLUMETEXTURE8 = IDirect3DVolumeTexture8*;
-using LPDIRECT3DCUBETEXTURE8 = IDirect3DCubeTexture8*;
-using LPDIRECT3DSWAPCHAIN8 = IDirect3DSwapChain8*;
 
 constexpr HRESULT D3D_OK = 0;
 constexpr HRESULT D3DERR_INVALIDCALL = -2005530516;      // 0x8876086C
@@ -87,6 +65,136 @@ constexpr DWORD D3DDP_MAXTEXCOORD = 8;
 #define D3DFVF_TEXCOORDSIZE2(i) (static_cast<DWORD>(0) << ((i) * 2 + 16))
 #define D3DFVF_TEXCOORDSIZE3(i) (static_cast<DWORD>(1) << ((i) * 2 + 16))
 #define D3DFVF_TEXCOORDSIZE4(i) (static_cast<DWORD>(2) << ((i) * 2 + 16))
+
+struct IDirect3D8;
+struct IDirect3DDevice8;
+
+struct IDirect3DResource8
+{
+    virtual ~IDirect3DResource8() = default;
+    virtual ULONG AddRef() { return 1; }
+    virtual ULONG Release() { return 1; }
+};
+
+struct IDirect3DBaseTexture8 : public IDirect3DResource8
+{
+};
+
+struct IDirect3DTexture8 : public IDirect3DBaseTexture8
+{
+};
+
+struct IDirect3DVolumeTexture8 : public IDirect3DBaseTexture8
+{
+};
+
+struct IDirect3DCubeTexture8 : public IDirect3DBaseTexture8
+{
+};
+
+struct IDirect3DSurface8 : public IDirect3DResource8
+{
+};
+
+struct IDirect3DVertexBuffer8 : public IDirect3DResource8
+{
+};
+
+struct IDirect3DIndexBuffer8 : public IDirect3DResource8
+{
+};
+
+struct IDirect3DStateBlock8 : public IDirect3DResource8
+{
+};
+
+struct IDirect3DSwapChain8 : public IDirect3DResource8
+{
+};
+
+struct IDirect3DDevice8 : public IDirect3DResource8
+{
+    virtual HRESULT TestCooperativeLevel() { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT Reset(D3DPRESENT_PARAMETERS*) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT GetDeviceCaps(D3DCAPS8* caps)
+    {
+        if (caps)
+        {
+            *caps = {};
+        }
+        return D3DERR_NOTAVAILABLE;
+    }
+    virtual HRESULT GetDisplayMode(D3DDISPLAYMODE* mode)
+    {
+        if (mode)
+        {
+            *mode = {};
+        }
+        return D3DERR_NOTAVAILABLE;
+    }
+    virtual HRESULT GetBackBuffer(UINT, D3DBACKBUFFER_TYPE, IDirect3DSurface8**) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT GetFrontBuffer(IDirect3DSurface8*) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT GetDepthStencilSurface(IDirect3DSurface8**) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT SetRenderTarget(IDirect3DSurface8*, IDirect3DSurface8*) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT GetRenderTarget(IDirect3DSurface8**) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT SetTransform(D3DTRANSFORMSTATETYPE, const D3DMATRIX*) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT GetTransform(D3DTRANSFORMSTATETYPE, D3DMATRIX*) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT SetViewport(const D3DVIEWPORT8*) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT SetMaterial(const D3DMATERIAL8*) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT SetLight(DWORD, const D3DLIGHT8*) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT LightEnable(DWORD, BOOL) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT SetRenderState(D3DRENDERSTATETYPE, DWORD) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT SetClipPlane(DWORD, const float*) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT SetTextureStageState(DWORD, D3DTEXTURESTAGESTATETYPE, DWORD) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT SetStreamSource(UINT, IDirect3DVertexBuffer8*, UINT) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT SetIndices(IDirect3DIndexBuffer8*, UINT) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT SetTexture(DWORD, IDirect3DBaseTexture8*) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT SetVertexShader(DWORD) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT DrawIndexedPrimitive(D3DPRIMITIVETYPE, UINT, UINT, UINT, UINT) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT CreateImageSurface(UINT, UINT, D3DFORMAT, IDirect3DSurface8**) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT UpdateTexture(IDirect3DBaseTexture8*, IDirect3DBaseTexture8*) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT Clear(DWORD, const D3DRECT*, DWORD, D3DCOLOR, float, DWORD) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT BeginScene() { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT EndScene() { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT CopyRects(IDirect3DSurface8*, const RECT*, UINT, IDirect3DSurface8*, const POINT*) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT CreateVertexBuffer(UINT, DWORD, DWORD, DWORD, IDirect3DVertexBuffer8**) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT CreateIndexBuffer(UINT, DWORD, D3DFORMAT, DWORD, IDirect3DIndexBuffer8**) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS*, IDirect3DSwapChain8**) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT ValidateDevice(DWORD*) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT ResourceManagerDiscardBytes(DWORD) { return D3DERR_NOTAVAILABLE; }
+};
+
+struct IDirect3D8 : public IDirect3DResource8
+{
+    virtual UINT GetAdapterCount() { return 0; }
+    virtual HRESULT GetAdapterIdentifier(UINT, DWORD, D3DADAPTER_IDENTIFIER8*) { return D3DERR_NOTAVAILABLE; }
+    virtual UINT GetAdapterModeCount(UINT) { return 0; }
+    virtual HRESULT EnumAdapterModes(UINT, UINT, D3DDISPLAYMODE*) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT GetAdapterDisplayMode(UINT, D3DDISPLAYMODE*) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT CheckDeviceType(UINT, D3DDEVTYPE, D3DFORMAT, D3DFORMAT, BOOL) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT CheckDeviceFormat(UINT, D3DDEVTYPE, D3DFORMAT, DWORD, D3DRESOURCETYPE, D3DFORMAT) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT CheckDepthStencilMatch(UINT, D3DDEVTYPE, D3DFORMAT, D3DFORMAT, D3DFORMAT) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT CreateDevice(UINT, D3DDEVTYPE, HWND, DWORD, D3DPRESENT_PARAMETERS*, IDirect3DDevice8**) { return D3DERR_NOTAVAILABLE; }
+    virtual HRESULT GetDeviceCaps(UINT, D3DDEVTYPE, D3DCAPS8*) { return D3DERR_NOTAVAILABLE; }
+};
+
+using LPDIRECT3D8 = IDirect3D8*;
+using LPDIRECT3DDEVICE8 = IDirect3DDevice8*;
+using LPDIRECT3DTEXTURE8 = IDirect3DTexture8*;
+using LPDIRECT3DSURFACE8 = IDirect3DSurface8*;
+using LPDIRECT3DVERTEXBUFFER8 = IDirect3DVertexBuffer8*;
+using LPDIRECT3DINDEXBUFFER8 = IDirect3DIndexBuffer8*;
+using LPDIRECT3DSTATEBLOCK8 = IDirect3DStateBlock8*;
+using LPDIRECT3DVOLUMETEXTURE8 = IDirect3DVolumeTexture8*;
+using LPDIRECT3DCUBETEXTURE8 = IDirect3DCubeTexture8*;
+using LPDIRECT3DSWAPCHAIN8 = IDirect3DSwapChain8*;
+
+inline IDirect3D8* Direct3DCreate8(unsigned int)
+{
+    return nullptr;
+}
+
+
 
 #endif  // !_WIN32
 

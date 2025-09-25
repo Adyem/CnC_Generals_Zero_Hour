@@ -77,19 +77,6 @@ WaterTracksRenderSystem *TheWaterTracksRenderSystem=NULL;	///< singleton for tra
 
 static Bool pauseWaves=FALSE;
 
-enum waveType
-{
-	WaveTypeFirst,
-	WaveTypePond=WaveTypeFirst,
-	WaveTypeOcean,
-	WaveTypeCloseOcean,	//same as above but appears much closer to beach.
-	WaveTypeCloseOceanDouble,	//same as above but waves much sloser together.
-	WaveTypeRadial,
-	WaveTypeLast = WaveTypeRadial,
-	WaveTypeStationary,
-	WaveTypeMax,
-};
-
 struct waveInfo
 {
 	Real m_finalWidth;				//final width of of wave when it reaches beach.
