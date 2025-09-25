@@ -51,6 +51,7 @@ using HCURSOR = void*;
 using HGDIOBJ = void*;
 using HPEN = void*;
 using HKEY = void*;
+using HGLOBAL = void*;
 using LPVOID = void*;
 using LPCVOID = const void*;
 using LPBYTE = BYTE*;
@@ -64,6 +65,7 @@ using LPCTSTR = const char*;
 using LPBOOL = BOOL*;
 using LPWORD = WORD*;
 using LPDWORD = DWORD*;
+using PUINT = unsigned int*;
 using WPARAM = std::uintptr_t;
 using LPARAM = std::intptr_t;
 using LRESULT = std::intptr_t;
@@ -97,6 +99,46 @@ struct SIZE
 {
     LONG cx;
     LONG cy;
+};
+
+struct FILETIME
+{
+    DWORD dwLowDateTime;
+    DWORD dwHighDateTime;
+};
+
+struct IMAGE_DOS_HEADER
+{
+    WORD e_magic;
+    WORD e_cblp;
+    WORD e_cp;
+    WORD e_crlc;
+    WORD e_cparhdr;
+    WORD e_minalloc;
+    WORD e_maxalloc;
+    WORD e_ss;
+    WORD e_sp;
+    WORD e_csum;
+    WORD e_ip;
+    WORD e_cs;
+    WORD e_lfarlc;
+    WORD e_ovno;
+    WORD e_res[4];
+    WORD e_oemid;
+    WORD e_oeminfo;
+    WORD e_res2[10];
+    LONG e_lfanew;
+};
+
+struct IMAGE_FILE_HEADER
+{
+    WORD Machine;
+    WORD NumberOfSections;
+    DWORD TimeDateStamp;
+    DWORD PointerToSymbolTable;
+    DWORD NumberOfSymbols;
+    WORD SizeOfOptionalHeader;
+    WORD Characteristics;
 };
 
 struct EXCEPTION_RECORD
@@ -141,6 +183,23 @@ inline UINT timeEndPeriod(UINT)
 
 DWORD GetTickCount();
 
+DWORD GetFileAttributesA(LPCSTR fileName);
+BOOL DeleteFileA(LPCSTR fileName);
+
+BOOL GetFileTime(HANDLE file,
+                 FILETIME* creationTime,
+                 FILETIME* lastAccessTime,
+                 FILETIME* lastWriteTime);
+
+DWORD GetFileVersionInfoSizeA(LPCSTR fileName, LPDWORD handle);
+BOOL GetFileVersionInfoA(LPCSTR fileName, DWORD handle, DWORD size, LPVOID data);
+BOOL VerQueryValueA(LPCVOID block, LPCSTR subBlock, LPVOID* buffer, PUINT length);
+
+HGLOBAL GlobalAlloc(UINT flags, SIZE_T bytes);
+LPVOID GlobalLock(HGLOBAL memory);
+BOOL GlobalUnlock(HGLOBAL memory);
+HGLOBAL GlobalFree(HGLOBAL memory);
+
 inline DWORD timeGetTime()
 {
     return GetTickCount();
@@ -166,6 +225,15 @@ constexpr BOOL FALSE_VALUE = 0;
 constexpr DWORD INFINITE = 0xffffffffu;
 constexpr DWORD MAX_PATH = 260;
 constexpr std::size_t _MAX_PATH = 260;
+
+constexpr DWORD FILE_ATTRIBUTE_READONLY = 0x00000001u;
+constexpr DWORD FILE_ATTRIBUTE_DIRECTORY = 0x00000010u;
+constexpr DWORD INVALID_FILE_ATTRIBUTES = 0xffffffffu;
+
+constexpr UINT GMEM_FIXED = 0x0000u;
+constexpr UINT GMEM_MOVEABLE = 0x0002u;
+constexpr UINT GMEM_ZEROINIT = 0x0040u;
+constexpr UINT GHND = GMEM_MOVEABLE | GMEM_ZEROINIT;
 
 constexpr UINT MB_OK = 0x00000000u;
 constexpr UINT MB_OKCANCEL = 0x00000001u;
@@ -447,6 +515,7 @@ using cnc::windows::LPCTSTR;
 using cnc::windows::LPBOOL;
 using cnc::windows::LPWORD;
 using cnc::windows::LPDWORD;
+using cnc::windows::PUINT;
 using cnc::windows::WPARAM;
 using cnc::windows::LPARAM;
 using cnc::windows::LRESULT;
@@ -464,6 +533,9 @@ using cnc::windows::LPCOLESTR;
 using cnc::windows::RECT;
 using cnc::windows::POINT;
 using cnc::windows::SIZE;
+using cnc::windows::FILETIME;
+using cnc::windows::IMAGE_DOS_HEADER;
+using cnc::windows::IMAGE_FILE_HEADER;
 using cnc::windows::EXCEPTION_RECORD;
 using cnc::windows::CONTEXT;
 using cnc::windows::EXCEPTION_POINTERS;
@@ -484,6 +556,9 @@ using cnc::windows::FALSE_VALUE;
 using cnc::windows::INFINITE;
 using cnc::windows::MAX_PATH;
 using cnc::windows::_MAX_PATH;
+using cnc::windows::FILE_ATTRIBUTE_READONLY;
+using cnc::windows::FILE_ATTRIBUTE_DIRECTORY;
+using cnc::windows::INVALID_FILE_ATTRIBUTES;
 using cnc::windows::S_OK;
 using cnc::windows::S_FALSE;
 using cnc::windows::E_FAIL;
@@ -524,6 +599,8 @@ using cnc::windows::timeBeginPeriod;
 using cnc::windows::timeEndPeriod;
 using cnc::windows::timeGetTime;
 using cnc::windows::GetTickCount;
+using cnc::windows::GetFileAttributesA;
+using cnc::windows::DeleteFileA;
 using cnc::windows::ZeroMemory;
 using cnc::windows::CopyMemory;
 using cnc::windows::MoveMemory;
@@ -537,6 +614,14 @@ using cnc::windows::lstrlenA;
 using cnc::windows::OutputDebugStringA;
 using cnc::windows::GetLastError;
 using cnc::windows::SetLastError;
+using cnc::windows::GetFileTime;
+using cnc::windows::GetFileVersionInfoSizeA;
+using cnc::windows::GetFileVersionInfoA;
+using cnc::windows::VerQueryValueA;
+using cnc::windows::GlobalAlloc;
+using cnc::windows::GlobalLock;
+using cnc::windows::GlobalUnlock;
+using cnc::windows::GlobalFree;
 using cnc::windows::ShowWindow;
 using cnc::windows::SetWindowPos;
 using cnc::windows::MessageBoxA;
@@ -569,6 +654,12 @@ using cnc::windows::DebugBreak;
 
 #define MAKELONG(a, b) static_cast<LONG>((static_cast<DWORD>(static_cast<WORD>(a)) & 0xffff) | (static_cast<DWORD>(static_cast<WORD>(b)) << 16))
 #define MAKEWORD(a, b) static_cast<WORD>((static_cast<BYTE>(a) & 0xff) | ((static_cast<WORD>(static_cast<BYTE>(b)) & 0xff) << 8))
+
+#define GetFileAttributes GetFileAttributesA
+#define DeleteFile DeleteFileA
+#define GetFileVersionInfoSize GetFileVersionInfoSizeA
+#define GetFileVersionInfo GetFileVersionInfoA
+#define VerQueryValue VerQueryValueA
 
 #endif // !_WIN32
 
