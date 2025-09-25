@@ -61,15 +61,18 @@
 //#include	"mono.h"
 #include	"sfml_message_pump.h"
 
+#if WWLIB_HAS_SFML
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
 #include <SFML/Window/Window.hpp>
+#endif
 
 namespace
 {
 
+#if WWLIB_HAS_SFML
 unsigned short Translate_Sfml_Key(sf::Keyboard::Key key)
 {
 	using sf::Keyboard;
@@ -179,6 +182,15 @@ unsigned short Translate_Sfml_Key(sf::Keyboard::Key key)
 	return VK_NONE;
 }
 
+#else
+unsigned short Translate_Sfml_Key(sf::Keyboard::Key)
+{
+	return VK_NONE;
+}
+
+#endif
+
+#if WWLIB_HAS_SFML
 unsigned short Translate_Sfml_Mouse_Button(sf::Mouse::Button button)
 {
 	using sf::Mouse;
@@ -192,6 +204,14 @@ unsigned short Translate_Sfml_Mouse_Button(sf::Mouse::Button button)
 
 	return VK_NONE;
 }
+
+#else
+unsigned short Translate_Sfml_Mouse_Button(sf::Mouse::Button)
+{
+	return VK_NONE;
+}
+
+#endif
 
 } // anonymous namespace
 

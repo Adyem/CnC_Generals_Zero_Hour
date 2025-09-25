@@ -20,7 +20,9 @@
 #include "win.h"
 #include "wwdebug.h"
 
+#if WWLIB_HAS_SFML
 #include <SFML/Window/Window.hpp>
+#endif
 
 #include <atomic>
 #include <memory>

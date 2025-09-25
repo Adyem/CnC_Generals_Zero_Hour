@@ -43,6 +43,9 @@
 #endif
 
 #include <string.h>
+#if !defined(_WIN32)
+#include <strings.h>
+#endif
 
 /*
 ** HashTableClass
@@ -118,11 +121,15 @@ HashableClass * HashTableClass::Find( const char * key )
 {
 	// Find in the hash table.
 	int index = Hash( key );
-	for ( HashableClass * node = HashTable[ index ]; node != NULL; node = node->NextHash ) {
-		if ( ::stricmp( node->Get_Key(), key ) == 0 ) {
-			return node;
-		}
-	}
+        for ( HashableClass * node = HashTable[ index ]; node != NULL; node = node->NextHash ) {
+#if defined(_WIN32)
+                if ( ::_stricmp( node->Get_Key(), key ) == 0 ) {
+#else
+                if ( ::strcasecmp( node->Get_Key(), key ) == 0 ) {
+#endif
+                        return node;
+                }
+        }
 	return NULL;
 }
 

@@ -16,11 +16,14 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <ostream>
+
 #include "global.h"
 #include "matcher.h"
 #include "encrypt.h"
 #include "wlib/timezone.h"
 #include "debug.h"
+#include "msleep.h"
 
 #ifdef _WINDOWS
 #define usleep(x) Sleep((x)/100000)
@@ -65,7 +68,7 @@ void MatcherClass::readLoop(void)
 		if (now > lastLogTime + 300)
 		{
 			lastLogTime = now;
-			INFMSG("still here" << endl);
+                        INFMSG("still here" << std::endl);
 		}
 
 		logIt("peerThink\n");
@@ -103,9 +106,9 @@ void MatcherClass::readLoop(void)
 		}
 	}
 	while (!done);
-	DBGMSG("Bailing out of readLoop!" << endl);
-	INFMSG("Bailing out of readLoop!" << endl);
-	ERRMSG("Bailing out of readLoop!" << endl);
+        DBGMSG("Bailing out of readLoop!" << std::endl);
+        INFMSG("Bailing out of readLoop!" << std::endl);
+        ERRMSG("Bailing out of readLoop!" << std::endl);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -352,7 +355,7 @@ void MatcherClass::connectAndLoop(void)
 	m_peer = peerInitialize(&callbacks);
 	if(!m_peer)
 	{
-		ERRMSG("Failed to init peer object" << endl);
+                ERRMSG("Failed to init peer object" << std::endl);
 		return;
 	}
 
@@ -370,7 +373,7 @@ void MatcherClass::connectAndLoop(void)
 	if(!peerSetTitle(m_peer, title.get(), secretKey.get(), title.get(), secretKey.get(), 0, 30, PEERTrue, pingRooms, crossPingRooms))
 	{
 		peerShutdown(m_peer);
-		ERRMSG("Failed to set the title" << endl);
+                ERRMSG("Failed to set the title" << std::endl);
 		return;
 	}
 
@@ -382,7 +385,7 @@ void MatcherClass::connectAndLoop(void)
 	if(!m_connectSuccess)
 	{
 		peerShutdown(m_peer);
-		ERRMSG("Failed to connect" << endl);
+                ERRMSG("Failed to connect" << std::endl);
 		return;
 	}
 
@@ -391,7 +394,7 @@ void MatcherClass::connectAndLoop(void)
 	if (!cdOk)
 	{
 		peerShutdown(m_peer);
-		ERRMSG("Failed to auth CDKey " << serialNo.get() << endl);
+                ERRMSG("Failed to auth CDKey " << serialNo.get() << std::endl);
 		return;
 	}
 
@@ -408,7 +411,7 @@ void MatcherClass::connectAndLoop(void)
 	{
 		peerDisconnect(m_peer);
 		peerShutdown(m_peer);
-		ERRMSG("Failed to join the title room" << endl);
+                ERRMSG("Failed to join the title room" << std::endl);
 		return;
 	}
 
