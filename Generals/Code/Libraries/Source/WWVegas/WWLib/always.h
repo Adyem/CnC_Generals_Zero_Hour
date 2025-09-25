@@ -47,6 +47,10 @@
 #define __cdecl
 #endif
 
+#ifndef _cdecl
+#define _cdecl
+#endif
+
 // Disable warning about exception handling not being enabled. It's used as part of STL - in a part of STL we don't use.
 #ifdef _MSC_VER
 #pragma warning(disable : 4530)
@@ -104,6 +108,10 @@
 
 #endif
 #endif // _MSC_VER
+
+#if !defined(_MSC_VER)
+#include <new>
+#endif
 
 #if (defined(_DEBUG) || defined(_INTERNAL)) 
 	#define MSGW3DNEW(MSG)					new( MSG, 0 )

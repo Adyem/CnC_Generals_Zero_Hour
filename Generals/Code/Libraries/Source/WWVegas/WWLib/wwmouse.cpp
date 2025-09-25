@@ -69,10 +69,13 @@
 #include	"surface.h"
 #include	"wwmouse.h"
 #include	"sfml_message_pump.h"
+
+#if WWLIB_HAS_SFML
 #include	<SFML/Window/Event.hpp>
 #include	<SFML/Window/Mouse.hpp>
 #include	<SFML/Window/Window.hpp>
 #include	<SFML/System/Vector2.hpp>
+#endif
 #include	<assert.h>
 
 

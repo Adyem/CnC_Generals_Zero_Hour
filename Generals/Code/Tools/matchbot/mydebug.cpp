@@ -20,8 +20,6 @@
 #include <cstdlib>
 
 #include "mydebug.h"
-#include "streamer.h"
-#include "odevice.h"
 
 
 // static MyMsgManager         *msg_manager=NULL;

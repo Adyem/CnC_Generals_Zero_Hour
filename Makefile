@@ -39,6 +39,7 @@ endif
 CPPFLAGS   += -DWIN32 -D_WINDOWS -DNOMINMAX -D_CRT_SECURE_NO_DEPRECATE
 CPPFLAGS   += -DBX_CONFIG_DEBUG=0
 CPPFLAGS   += -DWW3D_BGFX_AVAILABLE=0
+CPPFLAGS   += -D_UNIX
 WW3D_ENABLE_LEGACY_DX8 ?= 0
 CPPFLAGS   += -DWW3D_ENABLE_LEGACY_DX8=$(WW3D_ENABLE_LEGACY_DX8)
 
@@ -142,10 +143,10 @@ LIBS     += $(LIBVLC_LIBS)
 # -----------------------------------------------------------------------------
 # Exclude problem areas ad-hoc from the command line if needed:
 #   make EXCLUDE_PATTERNS='%/DX8/% %/DirectX% %/win32/% %/Windows/%'
-EXCLUDE_PATTERNS ?= %/DirectX% %/DX8% %/dx8% %/win32/% %/Windows/%
+EXCLUDE_PATTERNS ?= %/DirectX% %/DX8% %/dx8% %/win32/% %/Windows/% %/WPAudio/% %/Libraries/Source/WPAudio/% %/WWAudio/% %/Libraries/Source/WWVegas/WWAudio/% %/Tools/Babylon/% Generals/Code/Tools/Babylon/% Generals/Code/Tools/%
 
-RAW_CPP_SOURCES := $(shell find $(SRC_DIR) -type f -name '*.cpp' -print)
-RAW_C_SOURCES   := $(shell find $(SRC_DIR) -type f -name '*.c'   -print)
+RAW_CPP_SOURCES := $(shell find $(SRC_DIR) -type f -name '*.cpp' ! -path '*/Tools/*' ! -path '*/WPAudio/*' ! -path '*/WWAudio/*' ! -path '*/WW3D2/*' ! -path '*/WW3D/*' ! -path '*/Libraries/Source/Compression/LZHCompress/*' ! -path '*/Libraries/Source/Compression/EAC/btree*' ! -path '*/Libraries/Source/Compression/EAC/huff*' -print)
+RAW_C_SOURCES   := $(shell find $(SRC_DIR) -type f -name '*.c'   ! -path '*/Tools/*' ! -path '*/WPAudio/*' ! -path '*/WWAudio/*' ! -path '*/WW3D2/*' ! -path '*/WW3D/*' ! -path '*/Libraries/Source/Compression/LZHCompress/*' ! -path '*/Libraries/Source/Compression/EAC/btree*' ! -path '*/Libraries/Source/Compression/EAC/huff*' -print)
 
 CPP_SOURCES := $(RAW_CPP_SOURCES)
 C_SOURCES   := $(RAW_C_SOURCES)

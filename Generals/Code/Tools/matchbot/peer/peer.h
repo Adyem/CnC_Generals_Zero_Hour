@@ -27,6 +27,8 @@ enum RoomType {
     StagingRoom
 };
 
+constexpr std::size_t NumRooms = 3;
+
 enum MessageType {
     NormalMessage = 0,
     ActionMessage = 1,
@@ -41,6 +43,8 @@ enum MessageType {
 enum PEERJoinResult {
     PEERJoinResult_Success
 };
+
+constexpr int PEER_IN_USE = 1;
 
 using SBServer = void*;
 
