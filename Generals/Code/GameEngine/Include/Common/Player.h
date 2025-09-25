@@ -61,7 +61,8 @@
 #include "Common/STLTypedefs.h"
 #include "Common/ScoreKeeper.h"
 #include "Common/Team.h"
-#include "Common/STLTypedefs.h"
+#include "Common/Upgrade.h"
+#include "GameLogic/Module/BattlePlanUpdate.h"
 
 // ----------------------------------------------------------------------------------------------
 
@@ -84,8 +85,6 @@ class SpecialPowerModule;
 
 class BattlePlanBonuses;
 
-enum BattlePlanStatus;
-enum UpgradeStatusType;
 enum CommandSourceType;
 
 enum ScienceAvailabilityType

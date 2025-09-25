@@ -4,6 +4,22 @@
 
 #include <cstdint>
 
+#include "Compat/Windows/windows_compat.h"
+
+using BYTE = std::uint8_t;
+using WORD = std::uint16_t;
+using DWORD = std::uint32_t;
+using UINT = std::uint32_t;
+using LONG = long;
+using cnc::windows::GUID;
+using cnc::windows::LARGE_INTEGER;
+using cnc::windows::BOOL;
+using cnc::windows::HWND;
+
+constexpr std::uint32_t MAX_DEVICE_IDENTIFIER_STRING = 512;
+constexpr std::uint32_t D3DCAPS2_FULLSCREENGAMMA = 0x00020000u;
+constexpr std::uint32_t D3DENUM_NO_WHQL_LEVEL = 0xffffffffu;
+
 #ifndef MAKEFOURCC
 #define MAKEFOURCC(ch0, ch1, ch2, ch3)                                                      \
     ((std::uint32_t(static_cast<unsigned char>(ch0))) |                                     \
@@ -36,6 +52,150 @@ constexpr std::uint32_t D3DCOLORWRITEENABLE_RED   = 0x00000001u;
 constexpr std::uint32_t D3DCOLORWRITEENABLE_GREEN = 0x00000002u;
 constexpr std::uint32_t D3DCOLORWRITEENABLE_BLUE  = 0x00000004u;
 constexpr std::uint32_t D3DCOLORWRITEENABLE_ALPHA = 0x00000008u;
+
+struct D3DVECTOR
+{
+    float x;
+    float y;
+    float z;
+};
+
+struct D3DCOLORVALUE
+{
+    float r;
+    float g;
+    float b;
+    float a;
+};
+
+enum D3DLIGHTTYPE : std::uint32_t
+{
+    D3DLIGHT_POINT       = 1,
+    D3DLIGHT_SPOT        = 2,
+    D3DLIGHT_DIRECTIONAL = 3,
+    D3DLIGHT_FORCE_DWORD = 0x7fffffff
+};
+
+struct D3DLIGHT8
+{
+    D3DLIGHTTYPE Type;
+    D3DCOLORVALUE Diffuse;
+    D3DCOLORVALUE Specular;
+    D3DCOLORVALUE Ambient;
+    D3DVECTOR Position;
+    D3DVECTOR Direction;
+    float Range;
+    float Falloff;
+    float Attenuation0;
+    float Attenuation1;
+    float Attenuation2;
+    float Theta;
+    float Phi;
+};
+
+struct D3DMATERIAL8
+{
+    D3DCOLORVALUE Diffuse;
+    D3DCOLORVALUE Ambient;
+    D3DCOLORVALUE Specular;
+    D3DCOLORVALUE Emissive;
+    float Power;
+};
+
+enum D3DMATERIALCOLORSOURCE : std::uint32_t
+{
+    D3DMCS_MATERIAL   = 0,
+    D3DMCS_COLOR1     = 1,
+    D3DMCS_COLOR2     = 2,
+    D3DMCS_FORCE_DWORD = 0x7fffffff
+};
+
+enum D3DFORMAT : std::uint32_t
+{
+    D3DFMT_UNKNOWN       = 0,
+    D3DFMT_R8G8B8        = 20,
+    D3DFMT_A8R8G8B8      = 21,
+    D3DFMT_X8R8G8B8      = 22,
+    D3DFMT_R5G6B5        = 23,
+    D3DFMT_X1R5G5B5      = 24,
+    D3DFMT_A1R5G5B5      = 25,
+    D3DFMT_A4R4G4B4      = 26,
+    D3DFMT_R3G3B2        = 27,
+    D3DFMT_A8            = 28,
+    D3DFMT_A8R3G3B2      = 29,
+    D3DFMT_X4R4G4B4      = 30,
+    D3DFMT_A2B10G10R10   = 31,
+    D3DFMT_G16R16        = 34,
+    D3DFMT_A8P8          = 40,
+    D3DFMT_P8            = 41,
+    D3DFMT_L8            = 50,
+    D3DFMT_A8L8          = 51,
+    D3DFMT_A4L4          = 52,
+    D3DFMT_V8U8          = 60,
+    D3DFMT_L6V5U5        = 61,
+    D3DFMT_X8L8V8U8      = 62,
+    D3DFMT_Q8W8V8U8      = 63,
+    D3DFMT_V16U16        = 64,
+    D3DFMT_W11V11U10     = 65,
+    D3DFMT_A2W10V10U10   = 67,
+    D3DFMT_D16_LOCKABLE  = 70,
+    D3DFMT_D32           = 71,
+    D3DFMT_D15S1         = 73,
+    D3DFMT_D24S8         = 75,
+    D3DFMT_D24X8         = 77,
+    D3DFMT_D24X4S4       = 79,
+    D3DFMT_D16           = 80,
+    D3DFMT_VERTEXDATA    = 100,
+    D3DFMT_INDEX16       = 101,
+    D3DFMT_INDEX32       = 102,
+    D3DFMT_UYVY          = MAKEFOURCC('U','Y','V','Y'),
+    D3DFMT_YUY2          = MAKEFOURCC('Y','U','Y','2'),
+    D3DFMT_DXT1          = MAKEFOURCC('D','X','T','1'),
+    D3DFMT_DXT2          = MAKEFOURCC('D','X','T','2'),
+    D3DFMT_DXT3          = MAKEFOURCC('D','X','T','3'),
+    D3DFMT_DXT4          = MAKEFOURCC('D','X','T','4'),
+    D3DFMT_DXT5          = MAKEFOURCC('D','X','T','5'),
+    D3DFMT_FORCE_DWORD   = 0xffffffffu
+};
+
+struct D3DMATRIX
+{
+    float m[4][4];
+};
+
+struct D3DRECT
+{
+    LONG x1;
+    LONG y1;
+    LONG x2;
+    LONG y2;
+};
+
+struct D3DVIEWPORT8
+{
+    DWORD X;
+    DWORD Y;
+    DWORD Width;
+    DWORD Height;
+    float MinZ;
+    float MaxZ;
+};
+
+struct D3DDISPLAYMODE
+{
+    UINT Width;
+    UINT Height;
+    UINT RefreshRate;
+    D3DFORMAT Format;
+};
+
+enum D3DBACKBUFFER_TYPE : std::uint32_t
+{
+    D3DBACKBUFFER_TYPE_MONO        = 0,
+    D3DBACKBUFFER_TYPE_LEFT        = 1,
+    D3DBACKBUFFER_TYPE_RIGHT       = 2,
+    D3DBACKBUFFER_TYPE_FORCE_DWORD = 0x7fffffff
+};
 
 constexpr std::uint32_t D3DLOCK_READONLY         = 0x00000010u;
 constexpr std::uint32_t D3DLOCK_NOSYSLOCK        = 0x00000800u;
@@ -237,6 +397,17 @@ enum D3DTRANSFORMSTATETYPE : std::uint32_t
 #define D3DTS_WORLD2 D3DTS_WORLDMATRIX(2)
 #define D3DTS_WORLD3 D3DTS_WORLDMATRIX(3)
 
+enum D3DTEXTURETRANSFORMFLAGS : std::uint32_t
+{
+    D3DTTFF_DISABLE      = 0,
+    D3DTTFF_COUNT1       = 0x00010000u,
+    D3DTTFF_COUNT2       = 0x00020000u,
+    D3DTTFF_COUNT3       = 0x00030000u,
+    D3DTTFF_COUNT4       = 0x00040000u,
+    D3DTTFF_PROJECTED    = 0x00100000u,
+    D3DTTFF_FORCE_DWORD  = 0x7fffffff
+};
+
 enum D3DTEXTUREADDRESS : std::uint32_t
 {
     D3DTADDRESS_WRAP        = 1,
@@ -319,6 +490,29 @@ enum D3DTEXTURESTAGESTATETYPE : std::uint32_t
     D3DTSS_ALPHAARG0            = 27,
     D3DTSS_RESULTARG            = 28,
     D3DTSS_FORCE_DWORD          = 0x7fffffff
+};
+
+enum D3DMULTISAMPLE_TYPE : std::uint32_t
+{
+    D3DMULTISAMPLE_NONE        = 0,
+    D3DMULTISAMPLE_NONMASKABLE = 1,
+    D3DMULTISAMPLE_2_SAMPLES   = 2,
+    D3DMULTISAMPLE_3_SAMPLES   = 3,
+    D3DMULTISAMPLE_4_SAMPLES   = 4,
+    D3DMULTISAMPLE_5_SAMPLES   = 5,
+    D3DMULTISAMPLE_6_SAMPLES   = 6,
+    D3DMULTISAMPLE_7_SAMPLES   = 7,
+    D3DMULTISAMPLE_8_SAMPLES   = 8,
+    D3DMULTISAMPLE_FORCE_DWORD = 0xffffffffu
+};
+
+enum D3DSWAPEFFECT : std::uint32_t
+{
+    D3DSWAPEFFECT_DISCARD     = 1,
+    D3DSWAPEFFECT_FLIP        = 2,
+    D3DSWAPEFFECT_COPY        = 3,
+    D3DSWAPEFFECT_COPY_VSYNC  = 4,
+    D3DSWAPEFFECT_FORCE_DWORD = 0x7fffffff
 };
 
 enum D3DSTENCILOP : std::uint32_t
@@ -461,52 +655,107 @@ enum D3DPMISCCAPS : std::uint32_t
     D3DPMISCCAPS_COLORWRITEENABLE = 0x00000040u
 };
 
-enum D3DFORMAT : std::uint32_t
+
+struct D3DLOCKED_RECT
 {
-    D3DFMT_UNKNOWN       = 0,
-    D3DFMT_R8G8B8        = 20,
-    D3DFMT_A8R8G8B8      = 21,
-    D3DFMT_X8R8G8B8      = 22,
-    D3DFMT_R5G6B5        = 23,
-    D3DFMT_X1R5G5B5      = 24,
-    D3DFMT_A1R5G5B5      = 25,
-    D3DFMT_A4R4G4B4      = 26,
-    D3DFMT_R3G3B2        = 27,
-    D3DFMT_A8            = 28,
-    D3DFMT_A8R3G3B2      = 29,
-    D3DFMT_X4R4G4B4      = 30,
-    D3DFMT_A2B10G10R10   = 31,
-    D3DFMT_G16R16        = 34,
-    D3DFMT_A8P8          = 40,
-    D3DFMT_P8            = 41,
-    D3DFMT_L8            = 50,
-    D3DFMT_A8L8          = 51,
-    D3DFMT_A4L4          = 52,
-    D3DFMT_V8U8          = 60,
-    D3DFMT_L6V5U5        = 61,
-    D3DFMT_X8L8V8U8      = 62,
-    D3DFMT_Q8W8V8U8      = 63,
-    D3DFMT_V16U16        = 64,
-    D3DFMT_W11V11U10     = 65,
-    D3DFMT_A2W10V10U10   = 67,
-    D3DFMT_D16_LOCKABLE  = 70,
-    D3DFMT_D32           = 71,
-    D3DFMT_D15S1         = 73,
-    D3DFMT_D24S8         = 75,
-    D3DFMT_D24X8         = 77,
-    D3DFMT_D24X4S4       = 79,
-    D3DFMT_D16           = 80,
-    D3DFMT_VERTEXDATA    = 100,
-    D3DFMT_INDEX16       = 101,
-    D3DFMT_INDEX32       = 102,
-    D3DFMT_UYVY          = MAKEFOURCC('U','Y','V','Y'),
-    D3DFMT_YUY2          = MAKEFOURCC('Y','U','Y','2'),
-    D3DFMT_DXT1          = MAKEFOURCC('D','X','T','1'),
-    D3DFMT_DXT2          = MAKEFOURCC('D','X','T','2'),
-    D3DFMT_DXT3          = MAKEFOURCC('D','X','T','3'),
-    D3DFMT_DXT4          = MAKEFOURCC('D','X','T','4'),
-    D3DFMT_DXT5          = MAKEFOURCC('D','X','T','5'),
-    D3DFMT_FORCE_DWORD   = 0xffffffffu
+    int Pitch;
+    void* pBits;
+};
+
+struct D3DADAPTER_IDENTIFIER8
+{
+    char Driver[MAX_DEVICE_IDENTIFIER_STRING];
+    char Description[MAX_DEVICE_IDENTIFIER_STRING];
+    char DeviceName[32];
+    LARGE_INTEGER DriverVersion;
+    DWORD VendorId;
+    DWORD DeviceId;
+    DWORD SubSysId;
+    DWORD Revision;
+    GUID DeviceIdentifier;
+    DWORD WHQLLevel;
+};
+
+constexpr UINT D3DPRESENT_RATE_DEFAULT = 0;
+constexpr UINT D3DPRESENT_INTERVAL_DEFAULT = 0x00000000u;
+constexpr UINT D3DPRESENT_INTERVAL_ONE = 0x00000001u;
+constexpr UINT D3DPRESENT_INTERVAL_TWO = 0x00000002u;
+constexpr UINT D3DPRESENT_INTERVAL_THREE = 0x00000003u;
+constexpr UINT D3DPRESENT_INTERVAL_IMMEDIATE = 0x80000000u;
+
+struct D3DPRESENT_PARAMETERS
+{
+    UINT BackBufferWidth;
+    UINT BackBufferHeight;
+    D3DFORMAT BackBufferFormat;
+    UINT BackBufferCount;
+    D3DMULTISAMPLE_TYPE MultiSampleType;
+    UINT MultiSampleQuality;
+    D3DSWAPEFFECT SwapEffect;
+    HWND hDeviceWindow;
+    BOOL Windowed;
+    BOOL EnableAutoDepthStencil;
+    D3DFORMAT AutoDepthStencilFormat;
+    DWORD Flags;
+    UINT FullScreen_RefreshRateInHz;
+    UINT FullScreen_PresentationInterval;
+};
+
+struct D3DCAPS8
+{
+    D3DDEVTYPE DeviceType;
+    UINT AdapterOrdinal;
+    DWORD Caps;
+    DWORD Caps2;
+    DWORD Caps3;
+    DWORD PresentationIntervals;
+    DWORD CursorCaps;
+    DWORD DevCaps;
+    DWORD PrimitiveMiscCaps;
+    DWORD RasterCaps;
+    DWORD ZCmpCaps;
+    DWORD SrcBlendCaps;
+    DWORD DestBlendCaps;
+    DWORD AlphaCmpCaps;
+    DWORD ShadeCaps;
+    DWORD TextureCaps;
+    DWORD TextureFilterCaps;
+    DWORD CubeTextureFilterCaps;
+    DWORD VolumeTextureFilterCaps;
+    DWORD TextureAddressCaps;
+    DWORD VolumeTextureAddressCaps;
+    DWORD LineCaps;
+    DWORD MaxTextureWidth;
+    DWORD MaxTextureHeight;
+    DWORD MaxVolumeExtent;
+    DWORD MaxTextureRepeat;
+    DWORD MaxTextureAspectRatio;
+    DWORD MaxAnisotropy;
+    float MaxVertexW;
+    float GuardBandLeft;
+    float GuardBandTop;
+    float GuardBandRight;
+    float GuardBandBottom;
+    float ExtentsAdjust;
+    DWORD StencilCaps;
+    DWORD FVFCaps;
+    DWORD TextureOpCaps;
+    DWORD MaxTextureBlendStages;
+    DWORD MaxSimultaneousTextures;
+    DWORD VertexProcessingCaps;
+    DWORD MaxActiveLights;
+    DWORD MaxUserClipPlanes;
+    DWORD MaxVertexBlendMatrices;
+    DWORD MaxVertexBlendMatrixIndex;
+    float MaxPointSize;
+    DWORD MaxPrimitiveCount;
+    DWORD MaxVertexIndex;
+    DWORD MaxStreams;
+    DWORD MaxStreamStride;
+    DWORD VertexShaderVersion;
+    DWORD MaxVertexShaderConst;
+    DWORD PixelShaderVersion;
+    float MaxPixelShaderValue;
 };
 
 #endif // !_WIN32

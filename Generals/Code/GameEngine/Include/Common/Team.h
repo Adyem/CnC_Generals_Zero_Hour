@@ -34,6 +34,7 @@
 #include "Common/GameType.h"
 #include "Common/Snapshot.h"
 #include "Common/Thing.h"
+#include "GameLogic/AI.h"
 #include "GameLogic/Object.h"
 
 // ------------------------------------------------------------------------------------------------

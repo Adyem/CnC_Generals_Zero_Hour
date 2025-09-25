@@ -1640,9 +1640,11 @@ void DX8Wrapper::Release_Device(void)
 		** Release the device
 		*/
 
-		D3DDevice->Release();
-		D3DDevice=NULL;
-	}
+                #ifdef _WIN32
+                D3DDevice->Release();
+                #endif
+                D3DDevice=NULL;
+        }
 }
 
 void DX8Wrapper::Enumerate_Devices()
@@ -2848,7 +2850,7 @@ void DX8Wrapper::Clear(bool clear_color, bool clear_z_stencil, const Vector3 &co
 	}
 }
 
-void DX8Wrapper::Set_Viewport(CONST D3DVIEWPORT8* pViewport)
+void DX8Wrapper::Set_Viewport(const D3DVIEWPORT8* pViewport)
 {
 	DX8_THREAD_ASSERT();
 #if WW3D_BGFX_AVAILABLE

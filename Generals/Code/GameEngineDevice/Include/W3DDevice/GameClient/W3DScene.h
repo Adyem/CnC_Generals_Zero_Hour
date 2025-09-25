@@ -39,9 +39,10 @@
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 
 // USER INCLUDES //////////////////////////////////////////////////////////////
-#include "WW3D2/Scene.h"
-#include "WW3D2/RInfo.h"
-#include "WW3D2/Coltest.h"
+#include "WW3D2/scene.h"
+#include "WW3D2/rinfo.h"
+#include "WW3D2/coltest.h"
+#include "W3DCustomScene.h"
 #include "WW3D2/lightenvironment.h"
 ///////////////////////////////////////////////////////////////////////////////
 // PROTOTYPES /////////////////////////////////////////////////////////////////
@@ -49,7 +50,6 @@
 class W3DDynamicLight;
 class LightClass;
 class Drawable;
-enum CustomScenePassModes;
 class MaterialPassClass;
 class W3DShroudMaterialPassClass;
 class W3DMaskMaterialPassClass;

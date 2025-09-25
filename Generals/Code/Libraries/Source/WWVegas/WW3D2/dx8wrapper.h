@@ -123,6 +123,17 @@ WWINLINE void DX8_ErrorCode(unsigned res)
 #define DX8_THREAD_ASSERT() ;
 #endif
 
+#ifndef _WIN32
+#undef DX8CALL_HRES
+#define DX8CALL_HRES(x,res) do { (res) = D3DERR_NOTAVAILABLE; } while (0)
+#undef DX8CALL
+#define DX8CALL(x) do { } while (0)
+#undef DX8CALL_D3D
+#define DX8CALL_D3D(x) do { } while (0)
+#undef DX8_THREAD_ASSERT
+#define DX8_THREAD_ASSERT() do { } while (0)
+#endif
+
 
 #define no_EXTENDED_STATS
 // EXTENDED_STATS collects additional timing statistics by turning off parts
@@ -583,7 +594,7 @@ public:
 
 	static void Clear(bool clear_color, bool clear_z_stencil, const Vector3 &color, float dest_alpha=0.0f, float z=1.0f, unsigned int stencil=0);
 
-	static void	Set_Viewport(CONST D3DVIEWPORT8* pViewport);
+	static void	Set_Viewport(const D3DVIEWPORT8* pViewport);
 
 	static void Set_Vertex_Buffer(const VertexBufferClass* vb);
 	static void Set_Vertex_Buffer(const DynamicVBAccessClass& vba);
@@ -617,7 +628,7 @@ public:
 
 	static void Set_DX8_Light(int index,D3DLIGHT8* light);
 	static void Set_DX8_Render_State(D3DRENDERSTATETYPE state, unsigned value);
-	static void Set_DX8_Clip_Plane(DWORD Index, CONST float* pPlane);
+	static void Set_DX8_Clip_Plane(DWORD Index, const float* pPlane);
 	static void Set_DX8_Texture_Stage_State(unsigned stage, D3DTEXTURESTAGESTATETYPE state, unsigned value);
 	static void Set_DX8_Texture(unsigned int stage, IDirect3DBaseTexture8* texture);
 	static void Set_Light_Environment(LightEnvironmentClass* light_env);
@@ -683,10 +694,10 @@ public:
 
 	static void _Copy_DX8_Rects(
 			IDirect3DSurface8* pSourceSurface,
-			CONST RECT* pSourceRectsArray,
+			const RECT* pSourceRectsArray,
 			UINT cRects,
 			IDirect3DSurface8* pDestinationSurface,
-			CONST POINT* pDestPointsArray
+			const POINT* pDestPointsArray
 	);
 
 	static void _Update_Texture(TextureClass *system, TextureClass *video);
@@ -1298,7 +1309,7 @@ WWINLINE void DX8Wrapper::Set_DX8_Render_State(D3DRENDERSTATETYPE state, unsigne
         DX8_RECORD_RENDER_STATE_CHANGE();
 }
 
-WWINLINE void DX8Wrapper::Set_DX8_Clip_Plane(DWORD Index, CONST float* pPlane)
+WWINLINE void DX8Wrapper::Set_DX8_Clip_Plane(DWORD Index, const float* pPlane)
 {
         if (Is_Bgfx_Active())
         {
@@ -1391,14 +1402,18 @@ WWINLINE void DX8Wrapper::Set_DX8_Texture(unsigned int stage, IDirect3DBaseTextu
 
         if (!Is_Bgfx_Active())
         {
+#ifdef _WIN32
                 if (Textures[stage]) Textures[stage]->Release();
+#endif
         }
 
         Textures[stage] = texture;
 
         if (!Is_Bgfx_Active())
         {
+#ifdef _WIN32
                 if (Textures[stage]) Textures[stage]->AddRef();
+#endif
                 DX8CALL(SetTexture(stage, texture));
         }
 
@@ -1407,10 +1422,10 @@ WWINLINE void DX8Wrapper::Set_DX8_Texture(unsigned int stage, IDirect3DBaseTextu
 
 WWINLINE void DX8Wrapper::_Copy_DX8_Rects(
   IDirect3DSurface8* pSourceSurface,
-  CONST RECT* pSourceRectsArray,
+  const RECT* pSourceRectsArray,
   UINT cRects,
   IDirect3DSurface8* pDestinationSurface,
-  CONST POINT* pDestPointsArray
+  const POINT* pDestPointsArray
 )
 {
 	DX8CALL(CopyRects(
@@ -1470,72 +1485,21 @@ WWINLINE unsigned int DX8Wrapper::Convert_Color(const Vector4& color)
 
 WWINLINE unsigned int DX8Wrapper::Convert_Color(const Vector3& color,float alpha)
 {
-	const float scale = 255.0;
-	unsigned int col;
+	auto clamp_component = [](float value) -> unsigned int {
+		if (value < 0.0f) {
+			value = 0.0f;
+		} else if (value > 1.0f) {
+			value = 1.0f;
+		}
+		return static_cast<unsigned int>(value * 255.0f + 0.5f);
+	};
 
-	// Multiply r, g, b and a components (0.0,...,1.0) by 255 and convert to integer. Or the integer values togerher
-	// such that 32 bit ingeger has AAAAAAAARRRRRRRRGGGGGGGGBBBBBBBB.
-	__asm
-	{
-		sub	esp,20					// space for a, r, g and b float plus fpu rounding mode
+	unsigned int r = clamp_component(color.X);
+	unsigned int g = clamp_component(color.Y);
+	unsigned int b = clamp_component(color.Z);
+	unsigned int a = clamp_component(alpha);
 
-		// Store the fpu rounding mode
-
-		fwait
-		fstcw		[esp+16]				// store control word to stack
-		mov		eax,[esp+16]		// load it to eax
-		mov		edi,eax				// take copy
-		and		eax,~(1024|2048)	// mask out certain bits
-		or			eax,(1024|2048)	// or with precision control value "truncate"
-		sub		edi,eax				// did it change?
-		jz			skip					// .. if not, skip
-		mov		[esp],eax			// .. change control word
-		fldcw		[esp]
-skip:
-
-		// Convert the color
-
-		mov	esi,dword ptr color
-		fld	dword ptr[scale]
-
-		fld	dword ptr[esi]			// r
-		fld	dword ptr[esi+4]		// g
-		fld	dword ptr[esi+8]		// b
-		fld	dword ptr[alpha]		// a
-		fld	st(4)
-		fmul	st(4),st
-		fmul	st(3),st
-		fmul	st(2),st
-		fmulp	st(1),st
-		fistp	dword ptr[esp+0]		// a
-		fistp	dword ptr[esp+4]		// b
-		fistp	dword ptr[esp+8]		// g
-		fistp	dword ptr[esp+12]		// r
-		mov	ecx,[esp]				// a
-		mov	eax,[esp+4]				// b
-		mov	edx,[esp+8]				// g
-		mov	ebx,[esp+12]			// r
-		shl	ecx,24					// a << 24
-		shl	ebx,16					// r << 16
-		shl	edx,8						//	g << 8
-		or		eax,ecx					// (a << 24) | b
-		or		eax,ebx					// (a << 24) | (r << 16) | b
-		or		eax,edx					// (a << 24) | (r << 16) | (g << 8) | b
-		
-		fstp	st(0)
-
-		// Restore fpu rounding mode
-
-		cmp	edi,0					// did we change the value?
-		je		not_changed			// nope... skip now...
-		fwait
-		fldcw	[esp+16];
-not_changed:
-		add	esp,20
-
-		mov	col,eax
-	}
-	return col;
+	return (a << 24) | (r << 16) | (g << 8) | b;
 }
 
 // ----------------------------------------------------------------------------
@@ -1546,55 +1510,12 @@ not_changed:
 
 WWINLINE void DX8Wrapper::Clamp_Color(Vector4& color)
 {
-	if (!CPUDetectClass::Has_CMOV_Instruction()) {
-		for (int i=0;i<4;++i) {
-			float f=(color[i]<0.0f) ? 0.0f : color[i];
-			color[i]=(f>1.0f) ? 1.0f : f;
+	for (int i = 0; i < 4; ++i) {
+		if (color[i] < 0.0f) {
+			color[i] = 0.0f;
+		} else if (color[i] > 1.0f) {
+			color[i] = 1.0f;
 		}
-		return;
-	}
-
-	__asm
-	{
-		mov	esi,dword ptr color
-
-		mov edx,0x3f800000
-
-		mov edi,dword ptr[esi]
-		mov ebx,edi
-		sar edi,31
-		not edi			// mask is now zero if negative value
-		and edi,ebx
-		cmp edi,edx		// if no less than 1.0 set to 1.0
-		cmovnb edi,edx
-		mov dword ptr[esi],edi
-
-		mov edi,dword ptr[esi+4]
-		mov ebx,edi
-		sar edi,31
-		not edi			// mask is now zero if negative value
-		and edi,ebx
-		cmp edi,edx		// if no less than 1.0 set to 1.0
-		cmovnb edi,edx
-		mov dword ptr[esi+4],edi
-
-		mov edi,dword ptr[esi+8]
-		mov ebx,edi
-		sar edi,31
-		not edi			// mask is now zero if negative value
-		and edi,ebx
-		cmp edi,edx		// if no less than 1.0 set to 1.0
-		cmovnb edi,edx
-		mov dword ptr[esi+8],edi
-
-		mov edi,dword ptr[esi+12]
-		mov ebx,edi
-		sar edi,31
-		not edi			// mask is now zero if negative value
-		and edi,ebx
-		cmp edi,edx		// if no less than 1.0 set to 1.0
-		cmovnb edi,edx
-		mov dword ptr[esi+12],edi
 	}
 }
 

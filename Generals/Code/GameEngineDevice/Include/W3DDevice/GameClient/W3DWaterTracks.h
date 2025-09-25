@@ -28,7 +28,18 @@
 #ifndef __W3DWaterTracks_H_
 #define __W3DWaterTracks_H_
 
-enum waveType;	//forward reference
+enum waveType
+{
+        WaveTypeFirst,
+        WaveTypePond = WaveTypeFirst,
+        WaveTypeOcean,
+        WaveTypeCloseOcean,       // same as above but appears much closer to beach.
+        WaveTypeCloseOceanDouble, // same as above but waves much closer together.
+        WaveTypeRadial,
+        WaveTypeLast = WaveTypeRadial,
+        WaveTypeStationary,
+        WaveTypeMax,
+};
 
 /// Custom render object that draws animated tracks/waves on the water.
 /**

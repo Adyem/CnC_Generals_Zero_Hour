@@ -37,6 +37,7 @@
 #define __W3DSHADERMANAGER_H_
 
 #include "WW3D2/Texture.h"
+#include "W3DCustomScene.h"
 #include <cstdint>
 #include <map>
 #include <string>
@@ -50,7 +51,6 @@
 #include <bgfx/bgfx.h>
 #endif
 enum FilterTypes;
-enum CustomScenePassModes;
 enum StaticGameLODLevel;
 enum ChipsetType;
 enum CpuType;

@@ -78,6 +78,19 @@ using INT_PTR = std::intptr_t;
 using LCID = unsigned long;
 using DISPID = long;
 using OLECHAR = wchar_t;
+
+struct LARGE_INTEGER
+{
+    union
+    {
+        struct
+        {
+            DWORD LowPart;
+            LONG HighPart;
+        };
+        long long QuadPart;
+    };
+};
 using LPOLESTR = OLECHAR*;
 using LPCOLESTR = const OLECHAR*;
 

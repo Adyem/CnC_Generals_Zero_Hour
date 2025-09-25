@@ -33,11 +33,13 @@
 #define __STEALTH_UPDATE_H_
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
+#include <climits>
+
+#include "GameClient/Drawable.h"
 #include "GameLogic/Module/UpdateModule.h"
 
 // FORWARD REFERENCES /////////////////////////////////////////////////////////////////////////////
 class Thing;
-enum StealthLookType;
 class FXList;
 
 enum
