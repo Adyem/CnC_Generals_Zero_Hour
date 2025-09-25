@@ -3,6 +3,7 @@
 #ifndef _WIN32
 
 #include <chrono>
+#include <ctime>
 #include <cwchar>
 #include <cstdio>
 #include <cstring>
@@ -11,6 +12,10 @@
 #include <string>
 #include <system_error>
 #include <csignal>
+#include <cerrno>
+
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include <dlfcn.h>
 #include <unistd.h>
@@ -62,6 +67,18 @@ std::string wideToUtf8(LPCWSTR text)
     state = std::mbstate_t{};
     std::wcsrtombs(buffer.data(), &source, buffer.size(), &state);
     return buffer;
+}
+
+FILETIME unixTimeToFileTime(std::time_t value)
+{
+    constexpr long long WINDOWS_TICK = 10000000LL;
+    constexpr long long SEC_TO_UNIX_EPOCH = 11644473600LL;
+
+    long long total = (static_cast<long long>(value) + SEC_TO_UNIX_EPOCH) * WINDOWS_TICK;
+    FILETIME result{};
+    result.dwLowDateTime = static_cast<DWORD>(total & 0xffffffffu);
+    result.dwHighDateTime = static_cast<DWORD>((total >> 32) & 0xffffffffu);
+    return result;
 }
 } // namespace
 
@@ -196,6 +213,152 @@ DWORD GetTickCount()
     using namespace std::chrono;
     auto now = steady_clock::now().time_since_epoch();
     return static_cast<DWORD>(duration_cast<milliseconds>(now).count());
+}
+
+DWORD GetFileAttributesA(const char* fileName)
+{
+    if (fileName == nullptr)
+    {
+        SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+        return INVALID_FILE_ATTRIBUTES;
+    }
+
+    struct stat info{};
+    if (stat(fileName, &info) != 0)
+    {
+        SetLastError(static_cast<DWORD>(errno));
+        return INVALID_FILE_ATTRIBUTES;
+    }
+
+    DWORD attributes = 0;
+    if (S_ISDIR(info.st_mode))
+    {
+        attributes |= FILE_ATTRIBUTE_DIRECTORY;
+    }
+    if ((info.st_mode & S_IWUSR) == 0)
+    {
+        attributes |= FILE_ATTRIBUTE_READONLY;
+    }
+
+    SetLastError(ERROR_SUCCESS);
+    return attributes;
+}
+
+BOOL DeleteFileA(const char* fileName)
+{
+    if (fileName == nullptr)
+    {
+        SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+        return FALSE_VALUE;
+    }
+
+    if (std::remove(fileName) == 0)
+    {
+        SetLastError(ERROR_SUCCESS);
+        return TRUE_VALUE;
+    }
+
+    SetLastError(static_cast<DWORD>(errno));
+    return FALSE_VALUE;
+}
+
+BOOL GetFileTime(HANDLE file,
+                 FILETIME* creationTime,
+                 FILETIME* lastAccessTime,
+                 FILETIME* lastWriteTime)
+{
+    if (file == nullptr)
+    {
+        SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+        return FALSE_VALUE;
+    }
+
+    FILE* stream = static_cast<FILE*>(file);
+    int descriptor = fileno(stream);
+    if (descriptor == -1)
+    {
+        SetLastError(static_cast<DWORD>(errno));
+        return FALSE_VALUE;
+    }
+
+    struct stat info{};
+    if (fstat(descriptor, &info) != 0)
+    {
+        SetLastError(static_cast<DWORD>(errno));
+        return FALSE_VALUE;
+    }
+
+    if (creationTime != nullptr)
+    {
+        *creationTime = unixTimeToFileTime(info.st_ctime);
+    }
+    if (lastAccessTime != nullptr)
+    {
+        *lastAccessTime = unixTimeToFileTime(info.st_atime);
+    }
+    if (lastWriteTime != nullptr)
+    {
+        *lastWriteTime = unixTimeToFileTime(info.st_mtime);
+    }
+
+    SetLastError(ERROR_SUCCESS);
+    return TRUE_VALUE;
+}
+
+DWORD GetFileVersionInfoSizeA(const char*, DWORD*)
+{
+    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+    return 0;
+}
+
+BOOL GetFileVersionInfoA(const char*, DWORD, DWORD, void*)
+{
+    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+    return FALSE_VALUE;
+}
+
+BOOL VerQueryValueA(const void*, const char*, void**, unsigned int*)
+{
+    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+    return FALSE_VALUE;
+}
+
+HGLOBAL GlobalAlloc(UINT flags, SIZE_T bytes)
+{
+    void* memory = nullptr;
+    if (flags & GMEM_ZEROINIT)
+    {
+        memory = std::calloc(1, bytes);
+    }
+    else
+    {
+        memory = std::malloc(bytes);
+    }
+
+    if (memory == nullptr)
+    {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return nullptr;
+    }
+
+    SetLastError(ERROR_SUCCESS);
+    return memory;
+}
+
+void* GlobalLock(HGLOBAL memory)
+{
+    return memory;
+}
+
+BOOL GlobalUnlock(HGLOBAL)
+{
+    return TRUE_VALUE;
+}
+
+HGLOBAL GlobalFree(HGLOBAL memory)
+{
+    std::free(memory);
+    return nullptr;
 }
 
 int FindExecutableA(const char* file, const char* directory, char* result)
