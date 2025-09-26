@@ -19,6 +19,8 @@
 #ifndef _DOWNLOADDEFS_H
 #define _DOWNLOADDEFS_H
 
+#include "compat/win_compat.h"
+
 // CDownload statuses
 
 #define DOWNLOADSTATUS_NONE				0

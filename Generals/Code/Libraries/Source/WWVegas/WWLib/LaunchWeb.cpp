@@ -32,10 +32,15 @@
 ******************************************************************************/
 
 #include "LaunchWeb.h"
+#if defined(_WIN32)
 #include <windows.h>
 #include <shellapi.h>
-#include <stdio.h>
-#include <assert.h>
+#else
+#include <compat/win_compat.h>
+#endif
+#include <cassert>
+#include <cstdio>
+#include <cstring>
 
 /******************************************************************************
 *
@@ -55,6 +60,13 @@
 *
 ******************************************************************************/
 
+#if !defined(_WIN32)
+bool LaunchWebBrowser(const char* url)
+        {
+        (void)url;
+        return false;
+        }
+#else
 bool LaunchWebBrowser(const char* url)
 	{
 	// Just return if no URL specified
@@ -118,3 +130,5 @@ bool LaunchWebBrowser(const char* url)
 
 	return (TRUE == createSuccess);
 	}
+
+#endif

@@ -19,6 +19,8 @@
 #ifndef __FTPDEFS_H_INCLUDED__
 #define __FTPDEFS_H_INCLUDED__
 
+#include "compat/win_compat.h"
+
 
 // CFtp return codes.
 

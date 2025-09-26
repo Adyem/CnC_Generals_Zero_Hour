@@ -141,6 +141,23 @@ struct IMAGE_FILE_HEADER
     WORD Characteristics;
 };
 
+struct VS_FIXEDFILEINFO
+{
+    DWORD dwSignature;
+    DWORD dwStrucVersion;
+    DWORD dwFileVersionMS;
+    DWORD dwFileVersionLS;
+    DWORD dwProductVersionMS;
+    DWORD dwProductVersionLS;
+    DWORD dwFileFlagsMask;
+    DWORD dwFileFlags;
+    DWORD dwFileOS;
+    DWORD dwFileType;
+    DWORD dwFileSubtype;
+    DWORD dwFileDateMS;
+    DWORD dwFileDateLS;
+};
+
 struct EXCEPTION_RECORD
 {
     DWORD ExceptionCode;
@@ -536,6 +553,7 @@ using cnc::windows::SIZE;
 using cnc::windows::FILETIME;
 using cnc::windows::IMAGE_DOS_HEADER;
 using cnc::windows::IMAGE_FILE_HEADER;
+using cnc::windows::VS_FIXEDFILEINFO;
 using cnc::windows::EXCEPTION_RECORD;
 using cnc::windows::CONTEXT;
 using cnc::windows::EXCEPTION_POINTERS;
@@ -556,6 +574,10 @@ using cnc::windows::FALSE_VALUE;
 using cnc::windows::INFINITE;
 using cnc::windows::MAX_PATH;
 using cnc::windows::_MAX_PATH;
+using cnc::windows::GMEM_FIXED;
+using cnc::windows::GMEM_MOVEABLE;
+using cnc::windows::GMEM_ZEROINIT;
+using cnc::windows::GHND;
 using cnc::windows::FILE_ATTRIBUTE_READONLY;
 using cnc::windows::FILE_ATTRIBUTE_DIRECTORY;
 using cnc::windows::INVALID_FILE_ATTRIBUTES;

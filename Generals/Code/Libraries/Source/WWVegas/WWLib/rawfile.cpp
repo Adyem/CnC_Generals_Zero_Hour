@@ -54,7 +54,11 @@
 
 #include	"always.h"
 #include	"rawfile.h"
+#if defined(_WIN32)
 #include	<direct.h>
+#else
+#include	<unistd.h>
+#endif
 //#include	<share.h>
 #include	<stddef.h>
 #include	<stdio.h>
@@ -879,18 +883,39 @@ int RawFileClass::Size(void)
 	if (Is_Open()) {
 
       #ifdef _UNIX
-			fpos_t curpos,startpos,endpos;
-			fgetpos(Handle,&curpos);	
+                        long curpos = ftell(Handle);
+                        if (curpos < 0)
+                        {
+                                return 0;
+                        }
 
-			fseek(Handle,0,SEEK_SET);
-			fgetpos(Handle,&startpos);	
+                        if (fseek(Handle, 0, SEEK_SET) != 0)
+                        {
+                                return 0;
+                        }
+                        long startpos = ftell(Handle);
+                        if (startpos < 0)
+                        {
+                                return 0;
+                        }
 
-			fseek(Handle,0,SEEK_END);
-			fgetpos(Handle,&endpos);	
+                        if (fseek(Handle, 0, SEEK_END) != 0)
+                        {
+                                return 0;
+                        }
+                        long endpos = ftell(Handle);
+                        if (endpos < 0)
+                        {
+                                return 0;
+                        }
 
-			size=endpos-startpos;
-			fsetpos(Handle,&curpos);
-		#else
+                        if (fseek(Handle, curpos, SEEK_SET) != 0)
+                        {
+                                return 0;
+                        }
+
+                        size = static_cast<int>(endpos - startpos);
+                #else
 			size = GetFileSize(Handle, NULL);
 		#endif
 
