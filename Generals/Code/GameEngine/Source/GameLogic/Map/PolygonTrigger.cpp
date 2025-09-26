@@ -292,13 +292,14 @@ void PolygonTrigger::addPolygonTrigger(PolygonTrigger *pTrigger)
 	triggers.  note - does NOT delete pTrigger.
 */
 void PolygonTrigger::removePolygonTrigger(PolygonTrigger *pTrigger)
-{	
-	PolygonTrigger *pPrev = NULL;
-	for (PolygonTrigger *pTrig=getFirstPolygonTrigger(); pTrig; pTrig = pTrig->getNext()) {
-		if (pTrig==pTrigger) break;
-		pPrev = pTrig;
-	}
-	DEBUG_ASSERTCRASH(pTrig, ("Attempting to remove a polygon not in the list."));
+{
+        PolygonTrigger *pPrev = NULL;
+        PolygonTrigger *pTrig = getFirstPolygonTrigger();
+        for (; pTrig; pTrig = pTrig->getNext()) {
+                if (pTrig==pTrigger) break;
+                pPrev = pTrig;
+        }
+        DEBUG_ASSERTCRASH(pTrig, ("Attempting to remove a polygon not in the list."));
 	if (pTrig) {
 		if (pPrev) {
 			DEBUG_ASSERTCRASH(pTrigger==pPrev->m_nextPolygonTrigger, ("Logic errror.  jba."));

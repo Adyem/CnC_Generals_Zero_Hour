@@ -63,15 +63,13 @@ enum WeaponReloadType
 	RETURN_TO_BASE_TO_RELOAD
 };
 
-#ifdef DEFINE_WEAPONRELOAD_NAMES
-static const char *TheWeaponReloadNames[] = 
+inline constexpr const char* const TheWeaponReloadNames[] =
 {
-	"YES",
-	"NO",
-	"RETURN_TO_BASE",
-	NULL
+        "YES",
+        "NO",
+        "RETURN_TO_BASE",
+        nullptr
 };
-#endif
 
 //-------------------------------------------------------------------------------------------------
 enum WeaponPrefireType
@@ -83,15 +81,13 @@ enum WeaponPrefireType
 	PREFIRE_COUNT
 };
 
-#ifdef DEFINE_WEAPONPREFIRE_NAMES
-static const char *TheWeaponPrefireNames[] = 
+inline constexpr const char* const TheWeaponPrefireNames[] =
 {
-	"PER_SHOT",
-	"PER_ATTACK",
-	"PER_CLIP",
-	NULL
+        "PER_SHOT",
+        "PER_ATTACK",
+        "PER_CLIP",
+        nullptr
 };
-#endif
 
 //-------------------------------------------------------------------------------------------------
 enum WeaponAntiMaskType
@@ -118,19 +114,17 @@ enum WeaponAffectsMaskType
 	WEAPON_DOESNT_AFFECT_AIRBORNE	= 0x40, // Radius damage doesn't affect airborne units, unless they are the primary target. (used for poison fields.)
 };
 
-//#ifdef DEFINE_WEAPONAFFECTSMASK_NAMES ; Removed protection so other clases can use these strings... not sure why this was protected in the 1st place
-static const char *TheWeaponAffectsMaskNames[] = 
+//inline constexpr const char* const TheWeaponAffectsMaskNames[] =
 {
-	"SELF",
-	"ALLIES",
-	"ENEMIES",
-	"NEUTRALS",
-	"SUICIDE",
-	"NOT_SIMILAR",
-	"NOT_AIRBORNE",
-	NULL
+        "SELF",
+        "ALLIES",
+        "ENEMIES",
+        "NEUTRALS",
+        "SUICIDE",
+        "NOT_SIMILAR",
+        "NOT_AIRBORNE",
+        nullptr
 };
-//#endif
 
 //-------------------------------------------------------------------------------------------------
 enum WeaponCollideMaskType
@@ -148,21 +142,19 @@ enum WeaponCollideMaskType
 	WEAPON_COLLIDE_CONTROLLED_STRUCTURES	= 0x0100	//this is "ONLY structures belonging to the projectile's controller".
 };
 
-#ifdef DEFINE_WEAPONCOLLIDEMASK_NAMES
-static const char *TheWeaponCollideMaskNames[] = 
+inline constexpr const char* const TheWeaponCollideMaskNames[] =
 {
-	"ALLIES",
-	"ENEMIES",
-	"STRUCTURES",
-	"SHRUBBERY",
-	"PROJECTILES",
-	"WALLS",
-	"SMALL_MISSILES",			//All missiles are also projectiles!
-	"BALLISTIC_MISSILES", //All missiles are also projectiles!
-	"CONTROLLED_STRUCTURES",
-	NULL
+        "ALLIES",
+        "ENEMIES",
+        "STRUCTURES",
+        "SHRUBBERY",
+        "PROJECTILES",
+        "WALLS",
+        "SMALL_MISSILES",                       //All missiles are also projectiles!
+        "BALLISTIC_MISSILES", //All missiles are also projectiles!
+        "CONTROLLED_STRUCTURES",
+        nullptr
 };
-#endif
 
 //-------------------------------------------------------------------------------------------------
 //
@@ -208,45 +200,42 @@ enum WeaponBonusConditionType
 
 	WEAPONBONUSCONDITION_COUNT
 };
-#ifdef DEFINE_WEAPONBONUSCONDITION_NAMES
-static const char *TheWeaponBonusNames[] = 
+inline constexpr const char* const TheWeaponBonusNames[] =
 {
-	// This is a RHS enum (weapon.ini will have WeaponBonus = IT) so it is all caps
-	"GARRISONED",
-	"HORDE",
-	"CONTINUOUS_FIRE_MEAN",
-	"CONTINUOUS_FIRE_FAST",
-	"NATIONALISM",
-	"PLAYER_UPGRADE",
-	"DRONE_SPOTTING",
+        // This is a RHS enum (weapon.ini will have WeaponBonus = IT) so it is all caps
+        "GARRISONED",
+        "HORDE",
+        "CONTINUOUS_FIRE_MEAN",
+        "CONTINUOUS_FIRE_FAST",
+        "NATIONALISM",
+        "PLAYER_UPGRADE",
+        "DRONE_SPOTTING",
 #ifdef ALLOW_DEMORALIZE
-	"DEMORALIZED",
+        "DEMORALIZED",
 #else
-	"DEMORALIZED_OBSOLETE",
+        "DEMORALIZED_OBSOLETE",
 #endif
-	"ENTHUSIASTIC",
-	"VETERAN",
-	"ELITE",
-	"HERO",
-	"BATTLEPLAN_BOMBARDMENT",
-	"BATTLEPLAN_HOLDTHELINE",
-	"BATTLEPLAN_SEARCHANDDESTROY",
-	"SUBLIMINAL",
-	"SOLO_HUMAN_EASY",
-	"SOLO_HUMAN_NORMAL",
-	"SOLO_HUMAN_HARD",
-	"SOLO_AI_EASY",
-	"SOLO_AI_NORMAL",
-	"SOLO_AI_HARD",
-	"TARGET_FAERIE_FIRE",
-  "FANATICISM", // FOR THE NEW GC INFANTRY GENERAL... adds to nationalism
-	"FRENZY_ONE",
-	"FRENZY_TWO",
-	"FRENZY_THREE",
-
-	NULL
+        "ENTHUSIASTIC",
+        "VETERAN",
+        "ELITE",
+        "HERO",
+        "BATTLEPLAN_BOMBARDMENT",
+        "BATTLEPLAN_HOLDTHELINE",
+        "BATTLEPLAN_SEARCHANDDESTROY",
+        "SUBLIMINAL",
+        "SOLO_HUMAN_EASY",
+        "SOLO_HUMAN_NORMAL",
+        "SOLO_HUMAN_HARD",
+        "SOLO_AI_EASY",
+        "SOLO_AI_NORMAL",
+        "SOLO_AI_HARD",
+        "TARGET_FAERIE_FIRE",
+        "FANATICISM",
+        "FRENZY_ONE",
+        "FRENZY_TWO",
+        "FRENZY_THREE",
+        nullptr
 };
-#endif
 
 // For WeaponBonusConditionFlags
 // part of detangling
@@ -290,17 +279,15 @@ private:
 
 };
 
-#ifdef DEFINE_WEAPONBONUSFIELD_NAMES
-static const char *TheWeaponBonusFieldNames[] = 
+inline constexpr const char* const TheWeaponBonusFieldNames[] =
 {
-	"DAMAGE",
-	"RADIUS",
-	"RANGE",
-	"RATE_OF_FIRE",
-	"PRE_ATTACK",
-	NULL
+        "DAMAGE",
+        "RADIUS",
+        "RANGE",
+        "RATE_OF_FIRE",
+        "PRE_ATTACK",
+        nullptr
 };
-#endif
 
 
 //-------------------------------------------------------------------------------------------------

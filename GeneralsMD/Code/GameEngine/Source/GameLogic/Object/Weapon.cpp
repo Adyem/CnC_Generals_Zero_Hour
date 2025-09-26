@@ -30,13 +30,6 @@
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
 
-#define DEFINE_WEAPONBONUSCONDITION_NAMES
-#define DEFINE_WEAPONBONUSFIELD_NAMES
-#define DEFINE_WEAPONCOLLIDEMASK_NAMES
-#define DEFINE_WEAPONAFFECTSMASK_NAMES
-#define DEFINE_WEAPONRELOAD_NAMES
-#define DEFINE_WEAPONPREFIRE_NAMES
-
 #include "Common/CRC.h"
 #include "Common/CRCDebug.h"
 #include "Common/GameAudio.h"
@@ -68,6 +61,8 @@
 #include "GameLogic/ObjectCreationList.h"
 #include "GameLogic/PartitionManager.h"
 #include "GameLogic/Weapon.h"
+
+#include <algorithm>
 
 #include "GameLogic/Module/AIUpdate.h"
 #include "GameLogic/Module/AssistedTargetingUpdate.h"
@@ -1300,7 +1295,7 @@ void WeaponTemplate::dealDamageInternal(ObjectID sourceID, ObjectID victimID, co
 		DEBUG_ASSERTCRASH(secondaryRadius >= primaryRadius || secondaryRadius == 0.0f, ("secondary radius should be >= primary radius (or zero)\n"));
 
 		Real primaryRadiusSqr = sqr(primaryRadius);
-		Real radius = max(primaryRadius, secondaryRadius);
+                Real radius = std::max(primaryRadius, secondaryRadius);
 		if (radius > 0.0f)
 		{
 			iter = ThePartitionManager->iterateObjectsInRange(pos, radius, DAMAGE_RANGE_CALC_TYPE);
@@ -1617,7 +1612,7 @@ void WeaponStore::update()
 		if (curFrame >= ddi->m_delayDamageFrame)
 		{
 			// we never do projectile-detonation-damage via this code path.
-			const isProjectileDetonation = false;
+                        const Bool isProjectileDetonation = false;
 			ddi->m_delayedWeapon->dealDamageInternal(ddi->m_delaySourceID, ddi->m_delayIntendedVictimID, &ddi->m_delayDamagePos, ddi->m_bonus, isProjectileDetonation);
 			ddi = m_weaponDDI.erase(ddi);
 		}

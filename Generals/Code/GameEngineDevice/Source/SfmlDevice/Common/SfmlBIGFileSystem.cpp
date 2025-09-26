@@ -44,6 +44,7 @@
 #include <algorithm>
 #include <array>
 #include <cstring>
+#include <string>
 
 namespace
 {
@@ -122,7 +123,25 @@ ArchiveFile* SfmlBIGFileSystem::openArchiveFile(const Char* filename)
         fp->seek(0x10, File::START);
 
         ArchivedFileInfo* fileInfo = NEW ArchivedFileInfo;
-        ArchiveFile* archiveFile = NEW SfmlBIGFile;
+        SfmlBIGFile* sfmlBigFile = NEW SfmlBIGFile;
+        ArchiveFile* archiveFile = sfmlBigFile;
+
+        std::string fullPathString(filename);
+        const std::string::size_type lastSeparator = fullPathString.find_last_of("\\/");
+        AsciiString archiveName;
+        AsciiString archivePath;
+        if (lastSeparator == std::string::npos)
+        {
+                archiveName = fullPathString.c_str();
+                archivePath = fullPathString.c_str();
+        }
+        else
+        {
+                archiveName = fullPathString.substr(lastSeparator + 1).c_str();
+                archivePath = fullPathString.substr(0, lastSeparator).c_str();
+        }
+
+        sfmlBigFile->initializeMetadata(archiveName, archivePath);
 
         for (Int i = 0; i < numLittleFiles; ++i)
         {

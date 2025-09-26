@@ -75,36 +75,33 @@ static const LookupListRec TheWeaponSlotTypeNamesLookupList[] =
 #endif  
 
 //-------------------------------------------------------------------------------------------------
-#ifdef DEFINE_WEAPONCONDITIONMAP
-
 //Kris: I did not write this code, but I am adding comments to clarify it.
 //When I ran into this, I discovered that it was grossly out of date. It wasn't
-//clearly identified as a "lookup table", but hopefully now it makes sense. I've 
+//clearly identified as a "lookup table", but hopefully now it makes sense. I've
 //updated it as of May 2003 when I added RIDER1-8 conditions.
 
 //Purpose: Whenever you change a weaponset, the model condition state associated with it
 //will be properly set exclusively.
-static const ModelConditionFlagType TheWeaponSetTypeToModelConditionTypeMap[WEAPONSET_COUNT] =
+inline constexpr ModelConditionFlagType TheWeaponSetTypeToModelConditionTypeMap[WEAPONSET_COUNT] =
 {
-	/*WEAPONSET_VETERAN*/								MODELCONDITION_WEAPONSET_VETERAN,		
-	/*WEAPONSET_ELITE*/									MODELCONDITION_WEAPONSET_ELITE,
-	/*WEAPONSET_HERO*/									MODELCONDITION_WEAPONSET_HERO,
-	/*WEAPONSET_PLAYER_UPGRADE*/				MODELCONDITION_WEAPONSET_PLAYER_UPGRADE,
-	/*WEAPONSET_CRATEUPGRADE_ONE*/			MODELCONDITION_WEAPONSET_CRATEUPGRADE_ONE,
-	/*WEAPONSET_CRATEUPGRADE_TWO*/			MODELCONDITION_WEAPONSET_CRATEUPGRADE_TWO,
-	/*WEAPONSET_VEHICLE_HIJACK*/				MODELCONDITION_INVALID,
-	/*WEAPONSET_CARBOMB*/								MODELCONDITION_INVALID,
-	/*WEAPONSET_MINE_CLEARING_DETAIL*/	MODELCONDITION_INVALID,
-	/*WEAPONSET_RIDER1*/								MODELCONDITION_RIDER1,	//Added these for different riders, but feel free to use these for anything.
-	/*WEAPONSET_RIDER2*/								MODELCONDITION_RIDER2,
-	/*WEAPONSET_RIDER3*/								MODELCONDITION_RIDER3,
-	/*WEAPONSET_RIDER4*/								MODELCONDITION_RIDER4,
-	/*WEAPONSET_RIDER5*/								MODELCONDITION_RIDER5,
-	/*WEAPONSET_RIDER6*/								MODELCONDITION_RIDER6,
-	/*WEAPONSET_RIDER7*/								MODELCONDITION_RIDER7,
-	/*WEAPONSET_RIDER8*/								MODELCONDITION_RIDER8,
+        /*WEAPONSET_VETERAN*/                                                           MODELCONDITION_WEAPONSET_VETERAN,
+        /*WEAPONSET_ELITE*/                                                                     MODELCONDITION_WEAPONSET_ELITE,
+        /*WEAPONSET_HERO*/                                                                      MODELCONDITION_WEAPONSET_HERO,
+        /*WEAPONSET_PLAYER_UPGRADE*/                            MODELCONDITION_WEAPONSET_PLAYER_UPGRADE,
+        /*WEAPONSET_CRATEUPGRADE_ONE*/                  MODELCONDITION_WEAPONSET_CRATEUPGRADE_ONE,
+        /*WEAPONSET_CRATEUPGRADE_TWO*/                  MODELCONDITION_WEAPONSET_CRATEUPGRADE_TWO,
+        /*WEAPONSET_VEHICLE_HIJACK*/                            MODELCONDITION_INVALID,
+        /*WEAPONSET_CARBOMB*/                                                           MODELCONDITION_INVALID,
+        /*WEAPONSET_MINE_CLEARING_DETAIL*/      MODELCONDITION_INVALID,
+        /*WEAPONSET_RIDER1*/                                                            MODELCONDITION_RIDER1,  //Added these for different riders, but feel free to use these for anything.
+        /*WEAPONSET_RIDER2*/                                                            MODELCONDITION_RIDER2,
+        /*WEAPONSET_RIDER3*/                                                            MODELCONDITION_RIDER3,
+        /*WEAPONSET_RIDER4*/                                                            MODELCONDITION_RIDER4,
+        /*WEAPONSET_RIDER5*/                                                            MODELCONDITION_RIDER5,
+        /*WEAPONSET_RIDER6*/                                                            MODELCONDITION_RIDER6,
+        /*WEAPONSET_RIDER7*/                                                            MODELCONDITION_RIDER7,
+        /*WEAPONSET_RIDER8*/                                                            MODELCONDITION_RIDER8,
 };
-#endif
 
 //-------------------------------------------------------------------------------------------------
 enum WeaponSetConditionType

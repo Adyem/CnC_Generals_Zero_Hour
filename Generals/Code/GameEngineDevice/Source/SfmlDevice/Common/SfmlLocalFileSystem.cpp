@@ -31,6 +31,8 @@
 
 #include "SfmlDevice/Common/SfmlLocalFileSystem.h"
 
+#include "SfmlDevice/Common/SfmlLocalFile.h"
+
 #include "Common/AsciiString.h"
 #include "Common/GameMemory.h"
 #include "Common/LocalFile.h"
@@ -121,7 +123,7 @@ void SfmlLocalFileSystem::update()
 
 File* SfmlLocalFileSystem::openFile(const Char* filename, Int access)
 {
-        LocalFile* file = newInstance(LocalFile);
+        SfmlLocalFile* file = newInstance(SfmlLocalFile);
 
         if (filename == NULL || *filename == '\0')
         {

@@ -40,6 +40,12 @@
 SfmlBIGFile::SfmlBIGFile() = default;
 SfmlBIGFile::~SfmlBIGFile() = default;
 
+void SfmlBIGFile::initializeMetadata(const AsciiString& name, const AsciiString& path)
+{
+        m_name = name;
+        m_path = path;
+}
+
 File* SfmlBIGFile::openFile(const Char* filename, Int access)
 {
         const ArchivedFileInfo* fileInfo = getArchivedFileInfo(AsciiString(filename));

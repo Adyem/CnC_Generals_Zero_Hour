@@ -37,6 +37,8 @@
 #include "GameLogic/GameLogic.h"
 #include "GameLogic/Object.h"
 
+#include <algorithm>
+
 #ifdef _INTERNAL
 // for occasional debugging...
 //#pragma optimize("", off)
@@ -167,8 +169,8 @@ void PoisonedBehavior::startPoisonedEffects( const DamageInfo *damageInfo )
 	m_poisonOverallStopFrame = now + d->m_poisonDurationData;
 
 	// If we are getting re-poisoned, don't reset the damage counter if running, but do set it if unset
-	if( m_poisonDamageFrame != 0 )
-		m_poisonDamageFrame = min( m_poisonDamageFrame, now + d->m_poisonDamageIntervalData );
+    if( m_poisonDamageFrame != 0 )
+        m_poisonDamageFrame = std::min( m_poisonDamageFrame, now + d->m_poisonDamageIntervalData );
 	else
 		m_poisonDamageFrame = now + d->m_poisonDamageIntervalData;
 
