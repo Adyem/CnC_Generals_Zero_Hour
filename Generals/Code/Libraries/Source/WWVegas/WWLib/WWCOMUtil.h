@@ -37,7 +37,18 @@
 #ifndef __WWCOMUTIL_H__
 #define __WWCOMUTIL_H__
 
+#if defined(_WIN32)
 #include <oaidl.h>
+#else
+#include "compat/win_compat.h"
+#include "Compat/Windows/windows_compat.h"
+
+using cnc::windows::HRESULT;
+using cnc::windows::IDispatch;
+using cnc::windows::OLECHAR;
+using cnc::windows::VARIANT;
+using cnc::windows::DISPPARAMS;
+#endif
 
 //! Invoke PropertyGet on IDispatch interface.
 HRESULT STDMETHODCALLTYPE Dispatch_GetProperty(IDispatch* object,

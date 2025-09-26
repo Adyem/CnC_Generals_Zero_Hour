@@ -253,10 +253,10 @@ inline HRESULT D3DXLoadSurfaceFromSurface(
     }
 
     RECT source = {};
+    D3DSURFACE_DESC desc = {};
     if (srcRect != nullptr) {
         source = *srcRect;
     } else {
-        D3DSURFACE_DESC desc;
         if (FAILED(src->GetDesc(&desc))) {
             return D3DERR_INVALIDCALL;
         }

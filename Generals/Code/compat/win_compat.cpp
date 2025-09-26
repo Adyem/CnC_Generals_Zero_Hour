@@ -447,7 +447,7 @@ DWORD FormatMessageA(DWORD,
         message = "Unknown error";
     }
 
-    std::snprintf(buffer, size, "%s (error %lu)", message.c_str(), messageId);
+    std::snprintf(buffer, size, "%s (error %u)", message.c_str(), messageId);
     return static_cast<DWORD>(std::strlen(buffer));
 }
 

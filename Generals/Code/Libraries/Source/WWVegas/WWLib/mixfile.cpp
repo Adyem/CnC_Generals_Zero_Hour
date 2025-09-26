@@ -37,7 +37,14 @@
 #include "mixfile.h"
 #include "wwdebug.h"
 #include "ffactory.h"
+#include "compat/win_compat.h"
 #include "wwfile.h"
+#include <filesystem>
+#include <algorithm>
+
+#if !defined(_WIN32)
+namespace fs = std::filesystem;
+#endif
 #include "realcrc.h"
 #include "rawfile.h"
 #include "win.h"
@@ -310,11 +317,22 @@ MixFileFactoryClass::Flush_Changes (void)
 	//
 	//	Get the path of the mix file
 	//
+	StringClass path;
+#if defined(_WIN32)
 	char drive[_MAX_DRIVE] = { 0 };
 	char dir[_MAX_DIR] = { 0 };
-	::_splitpath (MixFilename, drive, dir, NULL, NULL);
-	StringClass path	= drive;
-	path					+= dir;
+	::_splitpath(MixFilename, drive, dir, NULL, NULL);
+	path = drive;
+	path += dir;
+#else
+	fs::path mix_path = fs::path(MixFilename.Peek_Buffer()).parent_path();
+	fs::path base = mix_path / fs::path();
+	std::string path_string = base.string();
+	if (!path_string.empty() && path_string.back() != fs::path::preferred_separator) {
+		path_string.push_back(fs::path::preferred_separator);
+	}
+	path = path_string.c_str();
+#endif
 
 	//
 	//	Try to find a temp filename
@@ -353,7 +371,7 @@ MixFileFactoryClass::Flush_Changes (void)
 		//
 		//	Add the new files that are pending
 		//
-		for (index = 0; index < PendingAddFileList.Count (); index ++) {
+		for (int index = 0; index < PendingAddFileList.Count (); index ++) {
 			new_mix_file.Add_File (PendingAddFileList[index].FullPath, PendingAddFileList[index].Filename);
 		}
 	}
@@ -361,8 +379,21 @@ MixFileFactoryClass::Flush_Changes (void)
 	//
 	//	Delete the old mix file and rename the new one
 	//
-	::DeleteFile (MixFilename);
-	::MoveFile (full_path, MixFilename);
+#if defined(_WIN32)
+	::DeleteFile(MixFilename);
+	::MoveFile(full_path, MixFilename);
+#else
+	std::error_code delete_error;
+	fs::remove(fs::path(MixFilename.Peek_Buffer()), delete_error);
+	std::error_code rename_error;
+	fs::rename(fs::path(full_path.Peek_Buffer()), fs::path(MixFilename.Peek_Buffer()), rename_error);
+	if (rename_error) {
+		fs::copy_file(fs::path(full_path.Peek_Buffer()), fs::path(MixFilename.Peek_Buffer()), fs::copy_options::overwrite_existing, rename_error);
+		if (!rename_error) {
+			fs::remove(fs::path(full_path.Peek_Buffer()), delete_error);
+		}
+	}
+#endif
 
 	//
 	//	Reset the lists
@@ -389,7 +420,7 @@ MixFileFactoryClass::Get_Temp_Filename (const char *path, StringClass &full_path
 	//
 	for (int index = 0; index < 20; index ++) {
 		full_path.Format ("%s%.2d.dat", (const char *)temp_path, index + 1);
-		if (GetFileAttributes (full_path) == 0xFFFFFFFF) {
+		if (cnc::windows::GetFileAttributesA(full_path.Peek_Buffer()) == 0xFFFFFFFF) {
 			retval = true;
 			break;
 		}
@@ -591,8 +622,9 @@ void	MixFileCreator::Add_File( const char * filename, FileClass *file )
 /*
 **
 */
-void	Add_Files( const char * dir, MixFileCreator & mix )
+void    Add_Files( const char * dir, MixFileCreator & mix )
 {
+#if defined(_WIN32)
 	BOOL bcontinue = TRUE;
 	HANDLE hfile_find;
 	WIN32_FIND_DATA find_info = {0};
@@ -612,13 +644,46 @@ void	Add_Files( const char * dir, MixFileCreator & mix )
 		} else {
 			StringClass name;
 			name.Format( "%s%s", dir, find_info.cFileName );
-			StringClass	source;
+			StringClass	 source;
 			source.Format( "makemix\\%s", name );
 			mix.Add_File( source, name );
 //			WWDEBUG_SAY(( "Adding file from %s %s\n", source, name ));
 		}
 	}
+#else
+	fs::path root = fs::path("data/makemix");
+	std::string dir_string = (dir != nullptr) ? dir : "";
+	std::replace(dir_string.begin(), dir_string.end(), '\\', '/');
+	fs::path search_root = root / fs::path(dir_string);
+	std::error_code status_error;
+	if (!fs::exists(search_root, status_error)) {
+		return;
+	}
+
+	WWDEBUG_SAY(( "Adding files from %s\n", search_root.string().c_str() ));
+
+	for (const auto &entry : fs::recursive_directory_iterator(search_root, status_error)) {
+		if (status_error) {
+			break;
+		}
+		if (!entry.is_regular_file()) {
+			continue;
+		}
+
+		fs::path relative = entry.path().lexically_relative(root);
+		std::string relative_generic = relative.generic_string();
+		std::string windows_style = relative_generic;
+		std::replace(windows_style.begin(), windows_style.end(), '/', '\\');
+
+		StringClass name;
+		name = windows_style.c_str();
+		StringClass source;
+		source.Format( "makemix\\%s", windows_style.c_str() );
+		mix.Add_File( source, name );
+	}
+#endif
 }
+
 
 void	Setup_Mix_File( void )
 {

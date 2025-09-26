@@ -58,6 +58,7 @@
 #include	"always.h"
 #include	"_xmouse.h"
 #include "keyboard.h"
+#include "compat/win_compat.h"
 //#include	"mono.h"
 #include	"sfml_message_pump.h"
 
@@ -408,20 +409,33 @@ bool WWKeyboardClass::Put_Key_Message(unsigned short vk_key, bool release)
 	** that we do not want to set the shift, ctrl and alt bits for Mouse keypresses as this
 	** would be incompatible with the dos version.
 	*/
-	if (!Is_Mouse_Key(vk_key)) {
-		if (((GetKeyState(VK_SHIFT) & 0x8000) != 0) ||
-			((GetKeyState(VK_CAPITAL) & 0x0008) != 0) ||
-			((GetKeyState(VK_NUMLOCK) & 0x0008) != 0)) {
-
-			vk_key |= WWKEY_SHIFT_BIT;
-		}
-		if ((GetKeyState(VK_CONTROL) & 0x8000) != 0) {
-			vk_key |= WWKEY_CTRL_BIT;
-		}
-		if ((GetKeyState(VK_MENU) & 0x8000) != 0) {
-			vk_key |= WWKEY_ALT_BIT;
-		}
-	}
+        if (!Is_Mouse_Key(vk_key)) {
+#if defined(_WIN32)
+                if (((GetKeyState(VK_SHIFT) & 0x8000) != 0) ||
+                        ((GetKeyState(VK_CAPITAL) & 0x0008) != 0) ||
+                        ((GetKeyState(VK_NUMLOCK) & 0x0008) != 0)) {
+                        vk_key |= WWKEY_SHIFT_BIT;
+                }
+                if ((GetKeyState(VK_CONTROL) & 0x8000) != 0) {
+                        vk_key |= WWKEY_CTRL_BIT;
+                }
+                if ((GetKeyState(VK_MENU) & 0x8000) != 0) {
+                        vk_key |= WWKEY_ALT_BIT;
+                }
+#else
+                if ((KeyState[VK_SHIFT] & 0x80) != 0 ||
+                    (KeyState[VK_CAPITAL] & 0x01) != 0 ||
+                    (KeyState[VK_NUMLOCK] & 0x01) != 0) {
+                        vk_key |= WWKEY_SHIFT_BIT;
+                }
+                if ((KeyState[VK_CONTROL] & 0x80) != 0) {
+                        vk_key |= WWKEY_CTRL_BIT;
+                }
+                if ((KeyState[VK_MENU] & 0x80) != 0) {
+                        vk_key |= WWKEY_ALT_BIT;
+                }
+#endif
+        }
 
 	if (release) {
 		vk_key |= WWKEY_RLS_BIT;
@@ -514,8 +528,15 @@ char WWKeyboardClass::To_ASCII(unsigned short key)
 	int scancode;
 //	int scancode = 0;
 
+#if defined(_WIN32)
 	scancode = MapVirtualKey(key & 0xFF, 0);
 	result = ToAscii((UINT)(key & 0xFF), (UINT)scancode, (PBYTE)KeyState, (LPWORD)buffer, (UINT)0);
+#else
+	scancode = static_cast<int>(key & 0xFF);
+	buffer[0] = static_cast<char>(key & 0xFF);
+	result = 1;
+	(void)scancode;
+#endif
 
 	/*
 	**	Restore the KeyState buffer back to pristine condition.
@@ -558,7 +579,11 @@ char WWKeyboardClass::To_ASCII(unsigned short key)
  *=============================================================================================*/
 bool WWKeyboardClass::Down(unsigned short key)
 {
+#if defined(_WIN32)
 	return(GetAsyncKeyState(key & 0xFF) != 0);
+#else
+	return((KeyState[key & 0xFF] & 0x80) != 0);
+#endif
 }
 
 
@@ -771,7 +796,7 @@ void WWKeyboardClass::Process_Sfml_Event(const sf::Event &event)
 	case sf::Event::KeyPressed:
 	case sf::Event::KeyReleased:
 	{
-		unsigned short vk_key = Translate_Sfml_Key(event.key.code);
+		unsigned short vk_key = Translate_Sfml_Key(static_cast<sf::Keyboard::Key>(event.key.code));
 		if (vk_key == VK_NONE) {
 			break;
 		}
@@ -786,7 +811,7 @@ void WWKeyboardClass::Process_Sfml_Event(const sf::Event &event)
 	case sf::Event::MouseButtonPressed:
 	case sf::Event::MouseButtonReleased:
 	{
-		unsigned short vk_key = Translate_Sfml_Mouse_Button(event.mouseButton.button);
+		unsigned short vk_key = Translate_Sfml_Mouse_Button(static_cast<sf::Mouse::Button>(event.mouseButton.button));
 		if (vk_key == VK_NONE) {
 			break;
 		}

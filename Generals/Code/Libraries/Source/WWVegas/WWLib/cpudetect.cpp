@@ -20,15 +20,23 @@
 #include "wwstring.h"
 #include "wwdebug.h"
 #include "thread.h"
-#include "mpu.h"
+#include "MPU.H"
+#include "systimer.h"
+
+#if defined(_WIN32)
 #pragma warning (disable : 4201)	// Nonstandard extension - nameless struct
 #include <windows.h>
-#include "systimer.h"
+#endif
+
+#include <chrono>
+#include <cstring>
+#include <thread>
 
 #ifdef _UNIX
 # include <time.h>  // for time(), localtime() and timezone variable.
 #endif
 
+#if defined(_WIN32)
 struct OSInfoStruct {
 	const char* Code;
 	const char* SubCode;
@@ -49,6 +57,8 @@ static void Get_OS_Info(
 	unsigned OSVersionBuildNumber);
 
 
+#endif
+
 StringClass CPUDetectClass::ProcessorLog;
 StringClass CPUDetectClass::CompactLog;
 
@@ -57,7 +67,7 @@ int CPUDetectClass::ProcessorFamily;
 int CPUDetectClass::ProcessorModel;
 int CPUDetectClass::ProcessorRevision;
 int CPUDetectClass::ProcessorSpeed;
-__int64 CPUDetectClass::ProcessorTicksPerSecond;	// Ticks per second
+sint64 CPUDetectClass::ProcessorTicksPerSecond;	// Ticks per second
 double CPUDetectClass::InvProcessorTicksPerSecond;	// 1.0 / Ticks per second
 
 unsigned CPUDetectClass::FeatureBits;
@@ -123,9 +133,10 @@ const char* CPUDetectClass::Get_Processor_Manufacturer_Name()
 	return ManufacturerNames[ProcessorManufacturer];
 }
 
+#if defined(_WIN32)
 #define ASM_RDTSC _asm _emit 0x0f _asm _emit 0x31
 
-static unsigned Calculate_Processor_Speed(__int64& ticks_per_second)
+static unsigned Calculate_Processor_Speed(sint64& ticks_per_second)
 {
 	struct {
 		unsigned timer0_h;
@@ -162,8 +173,8 @@ static unsigned Calculate_Processor_Speed(__int64& ticks_per_second)
 #endif
 	}
 
-	__int64 t=*(__int64*)&Time.timer1_h-*(__int64*)&Time.timer0_h;
-	ticks_per_second=(__int64)((1000.0/(double)elapsed)*(double)t);	// Ticks per second
+	sint64 t=*(sint64*)&Time.timer1_h-*(sint64*)&Time.timer0_h;
+	ticks_per_second=(sint64)((1000.0/(double)elapsed)*(double)t);	// Ticks per second
 	return unsigned((double)t/(double)(elapsed*1000));
 }
 
@@ -1068,7 +1079,7 @@ void CPUDetectClass::Init_Processor_Log()
 	}
 
 	if (CPUDetectClass::Get_L1_Instruction_Trace_Cache_Size()) {
-		SYSLOG(("L1 Instruction Trace Cache: %d way set associative, %dk µOPs\r\n",
+		SYSLOG(("L1 Instruction Trace Cache: %d way set associative, %dk ÂµOPs\r\n",
 			CPUDetectClass::Get_L1_Instruction_Cache_Set_Associative(),
 			CPUDetectClass::Get_L1_Instruction_Cache_Size()/1024));
 	}
@@ -1330,3 +1341,164 @@ void Get_OS_Info(
 		}
 	}
 }
+
+#else // !_WIN32
+
+void CPUDetectClass::Process_Cache_Info(unsigned)
+{
+}
+
+void CPUDetectClass::Process_Extended_Cache_Info()
+{
+}
+
+void CPUDetectClass::Init_Cache()
+{
+    L2CacheSize = 0;
+    L2CacheLineSize = 0;
+    L2CacheSetAssociative = 0;
+    L1DataCacheSize = 0;
+    L1DataCacheLineSize = 0;
+    L1DataCacheSetAssociative = 0;
+    L1InstructionCacheSize = 0;
+    L1InstructionCacheLineSize = 0;
+    L1InstructionCacheSetAssociative = 0;
+    L1InstructionTraceCacheSize = 0;
+    L1InstructionTraceCacheSetAssociative = 0;
+}
+
+void CPUDetectClass::Init_Intel_Processor_Type()
+{
+    IntelProcessor = INTEL_PROCESSOR_UNKNOWN;
+}
+
+void CPUDetectClass::Init_AMD_Processor_Type()
+{
+    AMDProcessor = AMD_PROCESSOR_UNKNOWN;
+}
+
+void CPUDetectClass::Init_VIA_Processor_Type()
+{
+    VIAProcessor = VIA_PROCESSOR_UNKNOWN;
+}
+
+void CPUDetectClass::Init_Rise_Processor_Type()
+{
+    RiseProcessor = RISE_PROCESSOR_UNKNOWN;
+}
+
+void CPUDetectClass::Init_Processor_Family()
+{
+    ProcessorType = 0;
+    ProcessorFamily = 0;
+    ProcessorModel = 0;
+    ProcessorRevision = 0;
+}
+
+void CPUDetectClass::Init_Processor_Manufacturer()
+{
+    ProcessorManufacturer = MANUFACTURER_UNKNOWN;
+    IntelProcessor = INTEL_PROCESSOR_UNKNOWN;
+    AMDProcessor = AMD_PROCESSOR_UNKNOWN;
+    VIAProcessor = VIA_PROCESSOR_UNKNOWN;
+    RiseProcessor = RISE_PROCESSOR_UNKNOWN;
+    std::memset(VendorID, 0, sizeof(VendorID));
+}
+
+void CPUDetectClass::Init_Processor_String()
+{
+    std::memset(ProcessorString, 0, sizeof(ProcessorString));
+    const char fallback[] = "Unknown CPU";
+    std::strncpy(ProcessorString, fallback, sizeof(ProcessorString) - 1);
+}
+
+bool CPUDetectClass::CPUID(
+        unsigned& u_eax_,
+        unsigned& u_ebx_,
+        unsigned& u_ecx_,
+        unsigned& u_edx_,
+        unsigned)
+{
+    u_eax_ = 0;
+    u_ebx_ = 0;
+    u_ecx_ = 0;
+    u_edx_ = 0;
+    return false;
+}
+
+void CPUDetectClass::Init_CPUID_Instruction()
+{
+    HasCPUIDInstruction = false;
+    HasRDTSCInstruction = false;
+    HasCMOVSupport = false;
+    HasMMXSupport = false;
+    HasSSESupport = false;
+    HasSSE2Support = false;
+    Has3DNowSupport = false;
+    HasExtended3DNowSupport = false;
+    FeatureBits = 0;
+    ExtendedFeatureBits = 0;
+}
+
+void CPUDetectClass::Init_Processor_Features()
+{
+    Init_Cache();
+}
+
+void CPUDetectClass::Init_Processor_Speed()
+{
+    ProcessorSpeed = 0;
+    ProcessorTicksPerSecond = 0;
+    InvProcessorTicksPerSecond = 0.0;
+}
+
+void CPUDetectClass::Init_Memory()
+{
+    TotalPhysicalMemory = 0;
+    AvailablePhysicalMemory = 0;
+    TotalPageMemory = 0;
+    AvailablePageMemory = 0;
+    TotalVirtualMemory = 0;
+    AvailableVirtualMemory = 0;
+}
+
+void CPUDetectClass::Init_OS()
+{
+    OSVersionNumberMajor = 0;
+    OSVersionNumberMinor = 0;
+    OSVersionBuildNumber = 0;
+    OSVersionPlatformId = 0;
+    OSVersionExtraInfo = "Non-Windows";
+}
+
+void CPUDetectClass::Init_Processor_Log()
+{
+    ProcessorLog = "CPU detection is unavailable on this platform.";
+}
+
+void CPUDetectClass::Init_Compact_Log()
+{
+    CompactLog = ProcessorLog;
+}
+
+static class CPUDetectInitClass
+{
+public:
+    CPUDetectInitClass();
+} _CPU_Detect_Init;
+
+CPUDetectInitClass::CPUDetectInitClass()
+{
+    CPUDetectClass::Init_CPUID_Instruction();
+    CPUDetectClass::Init_Processor_Manufacturer();
+    CPUDetectClass::Init_Processor_Family();
+    CPUDetectClass::Init_Processor_String();
+    CPUDetectClass::Init_Processor_Features();
+    CPUDetectClass::Init_Memory();
+    CPUDetectClass::Init_OS();
+    CPUDetectClass::Init_Processor_Speed();
+    CPUDetectClass::Init_Processor_Log();
+    CPUDetectClass::Init_Compact_Log();
+}
+
+#endif // _WIN32

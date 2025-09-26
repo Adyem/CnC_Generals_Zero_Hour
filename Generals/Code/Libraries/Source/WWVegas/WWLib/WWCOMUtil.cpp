@@ -36,6 +36,24 @@
 
 #include "WWCOMUtil.h"
 
+#if !defined(_WIN32)
+using cnc::windows::DISPATCH_METHOD;
+using cnc::windows::DISPATCH_PROPERTYGET;
+using cnc::windows::DISPATCH_PROPERTYPUT;
+using cnc::windows::DISPPARAMS;
+using cnc::windows::FARPROC;
+using cnc::windows::FreeLibrary;
+using cnc::windows::GetProcAddress;
+using cnc::windows::IID_NULL;
+using cnc::windows::LOCALE_SYSTEM_DEFAULT;
+using cnc::windows::LoadLibrary;
+using cnc::windows::VT_EMPTY;
+using cnc::windows::VARIANT;
+#define VARIANT_LVAL(value) ((value).n1.lVal)
+#else
+#define VARIANT_LVAL(value) ((value).lVal)
+#endif
+
 /******************************************************************************
 *
 * NAME
@@ -53,10 +71,10 @@
 ******************************************************************************/
 
 STDMETHODIMP Dispatch_GetProperty(IDispatch* object, const OLECHAR* propName,
-		VARIANT* result)
-	{
-	result->vt = VT_EMPTY;
-	result->lVal = 0;
+                VARIANT* result)
+        {
+        result->vt = VT_EMPTY;
+        VARIANT_LVAL(*result) = 0;
 
 	// Get the dispid for the named property
 	OLECHAR* member = const_cast<OLECHAR*>(propName);
@@ -67,7 +85,7 @@ STDMETHODIMP Dispatch_GetProperty(IDispatch* object, const OLECHAR* propName,
 	if (SUCCEEDED(hr))
 		{
 		// Get the property
-		DISPPARAMS params = {NULL, NULL, 0, 0};
+                DISPPARAMS params = {NULL, NULL, 0, 0};
 		UINT argErr = 0;
 		hr = object->Invoke(dispid, IID_NULL, LOCALE_SYSTEM_DEFAULT,
 			DISPATCH_PROPERTYGET, &params, result, NULL, &argErr);
@@ -107,7 +125,7 @@ STDMETHODIMP Dispatch_PutProperty(IDispatch* object, const OLECHAR* propName,
 	if (SUCCEEDED(hr))
 		{
 		// Get the property
-		DISPPARAMS params = {NULL, NULL, 0, 0};
+                DISPPARAMS params = {NULL, NULL, 0, 0};
 		params.cArgs = 1;
 		params.rgvarg = propValue;
 
@@ -180,17 +198,18 @@ bool RegisterCOMServer(const char* dllName)
 	{
 	bool success = false;
 
-	HINSTANCE hInst = LoadLibrary(dllName);
+        HINSTANCE hInst = LoadLibrary(dllName);
 
-	if (hInst != NULL)
-		{
-		FARPROC regServerProc = GetProcAddress(hInst, "DllRegisterServer");
+        if (hInst != NULL)
+                {
+                using RegisterServerProc = HRESULT (STDMETHODCALLTYPE*)();
+                RegisterServerProc regServerProc = reinterpret_cast<RegisterServerProc>(GetProcAddress(hInst, "DllRegisterServer"));
 
-		if (regServerProc != NULL)
-			{
-			HRESULT hr = regServerProc();
-			success = SUCCEEDED(hr);
-			}
+                if (regServerProc != NULL)
+                        {
+                        HRESULT hr = regServerProc();
+                        success = SUCCEEDED(hr);
+                        }
 
 		FreeLibrary(hInst);
 		}
@@ -216,23 +235,26 @@ bool RegisterCOMServer(const char* dllName)
 ******************************************************************************/
 
 bool UnregisterCOMServer(const char* dllName)
-	{
-	bool success = false;
+        {
+        bool success = false;
 
-	HINSTANCE hInst = LoadLibrary(dllName);
+        HINSTANCE hInst = LoadLibrary(dllName);
 
-	if (hInst != NULL)
-		{
-		FARPROC unregServerProc = GetProcAddress(hInst, "DllUnregisterServer");
+        if (hInst != NULL)
+                {
+                using UnregisterServerProc = HRESULT (STDMETHODCALLTYPE*)();
+                UnregisterServerProc unregServerProc = reinterpret_cast<UnregisterServerProc>(GetProcAddress(hInst, "DllUnregisterServer"));
 
-		if (unregServerProc != NULL)
-			{
-			HRESULT hr = unregServerProc();
-			success = SUCCEEDED(hr);
-			}
+                if (unregServerProc != NULL)
+                        {
+                        HRESULT hr = unregServerProc();
+                        success = SUCCEEDED(hr);
+                        }
 
 		FreeLibrary(hInst);
 		}
 
-	return success;
-	}
+        return success;
+        }
+
+#undef VARIANT_LVAL

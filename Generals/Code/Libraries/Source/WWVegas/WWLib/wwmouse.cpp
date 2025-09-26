@@ -664,9 +664,11 @@ void WWMouseClass::Show_Mouse(void)
 {
 	if (!Is_Captured()) {
 		MouseState.store(0, std::memory_order_release);
-		if (MessagePump != NULL) {
-			MessagePump->GetWindow().setMouseCursorVisible(true);
-		}
+                if (MessagePump != NULL) {
+#if WWLIB_HAS_SFML
+                        MessagePump->GetWindow().setMouseCursorVisible(true);
+#endif
+                }
 	} else {
 		Block_Mouse();
 		long state = MouseState.fetch_add(1, std::memory_order_acq_rel) + 1;
@@ -701,9 +703,11 @@ void WWMouseClass::Hide_Mouse(void)
 {
 	if (!Is_Captured()) {
 		MouseState.store(-1, std::memory_order_release);
-		if (MessagePump != NULL) {
-			MessagePump->GetWindow().setMouseCursorVisible(false);
-		}
+                if (MessagePump != NULL) {
+#if WWLIB_HAS_SFML
+                        MessagePump->GetWindow().setMouseCursorVisible(false);
+#endif
+                }
 	} else {
 		Block_Mouse();
 		long state = MouseState.fetch_sub(1, std::memory_order_acq_rel) - 1;
@@ -737,9 +741,11 @@ void WWMouseClass::Capture_Mouse(void)
 		Block_Mouse();
 		Hide_Mouse();
 		IsCaptured = true;
-		if (MessagePump != NULL) {
-			MessagePump->GetWindow().setMouseCursorGrabbed(true);
-		}
+                if (MessagePump != NULL) {
+#if WWLIB_HAS_SFML
+                        MessagePump->GetWindow().setMouseCursorGrabbed(true);
+#endif
+                }
 		Show_Mouse();
 		Unblock_Mouse();
 	}
@@ -773,9 +779,11 @@ void WWMouseClass::Release_Mouse(void)
 		Block_Mouse();
 		if (!Is_Hidden()) Low_Hide_Mouse();
 		IsCaptured = false;
-		if (MessagePump != NULL) {
-			MessagePump->GetWindow().setMouseCursorGrabbed(false);
-		}
+                if (MessagePump != NULL) {
+#if WWLIB_HAS_SFML
+                        MessagePump->GetWindow().setMouseCursorGrabbed(false);
+#endif
+                }
 		Show_Mouse();
 
 		Unblock_Mouse();

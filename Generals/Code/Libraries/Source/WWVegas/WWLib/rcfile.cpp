@@ -36,31 +36,48 @@
 
 
 #include "rcfile.h"
+#include "compat/win_compat.h"
 #include <stdlib.h>
+#include <string.h>
 
 const char * RESOURCE_FILE_TYPE_NAME = "File";
 
 
 ResourceFileClass::ResourceFileClass(HMODULE hmodule, char const *filename) :
-	ResourceName(NULL),
-	hModule(NULL),
-	FileBytes(NULL),
-	FilePtr(NULL),
-	EndOfFile(NULL)
+        ResourceName(NULL),
+        hModule(hmodule),
+        FileBytes(NULL),
+        FilePtr(NULL),
+        EndOfFile(NULL)
 {
-	Set_Name(filename);
-	HRSRC hresource = FindResource(hmodule,ResourceName,RESOURCE_FILE_TYPE_NAME);	
+        Set_Name(filename);
 
-	if (hresource) {
-		HGLOBAL hglob = LoadResource(hmodule,hresource);
-		if (hglob) {
-			FileBytes = (unsigned char *)LockResource(hglob);
-			if (FileBytes) {
-				FilePtr = FileBytes;
-				EndOfFile = FileBytes + SizeofResource(hmodule,hresource);
-			}
-		}
-	}
+#if defined(_WIN32)
+        HRSRC hresource = FindResourceA(hmodule, ResourceName, RESOURCE_FILE_TYPE_NAME);
+        if (hresource) {
+                HGLOBAL hglob = LoadResource(hmodule, hresource);
+                if (hglob) {
+                        FileBytes = static_cast<unsigned char *>(LockResource(hglob));
+                        if (FileBytes) {
+                                FilePtr = FileBytes;
+                                EndOfFile = FileBytes + SizeofResource(hmodule, hresource);
+                        }
+                }
+        }
+#else
+        cnc::windows::HRSRC hresource = cnc::windows::FindResourceA(hmodule, ResourceName, RESOURCE_FILE_TYPE_NAME);
+        if (hresource) {
+                cnc::windows::HGLOBAL hglob = cnc::windows::LoadResource(hmodule, hresource);
+                if (hglob) {
+                        FileBytes = static_cast<unsigned char *>(cnc::windows::LockResource(hglob));
+                        if (FileBytes) {
+                                FilePtr = FileBytes;
+                                EndOfFile =
+                                        FileBytes + cnc::windows::SizeofResource(hmodule, hresource);
+                        }
+                }
+        }
+#endif
 }
 
 ResourceFileClass::~ResourceFileClass(void)									
