@@ -38,7 +38,7 @@
 #define CRCPIPE_H
 
 #include	"crc.h"
-#include	"pipe.h"
+#include	"PIPE.H"
 
 /*
 **	This class doesn't modify the data being piped through, but it does examine it and build

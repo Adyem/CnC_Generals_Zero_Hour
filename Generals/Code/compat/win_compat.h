@@ -30,6 +30,25 @@
 #define FALSE 0
 #endif
 
+#ifndef SEVERITY_SUCCESS
+#define SEVERITY_SUCCESS 0
+#endif
+
+#ifndef SEVERITY_ERROR
+#define SEVERITY_ERROR 1
+#endif
+
+#ifndef FACILITY_ITF
+#define FACILITY_ITF 4
+#endif
+
+#ifndef MAKE_HRESULT
+#define MAKE_HRESULT(sev, fac, code) \
+    (static_cast<cnc::windows::HRESULT>(((static_cast<unsigned long>(sev) << 31) | \
+                                         (static_cast<unsigned long>(fac) << 16) | \
+                                         (static_cast<unsigned long>(code)))))
+#endif
+
 constexpr unsigned short LANG_NEUTRAL = 0x00;
 constexpr unsigned short SUBLANG_DEFAULT = 0x01;
 constexpr unsigned short SUBLANG_SYS_DEFAULT = 0x02;
@@ -91,6 +110,17 @@ DWORD GetModuleFileNameA(HMODULE module, LPSTR buffer, DWORD size);
 
 DWORD GetLastError();
 void SetLastError(DWORD error);
+
+inline int MulDiv(int number, int numerator, int denominator)
+{
+    if (denominator == 0)
+    {
+        return 0;
+    }
+
+    long long result = static_cast<long long>(number) * static_cast<long long>(numerator);
+    return static_cast<int>(result / denominator);
+}
 } // namespace cnc::windows
 
 using cnc::windows::FARPROC;
@@ -109,6 +139,7 @@ using cnc::windows::LoadResource;
 using cnc::windows::LoadStringA;
 using cnc::windows::LockResource;
 using cnc::windows::LocalFree;
+using cnc::windows::MulDiv;
 using cnc::windows::OutputDebugStringA;
 using cnc::windows::SizeofResource;
 using cnc::windows::SetLastError;

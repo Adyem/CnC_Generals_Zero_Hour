@@ -128,8 +128,8 @@ class Vector3SolidBoxRandomizer : public Vector3Randomizer {
 
 	private:
 
-		// Derived classes should have a private dummy assignment operator to block usage
-		Vector3SolidBoxRandomizer & Vector3SolidBoxRandomizer::operator = (const Vector3SolidBoxRandomizer &that) { that; return *this; }
+// Derived classes should have a private dummy assignment operator to block usage
+		Vector3SolidBoxRandomizer & operator=(const Vector3SolidBoxRandomizer &) = delete;
 
 		Vector3	Extents;
 };
@@ -159,8 +159,8 @@ class Vector3SolidSphereRandomizer : public Vector3Randomizer {
 
 	private:
 
-		// Derived classes should have a private dummy assignment operator to block usage
-		Vector3SolidSphereRandomizer & Vector3SolidSphereRandomizer::operator = (const Vector3SolidSphereRandomizer &that) { that; return *this; }
+// Derived classes should have a private dummy assignment operator to block usage
+		Vector3SolidSphereRandomizer & operator=(const Vector3SolidSphereRandomizer &) = delete;
 
 		float	Radius;
 };
@@ -190,8 +190,8 @@ class Vector3HollowSphereRandomizer : public Vector3Randomizer {
 
 	private:
 
-		// Derived classes should have a private dummy assignment operator to block usage
-		Vector3HollowSphereRandomizer & Vector3HollowSphereRandomizer::operator = (const Vector3HollowSphereRandomizer &that) { that; return *this; }
+// Derived classes should have a private dummy assignment operator to block usage
+		Vector3HollowSphereRandomizer & operator=(const Vector3HollowSphereRandomizer &) = delete;
 
 		float	Radius;
 };
@@ -222,8 +222,8 @@ class Vector3SolidCylinderRandomizer : public Vector3Randomizer {
 
 	private:
 
-		// Derived classes should have a private dummy assignment operator to block usage
-		Vector3SolidCylinderRandomizer & Vector3SolidCylinderRandomizer::operator = (const Vector3SolidCylinderRandomizer &that) { that; return *this; }
+// Derived classes should have a private dummy assignment operator to block usage
+		Vector3SolidCylinderRandomizer & operator=(const Vector3SolidCylinderRandomizer &) = delete;
 
 		float	Extent;
 		float	Radius;

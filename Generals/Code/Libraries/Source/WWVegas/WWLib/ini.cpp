@@ -77,7 +77,7 @@
 #include	"b64pipe.h"
 #include	"b64straw.h"
 #include	"cstraw.h"
-#include	"ini.h"
+#include	"INI.H"
 #include	"readline.h"
 #include	"trim.h"
 #include	"win.h"
@@ -95,7 +95,7 @@
 #include	"trect.h"
 #include	"wwfile.h"
 #include	"pk.h"
-#include	"pipe.h"
+#include	"PIPE.H"
 #include	"wwstring.h"
 
 #if defined(__WATCOMC__)

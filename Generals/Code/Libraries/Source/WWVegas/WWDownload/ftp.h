@@ -24,7 +24,13 @@
 
 //#include "../resource.h"       // main symbols
 
+#include "compat/win_compat.h"
+
+#ifdef _WIN32
 #include "winsock.h"
+#else
+#include <netinet/in.h>
+#endif
 #include "stdio.h"
 
 #include "WWDownload/ftpdefs.h"

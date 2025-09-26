@@ -36,10 +36,36 @@
 
 
 #include "verchk.h"
-#include <windows.h>
+
+#if defined(_WIN32)
 #include <winnt.h>
+#endif
+
+#include <cstring>
+#if !defined(_WIN32)
+#include <sys/stat.h>
+#include <ctime>
+#endif
+
 #include "rawfile.h"
 #include "ffactory.h"
+
+#if !defined(_WIN32)
+namespace
+{
+cnc::windows::FILETIME UnixTimeToFileTime(std::time_t value)
+{
+    constexpr long long WINDOWS_TICK = 10000000LL;
+    constexpr long long SEC_TO_UNIX_EPOCH = 11644473600LL;
+
+    long long total = (static_cast<long long>(value) + SEC_TO_UNIX_EPOCH) * WINDOWS_TICK;
+    cnc::windows::FILETIME result{};
+    result.dwLowDateTime = static_cast<cnc::windows::DWORD>(total & 0xffffffffu);
+    result.dwHighDateTime = static_cast<cnc::windows::DWORD>((total >> 32) & 0xffffffffu);
+    return result;
+}
+} // namespace
+#endif
 
 
 /******************************************************************************
@@ -60,77 +86,97 @@
 ******************************************************************************/
 
 bool GetVersionInfo(char* filename, VS_FIXEDFILEINFO* fileInfo)
-	{
-	if (filename == NULL || fileInfo == NULL)
-		{
-		return false;
-		}
+        {
+#if !defined(_WIN32)
+        (void)filename;
+        (void)fileInfo;
+        return false;
+#else
+        if (filename == NULL || fileInfo == NULL)
+                {
+                return false;
+                }
 
-	// Get version information from the application
-	DWORD verHandle;
-	DWORD verInfoSize = GetFileVersionInfoSize(filename, &verHandle);
+        // Get version information from the application
+        DWORD verHandle;
+        DWORD verInfoSize = GetFileVersionInfoSize(filename, &verHandle);
 
-	if (verInfoSize)
-		{
-		// If we were able to get the information, process it:
-		HANDLE memHandle = GlobalAlloc(GMEM_MOVEABLE, verInfoSize);
+        if (verInfoSize)
+                {
+                // If we were able to get the information, process it:
+                HANDLE memHandle = GlobalAlloc(GMEM_MOVEABLE, verInfoSize);
 
-		if (memHandle)
-			{
-			LPVOID buffer = GlobalLock(memHandle);
+                if (memHandle)
+                        {
+                        LPVOID buffer = GlobalLock(memHandle);
 
-			if (buffer)
-				{
-				BOOL success = GetFileVersionInfo(filename, verHandle, verInfoSize, buffer);
+                        if (buffer)
+                                {
+                                BOOL success = GetFileVersionInfo(filename, verHandle, verInfoSize, buffer);
 
-				if (success)
-					{
-					VS_FIXEDFILEINFO* data;
-					UINT dataSize = 0;
-					success = VerQueryValue(buffer, "\\", (LPVOID*)&data, &dataSize);
+                                if (success)
+                                        {
+                                        VS_FIXEDFILEINFO* data;
+                                        UINT dataSize = 0;
+                                        success = VerQueryValue(buffer, "\\", (LPVOID*)&data, &dataSize);
 
-					if (success && (dataSize == sizeof(VS_FIXEDFILEINFO)))
-						{
-						memcpy(fileInfo, data, sizeof(VS_FIXEDFILEINFO));
-						return true;
-						}
-					}
+                                        if (success && (dataSize == sizeof(VS_FIXEDFILEINFO)))
+                                                {
+                                                memcpy(fileInfo, data, sizeof(VS_FIXEDFILEINFO));
+                                                return true;
+                                                }
+                                        }
 
-				GlobalUnlock(memHandle);
-				}
+                                GlobalUnlock(memHandle);
+                                }
 
-			GlobalFree(memHandle);
-			}
-		}
+                        GlobalFree(memHandle);
+                        }
+                }
 
-	return false;
-	}
+        return false;
+#endif
+        }
 
 
 bool GetFileCreationTime(char* filename, FILETIME* createTime)
-	{
-	if (filename && createTime)
-		{
-		createTime->dwLowDateTime = 0;
-		createTime->dwHighDateTime = 0;
-		FileClass* file = _TheFileFactory->Get_File(filename);
+        {
+#if !defined(_WIN32)
+        if (filename != nullptr && createTime != nullptr)
+                {
+                struct stat info{};
+                if (stat(filename, &info) == 0)
+                        {
+                        *createTime = UnixTimeToFileTime(info.st_ctime);
+                        return true;
+                        }
+                }
 
-		if (file && file->Open())
-			{
-			HANDLE handle = file->Get_File_Handle();
+        return false;
+#else
+        if (filename && createTime)
+                {
+                createTime->dwLowDateTime = 0;
+                createTime->dwHighDateTime = 0;
+                FileClass* file = _TheFileFactory->Get_File(filename);
 
-			if (handle != INVALID_HANDLE_VALUE)
-				{
-				if (GetFileTime(handle, NULL, NULL, createTime))
-					{
-					return true;
-					}
-				}
-			}
-		}
+                if (file && file->Open())
+                        {
+                        HANDLE handle = file->Get_File_Handle();
 
-	return false;
-	}
+                        if (handle != INVALID_HANDLE_VALUE)
+                                {
+                                if (GetFileTime(handle, NULL, NULL, createTime))
+                                        {
+                                        return true;
+                                        }
+                                }
+                        }
+                }
+
+        return false;
+#endif
+        }
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -234,8 +280,8 @@ Compare_EXE_Version (int app_instance, const char *filename)
 	//
 	//	Get the image header for both executables
 	//
-	IMAGE_FILE_HEADER header1 = { 0 };
-	IMAGE_FILE_HEADER header2 = { 0 };	
+        IMAGE_FILE_HEADER header1 = {};
+        IMAGE_FILE_HEADER header2 = {};
 	if	(	::Get_Image_File_Header ((HINSTANCE)app_instance, &header1) && 
 			::Get_Image_File_Header (filename, &header2))
 	{

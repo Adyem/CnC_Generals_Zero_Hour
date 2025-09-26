@@ -41,7 +41,7 @@
 #define XPIPE_H
 
 #include	"buff.h"
-#include	"pipe.h"
+#include	"PIPE.H"
 #include	"wwfile.h"
 
 /*

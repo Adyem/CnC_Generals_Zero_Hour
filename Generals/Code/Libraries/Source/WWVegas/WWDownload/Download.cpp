@@ -18,10 +18,11 @@
 
 // Download.cpp : Implementation of CDownload
 #include "DownloadDebug.h"
-#include "download.h"
+#include "Download.h"
 #include "systimer.h"
 #include <assert.h>
-#include <direct.h>
+#include <filesystem>
+#include <system_error>
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -65,8 +66,11 @@ HRESULT CDownload::DownloadFile(LPCSTR server, LPCSTR username, LPCSTR password,
 		return( DOWNLOAD_PARAMERROR );
 	}
 
-	// Make sure we have a download directory
-	_mkdir("download");
+        // Make sure we have a download directory
+        {
+                std::error_code mkdirError;
+                std::filesystem::create_directories("download", mkdirError);
+        }
 
 	// Copy parameters to member variables.
 	strncpy( m_Server, server, sizeof( m_Server ) );
@@ -276,8 +280,8 @@ HRESULT CDownload::PumpMessages()
 			//   never ever change so this is not a concern.
 			//
 			// We identify patches because they are written into the patches folder.
-			struct _stat statdata;
-			if (	(_stat(m_LocalFile, &statdata) == 0) && 
+			struct stat statdata;
+			if (	(stat(m_LocalFile, &statdata) == 0) && 
 					(statdata.st_size == m_FileSize) && 
 					(_strnicmp(m_LocalFile, "patches\\", strlen("patches\\"))==0)) {
 				// OK, no need to download this again....

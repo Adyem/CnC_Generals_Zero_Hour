@@ -16,6 +16,8 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifdef _WIN32
+
 // ftp.cpp : Implementation of Cftp
 
 /*************************************************************************/
@@ -1825,24 +1827,101 @@ void Cftp::GetDownloadFilename(const char *localname, char *downloadname)
 //
 bool Prepare_Directories(const char *rootdir, const char *filename)
 {
-	char tempstr[256];
-	char newdir[256];
+        char tempstr[256];
+        char newdir[256];
 
-	const char *cptr=filename;
-	while(cptr=strchr(cptr,'\\'))
-	{
-		memset(tempstr,0,256);
-		strncpy(tempstr,filename,cptr-filename);
-		sprintf(newdir,"%s\\%s",rootdir, tempstr);
-		if (!CreateDirectory(newdir, NULL))
-			return false;
-		//if ((_mkdir(newdir) == -1) && ((errno == ENOENT || errno==EACCES)))
-			//return(false);
-		cptr++;
-	}
-	return(true);
+        const char *cptr=filename;
+        while(cptr=strchr(cptr,'\\'))
+        {
+                memset(tempstr,0,256);
+                strncpy(tempstr,filename,cptr-filename);
+                sprintf(newdir,"%s\\%s",rootdir, tempstr);
+                if (!CreateDirectory(newdir, NULL))
+                        return false;
+                //if ((_mkdir(newdir) == -1) && ((errno == ENOENT || errno==EACCES)))
+                        //return(false);
+                cptr++;
+        }
+        return(true);
 }
 
 
 
 
+#else // !_WIN32
+
+#include "WWDownload/ftp.h"
+#include "WWDownload/downloaddefs.h"
+
+#include <algorithm>
+#include <cstring>
+#include <iterator>
+
+Cftp::Cftp()
+        : m_iCommandSocket(-1),
+          m_iDataSocket(-1),
+          m_iFilePos(0),
+          m_iBytesRead(0),
+          m_iFileSize(0),
+          m_pfLocalFile(nullptr),
+          m_iStatus(0),
+          m_sendNewPortStatus(0),
+          m_findStart(0)
+{
+        std::fill(std::begin(m_szRemoteFilePath), std::end(m_szRemoteFilePath), '\0');
+        std::fill(std::begin(m_szRemoteFileName), std::end(m_szRemoteFileName), '\0');
+        std::fill(std::begin(m_szLocalFilePath), std::end(m_szLocalFilePath), '\0');
+        std::fill(std::begin(m_szLocalFileName), std::end(m_szLocalFileName), '\0');
+        std::fill(std::begin(m_szServerName), std::end(m_szServerName), '\0');
+        std::fill(std::begin(m_szUserName), std::end(m_szUserName), '\0');
+        std::fill(std::begin(m_szPassword), std::end(m_szPassword), '\0');
+}
+
+Cftp::~Cftp() = default;
+
+HRESULT Cftp::ConnectToServer(LPCSTR, LPCSTR)
+{
+        return DOWNLOAD_NETWORKERROR;
+}
+
+HRESULT Cftp::DisconnectFromServer()
+{
+        return DOWNLOAD_NETWORKERROR;
+}
+
+HRESULT Cftp::LoginToServer(LPCSTR, LPCSTR)
+{
+        return DOWNLOAD_NETWORKERROR;
+}
+
+HRESULT Cftp::LogoffFromServer()
+{
+        return DOWNLOAD_NETWORKERROR;
+}
+
+HRESULT Cftp::FindFile(LPCSTR, int *)
+{
+        return DOWNLOAD_NETWORKERROR;
+}
+
+HRESULT Cftp::FileRecoveryPosition(LPCSTR, LPCSTR)
+{
+        return DOWNLOAD_NETWORKERROR;
+}
+
+HRESULT Cftp::GetNextFileBlock(LPCSTR, int *)
+{
+        return DOWNLOAD_NETWORKERROR;
+}
+
+HRESULT Cftp::RecvReply(LPCSTR, int, int *)
+{
+        return DOWNLOAD_NETWORKERROR;
+}
+
+HRESULT Cftp::SendCommand(LPCSTR, int)
+{
+        return DOWNLOAD_NETWORKERROR;
+}
+
+#endif // _WIN32

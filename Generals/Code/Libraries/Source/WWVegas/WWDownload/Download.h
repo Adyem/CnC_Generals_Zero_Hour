@@ -22,6 +22,7 @@
 #define __DOWNLOAD_H_
 
 //#include "../resource.h"       // main symbols
+#include "compat/win_compat.h"
 #include "WWDownload/ftp.h"
 #include "WWDownload/downloaddefs.h"
 #include <cstdint>
