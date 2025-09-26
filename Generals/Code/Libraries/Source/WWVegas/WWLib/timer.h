@@ -229,6 +229,9 @@ class TTimerClass : public BasicTimerClass<T> {
 		bool Is_Active(void) const;
 
 	private:
+		using BasicTimerClass<T>::Started;
+		using BasicTimerClass<T>::Timer;
+
 		int Accumulated;				//	Total accumulated ticks.
 };
 
@@ -454,6 +457,9 @@ class CDTimerClass : public BasicTimerClass<T> {
 		bool Is_Active(void) const;
 
 	private:
+		using BasicTimerClass<T>::Started;
+		using BasicTimerClass<T>::Timer;
+
 		int DelayTime;			// Ticks remaining before countdown timer expires.
 };
 

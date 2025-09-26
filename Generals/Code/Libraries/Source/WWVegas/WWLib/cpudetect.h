@@ -46,10 +46,12 @@
 #include "always.h"
 #include "wwstring.h"
 
-#ifdef WIN32
-typedef signed __int64 sint64;
-#elif defined (_UNIX)
-typedef signed long long sint64;
+#include <cstdint>
+
+#if defined(_MSC_VER)
+using sint64 = signed __int64;
+#else
+using sint64 = std::int64_t;
 #endif
 
 class CPUDetectInitClass;

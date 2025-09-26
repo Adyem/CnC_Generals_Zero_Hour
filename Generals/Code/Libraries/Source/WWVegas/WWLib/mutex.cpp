@@ -18,7 +18,12 @@
 
 #include "mutex.h"
 #include "wwdebug.h"
+
+#if defined(_WIN32)
 #include <windows.h>
+#else
+#include "compat/win_compat.h"
+#endif
 
 
 // ----------------------------------------------------------------------------

@@ -11,6 +11,7 @@ inline int _strnicmp(const char* lhs, const char* rhs, size_t count) { return st
 inline int _wcsicmp(const wchar_t* lhs, const wchar_t* rhs) { return wcscasecmp(lhs, rhs); }
 inline int _wcsnicmp(const wchar_t* lhs, const wchar_t* rhs, size_t count) { return wcsncasecmp(lhs, rhs, count); }
 inline int stricmp(const char* lhs, const char* rhs) { return _stricmp(lhs, rhs); }
+inline int strcmpi(const char* lhs, const char* rhs) { return _stricmp(lhs, rhs); }
 inline int strnicmp(const char* lhs, const char* rhs, size_t count) { return _strnicmp(lhs, rhs, count); }
 inline char* strupr(char* value)
 {

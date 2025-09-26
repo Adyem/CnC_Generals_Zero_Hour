@@ -10,17 +10,17 @@
 
 #include <cstdint>
 
+#include "../Windows/windows_compat.h"
 #include "d3d8types.h"
 
-using HRESULT = long;
-
-#ifndef DWORD
-using DWORD = std::uint32_t;
-#endif
-
-#ifndef D3DCOLOR
-using D3DCOLOR = std::uint32_t;
-#endif
+using HRESULT = cnc::windows::HRESULT;
+using DWORD = cnc::windows::DWORD;
+using D3DCOLOR = cnc::windows::DWORD;
+using UINT = cnc::windows::UINT;
+using ULONG = cnc::windows::ULONG;
+using RECT = cnc::windows::RECT;
+using POINT = cnc::windows::POINT;
+using PALETTEENTRY = cnc::windows::PALETTEENTRY;
 
 struct IDirect3D8;
 struct IDirect3DDevice8;
@@ -87,6 +87,106 @@ constexpr DWORD D3DDP_MAXTEXCOORD = 8;
 #define D3DFVF_TEXCOORDSIZE2(i) (static_cast<DWORD>(0) << ((i) * 2 + 16))
 #define D3DFVF_TEXCOORDSIZE3(i) (static_cast<DWORD>(1) << ((i) * 2 + 16))
 #define D3DFVF_TEXCOORDSIZE4(i) (static_cast<DWORD>(2) << ((i) * 2 + 16))
+
+enum D3DMULTISAMPLE_TYPE : UINT
+{
+    D3DMULTISAMPLE_NONE = 0,
+    D3DMULTISAMPLE_2_SAMPLES = 2,
+    D3DMULTISAMPLE_3_SAMPLES = 3,
+    D3DMULTISAMPLE_4_SAMPLES = 4,
+    D3DMULTISAMPLE_5_SAMPLES = 5,
+    D3DMULTISAMPLE_6_SAMPLES = 6,
+    D3DMULTISAMPLE_7_SAMPLES = 7,
+    D3DMULTISAMPLE_8_SAMPLES = 8,
+    D3DMULTISAMPLE_9_SAMPLES = 9,
+    D3DMULTISAMPLE_10_SAMPLES = 10,
+    D3DMULTISAMPLE_11_SAMPLES = 11,
+    D3DMULTISAMPLE_12_SAMPLES = 12,
+    D3DMULTISAMPLE_13_SAMPLES = 13,
+    D3DMULTISAMPLE_14_SAMPLES = 14,
+    D3DMULTISAMPLE_15_SAMPLES = 15,
+    D3DMULTISAMPLE_16_SAMPLES = 16,
+    D3DMULTISAMPLE_FORCE_DWORD = 0xffffffffu
+};
+
+struct D3DSURFACE_DESC
+{
+    D3DFORMAT Format;
+    D3DRESOURCETYPE Type;
+    DWORD Usage;
+    D3DPOOL Pool;
+    D3DMULTISAMPLE_TYPE MultiSampleType;
+    DWORD MultiSampleQuality;
+    UINT Width;
+    UINT Height;
+};
+
+struct IDirect3DBaseTexture8
+{
+    virtual ~IDirect3DBaseTexture8() = default;
+    virtual void GenerateMipSubLevels() = 0;
+};
+
+struct IDirect3DDevice8;
+
+struct IDirect3DSurface8
+{
+    virtual ~IDirect3DSurface8() = default;
+    virtual HRESULT GetDesc(D3DSURFACE_DESC* desc) = 0;
+    virtual HRESULT GetDevice(IDirect3DDevice8** device) = 0;
+};
+
+struct IDirect3DDevice8
+{
+    virtual ~IDirect3DDevice8() = default;
+    virtual ULONG AddRef() = 0;
+    virtual ULONG Release() = 0;
+    virtual HRESULT CopyRects(IDirect3DSurface8* src,
+                              const RECT* srcRects,
+                              UINT rectCount,
+                              IDirect3DSurface8* dest,
+                              const POINT* destPoints) = 0;
+};
+
+struct IDirect3D8
+{
+    virtual ~IDirect3D8() = default;
+};
+
+struct IDirect3DTexture8
+{
+    virtual ~IDirect3DTexture8() = default;
+};
+
+struct IDirect3DVolumeTexture8
+{
+    virtual ~IDirect3DVolumeTexture8() = default;
+};
+
+struct IDirect3DCubeTexture8
+{
+    virtual ~IDirect3DCubeTexture8() = default;
+};
+
+struct IDirect3DVertexBuffer8
+{
+    virtual ~IDirect3DVertexBuffer8() = default;
+};
+
+struct IDirect3DIndexBuffer8
+{
+    virtual ~IDirect3DIndexBuffer8() = default;
+};
+
+struct IDirect3DStateBlock8
+{
+    virtual ~IDirect3DStateBlock8() = default;
+};
+
+struct IDirect3DSwapChain8
+{
+    virtual ~IDirect3DSwapChain8() = default;
+};
 
 #endif  // !_WIN32
 

@@ -64,6 +64,7 @@ constexpr cnc::windows::DWORD FORMAT_MESSAGE_FROM_SYSTEM = 0x00001000;
 
 constexpr cnc::windows::DWORD ERROR_SUCCESS = 0;
 constexpr cnc::windows::DWORD ERROR_CALL_NOT_IMPLEMENTED = 120;
+constexpr cnc::windows::DWORD ERROR_OUTOFMEMORY = 14;
 
 namespace cnc::windows
 {

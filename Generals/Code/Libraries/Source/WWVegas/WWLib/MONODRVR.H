@@ -41,8 +41,21 @@
 #pragma warning (push,3)
 #endif
 
-#ifdef _WINDOWS
+#if defined(_WINDOWS) && !defined(_UNIX)
 #include	<winioctl.h>
+#else
+#ifndef METHOD_BUFFERED
+#define METHOD_BUFFERED 0
+#endif
+
+#ifndef FILE_WRITE_DATA
+#define FILE_WRITE_DATA 0x0002
+#endif
+
+#ifndef CTL_CODE
+#define CTL_CODE(DeviceType, Function, Method, Access) \
+        (((DeviceType) << 16) | ((Access) << 14) | ((Function) << 2) | (Method))
+#endif
 #endif
 
 #ifdef _MSC_VER

@@ -101,6 +101,14 @@ struct SIZE
     LONG cy;
 };
 
+struct PALETTEENTRY
+{
+    BYTE peRed;
+    BYTE peGreen;
+    BYTE peBlue;
+    BYTE peFlags;
+};
+
 struct FILETIME
 {
     DWORD dwLowDateTime;
@@ -311,6 +319,8 @@ struct GUID
 using IID = GUID;
 using CLSID = GUID;
 
+constexpr IID IID_NULL{0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0}};
+
 #define cnc_DECLSPEC_UUID(uuid_string)
 
 #define cnc_REFCLSID const ::cnc::windows::CLSID&
@@ -449,6 +459,24 @@ inline int lstrcmpiA(LPCSTR left, LPCSTR right)
 {
     return ::strcasecmp(left, right);
 }
+
+using DISPID = LONG;
+using LPOLESTR = OLECHAR*;
+
+struct DISPPARAMS
+{
+    VARIANT* rgvarg;
+    DISPID* rgdispidNamedArgs;
+    UINT cArgs;
+    UINT cNamedArgs;
+};
+
+constexpr LCID LOCALE_SYSTEM_DEFAULT = 0x0800;
+
+constexpr unsigned short DISPATCH_METHOD = 0x1;
+constexpr unsigned short DISPATCH_PROPERTYGET = 0x2;
+constexpr unsigned short DISPATCH_PROPERTYPUT = 0x4;
+constexpr unsigned short DISPATCH_PROPERTYPUTREF = 0x8;
 
 inline int lstrlenA(LPCSTR value)
 {

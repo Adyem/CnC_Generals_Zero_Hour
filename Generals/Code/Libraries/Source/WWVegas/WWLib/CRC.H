@@ -41,8 +41,22 @@
 #define CRC_H
 
 #include	<stdlib.h>
+#include	<climits>
 #ifdef _UNIX
 	#include "osdep.h"
+#endif
+
+#if !defined(_MSC_VER)
+inline unsigned long _lrotl(unsigned long value, int shift)
+{
+	const unsigned int width = sizeof(unsigned long) * CHAR_BIT;
+	shift &= (width - 1);
+	if (shift == 0) {
+		return value;
+	}
+
+	return (value << shift) | (value >> (width - shift));
+}
 #endif
 
 /*
