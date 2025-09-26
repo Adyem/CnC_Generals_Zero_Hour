@@ -41,6 +41,8 @@
 #include "math.h"
 #include <assert.h>
 
+#if defined(_WIN32)
+
 typedef union {
 	LARGE_INTEGER LargeInt;
 	struct QuadPart {
@@ -256,5 +258,45 @@ int Get_RDTSC_CPU_Speed(void)
 	return (norm_freq);
 
 }
+#else
 
+#include <chrono>
+#include <cstdint>
+
+unsigned long Get_CPU_Rate(unsigned long & high)
+{
+    using clock = std::chrono::steady_clock;
+    const long double frequency = static_cast<long double>(clock::period::den) / clock::period::num;
+    std::uint64_t ticks_per_second = 0;
+    if (frequency > 0) {
+        ticks_per_second = static_cast<std::uint64_t>(frequency);
+        if (ticks_per_second == 0) {
+            ticks_per_second = 1;
+        }
+    }
+    high = static_cast<unsigned long>(ticks_per_second >> 32);
+    return static_cast<unsigned long>(ticks_per_second & 0xFFFFFFFFu);
+}
+
+unsigned long Get_CPU_Clock(unsigned long & high)
+{
+    using clock = std::chrono::steady_clock;
+    const auto now = clock::now().time_since_epoch();
+    const std::uint64_t ticks = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
+    high = static_cast<unsigned long>(ticks >> 32);
+    return static_cast<unsigned long>(ticks & 0xFFFFFFFFu);
+}
+
+int Get_RDTSC_CPU_Speed(void)
+{
+    unsigned long high = 0;
+    const unsigned long low = Get_CPU_Rate(high);
+    const std::uint64_t rate = (static_cast<std::uint64_t>(high) << 32) | static_cast<std::uint64_t>(low);
+    if (rate == 0) {
+        return 0;
+    }
+    return static_cast<int>((rate + 500000ULL) / 1000000ULL);
+}
+
+#endif
 

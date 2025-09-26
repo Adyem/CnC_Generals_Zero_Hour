@@ -39,6 +39,9 @@
 #include	"always.h"
 #include	"lcw.h"
 
+#include <cstddef>
+#include <cstdint>
+
 /***************************************************************************
  * LCW_Uncomp -- Decompress an LCW encoded data block.                     *
  *                                                                         *
@@ -124,7 +127,9 @@ int LCW_Uncomp(void const * source, void * dest, unsigned long )
 					word_data  = (word_data << 24) + (word_data << 16) + (word_data << 8) + word_data;
 					source_ptr += 3;
 
-					copy_ptr = dest_ptr + 4 - ((unsigned) dest_ptr & 0x3);
+					std::uintptr_t const dest_addr = reinterpret_cast<std::uintptr_t>(dest_ptr);
+					auto const align_adjust = static_cast<std::ptrdiff_t>(4 - (dest_addr & 0x3));
+					copy_ptr = dest_ptr + align_adjust;
 					count -= (copy_ptr - dest_ptr);
 					while (dest_ptr < copy_ptr) *dest_ptr++ = data;
 

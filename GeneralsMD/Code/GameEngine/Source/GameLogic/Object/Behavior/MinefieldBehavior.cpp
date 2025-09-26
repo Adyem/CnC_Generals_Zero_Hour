@@ -40,6 +40,8 @@
 #include "GameLogic/Object.h"
 #include "GameLogic/Module/AIUpdate.h"
 #include "GameLogic/Module/BodyModule.h"
+
+#include <algorithm>
 #include "GameLogic/Module/PhysicsUpdate.h"
 #include "GameLogic/Module/MinefieldBehavior.h"
 #include "GameLogic/Module/AutoHealBehavior.h"
@@ -161,8 +163,8 @@ UpdateSleepTime MinefieldBehavior::calcSleepTime()
 	// sleep until the next death check frame we already have figured outif we care
 	// about it (that is, when our creator dies)
 	//
-	if (m_regenerates && d->m_stopsRegenAfterCreatorDies)
-		sleepTime = min( sleepTime, m_nextDeathCheckFrame - now );
+    if (m_regenerates && d->m_stopsRegenAfterCreatorDies)
+        sleepTime = std::min( sleepTime, m_nextDeathCheckFrame - now );
 
 	// if we don't want to sleep forever, prevent 0 frame sleeps
 	if( sleepTime == 0 )

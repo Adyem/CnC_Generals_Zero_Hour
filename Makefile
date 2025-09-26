@@ -28,6 +28,7 @@ LIBS       ?=
 APT_GET := $(shell command -v apt-get 2>/dev/null)
 BREW    := $(shell command -v brew 2>/dev/null)
 USER_ID := $(shell id -u 2>/dev/null)
+APT_BGFX_PACKAGES := libbgfx-dev libbimg-dev libbx-dev
 
 ifeq ($(USER_ID),0)
 SUDO :=
@@ -73,6 +74,7 @@ INCLUDE_DIRS := \
         $(SRC_DIR)/Libraries/Source/WWVegas/WWSaveLoad \
         $(SRC_DIR)/Libraries/Source/Compression \
         $(SRC_DIR)/Compat/D3D \
+        $(SRC_DIR)/Compat/DirectInput \
         $(SRC_DIR)/Main \
         $(SRC_DIR)/Main/Include
 
@@ -143,10 +145,10 @@ LIBS     += $(LIBVLC_LIBS)
 # -----------------------------------------------------------------------------
 # Exclude problem areas ad-hoc from the command line if needed:
 #   make EXCLUDE_PATTERNS='%/DX8/% %/DirectX% %/win32/% %/Windows/%'
-EXCLUDE_PATTERNS ?= %/DirectX% %/DX8% %/dx8% %/win32/% %/Windows/% %/WPAudio/% %/Libraries/Source/WPAudio/% %/WWAudio/% %/Libraries/Source/WWVegas/WWAudio/% %/Tools/Babylon/% Generals/Code/Tools/Babylon/% Generals/Code/Tools/%
+EXCLUDE_PATTERNS ?= %/DirectX% %/DX8% %/dx8% %win32% %Win32% %/Windows/% %/WPAudio/% %/Libraries/Source/WPAudio/% %/WWAudio/% %/Libraries/Source/WWVegas/WWAudio/% %/Tools/Babylon/% Generals/Code/Tools/Babylon/% Generals/Code/Tools/%
 
-RAW_CPP_SOURCES := $(shell find $(SRC_DIR) -type f -name '*.cpp' ! -path '*/Tools/*' ! -path '*/WPAudio/*' ! -path '*/WWAudio/*' ! -path '*/WW3D2/*' ! -path '*/WW3D/*' ! -path '*/Libraries/Source/Compression/LZHCompress/*' ! -path '*/Libraries/Source/Compression/EAC/btree*' ! -path '*/Libraries/Source/Compression/EAC/huff*' -print)
-RAW_C_SOURCES   := $(shell find $(SRC_DIR) -type f -name '*.c'   ! -path '*/Tools/*' ! -path '*/WPAudio/*' ! -path '*/WWAudio/*' ! -path '*/WW3D2/*' ! -path '*/WW3D/*' ! -path '*/Libraries/Source/Compression/LZHCompress/*' ! -path '*/Libraries/Source/Compression/EAC/btree*' ! -path '*/Libraries/Source/Compression/EAC/huff*' -print)
+RAW_CPP_SOURCES := $(shell find $(SRC_DIR) -type f -name '*.cpp' ! -path '*/Tools/*' ! -path '*/WPAudio/*' ! -path '*/WWAudio/*' ! -path '*/WW3D2/*' ! -path '*/WW3D/*' ! -path '*/Win32/*' ! -path '*/win32/*' ! -path '*/Win32Device/*' ! -path '*/win32device/*' ! -path '*/Libraries/Source/Compression/LZHCompress/*' ! -path '*/Libraries/Source/Compression/EAC/btree*' ! -path '*/Libraries/Source/Compression/EAC/huff*' -print)
+RAW_C_SOURCES   := $(shell find $(SRC_DIR) -type f -name '*.c'   ! -path '*/Tools/*' ! -path '*/WPAudio/*' ! -path '*/WWAudio/*' ! -path '*/WW3D2/*' ! -path '*/WW3D/*' ! -path '*/Win32/*' ! -path '*/win32/*' ! -path '*/Win32Device/*' ! -path '*/win32device/*' ! -path '*/Libraries/Source/Compression/LZHCompress/*' ! -path '*/Libraries/Source/Compression/EAC/btree*' ! -path '*/Libraries/Source/Compression/EAC/huff*' -print)
 
 CPP_SOURCES := $(RAW_CPP_SOURCES)
 C_SOURCES   := $(RAW_C_SOURCES)
@@ -229,11 +231,25 @@ ifdef APT_GET
 	@echo "Installing dependencies via apt-get"
 	$(SUDO) apt-get update
 	$(SUDO) apt-get install -y build-essential pkg-config libsfml-dev
+	@missing=0; \
+	for pkg in $(APT_BGFX_PACKAGES); do \
+		if apt-cache show $$pkg >/dev/null 2>&1; then \
+			if ! dpkg -s $$pkg >/dev/null 2>&1; then \
+				$(SUDO) apt-get install -y $$pkg || exit $$?; \
+			fi; \
+		else \
+			echo "Warning: package $$pkg is not available via apt-get on this system."; \
+			missing=1; \
+		fi; \
+		done; \
+		if [ $$missing -ne 0 ]; then \
+			echo "BGFX libraries were not installed automatically. Please install them manually if needed."; \
+		fi
 else ifdef BREW
 	@echo "Installing dependencies via Homebrew"
 	brew update
-	brew install pkg-config sfml
+	brew install pkg-config sfml bgfx
 else
-	@echo "No supported package manager detected. Please install build essentials, pkg-config, and SFML manually."
+	@echo "No supported package manager detected. Please install build essentials, pkg-config, SFML, and BGFX manually."
 endif
 

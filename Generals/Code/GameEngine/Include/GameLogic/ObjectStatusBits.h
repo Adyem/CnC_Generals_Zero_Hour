@@ -68,40 +68,38 @@ enum ObjectStatusBits
 	// add more status bits here ... don't forget to add to the string table below!!!
 
 };
-#ifdef DEFINE_OBJECT_STATUS_NAMES
-static const char *TheObjectStatusBitNames[] = 
+inline constexpr const char* const TheObjectStatusBitNames[] =
 {
-	"DESTROYED",
-	"CAN_ATTACK",					
-	"UNDER_CONSTRUCTION",	
-	"UNSELECTABLE",				
-	"NO_COLLISIONS",				
-	"NO_ATTACK",						
-	"AIRBORNE_TARGET",			
-	"PARACHUTING",	
-	"REPULSOR",
-	"HIJACKED",					
-	"AFLAME",							
-	"BURNED",							
-	"WET",
-	"IS_FIRING_WEAPON",
-	"IS_BRAKING",
-	"STEALTHED",
-	"DETECTED",
-	"CAN_STEALTH",
-	"SOLD",
-	"UNDERGOING_REPAIR",
-	"RECONSTRUCTING",
-	"MASKED",
-	"IS_ATTACKING",
-	"USING_ABILITY",
-	"IS_AIMING_WEAPON",
-	"NO_ATTACK_FROM_AI",
-	"IGNORING_STEALTH",
-	"IS_CARBOMB",
+        "DESTROYED",
+        "CAN_ATTACK",
+        "UNDER_CONSTRUCTION",
+        "UNSELECTABLE",
+        "NO_COLLISIONS",
+        "NO_ATTACK",
+        "AIRBORNE_TARGET",
+        "PARACHUTING",
+        "REPULSOR",
+        "HIJACKED",
+        "AFLAME",
+        "BURNED",
+        "WET",
+        "IS_FIRING_WEAPON",
+        "IS_BRAKING",
+        "STEALTHED",
+        "DETECTED",
+        "CAN_STEALTH",
+        "SOLD",
+        "UNDERGOING_REPAIR",
+        "RECONSTRUCTING",
+        "MASKED",
+        "IS_ATTACKING",
+        "USING_ABILITY",
+        "IS_AIMING_WEAPON",
+        "NO_ATTACK_FROM_AI",
+        "IGNORING_STEALTH",
+        "IS_CARBOMB",
 
-	NULL																///< leave this last please
+        nullptr
 };
-#endif
 
 #endif /* __OBJECTSTATUSBITS_H__ */

@@ -22,39 +22,25 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-// FILE: SfmlBIGFile.h /////////////////////////////////////////////////////////
+// FILE: SfmlLocalFile.h ////////////////////////////////////////////////////////
 // Author: OpenAI Assistant, 2025
 // Description:
-//   ArchiveFile implementation for BIG archives used by the SFML device layer.
+//   Thin LocalFile specialization for the SFML platform bootstrap so that the
+//   memory-pool allocation helpers remain available outside of the Win32 layer.
 ////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
-#ifndef __SFMLBIGFILE_H
-#define __SFMLBIGFILE_H
+#ifndef __SFMLLOCALFILE_H
+#define __SFMLLOCALFILE_H
 
-#include "Common/ArchiveFile.h"
-#include "Common/AsciiString.h"
+#include "Common/LocalFile.h"
 
-class SfmlBIGFile : public ArchiveFile
+class SfmlLocalFile : public LocalFile
 {
+        MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(SfmlLocalFile, "SfmlLocalFile")
 public:
-        SfmlBIGFile();
-        virtual ~SfmlBIGFile();
-
-        void initializeMetadata(const AsciiString& name, const AsciiString& path);
-
-        virtual File* openFile(const Char* filename, Int access = 0);
-        virtual void closeAllFiles(void);
-        virtual AsciiString getName(void);
-        virtual AsciiString getPath(void);
-        virtual void setSearchPriority(Int new_priority);
-        virtual void close(void);
-        virtual Bool getFileInfo(const AsciiString& filename, FileInfo* fileInfo) const;
-
-protected:
-        AsciiString m_name;
-        AsciiString m_path;
+        SfmlLocalFile() = default;
 };
 
-#endif // __SFMLBIGFILE_H
+#endif // __SFMLLOCALFILE_H

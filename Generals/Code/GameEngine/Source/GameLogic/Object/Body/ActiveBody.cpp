@@ -40,6 +40,7 @@
 #include "Common/Thing.h"
 #include "Common/ThingTemplate.h"
 #include "Common/Xfer.h"
+#include <algorithm>
 #include "GameClient/ControlBar.h"
 #include "GameClient/Drawable.h"
 #include "GameClient/InGameUI.h"
@@ -244,7 +245,7 @@ void ActiveBody::setDamageState( BodyDamageType newState )
 		ratio = 0.0f;
 	}
 	Real desiredHealth = m_maxHealth * ratio - 1;// -1 because < not <= in calcState
-	desiredHealth = max( desiredHealth, 0.0f );
+        desiredHealth = std::max( desiredHealth, 0.0f );
 	internalChangeHealth( desiredHealth - m_currentHealth );
 	setCorrectDamageState();
 }

@@ -31,9 +31,6 @@
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
 
-#define DEFINE_WEAPONSLOTTYPE_NAMES
-#define DEFINE_COMMANDSOURCEMASK_NAMES
-
 #include "GameLogic/WeaponSet.h"
 
 #include "Common/INI.h"
@@ -52,6 +49,29 @@
 
 #include "GameLogic/Weapon.h"
 
+namespace
+{
+
+constexpr const char* kWeaponSlotTypeNames[] =
+{
+        "PRIMARY",
+        "SECONDARY",
+        "TERTIARY",
+
+        nullptr
+};
+
+constexpr const char* kCommandSourceMaskNames[] =
+{
+        "FROM_PLAYER",
+        "FROM_SCRIPT",
+        "FROM_AI",
+
+        nullptr
+};
+
+} // namespace
+
 
 #ifdef _INTERNAL
 // for occasional debugging...
@@ -63,7 +83,8 @@
 // PUBLIC DATA ////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-const char* WeaponSetFlags::s_bitNameList[] = 
+template <>
+const char* BitFlags<WEAPONSET_COUNT>::s_bitNameList[] =
 {
 	"VETERAN",
 	"ELITE",
@@ -75,7 +96,7 @@ const char* WeaponSetFlags::s_bitNameList[] =
 	"CARBOMB",
 	"MINE_CLEARING_DETAIL",
 
-	NULL
+        NULL
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,7 +140,7 @@ Bool WeaponTemplateSet::hasAnyWeapons() const
 void WeaponTemplateSet::parseWeapon(INI* ini, void *instance, void * /*store*/, const void* userData)
 {
 	WeaponTemplateSet* self = (WeaponTemplateSet*)instance;
-	WeaponSlotType wslot = (WeaponSlotType)INI::scanIndexList(ini->getNextToken(), TheWeaponSlotTypeNames);
+        WeaponSlotType wslot = static_cast<WeaponSlotType>(INI::scanIndexList(ini->getNextToken(), kWeaponSlotTypeNames));
 	INI::parseWeaponTemplate(ini, instance, &self->m_template[wslot], NULL);
 }
 
@@ -127,15 +148,15 @@ void WeaponTemplateSet::parseWeapon(INI* ini, void *instance, void * /*store*/, 
 void WeaponTemplateSet::parseAutoChoose(INI* ini, void *instance, void * /*store*/, const void* userData)
 {
 	WeaponTemplateSet* self = (WeaponTemplateSet*)instance;
-	WeaponSlotType wslot = (WeaponSlotType)INI::scanIndexList(ini->getNextToken(), TheWeaponSlotTypeNames);
-	INI::parseBitString32(ini, instance, &self->m_autoChooseMask[wslot], TheCommandSourceMaskNames);
+        WeaponSlotType wslot = static_cast<WeaponSlotType>(INI::scanIndexList(ini->getNextToken(), kWeaponSlotTypeNames));
+        INI::parseBitString32(ini, instance, &self->m_autoChooseMask[wslot], kCommandSourceMaskNames);
 }
 
 //-------------------------------------------------------------------------------------------------
 void WeaponTemplateSet::parsePreferredAgainst(INI* ini, void *instance, void * /*store*/, const void* userData)
 {
 	WeaponTemplateSet* self = (WeaponTemplateSet*)instance;
-	WeaponSlotType wslot = (WeaponSlotType)INI::scanIndexList(ini->getNextToken(), TheWeaponSlotTypeNames);
+        WeaponSlotType wslot = static_cast<WeaponSlotType>(INI::scanIndexList(ini->getNextToken(), kWeaponSlotTypeNames));
 	KindOfMaskType::parseFromINI(ini, instance, &self->m_preferredAgainst[wslot], NULL);
 }
 

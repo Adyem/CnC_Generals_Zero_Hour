@@ -37,8 +37,7 @@
 #include "GameLogic/WeaponBonusConditionFlags.h"
 #include "Common/INI.h"
 #include "WWMath/matrix3d.h"
-
-enum ParticleSystemID;
+#include "GameClient/ParticleSys.h"
 class FXList;
 
 

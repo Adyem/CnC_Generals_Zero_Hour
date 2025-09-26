@@ -29,7 +29,6 @@
  
 // INCLUDES /////////////////////////////////////////////////////////////////////////////////////// 
 #include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
-#define DEFINE_WEAPONCONDITIONMAP
 #include "Common/BitFlagsIO.h"
 #include "Common/BuildAssistant.h"
 #include "Common/Dict.h"
@@ -95,6 +94,7 @@
 #include "GameLogic/ScriptEngine.h"
 #include "GameLogic/Weapon.h"
 #include "GameLogic/WeaponSet.h"
+#include <cmath>
 #include "GameLogic/Module/RadarUpdate.h"
 #include "GameLogic/Module/PowerPlantUpdate.h"
 
@@ -1605,7 +1605,7 @@ void Object::reactToTurretChange( WhichTurretType turret, Real oldRotation, Real
 void Object::reactToTransformChange(const Matrix3D* oldMtx, const Coord3D* oldPos, Real oldAngle)
 {
 	//USE_PERF_TIMER(Object_reactToTransformChange)
-	if(_isnan(getPosition()->x) || _isnan(getPosition()->y) || _isnan(getPosition()->z)) {
+        if(std::isnan(getPosition()->x) || std::isnan(getPosition()->y) || std::isnan(getPosition()->z)) {
 		DEBUG_CRASH(("Object pos is nan."));
 		TheGameLogic->destroyObject(this);
 	}

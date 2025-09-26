@@ -46,6 +46,8 @@
 #include "GameLogic/Module/PhysicsUpdate.h"
 #include "GameLogic/Weapon.h"
 
+#include <algorithm>
+
 #ifdef _INTERNAL
 // for occasional debugging...
 //#pragma optimize("", off)
@@ -438,8 +440,8 @@ Bool DumbProjectileBehavior::calcFlightPath(Bool recalcNumSegments)
 	controlPoints[2].y = secondPointAlongLine.Y + controlPoints[0].y;
 
 	// Z's are determined using the highest intervening height so they won't hit hills, low end bounded by current Zs
-	highestInterveningTerrain = max( highestInterveningTerrain, controlPoints[0].z );
-	highestInterveningTerrain = max( highestInterveningTerrain, controlPoints[3].z );
+        highestInterveningTerrain = std::max( highestInterveningTerrain, controlPoints[0].z );
+        highestInterveningTerrain = std::max( highestInterveningTerrain, controlPoints[3].z );
 	controlPoints[1].z = highestInterveningTerrain + d->m_firstHeight;
 	controlPoints[2].z = highestInterveningTerrain + d->m_secondHeight;
 

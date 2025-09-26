@@ -74,17 +74,15 @@ static const LookupListRec TheWeaponSlotTypeNamesLookupList[] =
 #endif  
 
 //-------------------------------------------------------------------------------------------------
-#ifdef DEFINE_WEAPONCONDITIONMAP
-static const ModelConditionFlagType TheWeaponSetTypeToModelConditionTypeMap[WEAPONSET_COUNT] =
+inline constexpr ModelConditionFlagType TheWeaponSetTypeToModelConditionTypeMap[WEAPONSET_COUNT] =
 {
-	MODELCONDITION_WEAPONSET_VETERAN,
-	MODELCONDITION_WEAPONSET_ELITE,
-	MODELCONDITION_WEAPONSET_HERO,
-	MODELCONDITION_WEAPONSET_PLAYER_UPGRADE,
-	MODELCONDITION_WEAPONSET_CRATEUPGRADE_ONE,
-	MODELCONDITION_WEAPONSET_CRATEUPGRADE_TWO
+        MODELCONDITION_WEAPONSET_VETERAN,
+        MODELCONDITION_WEAPONSET_ELITE,
+        MODELCONDITION_WEAPONSET_HERO,
+        MODELCONDITION_WEAPONSET_PLAYER_UPGRADE,
+        MODELCONDITION_WEAPONSET_CRATEUPGRADE_ONE,
+        MODELCONDITION_WEAPONSET_CRATEUPGRADE_TWO
 };
-#endif
 
 //-------------------------------------------------------------------------------------------------
 enum WeaponSetConditionType

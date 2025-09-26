@@ -34,6 +34,8 @@
 #include "GameLogic/Damage.h"
 #include "GameLogic/Module/ImmortalBody.h"
 
+#include <algorithm>
+
 // PUBLIC FUNCTIONS ///////////////////////////////////////////////////////////////////////////////
 
 //-------------------------------------------------------------------------------------------------
@@ -55,7 +57,7 @@ ImmortalBody::~ImmortalBody( void )
 void ImmortalBody::internalChangeHealth( Real delta )
 {
 	// Don't let anything changes us to below one hit point
-	delta = max( delta, -getHealth() + 1 );
+        delta = std::max( delta, -getHealth() + 1 );
 
 	// extend functionality, but I go first because I can't let you die and then fix it, I must prevent
 	ActiveBody::internalChangeHealth( delta );
