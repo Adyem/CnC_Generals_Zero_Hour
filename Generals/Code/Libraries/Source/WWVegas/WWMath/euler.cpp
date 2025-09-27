@@ -320,7 +320,7 @@ int _euler_axis_i(int order)
 	return _euler_safe[ (order>>3) & 3 ];
 }
 
-int _euler_axis_j(int order)
+[[maybe_unused]] int _euler_axis_j(int order)
 {
 	int index = _euler_axis_i(order);
 	if (EULER_PARITY(order) == 1) {
@@ -340,7 +340,7 @@ int _euler_axis_k(int order)
 	return _euler_next[ index ];
 }
 
-int _euler_axis_h(int order)
+[[maybe_unused]] int _euler_axis_h(int order)
 {
 	if (EULER_REPEAT(order) == 1) {
 		return _euler_axis_k(order);

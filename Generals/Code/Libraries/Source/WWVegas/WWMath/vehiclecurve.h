@@ -63,20 +63,20 @@ public:
 	//	Public constructors/destructors
 	///////////////////////////////////////////////////////////////////////////
 	VehicleCurveClass (void)
-		:	m_IsDirty (true),
+		:	Curve3DClass (),
+			m_IsDirty (true),
 			m_Radius (0),
 			m_LastTime (0),
 			m_Sharpness (0),
-			m_SharpnessPos (0, 0, 0),
-			Curve3DClass () { }
+			m_SharpnessPos (0, 0, 0) { }
 
 	VehicleCurveClass (float radius)
-		:	m_IsDirty (true),
+		:	Curve3DClass (),
+			m_IsDirty (true),
 			m_Radius (radius),
 			m_LastTime (0),
 			m_Sharpness (0),
-			m_SharpnessPos (0, 0, 0),
-			Curve3DClass () { }
+			m_SharpnessPos (0, 0, 0) { }
 
 	virtual ~VehicleCurveClass () {}
 
@@ -143,8 +143,8 @@ protected:
 				angle_in_delta (0),
 				angle_out_delta (0)	{ }
 
-		bool operator== (const _ArcInfoStruct &src)	{ return false; }
-		bool operator!= (const _ArcInfoStruct &src)	{ return true; }
+		bool operator== (const _ArcInfoStruct &) const	{ return false; }
+		bool operator!= (const _ArcInfoStruct &) const	{ return true; }
 
 	} ArcInfoStruct;
 

@@ -64,7 +64,7 @@ void CleanupAreaPowerModuleData::buildFieldParse(MultiIniFieldParse& p)
 
 	static const FieldParse dataFieldParse[] = 
 	{
-		{ "MaxMoveDistanceFromLocation",			INI::parseReal, NULL, offsetof( CleanupAreaPowerModuleData, m_cleanupMoveRange ) },
+		{ "MaxMoveDistanceFromLocation",			INI::parseReal, NULL, FieldParse::memberOffset(&CleanupAreaPowerModuleData::m_cleanupMoveRange) },
 		{ 0, 0, 0, 0 } 
 	};
 	p.add(dataFieldParse);

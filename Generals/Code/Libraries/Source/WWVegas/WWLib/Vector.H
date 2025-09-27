@@ -58,6 +58,7 @@
 #define VECTOR_H
 
 #include "always.h"
+#include <algorithm>
 #include	<assert.h>
 #include	<stdlib.h>
 #include <string.h>
@@ -740,7 +741,7 @@ bool DynamicVectorClass<T>::Add_Head(T const & object)
 	**	There is room for the new object now. Add it to the end of the object vector.
 	*/
 	if (ActiveCount) {
-		memmove(&(*this)[1], &(*this)[0], ActiveCount * sizeof(T));
+		std::move_backward(&(*this)[0], &(*this)[ActiveCount], &(*this)[ActiveCount + 1]);
 	}
 	(*this)[0] = object;
 	ActiveCount++;
@@ -792,7 +793,7 @@ bool DynamicVectorClass<T>::Insert(int index,T const & object)
 	**	There is room for the new object now. Add it at the desired position.
 	*/
 	if (index < ActiveCount) {
-		memmove(&(*this)[index+1], &(*this)[index], (ActiveCount-index) * sizeof(T));
+		std::move_backward(&(*this)[index], &(*this)[ActiveCount], &(*this)[ActiveCount + 1]);
 	}
 	(*this)[index] = object;
 	ActiveCount++;

@@ -64,7 +64,7 @@ BaikonurLaunchPowerModuleData::BaikonurLaunchPowerModuleData( void )
 	
 	static const FieldParse dataFieldParse[] = 
 	{
-		{ "DetonationObject", INI::parseAsciiString, NULL, offsetof( BaikonurLaunchPowerModuleData, m_detonationObject ) },
+		{ "DetonationObject", INI::parseAsciiString, NULL, FieldParse::memberOffset(&BaikonurLaunchPowerModuleData::m_detonationObject) },
 		{ 0, 0, 0, 0 }
 	};
 	p.add(dataFieldParse);

@@ -1069,8 +1069,8 @@ private:
 
 public:
 	// whichAffiliation should use AllowPlayerRelationship flags specified in PlayerList.h
-	PartitionFilterPlayerAffiliation(const Player *player, UnsignedInt whichAffiliation, Bool match)
-		: m_player(player), m_affiliation(whichAffiliation), m_match(match) 
+        PartitionFilterPlayerAffiliation(const Player *player, UnsignedInt whichAffiliation, Bool match)
+                : m_player(player), m_match(match), m_affiliation(whichAffiliation)
 	{
 	}
 protected:

@@ -39,5 +39,3 @@ void SetPersistDataValues(int localid,
                           char* values,
                           persistSetCallback callback,
                           void* instance);
-
-#endif // GAMESPY_GSTATS_GPERSIST_H

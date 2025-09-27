@@ -64,13 +64,13 @@ void DemoralizeSpecialPowerModuleData::buildFieldParse( MultiIniFieldParse &p )
 	
 	static const FieldParse dataFieldParse[] = 
 	{
-		{ "BaseRange",									INI::parseReal,			NULL,			offsetof( DemoralizeSpecialPowerModuleData, m_baseRange ) },
-		{ "BonusRangePerCaptured",			INI::parseReal,			NULL,			offsetof( DemoralizeSpecialPowerModuleData, m_bonusRangePerCaptured ) },
-		{ "MaxRange",										INI::parseReal,			NULL,			offsetof( DemoralizeSpecialPowerModuleData, m_maxRange ) },
-		{ "BaseDuration",								INI::parseDurationUnsignedInt,	NULL,   offsetof( DemoralizeSpecialPowerModuleData, m_baseDurationInFrames ) },
-		{ "BonusDurationPerCaptured",		INI::parseDurationUnsignedInt,	NULL,   offsetof( DemoralizeSpecialPowerModuleData, m_bonusDurationPerCapturedInFrames ) },
-		{ "MaxDuration",								INI::parseDurationUnsignedInt,	NULL,   offsetof( DemoralizeSpecialPowerModuleData, m_maxDurationInFrames ) },
-		{ "FXList",											INI::parseFXList,								NULL,		offsetof( DemoralizeSpecialPowerModuleData, m_fxList ) },
+		{ "BaseRange",									INI::parseReal,			NULL,			FieldParse::memberOffset(&DemoralizeSpecialPowerModuleData::m_baseRange) },
+		{ "BonusRangePerCaptured",			INI::parseReal,			NULL,			FieldParse::memberOffset(&DemoralizeSpecialPowerModuleData::m_bonusRangePerCaptured) },
+		{ "MaxRange",										INI::parseReal,			NULL,			FieldParse::memberOffset(&DemoralizeSpecialPowerModuleData::m_maxRange) },
+		{ "BaseDuration",								INI::parseDurationUnsignedInt,	NULL,   FieldParse::memberOffset(&DemoralizeSpecialPowerModuleData::m_baseDurationInFrames) },
+		{ "BonusDurationPerCaptured",		INI::parseDurationUnsignedInt,	NULL,   FieldParse::memberOffset(&DemoralizeSpecialPowerModuleData::m_bonusDurationPerCapturedInFrames) },
+		{ "MaxDuration",								INI::parseDurationUnsignedInt,	NULL,   FieldParse::memberOffset(&DemoralizeSpecialPowerModuleData::m_maxDurationInFrames) },
+		{ "FXList",											INI::parseFXList,								NULL,		FieldParse::memberOffset(&DemoralizeSpecialPowerModuleData::m_fxList) },
 		{ 0, 0, 0, 0 }
 	};
 	p.add( dataFieldParse );

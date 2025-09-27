@@ -148,5 +148,3 @@ void gpDisconnect(GPConnection* connection);
 void gpDestroy(GPConnection* connection);
 void gpProcess(GPConnection* connection);
 void gpSetStatus(GPConnection* connection, int status, const char* statusString, const char* locationString);
-
-#endif // GAMESPY_GP_GP_H

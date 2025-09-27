@@ -95,9 +95,9 @@ static void parseOCLUpgradePair( INI* ini, void * /*instance*/, void *store, con
 
 	static const FieldParse dataFieldParse[] = 
 	{
-		{ "UpgradeOCL", parseOCLUpgradePair, NULL, offsetof( OCLSpecialPowerModuleData, m_upgradeOCL ) },
-		{ "OCL", INI::parseObjectCreationList, NULL, offsetof( OCLSpecialPowerModuleData, m_defaultOCL ) },
-		{ "CreateLocation", INI::parseIndexList, TheOCLCreateLocTypeNames, offsetof( OCLSpecialPowerModuleData, m_createLoc ) },
+		{ "UpgradeOCL", parseOCLUpgradePair, NULL, FieldParse::memberOffset(&OCLSpecialPowerModuleData::m_upgradeOCL) },
+		{ "OCL", INI::parseObjectCreationList, NULL, FieldParse::memberOffset(&OCLSpecialPowerModuleData::m_defaultOCL) },
+		{ "CreateLocation", INI::parseIndexList, TheOCLCreateLocTypeNames, FieldParse::memberOffset(&OCLSpecialPowerModuleData::m_createLoc) },
 		{ 0, 0, 0, 0 }
 	};
 	p.add(dataFieldParse);

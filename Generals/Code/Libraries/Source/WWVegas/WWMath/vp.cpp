@@ -40,6 +40,7 @@
 #include "matrix4.h"
 #include "wwdebug.h"
 #include "cpudetect.h"
+#include <algorithm>
 #include <cstring>
 
 #define SHUFFLE(x, y, z, w)	(((x)&3)<< 6|((y)&3)<<4|((z)&3)<< 2|((w)&3))
@@ -326,8 +327,10 @@ void VectorProcessorClass::Transform(Vector4* dst,const Vector3 *src, const Matr
 
 void VectorProcessorClass::Copy(Vector2 *dst, const Vector2 *src, int count)
 {
-	if (count<=0) return;
-	std::memcpy(dst,src,sizeof(Vector2)*count);
+        if (count<=0) {
+                return;
+        }
+        std::copy_n(src, count, dst);
 }
 
 void VectorProcessorClass::Copy(unsigned *dst, const unsigned *src, int count)
@@ -338,14 +341,18 @@ void VectorProcessorClass::Copy(unsigned *dst, const unsigned *src, int count)
 
 void VectorProcessorClass::Copy(Vector3 *dst, const Vector3 *src, int count)
 {
-	if (count<=0) return;
-	std::memcpy(dst,src,sizeof(Vector3)*count);
+        if (count<=0) {
+                return;
+        }
+        std::copy_n(src, count, dst);
 }
 
 void VectorProcessorClass::Copy(Vector4 *dst, const Vector4 *src, int count)
 {
-	if (count<=0) return;
-	std::memcpy(dst,src,sizeof(Vector4)*count);
+        if (count<=0) {
+                return;
+        }
+        std::copy_n(src, count, dst);
 }
 
 void VectorProcessorClass::Copy(Vector4 *dst,const Vector3 *src, const float * srca, const int count)
@@ -479,8 +486,10 @@ void VectorProcessorClass::Clamp(Vector4 *dst,const Vector4 *src, const float mi
 
 void VectorProcessorClass::Clear(Vector3*dst, const int count)
 {
-	if (count<=0) return;
-	std::memset(dst,0,sizeof(Vector3)*count);
+        if (count<=0) {
+                return;
+        }
+        std::fill_n(dst, count, Vector3());
 }
 
 

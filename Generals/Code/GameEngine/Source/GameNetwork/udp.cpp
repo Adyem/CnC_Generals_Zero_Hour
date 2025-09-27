@@ -36,6 +36,66 @@
 #include "GameNetwork/udp.h"
 #include "GameNetwork/addressresolver.h"
 
+#include <cstdio>
+
+#if !defined(_WIN32)
+#include <cerrno>
+#include <cstring>
+#include <unistd.h>
+#include <fcntl.h>
+
+#ifndef closesocket
+#define closesocket ::close
+#endif
+
+#ifndef SOCKET_ERROR
+#define SOCKET_ERROR (-1)
+#endif
+
+#ifndef INVALID_SOCKET
+#define INVALID_SOCKET (-1)
+#endif
+
+#ifndef WSAGetLastError
+#define WSAGetLastError() (errno)
+#endif
+
+#ifndef WSAEINTR
+#define WSAEINTR EINTR
+#endif
+#ifndef WSAEINPROGRESS
+#define WSAEINPROGRESS EINPROGRESS
+#endif
+#ifndef WSAEALREADY
+#define WSAEALREADY EALREADY
+#endif
+#ifndef WSAEAFNOSUPPORT
+#define WSAEAFNOSUPPORT EAFNOSUPPORT
+#endif
+#ifndef WSAEWOULDBLOCK
+#define WSAEWOULDBLOCK EWOULDBLOCK
+#endif
+#ifndef WSAEBADF
+#define WSAEBADF EBADF
+#endif
+#ifndef WSAECONNREFUSED
+#define WSAECONNREFUSED ECONNREFUSED
+#endif
+#ifndef WSAEINVAL
+#define WSAEINVAL EINVAL
+#endif
+#ifndef WSAEISCONN
+#define WSAEISCONN EISCONN
+#endif
+#ifndef WSAENOTSOCK
+#define WSAENOTSOCK ENOTSOCK
+#endif
+#ifndef WSAETIMEDOUT
+#define WSAETIMEDOUT ETIMEDOUT
+#endif
+
+#endif // !_WIN32
+
 #ifdef _INTERNAL
 // for occasional debugging...
 //#pragma optimize("", off)
@@ -44,7 +104,7 @@
 
 //-------------------------------------------------------------------------
 
-#if defined(_DEBUG) || defined(_INTERNAL)
+#if (defined(_DEBUG) || defined(_INTERNAL)) && defined(_WIN32)
 
 #define CASE(x) case (x): return #x;
 
@@ -116,7 +176,16 @@ AsciiString GetWSAErrorString( Int error )
 
 #undef CASE
 
-#endif // defined(_DEBUG) || defined(_INTERNAL)
+#elif defined(_DEBUG) || defined(_INTERNAL)
+
+AsciiString GetWSAErrorString(Int error)
+{
+        AsciiString ret;
+        ret.format("POSIX error (%d): %s", error, std::strerror(error));
+        return ret;
+}
+
+#endif // diagnostic helpers
 
 //-------------------------------------------------------------------------
 
@@ -135,12 +204,12 @@ Int UDP::Bind(const char *Host,UnsignedShort port)
 {
         if ((Host == NULL) || (Host[0] == '\0'))
         {
-                return Bind(0, port);
+                return Bind(static_cast<UnsignedInt>(0), port);
         }
 
         ResolvedNetAddress resolvedAddress;
         char serviceBuffer[6];
-        _snprintf(serviceBuffer, sizeof(serviceBuffer), "%hu", port);
+        std::snprintf(serviceBuffer, sizeof(serviceBuffer), "%hu", port);
         serviceBuffer[sizeof(serviceBuffer) - 1] = '\0';
 
         ResolverRequest request;
@@ -187,7 +256,7 @@ Int UDP::Bind(UnsignedInt IP,UnsignedShort Port)
   addr.sin_port=Port;
   addr.sin_addr.s_addr=IP;
   fd=socket(AF_INET,SOCK_DGRAM,DEFAULT_PROTOCOL);
-  #ifdef _WINDOWS
+  #ifdef _WIN32
   if (fd==SOCKET_ERROR)
     fd=-1;
   #endif
@@ -196,7 +265,7 @@ Int UDP::Bind(UnsignedInt IP,UnsignedShort Port)
 
   retval=bind(fd,(struct sockaddr *)&addr,sizeof(addr));
 
-  #ifdef _WINDOWS
+  #ifdef _WIN32
   if (retval==SOCKET_ERROR)
 	{
     retval=-1;
@@ -211,7 +280,7 @@ Int UDP::Bind(UnsignedInt IP,UnsignedShort Port)
   }
 
   sockaddr_in boundAddress;
-  int namelen=sizeof(boundAddress);
+  socklen_t namelen=sizeof(boundAddress);
   getsockname(fd, (struct sockaddr *)&boundAddress, &namelen);
 
   myIP=ntohl(boundAddress.sin_addr.s_addr);
@@ -235,7 +304,7 @@ Int UDP::getLocalAddr(UnsignedInt &ip, UnsignedShort &port)
 // private function
 Int UDP::SetBlocking(Int block)
 {
-  #ifdef _WINDOWS
+  #ifdef _WIN32
    unsigned long flag=1;
    if (block)
      flag=0;
@@ -278,7 +347,7 @@ Int UDP::Write(const unsigned char *msg,UnsignedInt len,UnsignedInt IP,UnsignedS
 
   ClearStatus();
   retval=sendto(fd,(const char *)msg,len,0,(struct sockaddr *)&to,sizeof(to));
-  #ifdef _WINDOWS
+  #ifdef _WIN32
   if (retval==SOCKET_ERROR)
 	{
     retval=-1;
@@ -296,12 +365,12 @@ Int UDP::Write(const unsigned char *msg,UnsignedInt len,UnsignedInt IP,UnsignedS
 Int UDP::Read(unsigned char *msg,UnsignedInt len,sockaddr_in *from)
 {
   Int retval;
-  int    alen=sizeof(sockaddr_in);
+  socklen_t    alen=sizeof(sockaddr_in);
 
   if (from!=NULL)
   {
     retval=recvfrom(fd,(char *)msg,len,0,(struct sockaddr *)from,&alen);
-    #ifdef _WINDOWS
+    #ifdef _WIN32
     if (retval == SOCKET_ERROR)
 		{
 			if (WSAGetLastError() != WSAEWOULDBLOCK)
@@ -322,7 +391,7 @@ Int UDP::Read(unsigned char *msg,UnsignedInt len,sockaddr_in *from)
   else
   {
     retval=recvfrom(fd,(char *)msg,len,0,NULL,NULL);
-    #ifdef _WINDOWS
+    #ifdef _WIN32
     if (retval==SOCKET_ERROR)
 		{
 			if (WSAGetLastError() != WSAEWOULDBLOCK)
@@ -346,7 +415,7 @@ Int UDP::Read(unsigned char *msg,UnsignedInt len,sockaddr_in *from)
 
 void UDP::ClearStatus(void)
 {
-  #ifndef _WINDOWS
+  #if !defined(_WIN32)
   errno=0;
   #endif
 
@@ -356,7 +425,7 @@ void UDP::ClearStatus(void)
 UDP::sockStat UDP::GetStatus(void)
 {
 	Int status = m_lastError;
- #ifdef _WINDOWS
+ #ifdef _WIN32
   //int status=WSAGetLastError();
   if (status==0) return(OK);
   else if (status==WSAEINTR) return(INTR);
@@ -510,9 +579,10 @@ Int UDP::SetOutputBuffer(UnsignedInt bytes)
 
 int UDP::GetInputBuffer(void)
 {
-   int retval,arg=0,len=sizeof(int);
+   int arg=0;
+   socklen_t len=sizeof(arg);
 
-   retval=getsockopt(fd,SOL_SOCKET,SO_RCVBUF,
+   getsockopt(fd,SOL_SOCKET,SO_RCVBUF,
      (char *)&arg,&len);
    return(arg);
 }
@@ -520,9 +590,10 @@ int UDP::GetInputBuffer(void)
 
 int UDP::GetOutputBuffer(void)
 {
-   int retval,arg=0,len=sizeof(int);
+   int arg=0;
+   socklen_t len=sizeof(arg);
 
-   retval=getsockopt(fd,SOL_SOCKET,SO_SNDBUF,
+   getsockopt(fd,SOL_SOCKET,SO_SNDBUF,
      (char *)&arg,&len);
    return(arg);
 }
@@ -530,8 +601,13 @@ int UDP::GetOutputBuffer(void)
 Int UDP::AllowBroadcasts(Bool status)
 {
 	int retval;
-	BOOL val = status;
-	retval = setsockopt(fd, SOL_SOCKET, SO_BROADCAST, (char *)&val, sizeof(BOOL));
+  #ifdef _WIN32
+        BOOL val = status;
+        retval = setsockopt(fd, SOL_SOCKET, SO_BROADCAST, (char *)&val, sizeof(BOOL));
+  #else
+        int val = status ? 1 : 0;
+        retval = setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &val, sizeof(val));
+  #endif
 	if (retval == 0)
 		return TRUE;
 	else
