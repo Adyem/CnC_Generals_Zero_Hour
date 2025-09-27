@@ -140,7 +140,7 @@ struct TTriggerInfo
 	Byte									isInside;	///< True if the object is inside this trigger area this frame.
 	Byte									padding;	///< unused.
 
-	TTriggerInfo() : entered(false), exited(false), isInside(false), padding(false), pTrigger(NULL) { }
+	TTriggerInfo() : pTrigger(NULL), entered(false), exited(false), isInside(false), padding(false) { }
 
 };
 

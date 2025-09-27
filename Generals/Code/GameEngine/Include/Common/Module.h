@@ -114,14 +114,14 @@ public:
 	virtual const W3DModelDrawModuleData* getAsW3DModelDrawModuleData() const { return NULL; }
 	virtual StaticGameLODLevel getMinimumRequiredGameLOD() const { return (StaticGameLODLevel)0;}
 
-	static void buildFieldParse(MultiIniFieldParse& p) 
+	static void buildFieldParse(MultiIniFieldParse& p [[maybe_unused]]) 
 	{
 		// nothing
 	}
 
 public:
-	virtual void crc( Xfer *xfer ) {}
-	virtual void xfer( Xfer *xfer ) {}
+	virtual void crc( Xfer *xfer [[maybe_unused]] ) {}
+	virtual void xfer( Xfer *xfer [[maybe_unused]] ) {}
 	virtual void loadPostProcess( void ) {}
 
 private:
@@ -206,7 +206,7 @@ public:
 	virtual void onDrawableBoundToObject() { }
 
 	/// preload any assets we might have for this time of day
-	virtual void preloadAssets( TimeOfDay timeOfDay ) { }
+	virtual void preloadAssets( TimeOfDay timeOfDay [[maybe_unused]] ) { }
 
 	/** onDelete() will be called on all modules contained by an object or drawable before
 	the actual deletion of each of those modules happens */
@@ -247,7 +247,7 @@ public:
 	ObjectModule( Thing *thing, const ModuleData* moduleData );
 	// virtual destructor prototype defined by MemoryPoolObject
 
-	virtual void onCapture( Player *oldOwner, Player *newOwner ) { }
+	virtual void onCapture( Player *oldOwner [[maybe_unused]], Player *newOwner [[maybe_unused]] ) { }
 
 protected:
 

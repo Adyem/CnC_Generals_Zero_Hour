@@ -71,15 +71,19 @@ static int refcompress(unsigned char *from, int len, unsigned char *dest, int ma
     run = 0;
     cptr = rptr = from;
 
-    if ((unsigned int)maxback > (unsigned int)131071)
+    if ((unsigned int)maxback > (unsigned int)131071) {
         maxback = 131071;
+    }
 
-	hashtbl = (int *) galloc(65536L*sizeof(int));
-	if (!hashtbl)
+    hashtbl = (int *) galloc(65536L*sizeof(int));
+    if (!hashtbl) {
         return(0);
-	link = (int *) galloc(131072L*sizeof(int));
-	if (!link)
+    }
+    link = (int *) galloc(131072L*sizeof(int));
+    if (!link) {
+        gfree(hashtbl);
         return(0);
+    }
 
     memset(hashtbl,-1,65536L*sizeof(int));
 
@@ -240,6 +244,9 @@ int GCALL REF_encode(void *compresseddata, const void *source, int sourcesize, i
     int     quick=0;
     int    plen;
     int    hlen;
+
+
+    (void)opts;
 
 
     /* simple fb6 header */

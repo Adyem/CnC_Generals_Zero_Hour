@@ -42,7 +42,9 @@
 #define RANDOM_H
 
 // "unreferenced inline function has been removed" Yea, so what?
+#ifdef _MSC_VER
 #pragma warning(disable : 4514)
+#endif
 
 /*
 **	This class functions like a 'magic' int value that returns a random number

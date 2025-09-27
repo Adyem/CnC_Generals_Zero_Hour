@@ -46,7 +46,7 @@
 #include	<string.h>
 
 
-#if !defined(__BORLANDC__) && !defined(_MSC_VER)
+#ifdef _MSC_VER
 // Disable the "temporary object used to initialize a non-constant reference" warning.
 #pragma warning 665 9
 #endif

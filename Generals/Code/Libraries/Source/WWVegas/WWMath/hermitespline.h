@@ -55,8 +55,8 @@ public:
 	HermiteSpline3DClass(void)
 		: TangentsDirty (true) { }
 
-	HermiteSpline3DClass(const HermiteSpline3DClass &that)
-		: TangentsDirty (true) { (*this) = that; }
+        HermiteSpline3DClass(const HermiteSpline3DClass &that)
+                : Curve3DClass(that), TangentsDirty (true) { (*this) = that; }
 
 	const HermiteSpline3DClass &operator= (const HermiteSpline3DClass &that);
 	

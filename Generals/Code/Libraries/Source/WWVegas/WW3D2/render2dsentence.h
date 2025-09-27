@@ -213,24 +213,24 @@ private:
 		RectClass			ScreenRect;
 		RectClass			UVRect;
 
-		bool operator== (const SentenceDataStruct &src)	{ return false; }
-		bool operator!= (const SentenceDataStruct &src)	{ return true; }
+		bool operator== (const SentenceDataStruct &src)	{ (void)src; return false; }
+		bool operator!= (const SentenceDataStruct &src)	{ (void)src; return true; }
 	};
 
 	struct PendingSurfaceStruct {
 		SurfaceClass *								Surface;
 		DynamicVectorClass<Render2DClass *>	Renderers;
 
-		bool operator== (const PendingSurfaceStruct &src)	{ return false; }
-		bool operator!= (const PendingSurfaceStruct &src)	{ return true; }
+		bool operator== (const PendingSurfaceStruct &src)	{ (void)src; return false; }
+		bool operator!= (const PendingSurfaceStruct &src)	{ (void)src; return true; }
 	};
 
 	struct RendererDataStruct {
 		Render2DClass *	Renderer;
 		SurfaceClass *		Surface;
 
-		bool operator== (const RendererDataStruct &src)	{ return false; }
-		bool operator!= (const RendererDataStruct &src)	{ return true; }
+		bool operator== (const RendererDataStruct &src)	{ (void)src; return false; }
+		bool operator!= (const RendererDataStruct &src)	{ (void)src; return true; }
 	};
 
 	//

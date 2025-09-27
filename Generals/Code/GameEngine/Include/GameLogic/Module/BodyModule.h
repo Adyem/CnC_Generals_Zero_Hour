@@ -229,14 +229,14 @@ public:
 	virtual Bool getFrontCrushed() const { return false; }
 	virtual Bool getBackCrushed() const { return false; }
 
-	virtual void setInitialHealth(Int initialPercent)  {  } ///< Sets the inital load health %.
-	virtual void setMaxHealth(Real maxHealth, MaxHealthChangeType healthChangeType = SAME_CURRENTHEALTH )  {  } ///< Sets the max health.
+        virtual void setInitialHealth(Int initialPercent)  { static_cast<void>(initialPercent); } ///< Sets the inital load health %.
+        virtual void setMaxHealth(Real maxHealth, MaxHealthChangeType healthChangeType = SAME_CURRENTHEALTH )  { static_cast<void>(maxHealth); static_cast<void>(healthChangeType); } ///< Sets the max health.
 
-	virtual void setFrontCrushed(Bool v) { DEBUG_CRASH(("you should never call this for generic Bodys")); }
-	virtual void setBackCrushed(Bool v) { DEBUG_CRASH(("you should never call this for generic Bodys")); }
+        virtual void setFrontCrushed(Bool v) { static_cast<void>(v); DEBUG_CRASH(("you should never call this for generic Bodys")); }
+        virtual void setBackCrushed(Bool v) { static_cast<void>(v); DEBUG_CRASH(("you should never call this for generic Bodys")); }
 
 
-	virtual void setIndestructible( Bool indestructible ) { }
+        virtual void setIndestructible( Bool indestructible ) { static_cast<void>(indestructible); }
 	virtual Bool isIndestructible( void ) const { return TRUE; }
 
 	//Allows outside systems to apply defensive bonuses or penalties (they all stack as a multiplier!)

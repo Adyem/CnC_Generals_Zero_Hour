@@ -517,8 +517,10 @@ struct ObbCollisionStruct
 {
 	ObbCollisionStruct(const OBBoxClass &box0,const Vector3 &move0,const OBBoxClass & box1,const Vector3 &move1) :
 		StartBad(true),													// Startbad is true until one of the axes clears it
-		AxisId(INTERSECTION),											// AxisId will be the axis that allowed the longest move
 		MaxFrac(0.0f),														// MaxFrac is the longest allowed move so far
+		AxisId(INTERSECTION),											// AxisId will be the axis that allowed the longest move
+		Side(0),
+		TestAxisId(0),
 		Box0(box0),															
 		Move0(move0),
 		Box1(box1),

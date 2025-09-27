@@ -143,7 +143,7 @@ public:
 	virtual void cameraModFreezeAngle(void){ }					///< Freezes time during the next camera movement.
 	virtual void cameraModLookToward(Coord3D *pLoc){}			///< Sets a look at point during camera movement.
 	virtual void cameraModFinalLookToward(Coord3D *pLoc){}			///< Sets a look at point during camera movement.
-	virtual void cameraModFinalMoveTo(Coord3D *pLoc){ };			///< Sets a final move to.
+	virtual void cameraModFinalMoveTo(Coord3D *pLoc [[maybe_unused]]){ };			///< Sets a final move to.
 
 	// (gth) C&C3 animation controled camera feature
 	virtual void cameraEnableSlaveMode(const AsciiString & thingtemplateName, const AsciiString & boneName) {}
@@ -151,23 +151,23 @@ public:
 	virtual	void Add_Camera_Shake(const Coord3D & position,float radius, float duration, float power) {}
 	virtual enum FilterModes getViewFilterMode(void) {return (enum FilterModes)0;}			///< Turns on viewport special effect (black & white mode)
 	virtual enum FilterTypes getViewFilterType(void) {return (enum FilterTypes)0;}			///< Turns on viewport special effect (black & white mode)
-	virtual Bool setViewFilterMode(enum FilterModes filterMode) { return FALSE; }			///< Turns on viewport special effect (black & white mode)
-	virtual void setViewFilterPos(const Coord3D *pos) { };			///<  Passes a position to the special effect filter.
-	virtual Bool setViewFilter(	enum FilterTypes filter) { return FALSE;}			///< Turns on viewport special effect (black & white mode)
+	virtual Bool setViewFilterMode(enum FilterModes filterMode [[maybe_unused]]) { return FALSE; }			///< Turns on viewport special effect (black & white mode)
+	virtual void setViewFilterPos(const Coord3D *pos [[maybe_unused]]) { };			///<  Passes a position to the special effect filter.
+	virtual Bool setViewFilter(	enum FilterTypes filter [[maybe_unused]]) { return FALSE;}			///< Turns on viewport special effect (black & white mode)
 
-	virtual void setFadeParameters(Int fadeFrames, Int direction) { };
-	virtual void set3DWireFrameMode(Bool enable) { };
+	virtual void setFadeParameters(Int fadeFrames [[maybe_unused]], Int direction [[maybe_unused]]) { };
+	virtual void set3DWireFrameMode(Bool enable [[maybe_unused]]) { };
 
- 	virtual void resetCamera(const Coord3D *location, Int frames, Real easeIn, Real easeOut) {}; ///< Move camera to location, and reset to default angle & zoom.
- 	virtual void rotateCamera(Real rotations, Int frames, Real easeIn, Real easeOut) {}; ///< Rotate camera about current viewpoint.
-	virtual void rotateCameraTowardObject(ObjectID id, Int milliseconds, Int holdMilliseconds, Real easeIn, Real easeOut) {};	///< Rotate camera to face an object, and hold on it
-	virtual void rotateCameraTowardPosition(const Coord3D *pLoc, Int milliseconds, Real easeIn, Real easeOut, Bool reverseRotation) {};	///< Rotate camera to face a location.
+ 	virtual void resetCamera(const Coord3D *location [[maybe_unused]], Int frames [[maybe_unused]], Real easeIn [[maybe_unused]], Real easeOut [[maybe_unused]]) {}; ///< Move camera to location, and reset to default angle & zoom.
+ 	virtual void rotateCamera(Real rotations [[maybe_unused]], Int frames [[maybe_unused]], Real easeIn [[maybe_unused]], Real easeOut [[maybe_unused]]) {}; ///< Rotate camera about current viewpoint.
+	virtual void rotateCameraTowardObject(ObjectID id [[maybe_unused]], Int milliseconds [[maybe_unused]], Int holdMilliseconds [[maybe_unused]], Real easeIn [[maybe_unused]], Real easeOut [[maybe_unused]]) {};	///< Rotate camera to face an object, and hold on it
+	virtual void rotateCameraTowardPosition(const Coord3D *pLoc [[maybe_unused]], Int milliseconds [[maybe_unused]], Real easeIn [[maybe_unused]], Real easeOut [[maybe_unused]], Bool reverseRotation [[maybe_unused]]) {};	///< Rotate camera to face a location.
 	virtual Bool isTimeFrozen(void){ return false;}					///< Freezes time during the next camera movement.
 	virtual Int	 getTimeMultiplier(void) {return 1;};				///< Get the time multiplier.
-	virtual void setTimeMultiplier(Int multiple) {}; ///< Set the time multiplier.
-	virtual void setDefaultView(Real pitch, Real angle, Real maxHeight) {};
-	virtual void zoomCamera( Real finalZoom, Int milliseconds, Real easeIn, Real easeOut ) {};
-	virtual void pitchCamera( Real finalPitch, Int milliseconds, Real easeIn, Real easeOut ) {};
+	virtual void setTimeMultiplier(Int multiple [[maybe_unused]]) {}; ///< Set the time multiplier.
+	virtual void setDefaultView(Real pitch [[maybe_unused]], Real angle [[maybe_unused]], Real maxHeight [[maybe_unused]]) {};
+	virtual void zoomCamera( Real finalZoom [[maybe_unused]], Int milliseconds [[maybe_unused]], Real easeIn [[maybe_unused]], Real easeOut [[maybe_unused]] ) {};
+	virtual void pitchCamera( Real finalPitch [[maybe_unused]], Int milliseconds [[maybe_unused]], Real easeIn [[maybe_unused]], Real easeOut [[maybe_unused]] ) {};
 
 	virtual void setAngle( Real angle );																///< Rotate the view around the up axis to the given angle
 	virtual Real getAngle( void ) { return m_angle; }
@@ -179,7 +179,7 @@ public:
 	virtual const Coord3D& get3DCameraPosition() const = 0;							///< Returns the actual camera position
 
 	virtual Real getZoom() { return m_zoom; }
-	virtual void setZoom(Real z) { }
+	virtual void setZoom(Real z [[maybe_unused]]) { }
 	virtual Real getHeightAboveGround() { return m_heightAboveGround; }
 	virtual void setHeightAboveGround(Real z) { m_heightAboveGround = z; }
 	virtual void zoomIn( void );																				///< Zoom in, closer to the ground, limit to min
@@ -226,7 +226,7 @@ public:
 	virtual Bool isMouseLocked( void ) { return m_mouseLocked; }														///< is the mouse input locked to the tactical view?
 
 	/// Add an impulse force to shake the camera
-	virtual void shake( const Coord3D *epicenter, CameraShakeType shakeType ) { };
+	virtual void shake( const Coord3D *epicenter [[maybe_unused]], CameraShakeType shakeType [[maybe_unused]] ) { };
 
 	virtual Real getFXPitch( void ) const { return 1.0f; }					///< returns the FX pitch angle
 	virtual void forceCameraConstraintRecalc(void) {}
@@ -237,7 +237,7 @@ protected:
 	friend class Display;
 
 	// snapshot methods
-	virtual void crc( Xfer *xfer ) { }
+	virtual void crc( Xfer *xfer [[maybe_unused]] ) { }
 	virtual void xfer( Xfer *xfer );
 	virtual void loadPostProcess( void ) { }
 

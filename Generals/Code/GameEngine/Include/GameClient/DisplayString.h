@@ -121,7 +121,7 @@ inline UnicodeString DisplayString::getText( void ) { return m_textString; }
 inline Int DisplayString::getTextLength( void ) { return m_textString.getLength(); }
 inline void DisplayString::setFont( GameFont *font ) { m_font = font; }
 inline GameFont *DisplayString::getFont( void ) { return m_font; }
-inline void DisplayString::setClipRegion( IRegion2D *region ) {}
+inline void DisplayString::setClipRegion( IRegion2D *region ) { static_cast<void>(region); }
 inline void DisplayString::notifyTextChanged( void ) {}
 inline DisplayString *DisplayString::next( void ) { return m_next; }
 

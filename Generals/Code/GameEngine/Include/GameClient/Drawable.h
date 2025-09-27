@@ -313,7 +313,7 @@ public:
 
 	void reactToBodyDamageStateChange(BodyDamageType newState);
 	
-	const Real getScale (void) const ;
+        Real getScale (void) const;
 
 	// access to modules
 	//---------------------------------------------------------------------------

@@ -154,7 +154,7 @@ public:
 	inline const KindOfMaskType& getNthPreferredAgainstMask(WeaponSlotType n) const { return m_preferredAgainst[n]; } 
 
 	inline Int getConditionsYesCount() const { return 1; }
-	inline const WeaponSetFlags& getNthConditionsYes(Int i) const { return m_types; }
+	inline const WeaponSetFlags& getNthConditionsYes(Int i [[maybe_unused]]) const { return m_types; }
 #if defined(_DEBUG) || defined(_INTERNAL)
 	inline AsciiString getDescription() const { return AsciiString("ArmorTemplateSet"); }
 #endif

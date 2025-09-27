@@ -33,6 +33,7 @@
 #define __THINGTEMPLATE_H_
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
+#include <cstddef>
 #include "Lib/BaseType.h"
  
 #include "Common/AudioEventRTS.h"
@@ -287,55 +288,55 @@ public:
 	}
 	
 #if defined(_DEBUG) || defined(_INTERNAL)
-	Bool containsPartialName(const char* n) const
-	{
-		for (int i = 0; i < m_info.size(); i++)
-			if (strstr(m_info[i].first.str(), n) != NULL)
-				return true;
-		return false;
-	}
+        Bool containsPartialName(const char* n) const
+        {
+                for (std::size_t i = 0; i < m_info.size(); ++i)
+                        if (strstr(m_info[i].first.str(), n) != NULL)
+                                return true;
+                return false;
+        }
 #endif
 
-	AsciiString getNthName(Int i) const
-	{
-		if (i >= 0 && i < m_info.size())
-		{
-			return m_info[i].first;
-		}
-		return AsciiString::TheEmptyString;
-	}
+        AsciiString getNthName(Int i) const
+        {
+                if (i >= 0 && static_cast<std::size_t>(i) < m_info.size())
+                {
+                        return m_info[i].first;
+                }
+                return AsciiString::TheEmptyString;
+        }
 
-	AsciiString getNthTag(Int i) const
-	{
-		if (i >= 0 && i < m_info.size())
-		{
-			return m_info[i].m_moduleTag;
-		}
-		return AsciiString::TheEmptyString;
-	}
+        AsciiString getNthTag(Int i) const
+        {
+                if (i >= 0 && static_cast<std::size_t>(i) < m_info.size())
+                {
+                        return m_info[i].m_moduleTag;
+                }
+                return AsciiString::TheEmptyString;
+        }
 
-	const ModuleData* getNthData(Int i) const
-	{
-		if (i >= 0 && i < m_info.size())
-		{
-			return m_info[i].second;
-		}
-		return NULL;
-	}
+        const ModuleData* getNthData(Int i) const
+        {
+                if (i >= 0 && static_cast<std::size_t>(i) < m_info.size())
+                {
+                        return m_info[i].second;
+                }
+                return NULL;
+        }
 
 	// for use only by ThingTemplate::friend_getAIModuleInfo
 	ModuleData* friend_getNthData(Int i);
 
-	void clear() 
-	{ 
-		m_info.clear(); 
-	}
+        void clear()
+        {
+                m_info.clear();
+        }
 
-	void setCopiedFromDefault(Bool v)
-	{
-		for (int i = 0; i < m_info.size(); i++)
-			m_info[i].copiedFromDefault = v;
-	}
+        void setCopiedFromDefault(Bool v)
+        {
+                for (ModuleInfo::Nugget &nugget : m_info)
+                        nugget.copiedFromDefault = v;
+        }
 
 	Bool clearModuleDataWithTag(const AsciiString& tagToClear, AsciiString& clearedModuleNameOut);
 	Bool clearCopiedFromDefaultEntries(Int interfaceMask);

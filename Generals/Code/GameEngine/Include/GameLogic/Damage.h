@@ -213,7 +213,7 @@ public:
 protected:
 
 	// snapshot methods
-	virtual void crc( Xfer *xfer ) { }
+	virtual void crc( Xfer *xfer [[maybe_unused]] ) { }
 	virtual void xfer( Xfer *xfer );
 	virtual void loadPostProcess( void ) { }
 	
@@ -256,7 +256,7 @@ public:
 protected:
 
 	// snapshot methods
-	virtual void crc( Xfer *xfer ) { }
+	virtual void crc( Xfer *xfer [[maybe_unused]] ) { }
 	virtual void xfer( Xfer *xfer );
 	virtual void loadPostProcess( void ) { }
 
@@ -282,7 +282,7 @@ public:
 
 protected:
 
-	virtual void crc( Xfer *xfer ) { }
+	virtual void crc( Xfer *xfer [[maybe_unused]] ) { }
 	virtual void xfer( Xfer *xfer );
 	virtual void loadPostProcess( void ){ }
 

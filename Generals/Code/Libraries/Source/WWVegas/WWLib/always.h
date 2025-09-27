@@ -151,7 +151,7 @@ public: \
 	inline void* operator new(size_t s) { return allocateFromW3DMemPool(getClassMemoryPool(), s); } \
 	inline void operator delete(void *p) { freeFromW3DMemPool(getClassMemoryPool(), p); } \
 	inline void* operator new(size_t s, const char* msg, int unused) { return allocateFromW3DMemPool(getClassMemoryPool(), s, msg, unused); } \
-	inline void operator delete(void *p, const char* msg, int unused) { freeFromW3DMemPool(getClassMemoryPool(), p); } \
+	inline void operator delete(void *p, const char* msg, int unused) { static_cast<void>(msg); static_cast<void>(unused); freeFromW3DMemPool(getClassMemoryPool(), p); } \
 
 // ----------------------------------------------------------------------------
 class W3DMPO
