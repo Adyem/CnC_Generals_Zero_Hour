@@ -34,6 +34,17 @@
 #include "Common/INI.h"
 #include "GameClient/TerrainRoads.h"
 
+namespace
+{
+	static constexpr const char* kBodyDamageTypeNames[] = {
+		"PRISTINE",
+		"DAMAGED",
+		"REALLYDAMAGED",
+		"RUBBLE",
+		nullptr,
+	};
+} // namespace
+
 // PUBLIC DATA ////////////////////////////////////////////////////////////////////////////////////
 TerrainRoadCollection *TheTerrainRoads = NULL;
 
@@ -42,7 +53,7 @@ UnsignedInt TerrainRoadCollection::m_idCounter = 0;
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-const FieldParse TerrainRoadType::m_terrainRoadFieldParseTable[] = 
+const FieldParse TerrainRoadType::m_terrainRoadFieldParseTable[] =
 {
 
 	{ "Texture",						INI::parseAsciiString,				NULL, offsetof( TerrainRoadType, m_texture ) },
@@ -119,7 +130,7 @@ const FieldParse TerrainRoadType::m_terrainBridgeFieldParseTable[] =
 
 	// get body damage state
 	token = ini->getNextSubToken( "ToState" );
-	BodyDamageType state = (BodyDamageType)ini->scanIndexList( token, TheBodyDamageTypeNames );
+	BodyDamageType state = (BodyDamageType)ini->scanIndexList( token, kBodyDamageTypeNames );
 
 	// get effect num
 	token = ini->getNextSubToken( "EffectNum" );
@@ -175,7 +186,7 @@ const FieldParse TerrainRoadType::m_terrainBridgeFieldParseTable[] =
 
 	// get body damage state
 	token = ini->getNextSubToken( "ToState" );
-	BodyDamageType state = (BodyDamageType)ini->scanIndexList( token, TheBodyDamageTypeNames );
+	BodyDamageType state = (BodyDamageType)ini->scanIndexList( token, kBodyDamageTypeNames );
 
 	// get effect num
 	token = ini->getNextSubToken( "EffectNum" );

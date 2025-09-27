@@ -131,11 +131,11 @@ using std::max;
 #endif
 
 #ifndef TRUE
-#define TRUE true
+#define TRUE 1
 #endif
 
 #ifndef FALSE
-#define FALSE false
+#define FALSE 0
 #endif
 
 //--------------------------------------------------------------------
