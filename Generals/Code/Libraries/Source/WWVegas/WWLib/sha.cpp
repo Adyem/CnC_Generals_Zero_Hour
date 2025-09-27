@@ -84,7 +84,10 @@ void SHAEngine::Process_Partial(void const * & data, long & length)
 	**	Attach as many bytes as possible from the source data into
 	**	the staging buffer.
 	*/
-	int add_count = min((int)length, SRC_BLOCK_SIZE - PartialCount);
+	const long stage_capacity = static_cast<long>(SRC_BLOCK_SIZE);
+	const long available_space = stage_capacity - PartialCount;
+	const long bytes_to_copy = (length < available_space) ? length : available_space;
+	int add_count = static_cast<int>(bytes_to_copy);
 	memcpy(&Partial[PartialCount], data, add_count);
 	data = ((char const *&)data) + add_count;
 	PartialCount += add_count;
@@ -205,7 +208,7 @@ int SHAEngine::Result(void * result) const
 	*/
 	SHADigest acc = Acc;
 	if ((SRC_BLOCK_SIZE - partialcount) < 9) {
-		if (partialcount+1 < SRC_BLOCK_SIZE) {
+		if (partialcount + 1 < static_cast<int>(SRC_BLOCK_SIZE)) {
 			memset(&partial[partialcount+1], '\0', SRC_BLOCK_SIZE - (partialcount+1));
 		}
 		Process_Block(&partial[0], acc);
@@ -223,7 +226,8 @@ int SHAEngine::Result(void * result) const
 	Process_Block(&partial[0], acc);
 
 	memcpy((char *)&FinalResult, &acc, sizeof(acc));
-	for (int index = 0; index < sizeof(FinalResult)/sizeof(long); index++) {
+	const int digest_word_count = static_cast<int>(sizeof(FinalResult) / sizeof(long));
+	for (int index = 0; index < digest_word_count; ++index) {
 //	for (int index = 0; index < SRC_BLOCK_SIZE/sizeof(long); index++) {
 		(long &)FinalResult.Long[index] = Reverse_LONG(FinalResult.Long[index]);
 	}
@@ -295,12 +299,13 @@ void SHAEngine::Process_Block(void const * source, SHADigest & acc) const
 	**	data that will be transformed by the secure hash algorithm.
 	*/
 	long const * data = (long const *)source;
-	int index;
-	for (index = 0; index < SRC_BLOCK_SIZE/sizeof(long); index++) {
+	const int src_block_words = static_cast<int>(SRC_BLOCK_SIZE / sizeof(long));
+	const int proc_block_words = static_cast<int>(PROC_BLOCK_SIZE / sizeof(long));
+	for (int index = 0; index < src_block_words; ++index) {
 		block[index] = Reverse_LONG(data[index]);
 	}
 
-	for (index = SRC_BLOCK_SIZE/sizeof(long); index < PROC_BLOCK_SIZE/sizeof(long); index++) {
+	for (int index = src_block_words; index < proc_block_words; ++index) {
 //		block[index] = _rotl(block[(index-3)&15] ^ block[(index-8)&15] ^ block[(index-14)&15] ^ block[(index-16)&15], 1);
 		block[index] = _rotl(block[index-3] ^ block[index-8] ^ block[index-14] ^ block[index-16], 1);
 	}
@@ -310,7 +315,7 @@ void SHAEngine::Process_Block(void const * source, SHADigest & acc) const
 	**	transformation of 512 bit source data with a 2560 bit intermediate buffer.
 	*/
 	SHADigest alt = acc;
-	for (index = 0; index < PROC_BLOCK_SIZE/sizeof(long); index++) {
+	for (int index = 0; index < proc_block_words; ++index) {
 		long temp = _rotl(alt.Long[0], 5) + Do_Function(index, alt.Long[1], alt.Long[2], alt.Long[3]) + alt.Long[4] + block[index] + Get_Constant(index);
 		alt.Long[4] = alt.Long[3];
 		alt.Long[3] = alt.Long[2];

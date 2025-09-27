@@ -143,7 +143,7 @@ void FrustumClass::Init
 
 	// Create the six frustum bounding planes from the eight corner Corners.
 	// The bounding planes are oriented so that their normals point outward
-	PlaneClass frustum_planes[6];
+
 	Planes[0].Set(Corners[0], Corners[3], Corners[1]);	// near
 	Planes[1].Set(Corners[0], Corners[5], Corners[4]);	// bottom
 	Planes[2].Set(Corners[0], Corners[6], Corners[2]); // right

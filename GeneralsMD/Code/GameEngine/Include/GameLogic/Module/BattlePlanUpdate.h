@@ -144,7 +144,7 @@ public:
 	virtual SpecialPowerUpdateInterface* getSpecialPowerUpdateInterface() { return this; }
 	virtual Bool doesSpecialPowerHaveOverridableDestinationActive() const { return false; } //Is it active now?
 	virtual Bool doesSpecialPowerHaveOverridableDestination() const { return false; }	//Does it have it, even if it's not active?
-	virtual void setSpecialPowerOverridableDestination( const Coord3D *loc ) {}
+        virtual void setSpecialPowerOverridableDestination( const Coord3D *loc ) { static_cast<void>(loc); }
 	virtual Bool isPowerCurrentlyInUse( const CommandButton *command = NULL ) const;
 
 	//Returns the currently active battle plan -- unpacked and ready... returns PLANSTATUS_NONE if in transition!

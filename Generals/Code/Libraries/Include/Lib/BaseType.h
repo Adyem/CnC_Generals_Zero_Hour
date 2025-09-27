@@ -52,6 +52,7 @@
 **	4069, 4200, 4237, 4103, 4001, 4035, 4164. Makes you wonder, eh?
 */
 
+#if defined(_MSC_VER)
 // "unreferenced inline function has been removed" Yea, so what?
 #pragma warning(disable : 4514)
 
@@ -70,7 +71,7 @@
 #pragma warning(disable : 4711)
 
 #if 0
-// 'assignment within condition expression'. actually a pretty useful warning, 
+// 'assignment within condition expression'. actually a pretty useful warning,
 // but way too much existing code violates it.
 //#pragma warning(disable : 4706)
 #else
@@ -92,6 +93,7 @@
 
 // 'unreferenced local variable'. good thing to know about...
 #pragma warning(error : 4101)
+#endif // defined(_MSC_VER)
 
 #ifndef PI
 #define PI     3.14159265359f

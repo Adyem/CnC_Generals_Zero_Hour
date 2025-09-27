@@ -115,9 +115,11 @@ void					WWDebug_DBWin32_Message_Handler( const char * message);
 #define WWDEBUG_WARNING(x)
 #endif
 
-// WW3d is compiled at warning level 4, causes DEBUG_ASSERTCRASH to generate 
+// WW3d is compiled at warning level 4, causes DEBUG_ASSERTCRASH to generate
 // the 4127 warning (constant conditional expression)
+#ifdef _MSC_VER
 #pragma warning(disable:4127)
+#endif
 /*
 ** The WWASSERT and WWASSERT_PRINT macros will send messages to your
 ** assert handler.

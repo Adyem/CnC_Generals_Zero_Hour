@@ -31,4 +31,4 @@ BgfxNativeWindowData ApplicationBgfxNativeWindow;
 
 const Char* g_strFile = "data\\Generals.str";
 const Char* g_csfFile = "data\\%s\\Generals.csf";
-char* gAppPrefix = "";
+const char* gAppPrefix = "";

@@ -335,10 +335,11 @@ void ObjectPoolClass<T,BLOCK_SIZE>::Free_Object_Memory(T * obj)
  *   7/29/99    GTH : Created.                                                                 *
  *=============================================================================================*/
 template<class T, int BLOCK_SIZE>
-void * AutoPoolClass<T,BLOCK_SIZE>::operator new( size_t size ) 
+void * AutoPoolClass<T,BLOCK_SIZE>::operator new( size_t size )
 {
-	WWASSERT(size == sizeof(T));
-	return (void *)(Allocator.Allocate_Object_Memory());
+        WWASSERT(size == sizeof(T));
+        (void)size;
+        return (void *)(Allocator.Allocate_Object_Memory());
 }
 
 

@@ -229,8 +229,8 @@ public:
 };
 inline UpdateModule::UpdateModule( Thing *thing, const ModuleData* moduleData ) : 
 	BehaviorModule( thing, moduleData ),
-	m_indexInLogic(-1),
-	m_nextCallFrameAndPhase(0) 
+	m_nextCallFrameAndPhase(0),
+	m_indexInLogic(-1) 
 { 
 	// nothing
 }
@@ -357,12 +357,18 @@ public:
 	virtual void exitObjectByBudding( Object *newObj, Object *budHost ) = 0;	///< puts new spawn on top of an existing one
 	virtual void unreserveDoorForExit( ExitDoorType exitDoor ) = 0;	///< if you get permission to exit, but then don't/can't call exitObjectViaDoor, you should call this to "give up" your permission
 	
-	virtual void exitObjectInAHurry( Object *newObj) {}; ///< Special call for objects exiting a tunnel network, does NOT change the ai state. jba.
+	virtual void exitObjectInAHurry( Object *newObj) { static_cast<void>(newObj); }; ///< Special call for objects exiting a tunnel network, does NOT change the ai state. jba.
 
 	virtual void setRallyPoint( const Coord3D *pos ) = 0;				///< define a "rally point" for units to move towards
 	virtual const Coord3D *getRallyPoint( void ) const = 0;			///< define a "rally point" for units to move towards
 	virtual Bool useSpawnRallyPoint( void ) const { return FALSE; }
-	virtual Bool getNaturalRallyPoint( Coord3D& rallyPoint, Bool offset = TRUE ) const {rallyPoint.x=rallyPoint.y=rallyPoint.z=0; return false;}	///< get the natural "rally point" for units to move towards
+	/// get the natural "rally point" for units to move towards
+	virtual Bool getNaturalRallyPoint( Coord3D& rallyPoint, Bool offset = TRUE ) const
+	{
+		static_cast<void>(offset);
+		rallyPoint.x = rallyPoint.y = rallyPoint.z = 0;
+		return false;
+	}
 	virtual Bool getExitPosition( Coord3D& exitPosition ) const {exitPosition.x=exitPosition.y=exitPosition.z=0; return false;};					///< access to the "Door" position of the production object
 };
 

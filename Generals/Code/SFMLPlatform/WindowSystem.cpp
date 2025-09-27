@@ -48,7 +48,7 @@ void destroyX11Window(void* window) {
 }
 #endif
 
-void requestWindowShutdown(void*) {
+[[maybe_unused]] void requestWindowShutdown(void*) {
     if (g_activeWindowSystem != nullptr) {
         g_activeWindowSystem->shutdown();
     }

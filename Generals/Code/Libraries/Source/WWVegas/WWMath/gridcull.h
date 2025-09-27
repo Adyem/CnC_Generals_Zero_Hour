@@ -132,7 +132,7 @@ protected:
 	enum 
 	{
 		TERMINATION_CELL_COUNT	= 16384,			// algorithm terminates if we ever have more than this many cells.
-		UNGRIDDED_ADDRESS			= 0xFFFFFFFF	// address given to objs that didn't fit in grid
+		UNGRIDDED_ADDRESS			= -1	// address given to objs that didn't fit in grid
 	};
 
 	// Constants which control the division of space:

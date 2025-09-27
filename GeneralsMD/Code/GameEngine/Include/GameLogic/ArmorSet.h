@@ -86,7 +86,7 @@ public:
 	inline const DamageFX* getDamageFX() const { return m_fx; } 
 
 	inline Int getConditionsYesCount() const { return 1; }
-	inline const ArmorSetFlags& getNthConditionsYes(Int i) const { return m_types; }
+	inline const ArmorSetFlags& getNthConditionsYes(Int i [[maybe_unused]]) const { return m_types; }
 #if defined(_DEBUG) || defined(_INTERNAL)
 	inline AsciiString getDescription() const { return AsciiString("ArmorTemplateSet"); }
 #endif

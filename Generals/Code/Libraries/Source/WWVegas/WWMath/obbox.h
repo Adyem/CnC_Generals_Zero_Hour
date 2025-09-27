@@ -262,7 +262,7 @@ inline bool OBBoxClass::operator== (const OBBoxClass &src)
  *=============================================================================================*/
 inline bool OBBoxClass::operator!= (const OBBoxClass &src)
 {
-	return (Center != src.Center) || (Extent != src.Extent) && (Basis == src.Basis);
+        return !(*this == src);
 }
 
 #endif

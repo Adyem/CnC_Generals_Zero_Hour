@@ -62,9 +62,12 @@
 
 void VectorProcessorClass::Prefetch(void* address)
 {
+#if !defined(__ICL)
+        (void)address;
+#endif
 #if defined (__ICL)    // Detect Intel compiler
-	if (CPUDetectClass::_Has_SSE_Instruction_Set()) {
-		__asm {
+        if (CPUDetectClass::_Has_SSE_Instruction_Set()) {
+                __asm {
 //			mov edx,address
 //			mov eax,[edx]
 //			prefetchT1 address

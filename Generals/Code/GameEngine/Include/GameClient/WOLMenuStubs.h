@@ -17,12 +17,9 @@
 */
 
 ////////////////////////////////////////////////////////////////////////////////
-//                                                                                                                             /
-/
-//  (c) 2001-2003 Electronic Arts Inc.                                                                                         /
-/
-//                                                                                                                             /
-/
+//
+//  (c) 2001-2003 Electronic Arts Inc.
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
@@ -68,12 +65,12 @@ namespace WOLMenuStubs
 
         inline WindowMsgHandledType EatWindowMessage(GameWindow *, UnsignedInt, UnsignedInt, UnsignedInt)
         {
-                return WINDOW_MSG_HANDLED;
+                return MSG_HANDLED;
         }
 
         inline WindowMsgHandledType EatSystemMessage(GameWindow *, UnsignedInt, WindowMsgData, WindowMsgData)
         {
-                return WINDOW_MSG_HANDLED;
+                return MSG_HANDLED;
         }
 }
 
@@ -107,7 +104,7 @@ namespace WOLMenuStubs
         } \
         WindowMsgHandledType prefix##RCMenuSystem(GameWindow *, UnsignedInt, WindowMsgData, WindowMsgData) \
         { \
-                return WINDOW_MSG_HANDLED; \
+                return MSG_HANDLED; \
         }
 
 #endif // __WOL_MENU_STUBS_H__

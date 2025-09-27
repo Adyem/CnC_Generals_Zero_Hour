@@ -87,7 +87,7 @@ protected:
 	/// load the font data pointer based on everything else we already have set
 	virtual Bool loadFontData( GameFont *font ) = 0;
 	/// release the font data pointer
-	virtual void releaseFontData( GameFont *font ) { };
+        virtual void releaseFontData( GameFont *font ) { static_cast<void>(font); };
 
 	GameFont *m_fontList;  ///< list of fonts we have loaded
 	Int m_count;  ///< number of unique fonts loaded in this lib

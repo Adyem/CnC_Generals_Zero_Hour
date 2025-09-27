@@ -149,14 +149,15 @@ GridLinkClass::~GridLinkClass(void)
  *   4/27/2000  gth : Created.                                                                 *
  *=============================================================================================*/
 GridCullSystemClass::GridCullSystemClass(void) :
-	MinCellSize(10,10,10),
-	MaxObjExtent(15),
-	Origin(-100,-100,-100),
-	CellDim(10,10,10),
-	Cells(NULL),
-	NoGridList(NULL),
-	ObjCount(0),
-	TerminationCellCount(TERMINATION_CELL_COUNT)
+        MinCellSize(10,10,10),
+        MaxObjExtent(15),
+        TerminationCellCount(TERMINATION_CELL_COUNT),
+        Origin(-100,-100,-100),
+        CellDim(10,10,10),
+        OOCellDim(0,0,0),
+        Cells(NULL),
+        NoGridList(NULL),
+        ObjCount(0)
 {
 	CellCount[0] = CellCount[1] = CellCount[2] = 0;
 	Re_Partition(Vector3(-100,-100,-100),Vector3(100,100,100),15);

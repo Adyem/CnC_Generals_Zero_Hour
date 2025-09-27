@@ -83,7 +83,9 @@ class StringClass;
 template<class T> class DynamicVectorClass;
 
 // "unreferenced formal parameter" 
+#ifdef _MSC_VER
 #pragma warning(disable : 4100)
+#endif
 
 #ifdef DEFINE_W3DANIMMODE_NAMES
 static const char* TheAnimModeNames[] =
@@ -394,71 +396,69 @@ public:
    virtual void               Update_Obj_Space_Bounding_Volumes(void)								{ };
 
 
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// Render Object Interface - Predictive LOD
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Render Object Interface - Predictive LOD
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	// Two constants for Value queries, which are returned instead of the
-	// current Value in certain cases. They are usually used as sentinels.
-	// AT_MIN_LOD is a very large positive number, AT_MAX_LOD is negative.
-	static const float	AT_MIN_LOD;
-	static const float	AT_MAX_LOD;
+        // Two constants for Value queries, which are returned instead of the
+        // current Value in certain cases. They are usually used as sentinels.
+        // AT_MIN_LOD is a very large positive number, AT_MAX_LOD is negative.
+        static const float      AT_MIN_LOD;
+        static const float      AT_MAX_LOD;
 
-	virtual void	Prepare_LOD(CameraClass &camera);
-   virtual void   Recalculate_Static_LOD_Factors(void)													{ }
-	virtual void	Increment_LOD(void)																			{ }
-	virtual void	Decrement_LOD(void)																			{ }
-	virtual float	Get_Cost(void) const;
-	virtual float	Get_Value(void) const																		{ return AT_MIN_LOD; }
-	virtual float	Get_Post_Increment_Value(void) const													{ return AT_MAX_LOD; }
-	virtual void	Set_LOD_Level(int lod)																		{ }
-	virtual int		Get_LOD_Level(void) const																	{ return 0; }
-	virtual int		Get_LOD_Count(void) const																	{ return 1; }
-	virtual void	Set_LOD_Bias(float bias)																	{ }
-	virtual int	Calculate_Cost_Value_Arrays(float screen_area, float *values, float *costs) const;
-	virtual RenderObjClass *	Get_Current_LOD(void)														{ Add_Ref(); return this; }
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        virtual void    Prepare_LOD(CameraClass &camera);
+        virtual void    Recalculate_Static_LOD_Factors(void) { }
+        virtual void    Increment_LOD(void) { }
+        virtual void    Decrement_LOD(void) { }
+        virtual float   Get_Cost(void) const;
+        virtual float   Get_Value(void) const { return AT_MIN_LOD; }
+        virtual float   Get_Post_Increment_Value(void) const { return AT_MAX_LOD; }
+        virtual void    Set_LOD_Level(int lod) { (void)lod; }
+        virtual int             Get_LOD_Level(void) const { return 0; }
+        virtual int             Get_LOD_Count(void) const { return 1; }
+        virtual void    Set_LOD_Bias(float bias) { (void)bias; }
+        virtual int     Calculate_Cost_Value_Arrays(float screen_area, float *values, float *costs) const;
+        virtual RenderObjClass *        Get_Current_LOD(void) { Add_Ref(); return this; }
 
 
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// Render Object Interface - Dependency Generation
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	//
-	//	Note:  The strings contained in these lists need to be freed by the caller.
-	// They should be freed using the delete operator.
-	//
-	//	Be aware, these lists WILL contain duplicate entries.
-	//
-	virtual bool					Build_Dependency_List (DynamicVectorClass<StringClass> &file_list, bool recursive=true);
-	virtual bool					Build_Texture_List (DynamicVectorClass<StringClass> &texture_file_list, bool recursive=true);
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Render Object Interface - Dependency Generation
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// Render Object Interface - Decals
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	virtual void					Create_Decal(DecalGeneratorClass * generator)						{ }
-	virtual void					Delete_Decal(uint32 decal_id)												{ }
-	
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// Render Object Interface - Attributes, Options, Properties, etc
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	virtual MaterialInfoClass * Get_Material_Info(void) 													{ return NULL; }
-	virtual void					Set_User_Data(void *value, bool recursive = false)					{ User_Data = value; };
-	virtual void *					Get_User_Data()																{ return User_Data; };
-	virtual int						Get_Num_Snap_Points(void)													{ return 0; }
-	virtual void					Get_Snap_Point(int index,Vector3 * set)								{ }
-//	virtual float					Calculate_Texture_Reduction_Factor(float norm_screensize);
-//	virtual void					Set_Texture_Reduction_Factor(float trf);
-	virtual float					Get_Screen_Size(CameraClass &camera);
-	virtual void					Scale(float scale) 															{ };
-	virtual void					Scale(float scalex, float scaley, float scalez)						{ };
- 	virtual void					Set_ObjectScale(float scale) { ObjectScale=scale;}	//set's a scale factor that's factored into transform matrix.									{ScaleFactor=scale; };
-	const float						Get_ObjectScale( void ) const { return ObjectScale; };
- 	void							Set_ObjectColor(unsigned int color) { ObjectColor=color;}	//the color that was used to modify the asset for player team color (for Generals). -MW
-	const unsigned int				Get_ObjectColor( void ) const { return ObjectColor; };
+        //
+        //      Note:  The strings contained in these lists need to be freed by the caller.
+        // They should be freed using the delete operator.
+        //
+        //      Be aware, these lists WILL contain duplicate entries.
+        //
+        virtual bool                                    Build_Dependency_List (DynamicVectorClass<StringClass> &file_list, bool recursive=true);
+        virtual bool                                    Build_Texture_List (DynamicVectorClass<StringClass> &texture_file_list,bool recursive=true);
 
-   virtual int						Get_Sort_Level(void) const													{ return 0; /* SORT_LEVEL_NONE */ }
-   virtual void					Set_Sort_Level(int level)													{ }
-	
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Render Object Interface - Decals
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        virtual void                                    Create_Decal(DecalGeneratorClass * generator) { (void)generator; }
+        virtual void                                    Delete_Decal(uint32 decal_id) { (void)decal_id; }
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Render Object Interface - Attributes, Options, Properties, etc
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        virtual MaterialInfoClass * Get_Material_Info(void) { return NULL; }
+        virtual void                                    Set_User_Data(void *value, bool recursive = false) { (void)recursive; User_Data = value; };
+        virtual void *                                  Get_User_Data() { return User_Data; };
+        virtual int                                             Get_Num_Snap_Points(void) { return 0; }
+        virtual void                                    Get_Snap_Point(int index,Vector3 * set) { (void)index; (void)set; }
+//      virtual float                                   Calculate_Texture_Reduction_Factor(float norm_screensize);
+//      virtual void                                    Set_Texture_Reduction_Factor(float trf);
+        virtual float                                   Get_Screen_Size(CameraClass &camera);
+        virtual void                                    Scale(float scale) { (void)scale; };
+        virtual void                                    Scale(float scalex, float scaley, float scalez) { (void)scalex; (void)scaley; (void)scalez; };
+        virtual void                                    Set_ObjectScale(float scale) { ObjectScale=scale;}      //set's a scale factor that's factored into transform matrix.
+        const float                                             Get_ObjectScale( void ) const { return ObjectScale; };
+        void                                                    Set_ObjectColor(unsigned int color) { ObjectColor=color;}      //the color that was used to modify the asset for player team color (for Generals). -MW
+        const unsigned int                              Get_ObjectColor( void ) const { return ObjectColor; };
+
 	virtual int						Is_Really_Visible(void)														{ return ((Bits & IS_REALLY_VISIBLE) == IS_REALLY_VISIBLE); }
 	virtual int						Is_Not_Hidden_At_All(void)													{ return ((Bits & IS_NOT_HIDDEN_AT_ALL) == IS_NOT_HIDDEN_AT_ALL); }
 	virtual int						Is_Visible(void) const														{ return (Bits & IS_VISIBLE); }

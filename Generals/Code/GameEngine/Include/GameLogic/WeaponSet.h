@@ -135,7 +135,7 @@ public:
 	inline const KindOfMaskType& getNthPreferredAgainstMask(WeaponSlotType n) const { return m_preferredAgainst[n]; } 
 
 	inline Int getConditionsYesCount() const { return 1; }
-	inline const WeaponSetFlags& getNthConditionsYes(Int i) const { return m_types; }
+	inline const WeaponSetFlags& getNthConditionsYes(Int i [[maybe_unused]]) const { return m_types; }
 #if defined(_DEBUG) || defined(_INTERNAL)
 	inline AsciiString getDescription() const { return AsciiString("ArmorTemplateSet"); }
 #endif
@@ -204,8 +204,8 @@ public:
 	Bool isOutOfAmmo() const;
 	Bool hasAnyWeapon() const { return m_filledWeaponSlotMask != 0; }
 	Bool hasAnyDamageWeapon() const { return m_hasDamageWeapon; }
-	Bool hasWeaponToDealDamageType(DamageType typeToDeal) const { return (m_totalDamageTypeMask & (1 << typeToDeal)) != 0; }
-	Bool hasSingleDamageType(DamageType typeToDeal) const { return m_totalDamageTypeMask == (1 << typeToDeal); }
+	Bool hasWeaponToDealDamageType(DamageType typeToDeal) const { return (m_totalDamageTypeMask & (UnsignedInt(1) << static_cast<UnsignedInt>(typeToDeal))) != 0; }
+	Bool hasSingleDamageType(DamageType typeToDeal) const { return m_totalDamageTypeMask == (UnsignedInt(1) << static_cast<UnsignedInt>(typeToDeal)); }
 	Bool isCurWeaponLocked() const { return m_curWeaponLockedStatus != NOT_LOCKED; }
 	Weapon* getCurWeapon() { return m_weapons[m_curWeapon]; }
 	const Weapon* getCurWeapon() const { return m_weapons[m_curWeapon]; }

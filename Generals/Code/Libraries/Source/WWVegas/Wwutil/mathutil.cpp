@@ -63,9 +63,7 @@ void cMathUtil::Angle_To_Vector(double angle, double & dx, double & dy)
 		dy = WWMath::Sin(angleRadians);
 	}
 
-   double len;
-	len = ::sqrt(dx * dx + dy * dy); 
-   WWASSERT(::fabs(len - 1) < 0.0005);
+   WWASSERT(::fabs(::sqrt(dx * dx + dy * dy) - 1) < 0.0005);
 
 	//
    // Correction for Irish nature of windows y coords

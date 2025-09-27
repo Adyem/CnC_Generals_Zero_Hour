@@ -86,7 +86,22 @@ public:
 				Real	m_offsetY;			//world shift along y axis
 		};
 
-		Shadow(void) : m_diffuse(0xffffffff), m_color(0xffffffff), m_opacity (0x000000ff), m_localAngle(0.0f) {}
+		Shadow(void)
+			: m_isEnabled(false)
+			, m_isInvisibleEnabled(false)
+			, m_opacity(0x000000ff)
+			, m_color(0xffffffff)
+			, m_type(SHADOW_NONE)
+			, m_diffuse(0xffffffff)
+			, m_x(0.0f)
+			, m_y(0.0f)
+			, m_z(0.0f)
+			, m_oowDecalSizeX(0.0f)
+			, m_oowDecalSizeY(0.0f)
+			, m_decalSizeX(0.0f)
+			, m_decalSizeY(0.0f)
+			, m_localAngle(0.0f)
+		{}
 
 		///<if this is set, then no render will occur, even if enableShadowRender() is enabled. Used by Shroud.
 		void enableShadowInvisible(Bool isEnabled);	

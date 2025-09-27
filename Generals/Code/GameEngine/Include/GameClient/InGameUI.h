@@ -414,7 +414,7 @@ public:  // ********************************************************************
 	// build interface
 	virtual void placeBuildAvailable( const ThingTemplate *build, Drawable *buildDrawable );				///< built thing being placed
 	virtual const ThingTemplate *getPendingPlaceType( void );					///< get item we're trying to place
-	virtual const ObjectID getPendingPlaceSourceObjectID( void );			///< get producing object
+	virtual ObjectID getPendingPlaceSourceObjectID( void );			///< get producing object
 	virtual void setPlacementStart( const ICoord2D *start );					///< placement anchor point (for choosing angles)
 	virtual void setPlacementEnd( const ICoord2D *end );							///< set target placement point (for choosing angles)
 	virtual Bool isPlacementAnchored( void );													///< is placement arrow anchor set

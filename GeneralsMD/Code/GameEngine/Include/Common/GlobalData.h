@@ -44,7 +44,7 @@
 
 // FORWARD DECLARATIONS ///////////////////////////////////////////////////////////////////////////
 struct FieldParse;
-typedef enum _TerrainLOD;
+enum _TerrainLOD;
 class GlobalData;
 class INI;
 class WeaponBonusSet;
@@ -532,8 +532,8 @@ private:
 																			override, and return it */
 
 
-	GlobalData(const GlobalData& that) { DEBUG_CRASH(("unimplemented")); }
-	GlobalData& operator=(const GlobalData& that) { DEBUG_CRASH(("unimplemented")); return *this; }
+        GlobalData(const GlobalData& /*that*/) { DEBUG_CRASH(("unimplemented")); }
+        GlobalData& operator=(const GlobalData& /*that*/) { DEBUG_CRASH(("unimplemented")); return *this; }
 
 };
 

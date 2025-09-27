@@ -80,7 +80,9 @@ class	NoInitClass;
 */
 
 // Why, oh why does Visual C need this!!! It's bugged. <sigh>
+#ifdef _MSC_VER
 #pragma warning(disable : 4505)
+#endif
 
 
 template<class T>
@@ -486,6 +488,7 @@ template<class T>
 class DynamicVectorClass : public VectorClass<T>
 {
 	public:
+		using VectorClass<T>::operator==;
 		DynamicVectorClass(unsigned size=0, T const * array=0);
 
 		// Stubbed equality operators so you can have dynamic vectors of dynamic vectors

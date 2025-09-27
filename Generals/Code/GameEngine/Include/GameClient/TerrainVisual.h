@@ -107,9 +107,9 @@ public:
 
 	/** intersect the ray with the terrain, if a hit occurs TRUE is returned
 	and the result point on the terrain is returned in "result" */
-	virtual Bool intersectTerrain( Coord3D *rayStart, 
-																 Coord3D *rayEnd, 
-																 Coord3D *result ) { return FALSE; }
+	virtual Bool intersectTerrain( Coord3D *rayStart [[maybe_unused]], 
+																 Coord3D *rayEnd [[maybe_unused]], 
+																 Coord3D *result [[maybe_unused]] ) { return FALSE; }
 
 	//
 	// water methods
