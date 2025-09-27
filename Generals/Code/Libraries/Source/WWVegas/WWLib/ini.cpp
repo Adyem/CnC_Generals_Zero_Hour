@@ -342,6 +342,7 @@ int INIClass::Load(Straw & ffile)
 {
 	bool end_of_file = false;
 	char buffer[MAX_LINE_LENGTH];
+	static char blank_value[] = " ";
 
 	/*
 	**	Determine if the INI database has preexisting entries. If it does,
@@ -419,7 +420,7 @@ int INIClass::Load(Straw & ffile)
 
 				strtrim(divider);
 				if (!strlen(divider))
-					divider = " ";
+					divider = blank_value;
 
 				if (Put_String(section, buffer, divider) == false) {
 					return(false);
@@ -480,7 +481,7 @@ int INIClass::Load(Straw & ffile)
 
 				strtrim(divider);
 				if (!strlen(divider))
-					divider = " ";
+					divider = blank_value;
 
 
 				INIEntry * entryptr = W3DNEW INIEntry(strdup(buffer), strdup(divider));
@@ -1111,15 +1112,21 @@ int INIClass::Get_Int(char const * section, char const * entry, int defvalue) co
 	INIEntry * entryptr = Find_Entry(section, entry);
 	if (entryptr && entryptr->Value != NULL) {
 
-		if (*entryptr->Value == '$') {
-			sscanf(entryptr->Value, "$%x", &defvalue);
-		} else {
-			if (tolower(entryptr->Value[strlen(entryptr->Value)-1]) == 'h') {
-				sscanf(entryptr->Value, "%xh", &defvalue);
-			} else {
-				defvalue = atoi(entryptr->Value);
-			}
-		}
+                if (*entryptr->Value == '$') {
+                        unsigned int parsed = 0;
+                        if (sscanf(entryptr->Value, "$%x", &parsed) == 1) {
+                                defvalue = static_cast<int>(parsed);
+                        }
+                } else {
+                        if (tolower(entryptr->Value[strlen(entryptr->Value)-1]) == 'h') {
+                                unsigned int parsed = 0;
+                                if (sscanf(entryptr->Value, "%xh", &parsed) == 1) {
+                                        defvalue = static_cast<int>(parsed);
+                                }
+                        } else {
+                                defvalue = atoi(entryptr->Value);
+                        }
+                }
 	}
 	return(defvalue);
 }
@@ -1245,10 +1252,13 @@ int INIClass::Get_Hex(char const * section, char const * entry, int defvalue) co
 	*/
 	if (section == NULL || entry == NULL) return(defvalue);
 
-	INIEntry * entryptr = Find_Entry(section, entry);
-	if (entryptr && entryptr->Value != NULL) {
-		sscanf(entryptr->Value, "%x", &defvalue);
-	}
+        INIEntry * entryptr = Find_Entry(section, entry);
+        if (entryptr && entryptr->Value != NULL) {
+                unsigned int parsed = 0;
+                if (sscanf(entryptr->Value, "%x", &parsed) == 1) {
+                        defvalue = static_cast<int>(parsed);
+                }
+        }
 	return(defvalue);
 }
 

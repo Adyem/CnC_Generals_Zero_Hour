@@ -84,6 +84,8 @@ typedef struct {
 
 
 class TextureClass;
+class TerrainTextureClass;
+class AlphaTerrainTextureClass;
 class ChunkInputStream;
 class InputStream;
 class OutputStream;

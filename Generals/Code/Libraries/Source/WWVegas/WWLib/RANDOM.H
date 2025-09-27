@@ -41,6 +41,8 @@
 #ifndef RANDOM_H
 #define RANDOM_H
 
+#include <limits>
+
 // "unreferenced inline function has been removed" Yea, so what?
 #ifdef _MSC_VER
 #pragma warning(disable : 4514)
@@ -250,7 +252,10 @@ int Pick_Random_Number(T & generator, int minval, int maxval)
 	**	Create a full bit mask pattern that has all bits set that just
 	**	barely covers the magnitude of the number range desired.
 	*/
-	int mask = ~( (~0L) << (highbit+1));
+	const unsigned int bit_count = static_cast<unsigned int>(highbit + 1);
+	const unsigned int mask = bit_count >= std::numeric_limits<unsigned int>::digits
+	        ? std::numeric_limits<unsigned int>::max()
+	        : ((1u << bit_count) - 1u);
 
 	/*
 	**	Keep picking random numbers until it fits within the magnitude desired. With a 
@@ -259,7 +264,8 @@ int Pick_Random_Number(T & generator, int minval, int maxval)
 	*/
 	int pick = magnitude+1;
 	while (pick > magnitude) {
-		pick = generator() & mask;
+	        const unsigned int candidate = static_cast<unsigned int>(generator());
+	        pick = static_cast<int>(candidate & mask);
 	}
 
 	/*

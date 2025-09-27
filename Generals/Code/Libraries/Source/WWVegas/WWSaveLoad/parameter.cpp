@@ -176,9 +176,14 @@ ParameterClass::Construct (Type type, void *data, const char *name)
 			new_param = W3DNEW SeparatorParameterClass;
 			new_param->Set_Name (name);
 			break;
-	}
 
-	return new_param;
+		case TYPE_TRANSITION:
+		case TYPE_SCRIPT:
+		case TYPE_SCRIPTLIST:
+			break;
+        }
+
+        return new_param;
 }
 
 //*******************************************************************************************//

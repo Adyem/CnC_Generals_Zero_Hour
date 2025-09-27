@@ -46,6 +46,7 @@
 
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 #include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
+#include <new>
 
 // USER INCLUDES //////////////////////////////////////////////////////////////
 #include "Common/AudioEventRTS.h"
@@ -129,7 +130,7 @@ GameWindow::~GameWindow( void )
 {
 
 	if(	m_inputData )
-		delete m_inputData;
+		::operator delete(m_inputData);
 	m_inputData = NULL;
 	
 	if( m_editData )
@@ -1485,6 +1486,10 @@ GameWindow *GameWindow::winPointInAnyChild( Int x, Int y, Bool ignoreHidden, Boo
 WindowMsgHandledType GameWinDefaultInput( GameWindow *window, UnsignedInt msg,
 													WindowMsgData mData1, WindowMsgData mData2 )
 {
+	(void)window;
+	(void)msg;
+	(void)mData1;
+	(void)mData2;
 
 	return MSG_IGNORED;
 
@@ -1494,6 +1499,9 @@ WindowMsgHandledType GameWinDefaultInput( GameWindow *window, UnsignedInt msg,
 WindowMsgHandledType GameWinBlockInput( GameWindow *window, UnsignedInt msg,
 													WindowMsgData mData1, WindowMsgData mData2 )
 {
+	(void)window;
+	(void)mData1;
+	(void)mData2;
 	if (msg == GWM_CHAR || msg == GWM_MOUSE_POS)
 		return MSG_IGNORED;
 	
@@ -1522,6 +1530,10 @@ WindowMsgHandledType GameWinBlockInput( GameWindow *window, UnsignedInt msg,
 WindowMsgHandledType GameWinDefaultSystem( GameWindow *window, UnsignedInt msg, 
 													 WindowMsgData mData1, WindowMsgData mData2 )
 {
+	(void)window;
+	(void)msg;
+	(void)mData1;
+	(void)mData2;
 
 	return MSG_IGNORED;
 
@@ -1534,6 +1546,9 @@ void GameWinDefaultTooltip( GameWindow *window,
 														WinInstanceData *instData,
 														UnsignedInt mouse )
 {
+	(void)window;
+	(void)instData;
+	(void)mouse;
 	return;
 
 }  // end GameWinDefaultTooltip
@@ -1543,6 +1558,8 @@ void GameWinDefaultTooltip( GameWindow *window,
 //=============================================================================
 void GameWinDefaultDraw( GameWindow *window, WinInstanceData *instData )
 {
+	(void)window;
+	(void)instData;
 
 	return;
 

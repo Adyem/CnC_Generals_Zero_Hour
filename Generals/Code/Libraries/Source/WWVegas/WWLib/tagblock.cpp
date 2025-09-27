@@ -138,8 +138,7 @@ TagBlockFile::TagBlockFile(const char *fname):
 
 	// See if there is any data in file (or was it just created?)
 	if (Header.Version == FILE_VERSION) {
-		TagBlockIndex *lasttag = NULL;
-		int curpos = sizeof(Header);
+                int curpos = sizeof(Header);
 
 		// Loop through each block in file and create an in memory index for it.
 		int block;
@@ -158,7 +157,7 @@ TagBlockFile::TagBlockFile(const char *fname):
 				Read(tagname, blockheader.TagSize);
 
 				// Create new tag index for fast retrievel.
-				lasttag = Create_Index(tagname, curpos);
+                                Create_Index(tagname, curpos);
 
 				// Now get past the data.
 				curpos = Calc_Tag_Offset(curpos) + blockheader.TagSize + blockheader.DataSize;
