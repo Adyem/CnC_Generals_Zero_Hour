@@ -78,10 +78,10 @@ SpecialPowerModuleData::SpecialPowerModuleData()
 
 	static const FieldParse dataFieldParse[] = 
 	{
-		{ "SpecialPowerTemplate", INI::parseSpecialPowerTemplate, NULL, offsetof( SpecialPowerModuleData, m_specialPowerTemplate ) },
-		{ "UpdateModuleStartsAttack", INI::parseBool, NULL, offsetof( SpecialPowerModuleData, m_updateModuleStartsAttack ) },
-		{ "StartsPaused", INI::parseBool, NULL, offsetof( SpecialPowerModuleData, m_startsPaused ) },
-		{ "InitiateSound",							INI::parseAudioEventRTS,					NULL, offsetof( SpecialPowerModuleData, m_initiateSound ) },
+		{ "SpecialPowerTemplate", INI::parseSpecialPowerTemplate, NULL, FieldParse::memberOffset(&SpecialPowerModuleData::m_specialPowerTemplate) },
+		{ "UpdateModuleStartsAttack", INI::parseBool, NULL, FieldParse::memberOffset(&SpecialPowerModuleData::m_updateModuleStartsAttack) },
+		{ "StartsPaused", INI::parseBool, NULL, FieldParse::memberOffset(&SpecialPowerModuleData::m_startsPaused) },
+		{ "InitiateSound",							INI::parseAudioEventRTS,					NULL, FieldParse::memberOffset(&SpecialPowerModuleData::m_initiateSound) },
 		{ 0, 0, 0, 0 }
 	};
 	p.add(dataFieldParse);

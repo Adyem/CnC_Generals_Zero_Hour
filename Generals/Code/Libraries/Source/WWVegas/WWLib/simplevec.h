@@ -55,6 +55,7 @@
 #define SIMPLEVEC_H
 
 #include "always.h"
+#include <algorithm>
 #include <assert.h>
 #include <string.h>		// for memmove
 
@@ -174,7 +175,7 @@ inline bool SimpleVecClass<T>::Resize(int newsize)
 			**	Mem copy as much of the old vector into the new vector as possible.
 			*/
 			int copycount = (newsize < VectorMax) ? newsize : VectorMax;
-			memcpy(newptr,Vector,copycount * sizeof(T));
+			std::copy_n(Vector, copycount, newptr);
 
 			/*
 			**	Delete the old vector.

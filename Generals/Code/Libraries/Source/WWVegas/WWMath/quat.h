@@ -68,7 +68,10 @@ public:
 	WWINLINE explicit Quaternion(bool init) { if (init) { X = 0.0f; Y = 0.0f; Z = 0.0f; W = 1.0f; } }
 	WWINLINE explicit Quaternion(float a, float b, float c, float d) { X=a; Y=b; Z=c; W=d; }
 	WWINLINE explicit Quaternion(const Vector3 & axis,float angle);
+	WWINLINE Quaternion(const Quaternion &) = default;
+	WWINLINE Quaternion(Quaternion &&) = default;
 	WWINLINE Quaternion & operator=(const Quaternion & source);
+	WWINLINE Quaternion & operator=(Quaternion &&) = default;
 
 	WWINLINE void		Set(float a = 0.0, float b = 0.0, float c = 0.0, float d = 1.0) { X = a; Y = b; Z = c; W = d; }
 	WWINLINE void		Make_Identity(void) { Set(); };

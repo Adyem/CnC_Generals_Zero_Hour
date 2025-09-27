@@ -21,6 +21,7 @@
 #include "GameNetwork/Online/OnlineServices.h"
 
 #include "Common/IgnorePreferences.h"
+#include "GameNetwork/GameSpy/PersistentStorageThread.h"
 
 #include <cstdlib>
 
@@ -465,10 +466,10 @@ namespace OnlineServices
                 {
                         m_savedIgnoreMap.clear();
                         IgnorePreferences prefs;
-                        prefs.load();
-                        for (IgnorePreferences::Iterator it = prefs.begin(); it != prefs.end(); ++it)
+                        const IgnorePrefMap ignores = prefs.getIgnores();
+                        for (const auto &entry : ignores)
                         {
-                                m_savedIgnoreMap[it->first] = it->second;
+                                m_savedIgnoreMap[entry.first] = entry.second;
                         }
                 }
 

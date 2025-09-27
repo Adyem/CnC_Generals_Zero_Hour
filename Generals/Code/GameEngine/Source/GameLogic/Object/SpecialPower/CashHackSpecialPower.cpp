@@ -70,8 +70,8 @@ static void parseCashHackUpgradePair( INI* ini, void * /*instance*/, void *store
 	
 	static const FieldParse dataFieldParse[] = 
 	{
-		{ "UpgradeMoneyAmount", parseCashHackUpgradePair, NULL, offsetof( CashHackSpecialPowerModuleData, m_upgrades ) },
-		{ "MoneyAmount", INI::parseInt, NULL, offsetof( CashHackSpecialPowerModuleData, m_defaultAmountToSteal ) },
+		{ "UpgradeMoneyAmount", parseCashHackUpgradePair, NULL, FieldParse::memberOffset(&CashHackSpecialPowerModuleData::m_upgrades) },
+		{ "MoneyAmount", INI::parseInt, NULL, FieldParse::memberOffset(&CashHackSpecialPowerModuleData::m_defaultAmountToSteal) },
 		{ 0, 0, 0, 0 }
 	};
 	p.add(dataFieldParse);

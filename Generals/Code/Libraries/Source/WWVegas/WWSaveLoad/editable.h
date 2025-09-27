@@ -68,8 +68,8 @@ public:
 	//
 	/////////////////////////////////////////////////////////////////////
 	virtual int						Get_Parameter_Count (void) const;
-	virtual ParameterClass *	Lock_Parameter (int i);
-	virtual void					Unlock_Parameter (int i);
+	virtual ParameterClass *	Lock_Parameter ([[maybe_unused]] int i);
+	virtual void					Unlock_Parameter ([[maybe_unused]] int i);
 };
 
 /////////////////////////////////////////////////////////////////////
@@ -85,7 +85,7 @@ EditableClass::Get_Parameter_Count (void) const
 //	Get_Parameter
 /////////////////////////////////////////////////////////////////////
 inline ParameterClass *
-EditableClass::Lock_Parameter (int i)
+EditableClass::Lock_Parameter ([[maybe_unused]] int)
 {
 	WWASSERT (0);
 	return NULL;
@@ -95,7 +95,7 @@ EditableClass::Lock_Parameter (int i)
 //	Set_Parameter
 /////////////////////////////////////////////////////////////////////
 inline void
-EditableClass::Unlock_Parameter (int i)
+EditableClass::Unlock_Parameter ([[maybe_unused]] int)
 {
 	return ;
 }

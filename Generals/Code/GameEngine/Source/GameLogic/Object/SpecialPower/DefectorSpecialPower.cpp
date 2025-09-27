@@ -61,7 +61,7 @@ DefectorSpecialPowerModuleData::DefectorSpecialPowerModuleData( void )
 	
 	static const FieldParse dataFieldParse[] = 
 	{
-		{ "FatCursorRadius", INI::parseReal, NULL, offsetof( DefectorSpecialPowerModuleData, m_fatCursorRadius ) },
+		{ "FatCursorRadius", INI::parseReal, NULL, FieldParse::memberOffset(&DefectorSpecialPowerModuleData::m_fatCursorRadius) },
 		{ 0, 0, 0, 0 }
 	};
 	p.add(dataFieldParse);

@@ -120,13 +120,20 @@ struct FieldParse
 	const void*					userData;					///< field-specific data
 	Int									offset;						///< offset to data field
 
-	inline void set(const char* t, INIFieldParseProc p, const void* u, Int o)
-	{
-		token = t;
-		parse = p;
-		userData = u;
-		offset = o;
-	}
+        inline void set(const char* t, INIFieldParseProc p, const void* u, Int o)
+        {
+                token = t;
+                parse = p;
+                userData = u;
+                offset = o;
+        }
+
+        template <typename T, typename Member>
+        static Int memberOffset(Member T::*member)
+        {
+                T instance{};
+                return static_cast<Int>(reinterpret_cast<char*>(&(instance.*member)) - reinterpret_cast<char*>(&instance));
+        }
 };
 
 //-------------------------------------------------------------------------------------------------

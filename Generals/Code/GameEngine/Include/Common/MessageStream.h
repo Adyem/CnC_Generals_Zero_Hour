@@ -701,8 +701,11 @@ class MessageStream : public GameMessageList
 
 public:
 
-	MessageStream( void );
-	virtual ~MessageStream();
+        using GameMessageList::appendMessage;
+        using GameMessageList::insertMessage;
+
+        MessageStream( void );
+        virtual ~MessageStream();
 
 	// Inherited Methods ----------------------------------------------------------------------------
 	virtual void init( void );

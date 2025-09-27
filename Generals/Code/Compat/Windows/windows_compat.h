@@ -140,13 +140,13 @@ struct IMAGE_DOS_HEADER
 
 struct IMAGE_FILE_HEADER
 {
-    WORD Machine;
-    WORD NumberOfSections;
-    DWORD TimeDateStamp;
-    DWORD PointerToSymbolTable;
-    DWORD NumberOfSymbols;
-    WORD SizeOfOptionalHeader;
-    WORD Characteristics;
+    WORD Machine{};
+    WORD NumberOfSections{};
+    DWORD TimeDateStamp{};
+    DWORD PointerToSymbolTable{};
+    DWORD NumberOfSymbols{};
+    WORD SizeOfOptionalHeader{};
+    WORD Characteristics{};
 };
 
 struct VS_FIXEDFILEINFO

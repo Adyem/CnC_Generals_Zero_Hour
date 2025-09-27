@@ -65,7 +65,7 @@ public:
 	/////////////////////////////////////////////////////////////////////
 	//	Editable interface requirements
 	/////////////////////////////////////////////////////////////////////
-	DECLARE_EDITABLE(DefinitionClass, EditableClass);
+	DECLARE_EDITABLE(DefinitionClass, EditableClass)
 
 	/////////////////////////////////////////////////////////////////////
 	//	Public constructors/destructors
@@ -88,7 +88,7 @@ public:
 	virtual void						Set_Name (const char *new_name);	
 
 	// Validation methods
-	virtual bool						Is_Valid_Config (StringClass &message);
+	virtual bool						Is_Valid_Config (StringClass & /*message*/);
 
 	// From PersistClass
 	virtual bool						Save (ChunkSaveClass &csave);
@@ -137,9 +137,11 @@ private:
 /////////////////////////////////////////////////////////////////////
 inline
 DefinitionClass::DefinitionClass (void)
-	:	m_ID (0),
-		m_SaveEnabled (true),
-		m_DefinitionMgrLink (-1)
+	:	m_DefinitionMgrLink (-1),
+		m_Name(),
+		m_ID (0),
+		m_GenericUserData (0),
+		m_SaveEnabled (true)
 {
 	return ;
 }
@@ -185,7 +187,7 @@ DefinitionClass::Get_ID (void) const
 //	Is_Valid_Config
 //////////////////////////////////////////////////////////////////////////////////
 inline bool
-DefinitionClass::Is_Valid_Config (StringClass &message)
+DefinitionClass::Is_Valid_Config (StringClass & /*message*/)
 {
 	return true;
 }

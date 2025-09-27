@@ -37,6 +37,10 @@
 #include "GameNetwork/GameSpyPersistentStorage.h"
 #include "GameNetwork/GameSpyThread.h"
 
+#include <chrono>
+#include <cstdio>
+#include <thread>
+
 static Bool isProfileAuthorized = false;
 
 static Bool gameSpyInitPersistentStorageConnection( void );
@@ -288,9 +292,9 @@ static void getPersistentDataCallback(int localid, int profileid, persisttype_t 
 	const char *keys[3] = { "locale", "wins", "losses" };
 	char valueStrings[3][20];
 	char *values[3] = { valueStrings[0], valueStrings[1], valueStrings[2] };
-	_snprintf(values[0], 20, "%s", TheGameSpyPlayerInfo->getLocale().str());
-	_snprintf(values[1], 20, "%d", TheGameSpyPlayerInfo->getWins());
-	_snprintf(values[2], 20, "%d", TheGameSpyPlayerInfo->getLosses());
+        std::snprintf(values[0], sizeof(valueStrings[0]), "%s", TheGameSpyPlayerInfo->getLocale().str());
+        std::snprintf(values[1], sizeof(valueStrings[1]), "%d", TheGameSpyPlayerInfo->getWins());
+        std::snprintf(values[2], sizeof(valueStrings[2]), "%d", TheGameSpyPlayerInfo->getLosses());
 	peerSetGlobalKeys(TheGameSpyChat->getPeer(), 3, (const char **)keys, (const char **)values);
 	peerSetGlobalWatchKeys(TheGameSpyChat->getPeer(), GroupRoom,   3, keys, PEERTrue);
 	peerSetGlobalWatchKeys(TheGameSpyChat->getPeer(), StagingRoom, 3, keys, PEERTrue);
@@ -382,8 +386,8 @@ static Bool gameSpyInitPersistentStorageConnection( void )
 	UnsignedInt timeoutTime = timeGetTime() + 5000;
 	while (!isProfileAuthorized && timeGetTime() < timeoutTime && IsStatsConnected())
 	{
-		PersistThink();
-		msleep(10);
+                PersistThink();
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 
 	DEBUG_LOG(("Persistent Storage connect: %d\n", isProfileAuthorized));

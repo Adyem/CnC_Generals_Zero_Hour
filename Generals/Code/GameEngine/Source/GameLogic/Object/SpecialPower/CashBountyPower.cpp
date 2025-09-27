@@ -103,9 +103,9 @@ static void parseBountyUpgradePair( INI* ini, void * /*instance*/, void *store, 
 	static const FieldParse dataFieldParse[] = 
 	{
 #ifdef NOT_IN_USE
-		{ "UpgradeBounty", parseBountyUpgradePair, NULL, offsetof( CashBountyPowerModuleData, m_upgrades ) },
+		{ "UpgradeBounty", parseBountyUpgradePair, NULL, FieldParse::memberOffset(&CashBountyPowerModuleData::m_upgrades) },
 #endif
-		{ "Bounty",			INI::parsePercentToReal, NULL, offsetof( CashBountyPowerModuleData, m_defaultBounty ) },
+		{ "Bounty",			INI::parsePercentToReal, NULL, FieldParse::memberOffset(&CashBountyPowerModuleData::m_defaultBounty) },
 		{ 0, 0, 0, 0 } 
 	};
 	p.add(dataFieldParse);

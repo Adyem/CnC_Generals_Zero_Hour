@@ -116,6 +116,7 @@ const int MAX_CATEGORY_STACK_DEPTH = 1024;
 class ActiveCategoryStackClass : public VectorClass<int>
 {
 public:
+	using VectorClass<int>::operator==;
 	ActiveCategoryStackClass(void) :
 		VectorClass<int>(MAX_CATEGORY_STACK_DEPTH),
 		ThreadID(-1),
@@ -207,7 +208,7 @@ private:
 */
 static MemLogClass *				_TheMemLog = NULL;
 static int							_MemLogLockCounter = 0;
-static bool							_MemLogAllocated = false;
+[[maybe_unused]] static bool					_MemLogAllocated = false;
 
 
 namespace {
@@ -363,7 +364,7 @@ int WWMemoryLogClass::Get_Peak_Allocated_Memory(int category)
 	return Get_Log()->Get_Peak_Allocated_Memory(category);
 }
 
-void WWMemoryLogClass::Push_Active_Category(int category)
+void WWMemoryLogClass::Push_Active_Category([[maybe_unused]] int category)
 {
 #if (DISABLE_MEMLOG == 0)
 	Get_Log()->Push_Active_Category(category);

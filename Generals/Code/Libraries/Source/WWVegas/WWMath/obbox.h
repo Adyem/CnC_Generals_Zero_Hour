@@ -76,11 +76,13 @@ public:
 
 	OBBoxClass(void) { }
 
-	OBBoxClass(const OBBoxClass & that) :
-		Basis(that.Basis),
-		Center(that.Center),
-		Extent(that.Extent)
-	{ }
+        OBBoxClass(const OBBoxClass & that) :
+                Basis(that.Basis),
+                Center(that.Center),
+                Extent(that.Extent)
+        { }
+
+        OBBoxClass & operator=(const OBBoxClass &) = default;
 
 	OBBoxClass(const Vector3 & center,const Vector3 & extent) : 
 		Basis(1),

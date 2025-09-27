@@ -123,7 +123,7 @@ public:
 
 	// Type identification (see paramtypes.h in wwsaveload)
 	virtual Type				Get_Type (void) const = 0;
-	virtual bool				Is_Type (Type type) const { return false; }
+	virtual bool				Is_Type (Type) const { return false; }
 	
 	// Modification
 	virtual bool				Is_Modifed (void) const				{ return IsModified; }
@@ -163,8 +163,8 @@ private:
 //////////////////////////////////////////////////////////////////////////////////
 inline
 ParameterClass::ParameterClass (void)
-	:	m_Name (NULL),
-		IsModified (false)
+	:	IsModified (false),
+	        m_Name (NULL)
 {
 	return ;
 }
@@ -174,8 +174,8 @@ ParameterClass::ParameterClass (void)
 //////////////////////////////////////////////////////////////////////////////////
 inline
 ParameterClass::ParameterClass (const ParameterClass &src)
-	:	m_Name (NULL),
-		IsModified (false)
+	:	IsModified (false),
+	        m_Name (NULL)
 {
 	(*this) = src;
 	return ;
@@ -353,7 +353,8 @@ protected:
 //////////////////////////////////////////////////////////////////////////////////
 class SoundFilenameParameterClass : public FilenameParameterClass
 {
-public:	
+public:
+        using FilenameParameterClass::operator==;	
 
 	//////////////////////////////////////////////////////////////////////////////
 	//	Public constructors/destructors

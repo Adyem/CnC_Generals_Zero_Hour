@@ -181,7 +181,7 @@ void cMiscUtil::Get_File_Id_String(LPCSTR filename, StringClass & str)
 	//
 	// Note... this timedatestamp is not present for all file types...
 	//
-	IMAGE_FILE_HEADER header = {0};
+	IMAGE_FILE_HEADER header{};
 	extern bool Get_Image_File_Header(LPCSTR filename, IMAGE_FILE_HEADER *file_header);
 	/*
 	bool success;

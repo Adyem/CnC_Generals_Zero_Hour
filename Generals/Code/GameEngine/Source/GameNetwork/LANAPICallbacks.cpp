@@ -38,6 +38,7 @@
 #include "Common/QuotedPrintable.h"
 #include "Common/RandomValue.h"
 #include "Common/UserPreferences.h"
+#include <cstdint>
 #include "GameClient/GameText.h"
 #include "GameClient/LanguageFilter.h"
 #include "GameClient/MapUtil.h"
@@ -102,25 +103,27 @@ UnicodeString LANAPIInterface::getErrorStringFromReturnType( ReturnType ret )
 
 void LANAPI::OnAccept( UnsignedInt playerIP, Bool status ) 
 { 
-	if( AmIHost() )
-	{
-		
-		for (Int i = 0; i < MAX_SLOTS; i++)
-		{
-			if (m_currentGame->getIP(i) == playerIP)
-			{
-				if(status)
-					m_currentGame->getLANSlot(i)->setAccept();
-				else
-					m_currentGame->getLANSlot(i)->unAccept();
-				break;
-			}// if
-		}// for
-		if (i != MAX_SLOTS ) 
-		{
-			RequestGameOptions( GenerateGameOptionsString(), false );
-			lanUpdateSlotList();
-		}
+        if( AmIHost() )
+        {
+
+                Bool found = FALSE;
+                for (Int i = 0; i < MAX_SLOTS; i++)
+                {
+                        if (m_currentGame->getIP(i) == playerIP)
+                        {
+                                if(status)
+                                        m_currentGame->getLANSlot(i)->setAccept();
+                                else
+                                        m_currentGame->getLANSlot(i)->unAccept();
+                                found = TRUE;
+                                break;
+                        }// if
+                }// for
+                if (found)
+                {
+                        RequestGameOptions( GenerateGameOptionsString(), false );
+                        lanUpdateSlotList();
+                }
 	}//if
 	else 
 	{
@@ -139,18 +142,20 @@ void LANAPI::OnHasMap( UnsignedInt playerIP, Bool status )
 	if( AmIHost() )
 	{
 		
-		for (Int i = 0; i < MAX_SLOTS; i++)
-		{
-			if (m_currentGame->getIP(i) == playerIP)
-			{
-				m_currentGame->getLANSlot(i)->setMapAvailability( status );
-				break;
-			}// if
-		}// for
-		if (i != MAX_SLOTS ) 
-		{
-			UnicodeString mapDisplayName;
-			const MapMetaData *mapData = TheMapCache->findMap( m_currentGame->getMap() );
+                Int slotIndex = MAX_SLOTS;
+                for (Int i = 0; i < MAX_SLOTS; i++)
+                {
+                        if (m_currentGame->getIP(i) == playerIP)
+                        {
+                                m_currentGame->getLANSlot(i)->setMapAvailability( status );
+                                slotIndex = i;
+                                break;
+                        }// if
+                }// for
+                if (slotIndex != MAX_SLOTS )
+                {
+                        UnicodeString mapDisplayName;
+                        const MapMetaData *mapData = TheMapCache->findMap( m_currentGame->getMap() );
 			Bool willTransfer = TRUE;
 			if (mapData)
 			{
@@ -166,10 +171,10 @@ void LANAPI::OnHasMap( UnsignedInt playerIP, Bool status )
 			if (!status)
 			{
 				UnicodeString text;
-				if (willTransfer)
-					text.format(TheGameText->fetch("GUI:PlayerNoMapWillTransfer"), m_currentGame->getLANSlot(i)->getName().str(), mapDisplayName.str());
-				else
-					text.format(TheGameText->fetch("GUI:PlayerNoMap"), m_currentGame->getLANSlot(i)->getName().str(), mapDisplayName.str());
+                                if (willTransfer)
+                                        text.format(TheGameText->fetch("GUI:PlayerNoMapWillTransfer"), m_currentGame->getLANSlot(slotIndex)->getName().str(), mapDisplayName.str());
+                                else
+                                        text.format(TheGameText->fetch("GUI:PlayerNoMap"), m_currentGame->getLANSlot(slotIndex)->getName().str(), mapDisplayName.str());
 				OnChat(UnicodeString(L"SYSTEM"), m_localIP, text, LANCHAT_SYSTEM);
 			}
 			lanUpdateSlotList();
@@ -637,8 +642,8 @@ void LANAPI::OnPlayerList( LANPlayer *playerList )
 		Int indexToSelect = -1;
 		GadgetListBoxGetSelected(listboxPlayers, &selectedIndex);
 		
-		if (selectedIndex != -1 )
-			selectedIP = (UnsignedInt) GadgetListBoxGetItemData(listboxPlayers, selectedIndex, 0);
+                if (selectedIndex != -1 )
+                        selectedIP = static_cast<UnsignedInt>(reinterpret_cast<uintptr_t>(GadgetListBoxGetItemData(listboxPlayers, selectedIndex, 0)));
 
 		GadgetListBoxReset(listboxPlayers);
 
@@ -646,7 +651,7 @@ void LANAPI::OnPlayerList( LANPlayer *playerList )
 		while (player)
 		{
 			Int addedIndex = GadgetListBoxAddEntryText(listboxPlayers, player->getName(), playerColor, -1, -1);
-			GadgetListBoxSetItemData(listboxPlayers, (void *)player->getIP(),addedIndex, 0 );
+                        GadgetListBoxSetItemData(listboxPlayers, reinterpret_cast<void *>(static_cast<uintptr_t>(player->getIP())),addedIndex, 0 );
 
 			if (selectedIP == player->getIP())
 				indexToSelect = addedIndex;
