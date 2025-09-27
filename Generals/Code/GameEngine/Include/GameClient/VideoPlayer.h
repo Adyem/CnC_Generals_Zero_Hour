@@ -301,7 +301,7 @@ class VideoPlayer : public VideoPlayerInterface
 		virtual const Video* getVideo( Int index );						///< Retrieve info about a movie based on index
 		virtual const FieldParse *getFieldParse( void ) const { return m_videoFieldParseTable; }		///< Return the field parse info
 
-		virtual void notifyVideoPlayerOfNewProvider( Bool nowHasValid ) { }
+		virtual void notifyVideoPlayerOfNewProvider([[maybe_unused]] Bool nowHasValid) { }
 
 		// Implementation specific
 		void remove( VideoStream *stream );										///< remove stream from active list

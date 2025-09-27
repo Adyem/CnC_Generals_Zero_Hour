@@ -2454,7 +2454,14 @@ void MPEXPORT XMP_Randomize(digit * result, Straw & rng, int total_bits, int pre
 	XMP_Init(result, 0, precision);
 	rng.Get(result, nbytes);
 
-	((unsigned char *)result)[nbytes-1] &= (unsigned char)(~((~0) << (total_bits % 8)));
+        const unsigned int bits_in_last_byte = static_cast<unsigned int>(total_bits % 8);
+        unsigned char &last_byte = reinterpret_cast<unsigned char *>(result)[nbytes - 1];
+        if (bits_in_last_byte == 0) {
+                last_byte = 0;
+        } else {
+                const unsigned char mask = static_cast<unsigned char>((1u << bits_in_last_byte) - 1u);
+                last_byte &= mask;
+        }
 }
 
 

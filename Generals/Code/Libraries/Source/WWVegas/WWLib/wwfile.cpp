@@ -34,30 +34,42 @@
  * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#include <stdio.h>
-#include <stdarg.h>
+#include <cstdio>
+#include <cstdarg>
 #include <cstring>
 #include "wwfile.h"
 
+#ifdef _MSC_VER
 #pragma warning(disable : 4514)
+#endif
 
 int FileClass::Printf(char *str, ...)
 {
 	char text[PRINTF_BUFFER_SIZE];
 	va_list args;
 	va_start(args, str);
-	int length = _vsnprintf(text, PRINTF_BUFFER_SIZE, str, args);
-	va_end(args);
-	return Write(text, length);
+        int length = vsnprintf(text, PRINTF_BUFFER_SIZE, str, args);
+        if (length < 0 || length >= PRINTF_BUFFER_SIZE) {
+                length = PRINTF_BUFFER_SIZE - 1;
+                text[length] = '\0';
+        }
+        va_end(args);
+        return Write(text, length);
 }
 
 int FileClass::Printf(char *buffer, int bufferSize, char *str, ...)
 {
-	va_list args;
-	va_start(args, str);
-	int length = _vsnprintf(buffer, bufferSize, str, args);
-	va_end(args);
-	return Write(buffer, length);
+        va_list args;
+        va_start(args, str);
+        int length = vsnprintf(buffer, bufferSize, str, args);
+        if (length < 0 || length >= bufferSize) {
+                length = bufferSize > 0 ? bufferSize - 1 : 0;
+                if (bufferSize > 0) {
+                        buffer[length] = '\0';
+                }
+        }
+        va_end(args);
+        return Write(buffer, length);
 }
 
 int FileClass::Printf_Indented(unsigned depth, char *str, ...)
@@ -71,14 +83,19 @@ int FileClass::Printf_Indented(unsigned depth, char *str, ...)
 
 	std::memset(text, '\t', depth);
 
-	int length;
-	if(depth < PRINTF_BUFFER_SIZE) 
-		length = _vsnprintf(text + depth, PRINTF_BUFFER_SIZE - depth, str, args);
-	else
-		length = PRINTF_BUFFER_SIZE;
+        int length = 0;
+        if (depth < PRINTF_BUFFER_SIZE) {
+                length = vsnprintf(text + depth, PRINTF_BUFFER_SIZE - depth, str, args);
+                if (length < 0 || static_cast<unsigned int>(length) >= PRINTF_BUFFER_SIZE - depth) {
+                        length = PRINTF_BUFFER_SIZE - depth - 1;
+                        text[depth + length] = '\0';
+                }
+        } else {
+                length = 0;
+        }
 
-	va_end(args);
+        va_end(args);
 
-	return Write(text, length + depth);
+        return Write(text, length + depth);
 }
 

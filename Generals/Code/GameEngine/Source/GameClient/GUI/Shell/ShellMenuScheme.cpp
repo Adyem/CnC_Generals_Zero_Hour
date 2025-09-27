@@ -63,9 +63,9 @@
 const FieldParse ShellMenuSchemeManager::m_shellMenuSchemeFieldParseTable[] = 
 {
 
-	{ "ImagePart",						ShellMenuSchemeManager::parseImagePart,			NULL, NULL },
-	{ "LinePart",							ShellMenuSchemeManager::parseLinePart,	NULL, NULL },
-	{ NULL,										NULL,													NULL, 0 }  // keep this last
+	{ "ImagePart",					ShellMenuSchemeManager::parseImagePart,		nullptr, 0 },
+	{ "LinePart",						ShellMenuSchemeManager::parseLinePart,		nullptr, 0 },
+	{ nullptr,								nullptr,								nullptr, 0 }  // keep this last
 
 };
 
@@ -115,13 +115,14 @@ ShellMenuSchemeImage::ShellMenuSchemeImage( void )
 {
 	m_name.clear();
 	m_position.x = m_position.y = 0;
-	m_size.x = m_size.x = 0;
-	m_image = NULL;
+	m_size.x = 0;
+	m_size.y = 0;
+	m_image = nullptr;
 }
 
 ShellMenuSchemeImage::~ShellMenuSchemeImage( void )
 {
-	m_image = NULL;
+	m_image = nullptr;
 }
 
 ShellMenuScheme::ShellMenuScheme( void )
@@ -202,12 +203,12 @@ void ShellMenuScheme::draw( void )
 
 ShellMenuSchemeManager::ShellMenuSchemeManager( void )
 {
-	m_currentScheme = NULL;
+	m_currentScheme = nullptr;
 }
 
 ShellMenuSchemeManager::~ShellMenuSchemeManager( void )
 {
-	m_currentScheme = NULL;
+	m_currentScheme = nullptr;
 
 
 	ShellMenuSchemeListIt it = m_schemeList.begin();
@@ -225,10 +226,10 @@ void ShellMenuSchemeManager::parseImagePart(INI *ini, void *instance, void* /*st
 {
 	static const FieldParse myFieldParse[] = 
 		{
-			{ "Position",				INI::parseICoord2D,				NULL, offsetof( ShellMenuSchemeImage, m_position ) },
-			{ "Size",						INI::parseICoord2D,				NULL, offsetof( ShellMenuSchemeImage, m_size ) },
-      { "ImageName",			INI::parseMappedImage,		NULL, offsetof( ShellMenuSchemeImage, m_image ) },
-			{ NULL,							NULL,											NULL, 0 }  // keep this last
+			{ "Position",				INI::parseICoord2D,				nullptr, offsetof( ShellMenuSchemeImage, m_position ) },
+			{ "Size",						INI::parseICoord2D,				nullptr, offsetof( ShellMenuSchemeImage, m_size ) },
+      { "ImageName",			INI::parseMappedImage,		nullptr, offsetof( ShellMenuSchemeImage, m_image ) },
+			{ nullptr,							nullptr,											nullptr, 0 }  // keep this last
 		};
 
 	ShellMenuSchemeImage *schemeImage = NEW ShellMenuSchemeImage;
@@ -241,12 +242,12 @@ void ShellMenuSchemeManager::parseLinePart(INI *ini, void *instance, void* /*sto
 {
 	static const FieldParse myFieldParse[] = 
 		{
-			{ "StartPosition",		INI::parseICoord2D,				NULL, offsetof( ShellMenuSchemeLine, m_startPos ) },
-			{ "EndPosition",			INI::parseICoord2D,				NULL, offsetof( ShellMenuSchemeLine, m_endPos ) },
-      { "Color",						INI::parseColorInt,				NULL, offsetof( ShellMenuSchemeLine, m_color ) },
-			{ "Width",						INI::parseInt,						NULL, offsetof( ShellMenuSchemeLine, m_width ) },
+			{ "StartPosition",		INI::parseICoord2D,				nullptr, offsetof( ShellMenuSchemeLine, m_startPos ) },
+			{ "EndPosition",			INI::parseICoord2D,				nullptr, offsetof( ShellMenuSchemeLine, m_endPos ) },
+      { "Color",						INI::parseColorInt,				nullptr, offsetof( ShellMenuSchemeLine, m_color ) },
+			{ "Width",						INI::parseInt,						nullptr, offsetof( ShellMenuSchemeLine, m_width ) },
 			
-			{ NULL,								NULL,											NULL, 0 }  // keep this last
+			{ nullptr,								nullptr,											nullptr, 0 }  // keep this last
 		};
 
 	ShellMenuSchemeLine *schemeLine = NEW ShellMenuSchemeLine;
@@ -282,8 +283,8 @@ void ShellMenuSchemeManager::init( void )
 {
 	INI ini;
 	// Read from INI all the ControlBarSchemes
-	ini.load( AsciiString( "Data\\INI\\Default\\ShellMenuScheme.ini" ), INI_LOAD_OVERWRITE, NULL );
-	ini.load( AsciiString( "Data\\INI\\ShellMenuScheme.ini" ), INI_LOAD_OVERWRITE, NULL );
+	ini.load( AsciiString( "Data\\INI\\Default\\ShellMenuScheme.ini" ), INI_LOAD_OVERWRITE, nullptr );
+	ini.load( AsciiString( "Data\\INI\\ShellMenuScheme.ini" ), INI_LOAD_OVERWRITE, nullptr );
 
 }
 
@@ -291,7 +292,7 @@ void ShellMenuSchemeManager::setShellMenuScheme( AsciiString name )
 {
 	if(name.isEmpty())
 	{
-		m_currentScheme = NULL;
+		m_currentScheme = nullptr;
 		return;
 	}
 

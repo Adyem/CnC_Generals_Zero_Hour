@@ -43,7 +43,8 @@
 
 #include	"always.h"
 #include	"palette.h"
-#include	<string.h>
+#include	<algorithm>
+#include	<cstring>
 
 
 /***********************************************************************************************
@@ -69,7 +70,16 @@ PaletteClass::PaletteClass(RGBClass const & rgb)
 
 PaletteClass::PaletteClass(unsigned char *binary_palette)
 {
-	memcpy(&Palette[0], binary_palette, sizeof(Palette));
+	if (binary_palette == nullptr) {
+		return;
+	}
+
+	for (int index = 0; index < COLOR_COUNT; ++index) {
+		const int offset = index * 3;
+		Palette[index].Set_Red(binary_palette[offset]);
+		Palette[index].Set_Green(binary_palette[offset + 1]);
+		Palette[index].Set_Blue(binary_palette[offset + 2]);
+	}
 }
 
 /***********************************************************************************************
@@ -114,7 +124,7 @@ PaletteClass & PaletteClass::operator = (PaletteClass const & palette)
 {
 	if (this == &palette) return(*this);
 
-	memcpy(&Palette[0], &palette.Palette[0], sizeof(Palette));
+	std::copy(&palette.Palette[0], &palette.Palette[0] + COLOR_COUNT, &Palette[0]);
 	return(*this);
 }
 

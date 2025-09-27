@@ -120,7 +120,8 @@ int RandomClass::operator ()(void)
 	**	Extract the 'random' bits from the seed and return that value as the
 	**	random number result.
 	*/
-	return((Seed >> THROW_AWAY_BITS) & (~((~0) << SIGNIFICANT_BITS)));
+        const unsigned mask = ~(~0u << SIGNIFICANT_BITS);
+        return static_cast<int>((Seed >> THROW_AWAY_BITS) & mask);
 }
 
 

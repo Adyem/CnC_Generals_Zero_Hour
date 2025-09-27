@@ -76,13 +76,14 @@
  * HISTORY:                                                                                    * 
  *   05/26/1997 JLB : Created.                                                                 * 
  *=============================================================================================*/
-WWFontClass::WWFontClass(void const * fontdata, bool isoutlined, int shadow, ConvertClass *convert, unsigned char *remap) : 
-	IsOutlinedData(isoutlined), 
-	Shadow(shadow),
-	Converter(convert),
-	RemapPalette(remap),
-	FontXSpacing(0), 
-	FontYSpacing(0)
+WWFontClass::WWFontClass(void const * fontdata, bool isoutlined, int shadow, ConvertClass *convert, unsigned char *remap) :
+        IsOutlinedData(isoutlined),
+        Shadow(shadow),
+        FontXSpacing(0),
+        FontYSpacing(0),
+        FontData(nullptr),
+        RemapPalette(remap),
+        Converter(convert)
 {
 	Set_Font_Data(fontdata);
 }

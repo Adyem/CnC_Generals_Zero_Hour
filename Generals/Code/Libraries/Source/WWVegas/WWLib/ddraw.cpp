@@ -52,6 +52,8 @@
 #include <stdio.h>
 
 
+#if WW3D_ENABLE_LEGACY_DX8
+
 LPDIRECTDRAW DirectDrawObject = NULL;	// Pointer to the direct draw object
 LPDIRECTDRAW2 DirectDraw2Interface = NULL;  	// Pointer to direct draw 2 interface
 
@@ -644,3 +646,26 @@ void Wait_Blit (void)
 	} while (return_code != DD_OK && return_code != DDERR_SURFACELOST);
 }
 
+
+#else
+
+unsigned char CurrentPalette[768] = {0};
+bool Debug_Windowed = false;
+
+LPDIRECTDRAWSURFACE PaletteSurface = nullptr;
+LPDIRECTDRAW DirectDrawObject = nullptr;
+LPDIRECTDRAW2 DirectDraw2Interface = nullptr;
+bool SurfacesRestored = false;
+
+void Prep_Direct_Draw(void) {}
+void Process_DD_Result(HRESULT /*result*/, int /*display_ok_msg*/) {}
+bool Set_Video_Mode(HWND /*hwnd*/, int /*w*/, int /*h*/, int /*bits_per_pixel*/) { return false; }
+void Reset_Video_Mode(void) {}
+unsigned Get_Free_Video_Memory(void) { return 0; }
+void Wait_Blit(void) {}
+unsigned Get_Video_Hardware_Capabilities(void) { return 0; }
+extern "C" void Wait_Vert_Blank(void) {}
+void Set_Palette(PaletteClass const & /*pal*/, int /*time*/, void (* /*callback*/)(void)) {}
+void Set_Palette(void const * /*palette*/) {}
+
+#endif // WW3D_ENABLE_LEGACY_DX8

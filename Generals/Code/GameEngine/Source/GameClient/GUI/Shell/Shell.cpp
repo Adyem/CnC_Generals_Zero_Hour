@@ -664,6 +664,7 @@ void Shell::doPop( Bool impendingPush )
 //-------------------------------------------------------------------------------------------------
 void Shell::shutdownComplete( WindowLayout *screen, Bool impendingPush )
 {
+	(void)screen;
 
 	// there should never be a pending push AND pop operation
 	DEBUG_ASSERTCRASH( m_pendingPush == FALSE || m_pendingPop == FALSE,

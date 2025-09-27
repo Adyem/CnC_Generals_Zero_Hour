@@ -34,7 +34,9 @@
  * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+#ifdef _MSC_VER
 #pragma warning(disable : 4514)
+#endif
 
 #include "widestring.h"
 #include "win.h"

@@ -40,7 +40,9 @@
 #include	"palette.h"
 #include	"win.h"
 #include	"xsurface.h"
-#include	<ddraw.h>
+
+#if WW3D_ENABLE_LEGACY_DX8
+#include <Compat/D3D/ddraw.h>
 
 /*
 **	This is a concrete surface class that is based on the DirectDraw
@@ -201,5 +203,80 @@ class DSurface : public XSurface
 		DSurface(DSurface const & rvalue);
 		DSurface const operator = (DSurface const & rvalue);
 };
+#else
+
+class DSurface : public XSurface
+{
+        typedef XSurface BASECLASS;
+
+public:
+        virtual ~DSurface(void) = default;
+
+        DSurface(void) = default;
+        DSurface(int width, int height, bool system_memory = false, void * = nullptr)
+                : BASECLASS(width, height)
+        {
+                (void)system_memory;
+        }
+
+        explicit DSurface(void *) {}
+
+        HDC GetDC(void) { return nullptr; }
+        int ReleaseDC(HDC) { return 0; }
+
+        static DSurface * Create_Primary(DSurface ** backsurface1 = NULL)
+        {
+                (void)backsurface1;
+                return NULL;
+        }
+
+        virtual bool Blit_From(Rect const & dcliprect, Rect const & destrect, Surface const & source, Rect const & scliprect, Rect const & sourcerect, bool trans=false)
+        {
+                return BASECLASS::Blit_From(dcliprect, destrect, source, scliprect, sourcerect, trans);
+        }
+        virtual bool Blit_From(Rect const & destrect, Surface const & source, Rect const & sourcerect, bool trans=false)
+        {
+                return BASECLASS::Blit_From(destrect, source, sourcerect, trans);
+        }
+
+        virtual bool Fill_Rect(Rect const & rect, int color)
+        {
+                return BASECLASS::Fill_Rect(rect, color);
+        }
+        virtual bool Fill_Rect(Rect const & cliprect, Rect const & fillrect, int color)
+        {
+                return BASECLASS::Fill_Rect(cliprect, fillrect, color);
+        }
+
+        virtual void * Lock(Point2D point = Point2D(0, 0)) const
+        {
+                return BASECLASS::Lock(point);
+        }
+        virtual bool Unlock(void) const
+        {
+                return BASECLASS::Unlock();
+        }
+
+        virtual int Bytes_Per_Pixel(void) const
+        {
+                return 0;
+        }
+        virtual int Stride(void) const
+        {
+                return 0;
+        }
+        virtual bool Is_Direct_Draw(void) const { return false; }
+
+        static int Build_Hicolor_Pixel(int, int, int) { return 0; }
+        static void Build_Remap_Table(unsigned short *, PaletteClass const &) {}
+        static unsigned short Get_Halfbright_Mask(void) { return 0; }
+        static unsigned short Get_Quarterbright_Mask(void) { return 0; }
+        static unsigned short Get_Eighthbright_Mask(void) { return 0; }
+
+protected:
+        using BASECLASS::LockCount;
+};
+
+#endif // WW3D_ENABLE_LEGACY_DX8
 
 #endif

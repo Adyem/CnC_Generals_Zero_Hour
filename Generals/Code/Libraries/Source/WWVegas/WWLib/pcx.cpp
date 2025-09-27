@@ -65,15 +65,7 @@
  *   04/30/1996 ST : Tidied up and modified to use CCFileClass             *
  *=========================================================================*/
 #define	POOL_SIZE 2048
-#define	READ_CHAR()  *file_ptr++ ; \
-							 if ( file_ptr	>= & pool [ POOL_SIZE ]	) { \
-								 file_handle.Read (pool, POOL_SIZE ); \
-								 file_ptr = pool ; \
-							 }
-#define	READ_CHARx()  *file_ptr++ ; \
-							 if ( file_ptr	>= & pool [ POOL_SIZE ]	) { \
-								 file_handle.Read (pool, POOL_SIZE ); \
-							 }
+
 
 
 Surface * Read_PCX_File(FileClass & file_handle, PaletteClass * palette, void * Buff, long Size)
@@ -117,16 +109,27 @@ Surface * Read_PCX_File(FileClass & file_handle, PaletteClass * palette, void * 
 		file_ptr = pool ;
 		file_handle.Read (pool, POOL_SIZE);
 
+		auto pull_byte = [&](void) -> unsigned char {
+			unsigned char value = static_cast<unsigned char>(*file_ptr++);
+			if (file_ptr >= &pool[POOL_SIZE]) {
+				file_handle.Read(pool, POOL_SIZE);
+				file_ptr = pool;
+			}
+			return value;
+		};
+
+		auto discard_byte = [&]() { (void)pull_byte(); };
+
 		if ( header.byte_per_line != width ) {
 
 			i = 0;
 			rle = 0;
 			for ( scan_pos = j = 0 ; j < height ; j ++, scan_pos += width ) {
 				for ( i = 0 ; i < width ; ) {
-					rle = READ_CHAR ();
+					rle = pull_byte();
 					if ( rle > 192 ) {
 						rle -= 192 ;
-						color =	READ_CHAR (); ;
+						color =	pull_byte();
 						memset ( buffer + scan_pos + i, color, rle );
 						i += rle;
 					} else {
@@ -135,17 +138,17 @@ Surface * Read_PCX_File(FileClass & file_handle, PaletteClass * palette, void * 
 				}
      		}
 
-			if ( i == width ) rle = READ_CHAR ();
-			if ( rle > 192 )  READ_CHARx();
+			if ( i == width ) rle = pull_byte();
+			if ( rle > 192 )  discard_byte();
 
 		} else {
 
 			for ( i = 0 ; i < width * height ; ) {
-  				rle = READ_CHAR ();
+  				rle = pull_byte();
   				rle &= 0xff;
   				if ( rle > 192 ) {
         			rle -= 192 ;
-        			color = READ_CHAR ();
+        			color = pull_byte();
   					memset ( buffer + i, color, rle );
         			i += rle ;
      			} else {

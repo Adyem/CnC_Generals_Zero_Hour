@@ -48,13 +48,15 @@
 #ifndef __WINDOWVIDEOMANAGER_H_
 #define __WINDOWVIDEOMANAGER_H_
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------- 
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------- 
+#include <functional>
+#include <unordered_map>
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------- 
 // USER INCLUDES //////////////////////////////////////////////////////////////
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------- 
 
 //-----------------------------------------------------------------------------
 // FORWARD REFERENCES /////////////////////////////////////////////////////////
@@ -147,16 +149,15 @@ private:
 
 	typedef const GameWindow* ConstGameWindowPtr;
 	// use special class for hashing, since std::hash won't compile for arbitrary ptrs
-	struct hashConstGameWindowPtr
-	{
-	size_t operator()(ConstGameWindowPtr p) const
-	{
-		std::hash<UnsignedInt> hasher;
-		return hasher((UnsignedInt)p);
-	}
-	};
+        struct hashConstGameWindowPtr
+        {
+                size_t operator()(ConstGameWindowPtr p) const noexcept
+                {
+                        return std::hash<ConstGameWindowPtr>{}(p);
+                }
+        };
 
-    typedef std::unordered_map< ConstGameWindowPtr, WindowVideo *, hashConstGameWindowPtr, std::equal_to<ConstGameWindowPtr> > WindowVideoMap;
+        using WindowVideoMap = std::unordered_map<ConstGameWindowPtr, WindowVideo*, hashConstGameWindowPtr, std::equal_to<ConstGameWindowPtr>>;
 
 	WindowVideoMap m_playingVideos;								///< List of currently playin Videos
 	//WindowVideoMap m_pausedVideos;									///< List of currently paused Videos

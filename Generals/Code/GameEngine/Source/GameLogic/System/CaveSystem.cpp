@@ -34,7 +34,10 @@
 #include "Common/Xfer.h"
 #include "GameLogic/CaveSystem.h"
 
-CaveSystem *TheCaveSystem = NULL;
+#include <cstddef>
+#include <limits>
+
+CaveSystem *TheCaveSystem = nullptr;
 
 CaveSystem::CaveSystem()
 {
@@ -67,68 +70,87 @@ void CaveSystem::update()
 
 Bool CaveSystem::canSwitchIndexToIndex( Int oldIndex, Int newIndex )
 {
-	// When I grant permission, you need to do it.  ie call Unregister and then re-register with the new number
-	TunnelTracker *oldTracker = NULL;
-	TunnelTracker *newTracker = NULL;
-	if( m_tunnelTrackerVector.size() > oldIndex )
-	{
-		oldTracker = m_tunnelTrackerVector[oldIndex];
-		if( oldTracker && oldTracker->getContainCount() > 0 )
-			return FALSE;// You can't switch a connection if one of the two is non empty
-	}
-	if( m_tunnelTrackerVector.size() > newIndex )
-	{
-		newTracker = m_tunnelTrackerVector[newIndex];
-		if( newTracker && newTracker->getContainCount() > 0 )
-			return FALSE;// You can't switch a connection if one of the two is non empty
-	}
+        // When I grant permission, you need to do it.  ie call Unregister and then re-register with the new number
+        TunnelTracker *oldTracker = nullptr;
+        TunnelTracker *newTracker = nullptr;
+        if( oldIndex >= 0 )
+        {
+                const std::size_t oldIndexUnsigned = static_cast<std::size_t>( oldIndex );
+                if( oldIndexUnsigned < m_tunnelTrackerVector.size() )
+                {
+                        oldTracker = m_tunnelTrackerVector[oldIndexUnsigned];
+                        if( oldTracker && oldTracker->getContainCount() > 0 )
+                                return FALSE;// You can't switch a connection if one of the two is non empty
+                }
+        }
+        if( newIndex >= 0 )
+        {
+                const std::size_t newIndexUnsigned = static_cast<std::size_t>( newIndex );
+                if( newIndexUnsigned < m_tunnelTrackerVector.size() )
+                {
+                        newTracker = m_tunnelTrackerVector[newIndexUnsigned];
+                        if( newTracker && newTracker->getContainCount() > 0 )
+                                return FALSE;// You can't switch a connection if one of the two is non empty
+                }
+        }
 
-	// Both are either empty or non-existent, so go ahead.  
-	// (Remember non-exist is only a valid case because you are going to do the switch now.)
+        // Both are either empty or non-existent, so go ahead.
+        // (Remember non-exist is only a valid case because you are going to do the switch now.)
 
-	return TRUE;
+        return TRUE;
 }
 
 void CaveSystem::registerNewCave( Int theIndex )
 {
 	Bool needToCreate = FALSE;
-	if( theIndex >= m_tunnelTrackerVector.size() )
-	{
-		// You are new and off the edge, so I will fill NULLs up to you and then make a newTracker at that spot
-		while( theIndex >= m_tunnelTrackerVector.size() )
-			m_tunnelTrackerVector.push_back( NULL );
+        if( theIndex < 0 )
+        {
+                DEBUG_ASSERTCRASH( theIndex >= 0, ("registerNewCave called with negative index") );
+                return;
+        }
 
-		needToCreate = TRUE;
-	}
-	else
-	{
-		// else you either exist or have existed, so I will either let things be or re-create that slot
-		if( m_tunnelTrackerVector[theIndex] == NULL )
-			needToCreate = TRUE;
-	}
+        const std::size_t targetIndex = static_cast<std::size_t>( theIndex );
+        if( targetIndex >= m_tunnelTrackerVector.size() )
+        {
+                // You are new and off the edge, so I will fill empty slots up to you and then make a newTracker at that spot
+                while( targetIndex >= m_tunnelTrackerVector.size() )
+                        m_tunnelTrackerVector.push_back( nullptr );
 
-	if( needToCreate )// if true, we new theIndex is the index of a NULL to be filled
-		m_tunnelTrackerVector[theIndex] = newInstance(TunnelTracker);
+                needToCreate = TRUE;
+        }
+        else
+        {
+                // else you either exist or have existed, so I will either let things be or re-create that slot
+                if( m_tunnelTrackerVector[targetIndex] == nullptr )
+                        needToCreate = TRUE;
+        }
+
+        if( needToCreate )// if true, we know theIndex is the index of a nullptr to be filled
+                m_tunnelTrackerVector[targetIndex] = newInstance(TunnelTracker);
 }
 
 void CaveSystem::unregisterCave( Int theIndex )
 {
 	// Doesn't need to do a thing.  ContainModule logic knows how to say goodbye, and a TunnelTracker
 	// knows how to exist while having no entry points.
-	theIndex;
+        (void)theIndex;
 }
 
 TunnelTracker *CaveSystem::getTunnelTrackerForCaveIndex( Int theIndex )
 {
-	TunnelTracker *theTracker = NULL;
-	if( theIndex < m_tunnelTrackerVector.size() )
-	{
-		theTracker = m_tunnelTrackerVector[theIndex];
-	}
+        TunnelTracker *theTracker = nullptr;
+        if( theIndex >= 0 )
+        {
+                const std::size_t targetIndex = static_cast<std::size_t>( theIndex );
+                if( targetIndex < m_tunnelTrackerVector.size() )
+                {
+                        theTracker = m_tunnelTrackerVector[targetIndex];
+                }
+        }
 
-	DEBUG_ASSERTCRASH( theTracker != NULL, ("No one should be interested in a sub-cave that doesn't exist.") );
+        DEBUG_ASSERTCRASH( theTracker != nullptr, ("No one should be interested in a sub-cave that doesn't exist.") );
 
-	return theTracker;
+        return theTracker;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -145,7 +167,9 @@ void CaveSystem::xfer( Xfer *xfer )
 	xfer->xferVersion( &version, currentVersion );
 
 	// tunnel tracker size and data
-	UnsignedShort count = m_tunnelTrackerVector.size();
+        DEBUG_ASSERTCRASH( m_tunnelTrackerVector.size() <= std::numeric_limits<UnsignedShort>::max(),
+                ( "CaveSystem::xfer - tunnel tracker count exceeds serialization limits" ) );
+        UnsignedShort count = static_cast< UnsignedShort >( m_tunnelTrackerVector.size() );
 	xfer->xferUnsignedShort( &count );
 	TunnelTracker *tracker;
 	if( xfer->getXferMode() == XFER_SAVE )

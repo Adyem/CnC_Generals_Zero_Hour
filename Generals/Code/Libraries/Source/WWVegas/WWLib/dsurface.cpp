@@ -54,6 +54,8 @@
 #include	"dsurface.h"
 #include	<assert.h>
 
+#if WW3D_ENABLE_LEGACY_DX8
+
 extern	LPDIRECTDRAW	DirectDrawObject;	//pointer to direct draw object
 extern	LPDIRECTDRAWSURFACE	PaletteSurface;
 
@@ -929,3 +931,5 @@ void DSurface::Build_Remap_Table(unsigned short * table, PaletteClass const & pa
 }
 
 
+
+#endif // WW3D_ENABLE_LEGACY_DX8

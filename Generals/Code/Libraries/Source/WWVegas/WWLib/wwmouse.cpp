@@ -737,7 +737,7 @@ void WWMouseClass::Hide_Mouse(void)
  *=============================================================================================*/
 void WWMouseClass::Capture_Mouse(void)
 {
-	if (this != NULL && !Is_Captured()) {
+        if (!Is_Captured()) {
 		Block_Mouse();
 		Hide_Mouse();
 		IsCaptured = true;
@@ -775,7 +775,7 @@ void WWMouseClass::Capture_Mouse(void)
  *=============================================================================================*/
 void WWMouseClass::Release_Mouse(void)
 {
-	if (this != NULL && Is_Captured()) {
+        if (Is_Captured()) {
 		Block_Mouse();
 		if (!Is_Hidden()) Low_Hide_Mouse();
 		IsCaptured = false;
