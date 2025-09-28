@@ -57,7 +57,23 @@
 #include <mutex>
 #include <vector>
 
+#include <cstdint>
+
+#ifndef WW3D_VLC_AVAILABLE
+#if __has_include(<vlc/vlc.h>)
+#define WW3D_VLC_AVAILABLE 1
+#else
+#define WW3D_VLC_AVAILABLE 0
+#endif
+#endif
+
+#if WW3D_VLC_AVAILABLE
 #include <vlc/vlc.h>
+#else
+struct libvlc_instance_t;
+struct libvlc_media_player_t;
+using libvlc_time_t = std::int64_t;
+#endif
 
 class VideoSoundBridge;
 

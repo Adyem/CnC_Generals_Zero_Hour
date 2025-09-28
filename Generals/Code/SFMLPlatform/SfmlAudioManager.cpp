@@ -17,7 +17,17 @@
 #include "GameLogic/TerrainLogic.h"
 #include "Lib/BaseType.h"
 
+#ifndef WW3D_VLC_AVAILABLE
+#if __has_include(<vlc/vlc.h>)
+#define WW3D_VLC_AVAILABLE 1
+#else
+#define WW3D_VLC_AVAILABLE 0
+#endif
+#endif
+
+#if WW3D_VLC_AVAILABLE
 #include <vlc/vlc.h>
+#endif
 
 #include <SFML/Audio/Listener.hpp>
 #include <SFML/Audio/Music.hpp>
@@ -128,6 +138,7 @@ private:
     bool m_running;
 };
 
+#if WW3D_VLC_AVAILABLE
 class SfmlVlcAudioBridge : public VideoSoundBridge {
 public:
     SfmlVlcAudioBridge()
@@ -250,6 +261,7 @@ private:
     unsigned m_channelCount;
     unsigned m_sampleRate;
 };
+#endif // WW3D_VLC_AVAILABLE
 
 } // namespace
 
@@ -696,7 +708,11 @@ void SfmlAudioManager::closeAnySamplesUsingFile(const void*) {}
 
 std::unique_ptr<VideoSoundBridge> SfmlAudioManager::createVideoSoundBridge()
 {
+#if WW3D_VLC_AVAILABLE
     return std::unique_ptr<VideoSoundBridge>(new SfmlVlcAudioBridge());
+#else
+    return std::unique_ptr<VideoSoundBridge>();
+#endif
 }
 
 void SfmlAudioManager::processRequestList() {

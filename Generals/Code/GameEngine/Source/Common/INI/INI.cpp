@@ -31,6 +31,7 @@
 #include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
 
 #include "Common/INI.h"
+#include <cstdint>
 #include "Common/INIException.h"
 
 #include "Common/DamageFX.h"
@@ -314,26 +315,25 @@ static INIBlockParse findBlockParse(const char* token)
 //-------------------------------------------------------------------------------------------------
 static INIFieldParseProc findFieldParse(const FieldParse* parseTable, const char* token, int& offset, const void*& userData)
 {
-	for (const FieldParse* parse = parseTable; parse->token; ++parse)
-	{
-		if (strcmp( parse->token, token ) == 0)
-		{
-			offset = parse->offset;
-			userData = parse->userData;
-			return parse->parse;
-		}
-	}
+        const FieldParse* parse = parseTable;
+        for (; parse->token; ++parse)
+        {
+                if (strcmp( parse->token, token ) == 0)
+                {
+                        offset = parse->offset;
+                        userData = parse->userData;
+                        return parse->parse;
+                }
+        }
 
-	if (!parse->token && parse->parse) 
-	{
-		offset = parse->offset;
-		userData = token;
-		return parse->parse;
-	}
-	else
-	{
-		return NULL;
-	}
+        if (parse->parse)
+        {
+                offset = parse->offset;
+                userData = token;
+                return parse->parse;
+        }
+
+        return NULL;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -627,7 +627,7 @@ void INI::parseBool( INI* ini, void * /*instance*/, void *store, const void* /*u
 void INI::parseBitInInt32( INI *ini, void *instance, void *store, const void* userData )
 {
 	UnsignedInt* s = (UnsignedInt*)store;
-	UnsignedInt mask = (UnsignedInt)userData;
+        UnsignedInt mask = static_cast<UnsignedInt>(reinterpret_cast<std::uintptr_t>(userData));
 
 	if (INI::scanBool(ini->getNextToken()))
 		*s |= mask;
@@ -1497,10 +1497,10 @@ void INI::initFromINIMulti( void *what, const MultiIniFieldParse& parseTableList
 			else
 			{
 				Bool found = false;
-				for (int ptIdx = 0; ptIdx < parseTableList.getCount(); ++ptIdx)
-				{
-					int offset = 0;
-					void* userData = 0;
+                                for (int ptIdx = 0; ptIdx < parseTableList.getCount(); ++ptIdx)
+                                {
+                                        int offset = 0;
+                                        const void* userData = NULL;
 					INIFieldParseProc parse = findFieldParse(parseTableList.getNthFieldParse(ptIdx), field, offset, userData);
 					if (parse)
 					{

@@ -44,7 +44,11 @@
 #include <string>
 #include <climits>
 
+#if WW3D_VLC_AVAILABLE
 #include <vlc/libvlc_media.h>
+#endif
+
+#if WW3D_VLC_AVAILABLE
 
 //----------------------------------------------------------------------------
 //         Defines
@@ -747,3 +751,202 @@ void VlcVideoPlayer::notifyVideoPlayerOfNewProvider(Bool nowHasValid)
                 initializeAudioBridge();
         }
 }
+
+#else // WW3D_VLC_AVAILABLE
+
+VlcVideoStream::VlcVideoStream()
+:       m_instance(NULL),
+        m_mediaPlayer(NULL),
+        m_frameAvailable(FALSE),
+        m_width(0),
+        m_height(0),
+        m_pitch(0),
+        m_frameRate(0.0f),
+        m_frameCounter(0),
+        m_totalFrames(0),
+        m_duration(0),
+        m_playbackInitialized(FALSE)
+{
+}
+
+VlcVideoStream::~VlcVideoStream() = default;
+
+void VlcVideoStream::shutdown()
+{
+        std::lock_guard<std::mutex> lock(m_frameMutex);
+        m_frameBuffer.clear();
+        m_backBuffer.clear();
+        m_frameAvailable = FALSE;
+        m_frameCounter = 0;
+        m_totalFrames = 0;
+        m_width = 0;
+        m_height = 0;
+        m_pitch = 0;
+        m_frameRate = 0.0f;
+        m_duration = 0;
+        m_playbackInitialized = FALSE;
+        m_instance = NULL;
+        m_mediaPlayer = NULL;
+}
+
+Bool VlcVideoStream::initialize([[maybe_unused]] libvlc_instance_t* instance,
+        [[maybe_unused]] const AsciiString& sourcePath)
+{
+        shutdown();
+        return FALSE;
+}
+
+void VlcVideoStream::update(void)
+{
+}
+
+Bool VlcVideoStream::isFrameReady(void)
+{
+        return FALSE;
+}
+
+void VlcVideoStream::frameDecompress(void)
+{
+}
+
+void VlcVideoStream::frameRender([[maybe_unused]] VideoBuffer* buffer)
+{
+}
+
+void VlcVideoStream::frameNext(void)
+{
+}
+
+Int VlcVideoStream::frameIndex(void)
+{
+        return 0;
+}
+
+Int VlcVideoStream::frameCount(void)
+{
+        return 0;
+}
+
+void VlcVideoStream::frameGoto([[maybe_unused]] Int index)
+{
+}
+
+Int VlcVideoStream::height(void)
+{
+        return 0;
+}
+
+Int VlcVideoStream::width(void)
+{
+        return 0;
+}
+
+void VlcVideoStream::close(void)
+{
+        shutdown();
+}
+
+void VlcVideoStream::ensurePlaybackStarted()
+{
+}
+
+Int VlcVideoStream::calculateFrameIndex() const
+{
+        return 0;
+}
+
+void* VlcVideoStream::lockCallback([[maybe_unused]] void* opaque,
+        [[maybe_unused]] void** planes)
+{
+        if (planes)
+        {
+                *planes = NULL;
+        }
+        return NULL;
+}
+
+void VlcVideoStream::unlockCallback([[maybe_unused]] void* opaque,
+        [[maybe_unused]] void* picture,
+        [[maybe_unused]] void* const* planes)
+{
+}
+
+void VlcVideoStream::displayCallback([[maybe_unused]] void* opaque,
+        [[maybe_unused]] void* picture)
+{
+}
+
+void VlcVideoStream::handleDisplay([[maybe_unused]] void* picture)
+{
+}
+
+VlcVideoPlayer::VlcVideoPlayer()
+:       m_instance(NULL)
+{
+}
+
+VlcVideoPlayer::~VlcVideoPlayer() = default;
+
+void VlcVideoPlayer::init(void)
+{
+        VideoPlayer::init();
+        m_audioBridge.reset();
+}
+
+void VlcVideoPlayer::initializeAudioBridge()
+{
+        m_audioBridge.reset();
+}
+
+void VlcVideoPlayer::reset(void)
+{
+        VideoPlayer::reset();
+}
+
+void VlcVideoPlayer::update(void)
+{
+        VideoPlayer::update();
+}
+
+void VlcVideoPlayer::deinit(void)
+{
+        VideoPlayer::deinit();
+        m_audioBridge.reset();
+        m_instance = NULL;
+}
+
+void VlcVideoPlayer::loseFocus(void)
+{
+        VideoPlayer::loseFocus();
+}
+
+void VlcVideoPlayer::regainFocus(void)
+{
+        VideoPlayer::regainFocus();
+}
+
+AsciiString VlcVideoPlayer::resolveMoviePath([[maybe_unused]] const Video* video) const
+{
+        return AsciiString();
+}
+
+VideoStreamInterface* VlcVideoPlayer::createStream([[maybe_unused]] const AsciiString& resolvedPath)
+{
+        return nullptr;
+}
+
+VideoStreamInterface* VlcVideoPlayer::open([[maybe_unused]] AsciiString movieTitle)
+{
+        return nullptr;
+}
+
+VideoStreamInterface* VlcVideoPlayer::load([[maybe_unused]] AsciiString movieTitle)
+{
+        return nullptr;
+}
+
+void VlcVideoPlayer::notifyVideoPlayerOfNewProvider([[maybe_unused]] Bool nowHasValid)
+{
+}
+
+#endif // WW3D_VLC_AVAILABLE
