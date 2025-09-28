@@ -4,6 +4,16 @@
 
 using GPProfile = int;
 using GPResult = int;
+using GPEnum = int;
+using GPErrorCode = int;
+
+constexpr int GP_NICK_LEN = 32;
+constexpr int GP_EMAIL_LEN = 64;
+constexpr int GP_PASSWORD_LEN = 32;
+constexpr int GP_STATUS_STRING_LEN = 256;
+constexpr int GP_LOCATION_STRING_LEN = 128;
+constexpr int GP_COUNTRYCODE_LEN = 4;
+constexpr int GP_REASON_LEN = 256;
 
 constexpr GPResult GP_NO_ERROR = 0;
 constexpr GPResult GP_MEMORY_ERROR = 1;
@@ -19,6 +29,8 @@ constexpr int GP_STATUS_OFFLINE = 0;
 constexpr int GP_STATUS_ONLINE = 1;
 constexpr int GP_CHATTING = 2;
 constexpr int GP_ONLINE = GP_STATUS_ONLINE;
+constexpr int GP_PLAYING = 3;
+constexpr int GP_STAGING = 4;
 
 constexpr int GP_GENERAL = 0;
 constexpr int GP_PARSE = 1;

@@ -31,6 +31,9 @@
 // INCLUDES ///////////////////////////////////////////////////////////////////////////
 #include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
 
+#if defined(WW_ENABLE_GHTTP)
+
+
 #include <fcntl.h>
 
 //#include "Common/Registry.h"
@@ -896,3 +899,40 @@ static void reallyStartPatchCheck( void )
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
+
+#else
+
+#include "GameNetwork/GameSpy/MainMenuUtils.h"
+#include "GameNetwork/DownloadManager.h"
+
+void HTTPThinkWrapper(void) {}
+
+void StopAsyncDNSCheck(void) {}
+
+void StartPatchCheck(void) {}
+
+void CancelPatchCheckCallback(void) {}
+
+void StartDownloadingPatches(void)
+{
+        if (TheDownloadManager) {
+                TheDownloadManager->reset();
+        }
+}
+
+void HandleCanceledDownload(Bool)
+{
+        if (TheDownloadManager) {
+                TheDownloadManager->reset();
+        }
+}
+
+void CheckOverallStats(void) {}
+
+void HandleOverallStats(const OverallStats &, const OverallStats &, const OverallStats &) {}
+
+void CheckNumPlayersOnline(void) {}
+
+void HandleNumPlayersOnline(Int) {}
+
+#endif // defined(WW_ENABLE_GHTTP)

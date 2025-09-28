@@ -79,6 +79,8 @@ GameSpyGameSlot::GameSpyGameSlot()
 ** Function definitions for the MIB-II entry points.
 */
 
+#if defined(WW_ENABLE_SNMP_QUERIES)
+
 BOOL (__stdcall *SnmpExtensionInitPtr)(IN DWORD dwUpTimeReference, OUT HANDLE *phSubagentTrapEvent, OUT AsnObjectIdentifier *pFirstSupportedRegion);
 BOOL (__stdcall *SnmpExtensionQueryPtr)(IN BYTE bPduType, IN OUT RFC1157VarBindList *pVarBindList, OUT AsnInteger32 *pErrorStatus, OUT AsnInteger32 *pErrorIndex);
 LPVOID (__stdcall *SnmpUtilMemAllocPtr)(IN DWORD bytes);
@@ -455,10 +457,22 @@ Bool GetLocalChatConnectionAddress(AsciiString serverName, UnsignedShort serverP
 		DEBUG_LOG(("Using address 0x%8.8X to talk to chat server\n", localIP));
 	}
 
-	FreeLibrary(snmpapi_dll);
-	FreeLibrary(mib_ii_dll);
-	return(found);
+FreeLibrary(snmpapi_dll);
+FreeLibrary(mib_ii_dll);
+return(found);
 }
+
+#else
+
+Bool GetLocalChatConnectionAddress(AsciiString serverName, UnsignedShort serverPort, UnsignedInt& localIP)
+{
+(void)serverName;
+(void)serverPort;
+localIP = 0;
+return false;
+}
+
+#endif // defined(WW_ENABLE_SNMP_QUERIES)
 
 // GameSpyGameSlot ----------------------------------------
 
