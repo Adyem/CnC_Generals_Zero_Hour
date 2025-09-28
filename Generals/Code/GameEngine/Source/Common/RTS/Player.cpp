@@ -44,6 +44,8 @@
 
 #include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
 
+#include <algorithm>
+
 #define DEFINE_SCIENCE_AVAILABILITY_NAMES
 
 #include "Common/ActionManager.h"
@@ -1698,7 +1700,8 @@ void Player::setUnitsShouldHunt(Bool unitsShouldHunt, CommandSourceType source)
 //=============================================================================
 void Player::killPlayer(void)
 {
-	for (PlayerTeamList::iterator it = m_playerTeamPrototypes.begin(); it != m_playerTeamPrototypes.end(); ++it) {
+        PlayerTeamList::iterator it;
+        for (it = m_playerTeamPrototypes.begin(); it != m_playerTeamPrototypes.end(); ++it) {
 		for (DLINK_ITERATOR<Team> iter = (*it)->iterate_TeamInstanceList(); !iter.done(); iter.advance()) {
 			Team *team = iter.cur();
 			if (!team) {
@@ -1710,7 +1713,7 @@ void Player::killPlayer(void)
 
 	m_isPlayerDead = TRUE; // this is so OCLs don't ever again spawn useful units for us.
 
-	for (it = m_playerTeamPrototypes.begin(); it != m_playerTeamPrototypes.end(); ++it) {
+        for (it = m_playerTeamPrototypes.begin(); it != m_playerTeamPrototypes.end(); ++it) {
 		for (DLINK_ITERATOR<Team> iter = (*it)->iterate_TeamInstanceList(); !iter.done(); iter.advance()) {
 			Team *team = iter.cur();
 			if (!team) {
@@ -2110,11 +2113,11 @@ Bool Player::addSkillPoints(Int delta)
 	if( delta == 0 )
 		return false;
 
-	Int levelCap = min( TheGameLogic->getRankLevelLimit(), TheRankInfoStore->getRankLevelCount() );
+        Int levelCap = std::min<Int>( TheGameLogic->getRankLevelLimit(), TheRankInfoStore->getRankLevelCount() );
 	Int pointCap = TheRankInfoStore->getRankInfo(levelCap)->m_skillPointsNeeded; // Cap at lowest point of cap level, not highest.
 
 	Bool levelGained = FALSE;
-	m_skillPoints = min( pointCap, (m_skillPoints + delta) );
+        m_skillPoints = std::min<Int>( pointCap, (m_skillPoints + delta) );
 	while( m_skillPoints >= m_levelUp )
 	{
 		// LevelUp gets increased as a side effect of setRankLevel, and this won't infinitely loop,
@@ -3019,8 +3022,8 @@ void Player::changeBattlePlan( BattlePlanStatus plan, Int delta, BattlePlanBonus
 	else if( removeBonus )
 	{
 		//First, inverse the bonuses
-		bonus->m_armorScalar				= 1.0f / __max( bonus->m_armorScalar, 0.01f );
-		bonus->m_sightRangeScalar		= 1.0f / __max( bonus->m_sightRangeScalar, 0.01f );
+		bonus->m_armorScalar				= 1.0f / std::max( bonus->m_armorScalar, 0.01f );
+		bonus->m_sightRangeScalar		= 1.0f / std::max( bonus->m_sightRangeScalar, 0.01f );
 		if( bonus->m_bombardment > 0 )
 		{
 			bonus->m_bombardment			= -1;
@@ -3152,8 +3155,8 @@ void Player::removeBattlePlanBonusesForObject( Object *obj ) const
 	//Copy bonuses, and invert them.
 	BattlePlanBonuses* bonus = newInstance(BattlePlanBonuses);
 	*bonus = *m_battlePlanBonuses;
-	bonus->m_armorScalar					= 1.0f / __max( bonus->m_armorScalar, 0.01f );
-	bonus->m_sightRangeScalar			= 1.0f / __max( bonus->m_sightRangeScalar, 0.01f );
+	bonus->m_armorScalar					= 1.0f / std::max( bonus->m_armorScalar, 0.01f );
+	bonus->m_sightRangeScalar			= 1.0f / std::max( bonus->m_sightRangeScalar, 0.01f );
 	bonus->m_bombardment					= -ALL_PLANS; //Safe to remove as it clears the weapon bonus flag
 	bonus->m_searchAndDestroy			= -ALL_PLANS; //Safe to remove as it clears the weapon bonus flag
 	bonus->m_holdTheLine					= -ALL_PLANS; //Safe to remove as it clears the weapon bonus flag
