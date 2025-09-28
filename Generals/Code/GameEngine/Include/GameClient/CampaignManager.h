@@ -117,7 +117,7 @@ public:
 	~CampaignManager( void );
 
 	// snapshot methods
-	virtual void crc( Xfer *xfer ) { }
+        virtual void crc( Xfer *xfer ) { (void)xfer; }
 	virtual void xfer( Xfer *xfer );
 	virtual void loadPostProcess( void ) { }
 

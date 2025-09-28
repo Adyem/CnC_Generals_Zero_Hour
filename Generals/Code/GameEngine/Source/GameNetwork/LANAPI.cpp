@@ -24,6 +24,12 @@
 
 #include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
 
+#include <cstdlib>
+#include <limits.h>
+#include <pwd.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #define WIN32_LEAN_AND_MEAN  // only bare bones windows stuff wanted
 
 #include "Common/CRC.h"
@@ -118,21 +124,24 @@ void LANAPI::init( void )
 	
 	m_lastGameopt = "";
 
-	unsigned long bufSize = UNLEN + 1;
-	char userName[UNLEN + 1];
-	if (!GetUserName(userName, &bufSize))
-	{
-		strcpy(userName, "unknown");
+	const char *userEnv = std::getenv("USER");
+	if (userEnv != NULL && userEnv[0] != '\0') {
+		m_userName = userEnv;
+	} else {
+		if (passwd *pwd = getpwuid(getuid())) {
+			m_userName = (pwd->pw_name != NULL) ? pwd->pw_name : "unknown";
+		} else {
+			m_userName = "unknown";
+		}
 	}
-	m_userName = userName;
 
-	bufSize = MAX_COMPUTERNAME_LENGTH + 1;
-	char computerName[MAX_COMPUTERNAME_LENGTH + 1];
-	if (!GetComputerName(computerName, &bufSize))
-	{
-		strcpy(computerName, "unknown");
+	char hostBuffer[256];
+	if (gethostname(hostBuffer, sizeof(hostBuffer)) == 0 && hostBuffer[0] != '\0') {
+		hostBuffer[sizeof(hostBuffer) - 1] = '\0';
+		m_hostName = hostBuffer;
+	} else {
+		m_hostName = "unknown";
 	}
-	m_hostName = computerName;
 }
 
 void LANAPI::reset( void )

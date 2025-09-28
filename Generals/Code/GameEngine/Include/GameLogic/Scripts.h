@@ -783,9 +783,9 @@ public:
 		REL_FRIEND		= ALLIES
 	};
 
-	Parameter(ParameterType type, int val = 0) : 
-		m_initialized(false),
+	Parameter(ParameterType type, int val = 0) :
 		m_paramType(type),
+		m_initialized(false),
 		m_int(val),
 		m_real(0)
 	{

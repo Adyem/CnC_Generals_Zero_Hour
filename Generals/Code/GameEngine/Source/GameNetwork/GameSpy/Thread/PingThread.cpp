@@ -28,9 +28,12 @@
 
 #include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
 
+#include "GameNetwork/GameSpy/PingThread.h"
+
+#if defined(WW_ENABLE_WINDOWS_PING)
+
 #include <winsock.h>	// This one has to be here. Prevents collisions with windsock2.h
 
-#include "GameNetwork/GameSpy/PingThread.h"
 #include "GameNetwork/addressresolver.h"
 #include "mutex.h"
 #include "thread.h"
@@ -426,7 +429,7 @@ DWORD WINAPI IcmpSendEcho(
 Int PingThreadClass::doPing(UnsignedInt IP, Int timeout)
 {
    /*
-    * Initialize default settings 
+    * Initialize default settings
     */
 
    IPINFO stIPInfo, *lpstIPInfo;
@@ -580,3 +583,29 @@ cleanup:
 
 
 //-------------------------------------------------------------------------
+#else // defined(WW_ENABLE_WINDOWS_PING)
+
+class StubPinger : public PingerInterface
+{
+public:
+void startThreads(void) override {}
+void endThreads(void) override {}
+Bool areThreadsRunning(void) override { return FALSE; }
+void addRequest(const PingRequest &) override {}
+Bool getRequest(PingRequest &) override { return FALSE; }
+void addResponse(const PingResponse &) override {}
+Bool getResponse(PingResponse &) override { return FALSE; }
+Bool arePingsInProgress(void) override { return FALSE; }
+Int getPing(AsciiString) override { return -1; }
+void clearPingMap(void) override {}
+AsciiString getPingString(Int) override { return AsciiString::TheEmptyString; }
+};
+
+PingerInterface *ThePinger = nullptr;
+
+PingerInterface *PingerInterface::createNewPingerInterface(void)
+{
+return NEW StubPinger;
+}
+
+#endif // defined(WW_ENABLE_WINDOWS_PING)

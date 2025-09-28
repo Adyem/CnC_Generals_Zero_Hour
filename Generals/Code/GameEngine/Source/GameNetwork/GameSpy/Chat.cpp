@@ -117,6 +117,7 @@ Color GameSpyColor[GSCOLOR_MAX] =
 	GameMakeColor(255,255,  0,255),	// GSCOLOR_MOTD_HEADING,
 };
 
+#if 0
 Bool GameSpyInfo::sendChat( UnicodeString message, Bool isAction, GameWindow *playerListbox )
 {
 	RoomType roomType = StagingRoom;
@@ -336,4 +337,5 @@ void GameSpyInfo::unregisterTextWindow( GameWindow *win )
 {
 	m_textWindows.erase(win);
 }
+#endif
 

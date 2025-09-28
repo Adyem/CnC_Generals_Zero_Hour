@@ -32,6 +32,8 @@
 
 #include "GameSpy/ghttp/ghttp.h"
 
+#include <cstdint>
+
 #include "Lib/BaseType.h"
 #include "Common/GameEngine.h"
 #include "Common/GameState.h"
@@ -158,7 +160,6 @@ static GameWindow *buttonOptions = NULL;
 static GameWindow *buttonExit = NULL;
 static GameWindow *buttonMOTD = NULL;
 static GameWindow *buttonWorldBuilder = NULL;
-static GameWindow *mainMenuMovie = NULL;
 static GameWindow *getUpdate = NULL;
 static GameWindow *buttonTRAINING = NULL;
 static GameWindow *buttonUSA = NULL;
@@ -195,15 +196,13 @@ enum
 	SHOW_FRAMES_LIMIT = 20
 };
 
-static showFade = FALSE;
+static Bool showFade = FALSE;
 static Int dropDown = DROPDOWN_NONE;
 static Int pendingDropDown = DROPDOWN_NONE;
-static AnimateWindowManager *localAnimateWindowManager = NULL;
 static Bool notShown = TRUE;
 static Bool FirstTimeRunningTheGame = TRUE;
 
 static Bool showLogo = FALSE;
-static Int  showFrames = 0;
 static Int  showSide = SHOW_NONE;
 static Bool logoIsShown = FALSE;
 static Bool justEntered = FALSE;
@@ -211,7 +210,7 @@ static Bool justEntered = FALSE;
 static Bool dontAllowTransitions = FALSE;
 
 //Added by Saad
-const /*Int TIME_OUT = 15,*/ CORNER = 10;
+static const Int CORNER = 10;
 void AcceptResolution();
 void DeclineResolution();
 GameWindow *resAcceptMenu = NULL;
@@ -237,7 +236,7 @@ void HandleCanceledDownload( Bool resetDropDown )
 }
 
 //-------------------------------------------------------------------------------------------------
-/** This is called when a shutdown is complete for this menu */
+// This is called when a shutdown is complete for this menu.
 //-------------------------------------------------------------------------------------------------
 
 static void showSelectiveButtons( Int show )
@@ -286,7 +285,8 @@ void prepareCampaignGame(GameDifficulty diff)
 
 static MessageBoxReturnType cancelStartBecauseOfNoCD( void *userData )
 {
-	return MB_RETURN_CLOSE;
+        (void)userData;
+        return MB_RETURN_CLOSE;
 }
 
 static MessageBoxReturnType checkCDCallback( void *userData )
@@ -297,9 +297,10 @@ static MessageBoxReturnType checkCDCallback( void *userData )
 	}
 	else
 	{
-		prepareCampaignGame((GameDifficulty)(Int)(Int *)userData);
-		return MB_RETURN_CLOSE;
-	}
+                const auto difficulty = static_cast<GameDifficulty>(reinterpret_cast<std::uintptr_t>(userData));
+                prepareCampaignGame(difficulty);
+                return MB_RETURN_CLOSE;
+        }
 }
 
 static void doGameStart( void )
@@ -425,11 +426,12 @@ GameWindow *win = NULL;
 
 }
 //-------------------------------------------------------------------------------------------------
-/** Initialize the main menu */
+// Initialize the main menu.
 //-------------------------------------------------------------------------------------------------
 void MainMenuInit( WindowLayout *layout, void *userData )
 {
-	TheWritableGlobalData->m_breakTheMovie = FALSE;
+        (void)userData;
+        TheWritableGlobalData->m_breakTheMovie = FALSE;
 
 	TheShell->showShellMap(TRUE);
 	TheMouse->setVisibility(TRUE);
@@ -529,7 +531,7 @@ void MainMenuInit( WindowLayout *layout, void *userData )
 	dropDownWindows[DROPDOWN_MAIN] = TheWindowManager->winGetWindowFromId( parentMainMenu, TheNameKeyGenerator->nameToKey( AsciiString("MainMenu.wnd:MapBorder2") ) );
 	dropDownWindows[DROPDOWN_LOADREPLAY] = TheWindowManager->winGetWindowFromId( parentMainMenu, TheNameKeyGenerator->nameToKey( AsciiString("MainMenu.wnd:MapBorder3") ) );
 	dropDownWindows[DROPDOWN_DIFFICULTY] = TheWindowManager->winGetWindowFromId( parentMainMenu, TheNameKeyGenerator->nameToKey( AsciiString("MainMenu.wnd:MapBorder4") ) );
-	for(i = 1; i < DROPDOWN_COUNT; ++i)
+        for (Int i = 1; i < DROPDOWN_COUNT; ++i)
 		dropDownWindows[i]->winHide(TRUE);
 	
 	initialHide();
@@ -585,7 +587,7 @@ void MainMenuInit( WindowLayout *layout, void *userData )
 //	
 	layout->hide( FALSE );
 
-	/*
+#if 0
 	if (!checkedForUpdate)
 	{
 		DWORD state = 0;
@@ -605,7 +607,8 @@ void MainMenuInit( WindowLayout *layout, void *userData )
 		getUpdate->winHide( TRUE );
 		//getUpdate->winEnable( FALSE );
 	}
-	/**/
+#endif
+        // Placeholder for legacy movie update hook.
 
 	if (TheGameSpyPeerMessageQueue && !TheGameSpyPeerMessageQueue->isConnected())
 	{
@@ -615,12 +618,10 @@ void MainMenuInit( WindowLayout *layout, void *userData )
 	if (TheMapCache)
 		TheMapCache->updateCache();
 
-	/*
-	if (MOTDBuffer && buttonMOTD)
-	{
-		buttonMOTD->winHide(FALSE);
-	}
-	*/
+        // if (MOTDBuffer && buttonMOTD)
+        // {
+        //      buttonMOTD->winHide(FALSE);
+        // }
 	
 	TheShell->loadScheme("MainMenu");
 	raiseMessageBoxes = TRUE;
@@ -680,7 +681,7 @@ void MainMenuInit( WindowLayout *layout, void *userData )
 }  // end MainMenuInit
 
 //-------------------------------------------------------------------------------------------------
-/** Main menu shutdown method */
+// Main menu shutdown method.
 //-------------------------------------------------------------------------------------------------
 void MainMenuShutdown( WindowLayout *layout, void *userData )
 {
@@ -799,38 +800,35 @@ void DoResolutionDialog()
 																									 DeclineResolution);
 }
 
-/* This function is not being currently used because we do not need a timer on the 
-// dialog box.
-//-------------------------------------------------------------------------------------------------
-//ResolutionDialogUpdate() - if resolution dialog box is shown, this must count 10 seconds for 
-//	accepting resolution changes otherwise we go back to previous display settings 
-//-------------------------------------------------------------------------------------------------
+#if 0
+// This function is not being currently used because we do not need a timer on the dialog box.
+// ResolutionDialogUpdate() - if the resolution dialog box is shown, this must count 10 seconds for
+// accepting resolution changes otherwise we go back to previous display settings.
 void ResolutionDialogUpdate()
 {
 	if (timeStarted == 0 && currentTime == 0)
 	{
 		timeStarted = currentTime = time(NULL);
 	}
-	else 
+	else
 	{
 		currentTime = time(NULL);
 	}
-	
-	if ( ( currentTime - timeStarted ) >= TIME_OUT)
+
+	if ((currentTime - timeStarted) >= TIME_OUT)
 	{
 		currentTime = timeStarted = 0;
 		DeclineResolution();
 	}
-	//------------------------------------------------------------------------------------------------------
-	// Used for debugging purposes
-	//------------------------------------------------------------------------------------------------------
-	DEBUG_LOG(("Resolution Timer :  started at %d,  current time at %d, frameTicker is %d\n", timeStarted, 
-							time(NULL) , currentTime));
+
+	DEBUG_LOG(("Resolution Timer :  started at %d,  current time at %d, frameTicker is %d\n", timeStarted,
+					time(NULL), currentTime));
 }
-*/
+#endif
+
 
 //-------------------------------------------------------------------------------------------------
-/** Main menu update method */
+// Main menu update method.
 //-------------------------------------------------------------------------------------------------
 void DownloadMenuUpdate( WindowLayout *layout, void *userData );
 void MainMenuUpdate( WindowLayout *layout, void *userData )
@@ -850,13 +848,12 @@ void MainMenuUpdate( WindowLayout *layout, void *userData )
 
 	// Added by Saad to the confirmation or decline of the resoluotion change
 	// dialog box.
-	/* This is also commented for the same reason as the top
-	if (dispChanged)
-	{
-		ResolutionDialogUpdate();
-		return;
-	}
-	*/
+	// This is also commented for the same reason as the top block above.
+	// if (dispChanged)
+	// {
+	//	ResolutionDialogUpdate();
+	//	return;
+	// }
 
 	if(justEntered)
 	{
@@ -979,14 +976,16 @@ void MainMenuUpdate( WindowLayout *layout, void *userData )
 }  // end MainMenuUpdate
 
 //-------------------------------------------------------------------------------------------------
-/** Main menu input callback */
+// Main menu input callback.
 //-------------------------------------------------------------------------------------------------
 WindowMsgHandledType MainMenuInput( GameWindow *window, UnsignedInt msg,
-																		WindowMsgData mData1, WindowMsgData mData2 )
+                                                                WindowMsgData mData1, WindowMsgData mData2 )
 {
+        (void)window;
+        (void)mData2;
 
-	if(!notShown)
-		return MSG_IGNORED;
+        if(!notShown)
+                return MSG_IGNORED;
 	
 	switch( msg ) 
 	{
@@ -1043,15 +1042,16 @@ WindowMsgHandledType MainMenuInput( GameWindow *window, UnsignedInt msg,
 }  // end MainMenuInput
 void PrintOffsetsFromControlBarParent( void );
 //-------------------------------------------------------------------------------------------------
-/** Main menu window system callback */
+// Main menu window system callback.
 //-------------------------------------------------------------------------------------------------
-WindowMsgHandledType MainMenuSystem( GameWindow *window, UnsignedInt msg, 
-										 WindowMsgData mData1, WindowMsgData mData2 )
+WindowMsgHandledType MainMenuSystem( GameWindow *window, UnsignedInt msg,
+                                                                         WindowMsgData mData1, WindowMsgData mData2 )
 {
-	static Bool triedToInitWOLAPI = FALSE;
-	static Bool canInitWOLAPI = FALSE;
-	
-	switch( msg ) 
+        (void)window;
+        (void)mData1;
+        (void)mData2;
+
+        switch( msg )
 	{
 
 		//---------------------------------------------------------------------------------------------
@@ -1280,7 +1280,7 @@ WindowMsgHandledType MainMenuSystem( GameWindow *window, UnsignedInt msg,
 			}	
 		break;
 		}
-#endif _PLAYTEST
+#endif // _PLAYTEST
 		//---------------------------------------------------------------------------------------------
                 case GBM_SELECTED:
                 {
@@ -1469,19 +1469,23 @@ WindowMsgHandledType MainMenuSystem( GameWindow *window, UnsignedInt msg,
 				optLayout->hide(FALSE);
 				optLayout->bringForward();
 			}  // end else if
-			else if( controlID == worldBuilderID )
-			{
+                        else if( controlID == worldBuilderID )
+                        {
+#if defined(_WIN32)
 #if defined _DEBUG
-				if(_spawnl(_P_NOWAIT,"WorldBuilderD.exe","WorldBuilderD.exe", NULL) < 0)
-					MessageBoxOk(TheGameText->fetch("GUI:WorldBuilder"), TheGameText->fetch("GUI:WorldBuilderLoadFailed"),NULL);
+                                if(_spawnl(_P_NOWAIT,"WorldBuilderD.exe","WorldBuilderD.exe", NULL) < 0)
+                                        MessageBoxOk(TheGameText->fetch("GUI:WorldBuilder"), TheGameText->fetch("GUI:WorldBuilderLoadFailed"),NULL);
 #elif defined  _INTERNAL
-				if(_spawnl(_P_NOWAIT,"WorldBuilderI.exe","WorldBuilderI.exe", NULL) < 0)
-					MessageBoxOk(TheGameText->fetch("GUI:WorldBuilder"), TheGameText->fetch("GUI:WorldBuilderLoadFailed"),NULL);
+                                if(_spawnl(_P_NOWAIT,"WorldBuilderI.exe","WorldBuilderI.exe", NULL) < 0)
+                                        MessageBoxOk(TheGameText->fetch("GUI:WorldBuilder"), TheGameText->fetch("GUI:WorldBuilderLoadFailed"),NULL);
 #else
-				if(_spawnl(_P_NOWAIT,"WorldBuilder.exe","WorldBuilder.exe", NULL) < 0)
-					MessageBoxOk(TheGameText->fetch("GUI:WorldBuilder"), TheGameText->fetch("GUI:WorldBuilderLoadFailed"),NULL);
+                                if(_spawnl(_P_NOWAIT,"WorldBuilder.exe","WorldBuilder.exe", NULL) < 0)
+                                        MessageBoxOk(TheGameText->fetch("GUI:WorldBuilder"), TheGameText->fetch("GUI:WorldBuilderLoadFailed"),NULL);
 #endif
-			}
+#else
+                                MessageBoxOk(TheGameText->fetch("GUI:WorldBuilder"), TheGameText->fetch("GUI:WorldBuilderLoadFailed"), NULL);
+#endif
+                        }
 			else if( controlID == getUpdateID )
 			{
 				StartDownloadingPatches();
@@ -1629,7 +1633,7 @@ WindowMsgHandledType MainMenuSystem( GameWindow *window, UnsignedInt msg,
 				campaignSelected = FALSE;
 			}
 
-#endif _PLAYTEST
+#endif // _PLAYTEST
 
 			break;
 

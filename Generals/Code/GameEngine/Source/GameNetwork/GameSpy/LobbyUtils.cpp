@@ -31,6 +31,9 @@
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
 
+#include <cstdint>
+#include <cwctype>
+
 #include "Common/GameEngine.h"
 #include "Common/MultiplayerSettings.h"
 #include "Common/PlayerTemplate.h"
@@ -69,7 +72,7 @@
 #endif
 
 // PRIVATE DATA ///////////////////////////////////////////////////////////////////////////////////
-static enum {
+enum {
 	COLUMN_NAME = 0,
 	COLUMN_MAP,
 	COLUMN_LADDER,
@@ -95,34 +98,77 @@ static GameWindow *windowSortBuddies = NULL;
 
 static GameSortType theGameSortType = GAMESORT_ALPHA_ASCENDING;
 static Bool sortBuddies = TRUE;
+
+namespace {
+
+inline void *encodeGameID(Int value)
+{
+	return reinterpret_cast<void *>(static_cast<std::intptr_t>(value));
+}
+
+inline Int decodeGameID(const void *value)
+{
+	return static_cast<Int>(reinterpret_cast<std::intptr_t>(value));
+}
+
+Int wideCaseInsensitiveCompare(const WideChar *lhs, const WideChar *rhs)
+{
+	if (lhs == rhs) {
+		return 0;
+	}
+	if (lhs == nullptr) {
+		return -1;
+	}
+	if (rhs == nullptr) {
+		return 1;
+	}
+	while ((*lhs != 0) && (*rhs != 0)) {
+		const WideChar left = static_cast<WideChar>(std::towlower(static_cast<wint_t>(*lhs)));
+		const WideChar right = static_cast<WideChar>(std::towlower(static_cast<wint_t>(*rhs)));
+		if (left != right) {
+			return (left < right) ? -1 : 1;
+		}
+		++lhs;
+		++rhs;
+	}
+	if (*lhs == *rhs) {
+		return 0;
+	}
+	return (*lhs < *rhs) ? -1 : 1;
+}
+
+} // namespace
 static void showSortIcons(void)
 {
-	if (windowSortAlpha && windowSortPing)
-	{
-		switch(theGameSortType)
-		{
-			case GAMESORT_ALPHA_ASCENDING:
-				windowSortAlpha->winHide(FALSE);
-				windowSortAlpha->winEnable(TRUE);
-				windowSortPing->winHide(TRUE);
-				break;
-			case GAMESORT_ALPHA_DESCENDING:
-				windowSortAlpha->winHide(FALSE);
-				windowSortAlpha->winEnable(FALSE);
-				windowSortPing->winHide(TRUE);
-				break;
-			case GAMESORT_PING_ASCENDING:
-				windowSortPing->winHide(FALSE);
-				windowSortPing->winEnable(TRUE);
-				windowSortAlpha->winHide(TRUE);
-				break;
-			case GAMESORT_PING_DESCENDING:
-				windowSortPing->winHide(FALSE);
-				windowSortPing->winEnable(FALSE);
-				windowSortAlpha->winHide(TRUE);
-				break;
-		}
-	}
+if (windowSortAlpha && windowSortPing)
+{
+switch(theGameSortType)
+{
+case GAMESORT_ALPHA_ASCENDING:
+windowSortAlpha->winHide(FALSE);
+windowSortAlpha->winEnable(TRUE);
+windowSortPing->winHide(TRUE);
+break;
+case GAMESORT_ALPHA_DESCENDING:
+windowSortAlpha->winHide(FALSE);
+windowSortAlpha->winEnable(FALSE);
+windowSortPing->winHide(TRUE);
+break;
+case GAMESORT_PING_ASCENDING:
+windowSortPing->winHide(FALSE);
+windowSortPing->winEnable(TRUE);
+windowSortAlpha->winHide(TRUE);
+break;
+case GAMESORT_PING_DESCENDING:
+windowSortPing->winHide(FALSE);
+windowSortPing->winEnable(FALSE);
+windowSortAlpha->winHide(TRUE);
+break;
+case GAMESORT_MAX:
+default:
+break;
+}
+}
 
 	if (sortBuddies)
 	{
@@ -195,12 +241,13 @@ static GameWindow *parentGameListLarge = NULL;
 static const Image *pingImages[3] = { NULL, NULL, NULL };
 
 static void gameTooltip(GameWindow *window,
-													WinInstanceData *instData,
-													UnsignedInt mouse)
+WinInstanceData *instData,
+UnsignedInt mouse)
 {
-	Int x, y, row, col;
-	x = LOLONGTOSHORT(mouse);
-	y = HILONGTOSHORT(mouse);
+(void)instData;
+Int x, y, row, col;
+x = LOLONGTOSHORT(mouse);
+y = HILONGTOSHORT(mouse);
 
 	GadgetListBoxGetEntryBasedOnXY(window, x, y, row, col);
 
@@ -210,7 +257,7 @@ static void gameTooltip(GameWindow *window,
 		return;
 	}
 
-	Int gameID = (Int)GadgetListBoxGetItemData(window, row, 0);
+	Int gameID = decodeGameID(GadgetListBoxGetItemData(window, row, 0));
 	GameSpyStagingRoom *room = TheGameSpyInfo->findStagingRoomByID(gameID);
 	if (!room)
 	{
@@ -320,13 +367,18 @@ static void gameTooltip(GameWindow *window,
 				tooltip.concat(L'\n');
 				tooltip.concat(TheGameText->fetch("GUI:MediumAI"));
 				break;
-			case SLOT_BRUTAL_AI:
-				tooltip.concat(L'\n');
-				tooltip.concat(TheGameText->fetch("GUI:HardAI"));
-				break;
-			}
-		}
-	}
+case SLOT_BRUTAL_AI:
+tooltip.concat(L'\n');
+tooltip.concat(TheGameText->fetch("GUI:HardAI"));
+break;
+case SLOT_OPEN:
+case SLOT_CLOSED:
+case SLOT_PLAYER:
+default:
+break;
+}
+}
+}
 	DEBUG_ASSERTCRASH(numPlayers, ("Tooltipping a 0-player game!\n"));
 
 	TheMouse->setCursorTooltip( tooltip, 10, NULL, 2.0f ); // the text and width are the only params used.  the others are the default values.
@@ -431,8 +483,8 @@ static void populateBuddyGames(void)
 	}
 	for (BuddyInfoMap::const_iterator bit = m->begin(); bit != m->end(); ++bit)
 	{
-		BuddyInfo info = bit->second;
-		if (info.m_status == GP_STAGING)
+BuddyInfo info = bit->second;
+if (info.m_status == BUDDY_STAGING)
 		{
 			StagingRoomMap *srm = TheGameSpyInfo->getStagingRoomList();
 			for (StagingRoomMap::iterator srmIt = srm->begin(); srmIt != srm->end(); ++srmIt)
@@ -459,37 +511,37 @@ static void clearBuddyGames(void)
 
 struct GameSortStruct
 {
-	bool operator()(GameSpyStagingRoom *g1, GameSpyStagingRoom *g2)
+	bool operator()(GameSpyStagingRoom *g1, GameSpyStagingRoom *g2) const
 	{
 		// sort CRC mismatches to the bottom
-		Bool g1Good = (g1->getExeCRC() != TheGlobalData->m_exeCRC || g1->getIniCRC() != TheGlobalData->m_iniCRC);
-		Bool g2Good = (g1->getExeCRC() != TheGlobalData->m_exeCRC || g1->getIniCRC() != TheGlobalData->m_iniCRC);
-		if ( g1Good ^ g2Good )
+		const Bool g1Mismatch = (g1->getExeCRC() != TheGlobalData->m_exeCRC) || (g1->getIniCRC() != TheGlobalData->m_iniCRC);
+		const Bool g2Mismatch = (g2->getExeCRC() != TheGlobalData->m_exeCRC) || (g2->getIniCRC() != TheGlobalData->m_iniCRC);
+		if (g1Mismatch ^ g2Mismatch)
 		{
-			return g1Good;
+			return !g1Mismatch;
 		}
 
 		// sort games with private ladders to the bottom
-		Bool g1UnknownLadder = (g1->getLadderPort() && TheLadderList->findLadder(g1->getLadderIP(), g1->getLadderPort()) == NULL);
-		Bool g2UnknownLadder = (g2->getLadderPort() && TheLadderList->findLadder(g2->getLadderIP(), g2->getLadderPort()) == NULL);
-		if ( g1UnknownLadder ^ g2UnknownLadder )
+		const Bool g1UnknownLadder = (g1->getLadderPort() && (TheLadderList->findLadder(g1->getLadderIP(), g1->getLadderPort()) == NULL));
+		const Bool g2UnknownLadder = (g2->getLadderPort() && (TheLadderList->findLadder(g2->getLadderIP(), g2->getLadderPort()) == NULL));
+		if (g1UnknownLadder ^ g2UnknownLadder)
 		{
-			return g2UnknownLadder;
+			return !g1UnknownLadder;
 		}
 
 		// sort full games to the bottom
-		Bool g1Full = (g1->getNumNonObserverPlayers() == g1->getMaxPlayers() || g1->getNumPlayers() == MAX_SLOTS);
-		Bool g2Full = (g2->getNumNonObserverPlayers() == g2->getMaxPlayers() || g2->getNumPlayers() == MAX_SLOTS);
-		if ( g1Full ^ g2Full )
+		const Bool g1Full = (g1->getNumNonObserverPlayers() == g1->getMaxPlayers()) || (g1->getNumPlayers() == MAX_SLOTS);
+		const Bool g2Full = (g2->getNumNonObserverPlayers() == g2->getMaxPlayers()) || (g2->getNumPlayers() == MAX_SLOTS);
+		if (g1Full ^ g2Full)
 		{
-			return g2Full;
+			return !g1Full;
 		}
 
-		if (sortBuddies)
+		if (sortBuddies && (theBuddyGames != NULL))
 		{
-			Bool g1HasBuddies = (theBuddyGames->find(g1) != theBuddyGames->end());
-			Bool g2HasBuddies = (theBuddyGames->find(g2) != theBuddyGames->end());
-			if ( g1HasBuddies ^ g2HasBuddies )
+			const Bool g1HasBuddies = (theBuddyGames->find(g1) != theBuddyGames->end());
+			const Bool g2HasBuddies = (theBuddyGames->find(g2) != theBuddyGames->end());
+			if (g1HasBuddies ^ g2HasBuddies)
 			{
 				return g1HasBuddies;
 			}
@@ -498,19 +550,16 @@ struct GameSortStruct
 		switch(theGameSortType)
 		{
 		case GAMESORT_ALPHA_ASCENDING:
-			return wcsicmp(g1->getGameName().str(), g2->getGameName().str()) < 0;
-			break;
+			return wideCaseInsensitiveCompare(g1->getGameName().str(), g2->getGameName().str()) < 0;
 		case GAMESORT_ALPHA_DESCENDING:
-			return wcsicmp(g1->getGameName().str(),g2->getGameName().str()) > 0;
-			break;
+			return wideCaseInsensitiveCompare(g1->getGameName().str(), g2->getGameName().str()) > 0;
 		case GAMESORT_PING_ASCENDING:
 			return g1->getPingAsInt() < g2->getPingAsInt();
-			break;
 		case GAMESORT_PING_DESCENDING:
 			return g1->getPingAsInt() > g2->getPingAsInt();
-			break;
+		default:
+			return false;
 		}
-		return false;
 	}
 };
 
@@ -558,7 +607,7 @@ static Int insertGame( GameWindow *win, GameSpyStagingRoom *game, Bool showMap )
 
 
 	Int index = GadgetListBoxAddEntryText(win, game->getGameName(), gameColor, -1, COLUMN_NAME);
-	GadgetListBoxSetItemData(win, (void *)game->getID(), index);
+	GadgetListBoxSetItemData(win, encodeGameID(game->getID()), index);
 
 	UnicodeString s;
 
@@ -672,7 +721,7 @@ void RefreshGameListBox( GameWindow *win, Bool showMap )
 	GadgetListBoxGetSelected(win, &selectedIndex);
 	if (selectedIndex != -1 )
 	{
-		selectedID = (Int)GadgetListBoxGetItemData(win, selectedIndex);
+		selectedID = decodeGameID(GadgetListBoxGetItemData(win, selectedIndex));
 	}
 	int prevPos = GadgetListBoxGetTopVisibleEntry( win );
 
@@ -718,6 +767,8 @@ void RefreshGameListBox( GameWindow *win, Bool showMap )
 
 void RefreshGameInfoListBox( GameWindow *mainWin, GameWindow *win )
 {
+(void)mainWin;
+(void)win;
 //	if (!mainWin || !win)
 //		return;
 //

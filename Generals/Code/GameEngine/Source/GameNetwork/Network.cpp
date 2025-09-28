@@ -32,12 +32,14 @@
 // USER INCLUDES //////////////////////////////////////////////////////////////
 #include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
 
+#include <algorithm>
+#include <chrono>
+
 #include "Common/GameEngine.h"
 #include "Common/MessageStream.h"
 #include "Common/Player.h"
 #include "Common/PlayerList.h"
 #include "GameNetwork/NetworkInterface.h"
-#include "GameNetwork/Udp.h"
 #include "GameNetwork/Transport.h"
 #include "strtok_r.h"
 #include "GameClient/Shell.h"
@@ -206,9 +208,9 @@ protected:
 	Int m_lastExecutionFrame;																	///< The highest frame number that a command could have been executed on.
 	Int m_lastFrameCompleted;
 	Bool m_didSelfSlug;
-	__int64 m_perfCountFreq;														///< The frequency of the performance counter.
+	std::chrono::steady_clock::duration m_frameDuration;														///< Duration of a single frame at the target frame rate.
 
-	__int64 m_nextFrameTime;														///< When did we execute the last frame?  For slugging the GameLogic...
+	std::chrono::steady_clock::time_point m_nextFrameTime;														///< When did we execute the last frame?  For slugging the GameLogic...
 
 	Bool m_frameDataReady;																		///< Is the frame data for the next frame ready to be executed by TheGameLogic?
 
@@ -333,7 +335,7 @@ void Network::init()
 	m_conMgr->init();
 
 	m_lastFrame = 0;
-	m_runAhead = min(max(30, MIN_RUNAHEAD), MAX_FRAMES_AHEAD/2); ///< @todo: don't hard-code the run-ahead.
+	m_runAhead = std::min(std::max(30, MIN_RUNAHEAD), MAX_FRAMES_AHEAD / 2); ///< @todo: don't hard-code the run-ahead.
 	m_frameRate = 30;
 	m_lastExecutionFrame = m_runAhead - 1; // subtract 1 since we're starting on frame 0
 	m_lastFrameCompleted = m_runAhead - 1; // subtract 1 since we're starting on frame 0
@@ -342,8 +344,10 @@ void Network::init()
 
 	m_localStatus = NETLOCALSTATUS_PREGAME;
 
-	QueryPerformanceFrequency((LARGE_INTEGER *)&m_perfCountFreq);
-	m_nextFrameTime = 0;
+	const int framesPerSecond = std::max(1, m_frameRate);
+	m_frameDuration = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+		std::chrono::duration<double>(1.0 / static_cast<double>(framesPerSecond)));
+	m_nextFrameTime = std::chrono::steady_clock::now();
 	m_sawCRCMismatch = FALSE;
 	m_checkCRCsThisFrame = FALSE;
 
@@ -758,9 +762,8 @@ void Network::endOfGameCheck() {
 }
 
 Bool Network::timeForNewFrame() {
-	__int64 curTime;
-	QueryPerformanceCounter((LARGE_INTEGER *)&curTime);
-	__int64 frameDelay = m_perfCountFreq / m_frameRate;
+	const auto curTime = std::chrono::steady_clock::now();
+	auto frameDelay = m_frameDuration;
 
 	/*
 	 * If we're pushing up against the edge of our run ahead, we should slow the framerate down a bit
@@ -771,33 +774,23 @@ Bool Network::timeForNewFrame() {
 		Real cushion = m_conMgr->getMinimumCushion();
 		Real runAheadPercentage = m_runAhead * (TheGlobalData->m_networkRunAheadSlack / (Real)100.0); // If we are at least 50% into our slack, we need to slow down.
 		if (cushion < runAheadPercentage) {
-//			DEBUG_LOG(("Average cushion = %f, run ahead percentage = %f.  Adjusting frameDelay from %I64d to ", cushion, runAheadPercentage, frameDelay));
 			frameDelay += frameDelay / 10; // temporarily decrease the frame rate by 20%.
-//			DEBUG_LOG(("%I64d\n", frameDelay));
 			m_didSelfSlug = TRUE;
-//		} else {
-//			DEBUG_LOG(("Average cushion = %f, run ahead percentage = %f\n", cushion, runAheadPercentage));
 		}
 	}
 
 	// Check to see if we can run another frame.
 	if (curTime >= m_nextFrameTime) {
-//		DEBUG_LOG(("Allowing a new frame, frameDelay = %I64d, curTime - m_nextFrameTime = %I64d\n", frameDelay, curTime - m_nextFrameTime));
-
-//		if (m_nextFrameTime + frameDelay < curTime) {
 		if ((m_nextFrameTime + (2 * frameDelay)) < curTime) {
 			// If we get too far behind on our framerate we need to reset the nextFrameTime thing.
 			m_nextFrameTime = curTime;
-//			DEBUG_LOG(("Initializing m_nextFrameTime to %I64d\n", m_nextFrameTime));
 		} else {
 			// Set the soonest possible starting time for the next frame.
 			m_nextFrameTime += frameDelay;
-//			DEBUG_LOG(("m_nextFrameTime = %I64d\n", m_nextFrameTime));
 		}
 
 		return TRUE;
 	}
-//	DEBUG_LOG(("Slowing down frame rate. frame rate = %d, frame delay = %I64d, curTime - m_nextFrameTime = %I64d\n", m_frameRate, frameDelay, curTime - m_nextFrameTime));
 	return FALSE;
 }
 
