@@ -27,10 +27,9 @@
 // Desc:   A system for managing partial vertex buffer allocations.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef _W3D_VERTEX_BUFFER_MANAGER
-#define _W3D_VERTEX_BUFFER_MANAGER
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DBUFFERMANAGER_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DBUFFERMANAGER_H
 
 #include "Lib/BaseType.h"
 #include "dx8vertexbuffer.h"
@@ -177,4 +176,4 @@ protected:
 
 extern W3DBufferManager *TheW3DBufferManager;	//singleton
 
-#endif //_W3D_VERTEX_BUFFER_MANAGER
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DBUFFERMANAGER_H

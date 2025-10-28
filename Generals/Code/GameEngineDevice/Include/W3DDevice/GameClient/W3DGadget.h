@@ -44,10 +44,9 @@
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef __W3DGADGET_H_
-#define __W3DGADGET_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DGADGET_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DGADGET_H
 
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 
@@ -90,5 +89,5 @@ extern void W3DGadgetStaticTextImageDraw( GameWindow *window, WinInstanceData *i
 extern void W3DGadgetTextEntryDraw( GameWindow *window, WinInstanceData *instData );
 extern void W3DGadgetTextEntryImageDraw( GameWindow *window, WinInstanceData *instData );
 
-#endif // __W3DGADGET_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DGADGET_H
 

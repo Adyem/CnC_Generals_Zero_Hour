@@ -45,10 +45,9 @@
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef __W3DDISPLAYSTRING_H_
-#define __W3DDISPLAYSTRING_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DDISPLAYSTRING_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DDISPLAYSTRING_H
 
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 
@@ -120,5 +119,5 @@ inline void W3DDisplayString::usingResources( UnsignedInt frame ) { m_lastResour
 
 // EXTERNALS //////////////////////////////////////////////////////////////////
 
-#endif // __W3DDISPLAYSTRING_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DDISPLAYSTRING_H
 

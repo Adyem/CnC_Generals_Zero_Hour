@@ -5,7 +5,8 @@
 // maps to `std::this_thread::sleep_for` so that the same call sites compile on
 // modern POSIX toolchains.
 
-#pragma once
+#ifndef GENERALS_CODE_LIBRARIES_INCLUDE_MSLEEP_H
+#define GENERALS_CODE_LIBRARIES_INCLUDE_MSLEEP_H
 
 #include <chrono>
 #include <thread>
@@ -14,3 +15,5 @@ inline void msleep(unsigned int milliseconds)
 {
     std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
 }
+
+#endif // GENERALS_CODE_LIBRARIES_INCLUDE_MSLEEP_H

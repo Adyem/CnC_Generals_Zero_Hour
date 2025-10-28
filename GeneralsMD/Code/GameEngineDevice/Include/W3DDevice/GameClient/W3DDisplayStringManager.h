@@ -27,10 +27,9 @@
 // Desc:       Access for creating game managed display strings
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef _W3DDISPLAYSTRINGMANAGER_H_
-#define _W3DDISPLAYSTRINGMANAGER_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DDISPLAYSTRINGMANAGER_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DDISPLAYSTRINGMANAGER_H
 
 #include "GameClient/DisplayStringManager.h"
 #include "W3DDevice/GameClient/W3DDisplayString.h"
@@ -77,5 +76,5 @@ protected:
 
 };
 
-#endif // _W3DDISPLAYSTRINGMANAGER_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DDISPLAYSTRINGMANAGER_H
 

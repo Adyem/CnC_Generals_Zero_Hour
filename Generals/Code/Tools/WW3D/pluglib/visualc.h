@@ -33,9 +33,8 @@
  *---------------------------------------------------------------------------------------------* 
  * Functions:                                                                                  * 
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#if _MSC_VER >= 1000
-#pragma once
-#endif // _MSC_VER >= 1000
+#ifndef GENERALS_CODE_TOOLS_WW3D_PLUGLIB_VISUALC_H
+#define GENERALS_CODE_TOOLS_WW3D_PLUGLIB_VISUALC_H
 
 #if defined(_MSC_VER)
 
@@ -122,4 +121,6 @@
 
 
 #endif
+
+#endif // GENERALS_CODE_TOOLS_WW3D_PLUGLIB_VISUALC_H
 

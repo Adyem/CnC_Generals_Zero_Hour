@@ -27,10 +27,9 @@
 // Author: Colin Day, April 2001
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef __W3DTERRAINVISUAL_H_
-#define __W3DTERRAINVISUAL_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DTERRAINVISUAL_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DTERRAINVISUAL_H
 
 #include "GameClient/TerrainVisual.h"
 #include "W3DDevice/GameClient/W3DWater.h"
@@ -199,4 +198,4 @@ protected:
 
 };  // end class W3DTerrainVisual
 
-#endif  // end __W3DTERRAINVISUAL_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DTERRAINVISUAL_H

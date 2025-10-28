@@ -1,4 +1,5 @@
-#pragma once
+#ifndef GENERALS_CODE_LIBRARIES_INCLUDE_GAMESPY_GP_GP_H
+#define GENERALS_CODE_LIBRARIES_INCLUDE_GAMESPY_GP_GP_H
 
 #include <cstdint>
 
@@ -160,3 +161,5 @@ void gpDisconnect(GPConnection* connection);
 void gpDestroy(GPConnection* connection);
 void gpProcess(GPConnection* connection);
 void gpSetStatus(GPConnection* connection, int status, const char* statusString, const char* locationString);
+
+#endif // GENERALS_CODE_LIBRARIES_INCLUDE_GAMESPY_GP_GP_H

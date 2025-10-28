@@ -27,10 +27,8 @@
 // Desc: Draw module reacts to SupplyStatus setting by hiding an equal number of the specified bone array.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-
-#ifndef _W3D_SUPPLY_DRAW_H_
-#define _W3D_SUPPLY_DRAW_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DSUPPLYDRAW_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DSUPPLYDRAW_H
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "W3DDevice/GameClient/Module/W3DModelDraw.h"
@@ -66,5 +64,5 @@ protected:
 	Int m_lastNumberShown;
 };
 
-#endif // _W3D_TRUCK_DRAW_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DSUPPLYDRAW_H
 

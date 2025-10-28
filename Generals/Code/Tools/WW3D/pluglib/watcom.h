@@ -33,9 +33,8 @@
  *---------------------------------------------------------------------------------------------* 
  * Functions:                                                                                  * 
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#if _MSC_VER >= 1000
-#pragma once
-#endif // _MSC_VER >= 1000
+#ifndef GENERALS_CODE_TOOLS_WW3D_PLUGLIB_WATCOM_H
+#define GENERALS_CODE_TOOLS_WW3D_PLUGLIB_WATCOM_H
 
 #if !defined(WATCOM_H) && defined(__WATCOMC__)
 #define WATCOM_H
@@ -115,4 +114,6 @@
 #endif
 
 
-#endif
+#endif // WATCOM_H
+
+#endif // GENERALS_CODE_TOOLS_WW3D_PLUGLIB_WATCOM_H

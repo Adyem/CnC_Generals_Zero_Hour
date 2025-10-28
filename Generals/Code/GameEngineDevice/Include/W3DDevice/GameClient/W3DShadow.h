@@ -23,10 +23,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-#pragma once
 
-#ifndef __W3DSHADOW_H_
-#define __W3DSHADOW_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DSHADOW_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DSHADOW_H
 
 #include "matrix4.h"
 #include "GameClient/Shadow.h"
@@ -73,4 +72,4 @@ protected:
 
 extern W3DShadowManager *TheW3DShadowManager;
 
-#endif	//__W3DSHADOW_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DSHADOW_H

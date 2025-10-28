@@ -25,10 +25,9 @@
 // FILE: W3DParticleSys.h /////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef __W3DParticleSys_H_
-#define __W3DParticleSys_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DPARTICLESYS_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DPARTICLESYS_H
 
 #include "GameClient/ParticleSys.h"
 #include "WW3D2/pointgr.h"
@@ -64,4 +63,4 @@ private:
 	Bool m_readyToRender;											///< if true, it is OK to render
 };
 
-#endif  // end __W3DParticleSys_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DPARTICLESYS_H

@@ -23,10 +23,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-#pragma once
 
-#ifndef __BASE_HEIGHTMAP_H_
-#define __BASE_HEIGHTMAP_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_BASEHEIGHTMAP_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_BASEHEIGHTMAP_H
 
 #include "always.h"
 #include "rendobj.h"
@@ -331,4 +330,4 @@ protected:
 };
 
 extern BaseHeightMapRenderObjClass *TheTerrainRenderObject;
-#endif  // end __FLAT_HEIGHTMAP_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_BASEHEIGHTMAP_H

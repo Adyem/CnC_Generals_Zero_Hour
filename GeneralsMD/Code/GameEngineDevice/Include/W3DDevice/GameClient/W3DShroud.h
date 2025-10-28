@@ -23,10 +23,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-#pragma once
 
-#ifndef __W3DSHROUD_H_
-#define __W3DSHROUD_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DSHROUD_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DSHROUD_H
 
 #include "WW3D2/matpass.h"
 #include "WW3D2/dx8wrapper.h"
@@ -128,4 +127,4 @@ protected:
 	void fillBorderShroudData(W3DShroudLevel level, SurfaceClass* pDestSurface);	///<fill the destination texture with a known value
 };
 
-#endif	//__W3DSHROUD_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DSHROUD_H

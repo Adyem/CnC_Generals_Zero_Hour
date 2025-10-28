@@ -27,10 +27,8 @@
 // Desc:   Default client update module
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-
-#ifndef __W3DDEFAULTDRAW_H_
-#define __W3DDEFAULTDRAW_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DDEFAULTDRAW_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DDEFAULTDRAW_H
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/GameType.h"
@@ -76,5 +74,5 @@ private:
 #endif
 };
 
-#endif // __W3DDEFAULTDRAW_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DDEFAULTDRAW_H
 

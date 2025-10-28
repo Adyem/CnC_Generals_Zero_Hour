@@ -43,10 +43,9 @@
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef __W3DPOLY_H_
-#define __W3DPOLY_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DPOLY_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DPOLY_H
 
 #include "vector3.h"
 #include "plane.h"
@@ -67,4 +66,4 @@ public:
 	SimpleDynVecClass<Vector3> Verts;
 };
 
-#endif //__W3DPOLY_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DPOLY_H

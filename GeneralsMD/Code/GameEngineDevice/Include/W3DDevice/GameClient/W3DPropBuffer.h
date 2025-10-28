@@ -42,10 +42,9 @@
 //
 //-----------------------------------------------------------------------------
 
-#pragma once
 
-#ifndef __W3DPROP_BUFFER_H_
-#define __W3DPROP_BUFFER_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DPROPBUFFER_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DPROPBUFFER_H
 
 //-----------------------------------------------------------------------------
 //           Includes                                                      
@@ -150,4 +149,4 @@ protected:
 	void cull(CameraClass * camera);						 ///< Culls the props.
 };
 
-#endif  // end __W3DPROP_BUFFER_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DPROPBUFFER_H

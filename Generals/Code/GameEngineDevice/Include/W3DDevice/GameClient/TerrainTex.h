@@ -26,10 +26,9 @@
 // Class to generate texture for terrain.
 // Author: John Ahlquist, April 2001
 
-#pragma once
 
-#ifndef TERRAINTEX_H
-#define TERRAINTEX_H
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_TERRAINTEX_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_TERRAINTEX_H
 
 //#define DO_8STAGE_TERRAIN_PASS		//optimized terrain rendering for Nvidia based cards
 
@@ -144,4 +143,4 @@ public:
 
 
 
-#endif //TEXTURE_H
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_TERRAINTEX_H

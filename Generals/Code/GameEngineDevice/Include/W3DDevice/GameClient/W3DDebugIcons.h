@@ -23,10 +23,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-#pragma once
 
-#ifndef __W3D_DEBUG_ICONS_H_
-#define __W3D_DEBUG_ICONS_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DDEBUGICONS_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DDEBUGICONS_H
 
 #include "always.h"
 #include "rendobj.h"
@@ -78,4 +77,4 @@ public:
 };
 #endif // _DEBUG or _INTERNAL
 
-#endif  // end __W3D_DEBUG_ICONS_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DDEBUGICONS_H

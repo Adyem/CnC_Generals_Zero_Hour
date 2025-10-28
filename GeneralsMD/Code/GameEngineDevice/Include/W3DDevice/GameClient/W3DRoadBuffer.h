@@ -42,10 +42,9 @@
 //
 //-----------------------------------------------------------------------------
 
-#pragma once
 
-#ifndef __W3DROAD_BUFFER_H_
-#define __W3DROAD_BUFFER_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DROADBUFFER_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DROADBUFFER_H
 
 //-----------------------------------------------------------------------------
 //           Includes                                                      
@@ -282,4 +281,4 @@ protected:
 	void rotateAbout(Vector2 *ptP, Vector2 center, Real angle);
 };
 
-#endif  // end __W3DROAD_BUFFER_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DROADBUFFER_H

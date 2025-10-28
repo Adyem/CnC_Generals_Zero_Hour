@@ -43,11 +43,10 @@
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #if defined(_MSC_VER)
-#pragma once
 #endif
 
-#ifndef W3DASSETMANAGER_H
-#define W3DASSETMANAGER_H
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DASSETMANAGER_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DASSETMANAGER_H
 
 #include "assetmgr.h"
 #include "Lib/BaseType.h"
@@ -124,5 +123,5 @@ private:
 	void Recolor_Asset(RenderObjClass *robj, const Vector3 &hsv_shift);*/
 };
 
-#endif
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DASSETMANAGER_H
 

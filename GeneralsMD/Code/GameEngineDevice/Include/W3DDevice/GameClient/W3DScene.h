@@ -31,10 +31,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef __W3DSCENE_H_
-#define __W3DSCENE_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DSCENE_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DSCENE_H
 
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 
@@ -189,4 +188,4 @@ protected:
 
 };  // end class RTS3DInterfaceScene
 
-#endif  // end __W3DSCENE_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DSCENE_H

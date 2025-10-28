@@ -43,10 +43,9 @@
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef __W3DGAMEFONT_H_
-#define __W3DGAMEFONT_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DGAMEFONT_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DGAMEFONT_H
 
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 
@@ -81,5 +80,5 @@ protected:
 
 // EXTERNALS //////////////////////////////////////////////////////////////////
 
-#endif // __W3DGAMEFONT_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DGAMEFONT_H
 

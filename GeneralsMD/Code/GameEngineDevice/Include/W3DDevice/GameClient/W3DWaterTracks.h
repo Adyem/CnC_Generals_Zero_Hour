@@ -23,10 +23,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-#pragma once
 
-#ifndef __W3DWaterTracks_H_
-#define __W3DWaterTracks_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DWATERTRACKS_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DWATERTRACKS_H
 
 enum waveType;	//forward reference
 
@@ -143,4 +142,4 @@ protected:
 	void releaseTrack( WaterTracksObj *mod );	///<returns track object to free store.
 };  // end class WaterTracksRenderObjClassSystem
 
-#endif  //__W3DWaterTracks_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DWATERTRACKS_H

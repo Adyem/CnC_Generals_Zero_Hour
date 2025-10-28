@@ -43,10 +43,9 @@
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef __W3DMOUSE_H_
-#define __W3DMOUSE_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DMOUSE_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DMOUSE_H
 
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 
@@ -119,4 +118,4 @@ private:
 
 // EXTERNALS //////////////////////////////////////////////////////////////////
 
-#endif // __W3DMOUSE_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DMOUSE_H

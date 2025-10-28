@@ -27,10 +27,8 @@
 // Desc:   
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-
-#ifndef __W3DLASERDRAW_H_
-#define __W3DLASERDRAW_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DLASERDRAW_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DLASERDRAW_H
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/DrawModule.h"
@@ -100,5 +98,5 @@ protected:
 
 };
 
-#endif // __W3DLASERDRAW_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DLASERDRAW_H
 

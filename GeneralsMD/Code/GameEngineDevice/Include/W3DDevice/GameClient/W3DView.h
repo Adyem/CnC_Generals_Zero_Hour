@@ -32,10 +32,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef __W3DVIEW_H_
-#define __W3DVIEW_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DVIEW_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DVIEW_H
 
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////////////////////////
 
@@ -303,4 +302,4 @@ private:
 // EXTERNALS //////////////////////////////////////////////////////////////////////////////////////
 extern Int TheW3DFrameLengthInMsec;	// default is 33msec/frame == 30fps. but we may change it depending on sys config.
 
-#endif  // end __W3DVIEW_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DVIEW_H
