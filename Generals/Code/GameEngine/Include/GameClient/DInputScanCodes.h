@@ -32,7 +32,6 @@
 //   SFML/Unix port.
 ////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef GENERALS_DINPUT_SCANCODES_H_
 #define GENERALS_DINPUT_SCANCODES_H_

@@ -23,7 +23,6 @@
 // Ease in and out based on a parabolic function.
 // Author: Robert Minsk May 12, 2003
 // ============================================================================
-#pragma once
 #ifndef _PARABOLICEASE_H
 #define _PARABOLICEASE_H
 // ============================================================================

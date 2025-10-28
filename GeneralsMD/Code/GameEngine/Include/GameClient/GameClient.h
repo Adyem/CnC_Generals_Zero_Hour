@@ -26,7 +26,6 @@
 // GameClient singleton class - defines interface to GameClient methods and drawables
 // Author: Michael S. Booth, March 2001
 
-#pragma once
 
 #ifndef _GAME_INTERFACE_H_
 #define _GAME_INTERFACE_H_

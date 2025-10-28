@@ -33,11 +33,10 @@
  *---------------------------------------------------------------------------------------------* 
  * Functions:                                                                                  * 
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#if _MSC_VER >= 1000
-#pragma once
-#endif // _MSC_VER >= 1000
-
 #if defined(_MSC_VER)
+
+#ifndef VISUALC_H
+#define VISUALC_H
 
 /**********************************************************************
 **	The "bool" integral type was defined by the C++ comittee in
@@ -121,5 +120,7 @@
 #define M_SQRT_2    0.707106781186547524401
 
 
-#endif
+#endif // VISUALC_H
+
+#endif // defined(_MSC_VER)
 

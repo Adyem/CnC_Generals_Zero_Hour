@@ -18,7 +18,6 @@
 
 // FILE: Smudge.h /////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _SMUDGE_H_
 #define _SMUDGE_H_

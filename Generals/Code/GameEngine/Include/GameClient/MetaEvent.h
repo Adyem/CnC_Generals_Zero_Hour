@@ -25,7 +25,6 @@
 // FILE: MetaEvent.h ///////////////////////////////////////////////////////////
 // Author: Steven Johnson, Dec 2001
 
-#pragma once
 
 #ifndef _H_MetaEvent
 #define _H_MetaEvent

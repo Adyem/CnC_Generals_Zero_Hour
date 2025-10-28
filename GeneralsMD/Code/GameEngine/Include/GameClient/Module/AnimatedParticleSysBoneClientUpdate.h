@@ -27,7 +27,6 @@
 // Desc:   client update module to translate particle systems with animation
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __ANIMPARTICLESYSBONEUPDATE_H_
 #define __ANIMPARTICLESYSBONEUPDATE_H_

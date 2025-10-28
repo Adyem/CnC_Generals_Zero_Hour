@@ -27,7 +27,6 @@
 // Desc:       Access for creating game managed display strings
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __DISPLAYSTRINGMANAGER_H_
 #define __DISPLAYSTRINGMANAGER_H_

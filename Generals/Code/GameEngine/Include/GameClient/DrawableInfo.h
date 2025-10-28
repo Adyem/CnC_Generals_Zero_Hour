@@ -26,7 +26,6 @@
 // Simple structure used to bind W3D renderObjects to our own Drawables.
 // Author: Mark Wilczynski, August 2002
 
-#pragma once
 #ifndef _DRAWABLEINFO_H_
 #define _DRAWABLEINFO_H_
 

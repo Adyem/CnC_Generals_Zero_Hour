@@ -25,7 +25,6 @@
 // FILE: SelectionXlat.h ///////////////////////////////////////////////////////////
 // Author: Steven Johnson, Dec 2001
 
-#pragma once
 
 #ifndef _H_SelectionXlat
 #define _H_SelectionXlat

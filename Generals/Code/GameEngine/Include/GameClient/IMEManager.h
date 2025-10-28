@@ -41,7 +41,6 @@
 //
 //----------------------------------------------------------------------------
 
-#pragma once
 
 #ifndef __GAMECLIENT_IMEMANAGER_H
 #define __GAMECLIENT_IMEMANAGER_H

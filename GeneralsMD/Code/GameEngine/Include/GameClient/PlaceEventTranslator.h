@@ -25,7 +25,6 @@
 // FILE: PlaceEventTranslator.h ///////////////////////////////////////////////////////////
 // Author: Steven Johnson, Dec 2001
 
-#pragma once
 
 #ifndef _H_PlaceEventTranslator
 #define _H_PlaceEventTranslator

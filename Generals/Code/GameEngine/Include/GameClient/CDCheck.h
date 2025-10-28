@@ -27,7 +27,6 @@
 // Description: check for CD, popping up an in-game message box at game start.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __CDCHECK_H_
 #define __CDCHECK_H_

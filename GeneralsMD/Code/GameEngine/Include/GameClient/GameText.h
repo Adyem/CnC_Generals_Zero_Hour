@@ -40,7 +40,6 @@
 //
 //----------------------------------------------------------------------------
 
-#pragma once
 
 #ifndef __GAMECLIENT_GAMETEXT_H_
 #define __GAMECLIENT_GAMETEXT_H_

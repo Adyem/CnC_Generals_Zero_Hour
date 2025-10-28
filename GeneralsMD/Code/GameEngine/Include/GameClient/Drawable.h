@@ -26,7 +26,6 @@
 // Simple base drawable
 // Author: Michael S. Booth, March 2001
 
-#pragma once
 #ifndef _DRAWABLE_H_
 #define _DRAWABLE_H_
 

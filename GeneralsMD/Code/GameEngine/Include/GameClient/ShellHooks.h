@@ -26,7 +26,6 @@
 // ShellHooks.h
 // Author: Matthew D. Campbell, October 2002
 
-#pragma once
 
 #ifndef SHELLHOOKS_H
 #define SHELLHOOKS_H

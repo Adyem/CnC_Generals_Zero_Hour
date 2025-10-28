@@ -27,7 +27,6 @@
 // Desc:   The file will hold the LoadScreen Base class and it's derived classes
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _LOADSCREEN_H_
 #define _LOADSCREEN_H_
