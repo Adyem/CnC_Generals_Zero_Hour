@@ -26,7 +26,6 @@
 // Generals lobby utils
 // Author: Matthew D. Campbell, Sept 2002
 
-#pragma once
 
 #ifndef __LOBBYUTILS_H__
 #define __LOBBYUTILS_H__

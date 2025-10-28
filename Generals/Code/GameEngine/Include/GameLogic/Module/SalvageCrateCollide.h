@@ -28,7 +28,6 @@
 //					by killing marked units, and only WeaponSalvagers can get the WeaponSet bonus
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef SALVAGE_CRATE_COLLIDE_H_
 #define SALVAGE_CRATE_COLLIDE_H_

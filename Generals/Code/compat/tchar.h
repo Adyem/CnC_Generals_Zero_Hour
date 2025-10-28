@@ -3,7 +3,6 @@
 **      Portable TCHAR compatibility layer for non-Windows builds.
 */
 
-#pragma once
 
 #include <ctype.h>
 #include <stdio.h>

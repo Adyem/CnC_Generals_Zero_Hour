@@ -18,7 +18,6 @@
 
 // Resolves NAT'd IPs and port numbers for the other players in a game.
 
-#pragma once
 
 #ifndef __NAT_H
 #define __NAT_H

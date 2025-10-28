@@ -26,7 +26,6 @@
 // Bryan Cleveland, August 2002
 /////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __WIN32BIGFILESYSTEM_H
 #define __WIN32BIGFILESYSTEM_H

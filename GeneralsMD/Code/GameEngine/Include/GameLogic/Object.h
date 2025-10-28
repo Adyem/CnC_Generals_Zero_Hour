@@ -26,7 +26,6 @@
 // Simple base object
 // Author: Michael S. Booth, October 2000
 
-#pragma once
 #ifndef _OBJECT_H_
 #define _OBJECT_H_
 

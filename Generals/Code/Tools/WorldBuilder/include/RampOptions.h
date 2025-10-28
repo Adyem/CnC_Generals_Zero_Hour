@@ -31,7 +31,6 @@
 /*		4/23/2002 : Initial creation                                           */
 /*---------------------------------------------------------------------------*/
 
-#pragma once
 #ifndef _H_RAMPOPTIONS_
 #define _H_RAMPOPTIONS_
 

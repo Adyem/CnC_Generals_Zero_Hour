@@ -20,7 +20,6 @@
 #define AFX_SCRIPTACTIONSFALSE_H__227F217F_458B_4020_B6E9_6EB25E228FD5__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // ScriptActionsFalse.h : header file
 //

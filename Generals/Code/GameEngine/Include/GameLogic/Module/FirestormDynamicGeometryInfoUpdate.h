@@ -27,7 +27,6 @@
 // Desc:   Update module adds the molestation of a particle system to Geometry changing
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __FIRESTORM_DYNAMIC_GEOMETRY_INFO_UPDATE_H_
 #define __FIRESTORM_DYNAMIC_GEOMETRY_INFO_UPDATE_H_

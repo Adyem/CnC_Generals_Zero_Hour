@@ -17,7 +17,6 @@
 */
 
 
-#pragma once
 
 #include <map>			// for std::pair
 #include <string>		// for std::string

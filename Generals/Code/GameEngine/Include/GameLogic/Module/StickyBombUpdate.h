@@ -28,7 +28,6 @@
 //         moving around. The sticky bomb position simply updates to the specified bone until it explodes.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __STICK_BOMB_UPDATE_H
 #define __STICK_BOMB_UPDATE_H

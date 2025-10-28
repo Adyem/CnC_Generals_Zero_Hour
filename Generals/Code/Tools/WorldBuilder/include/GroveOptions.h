@@ -19,7 +19,6 @@
 #ifndef GROVEOPTIONS_H
 #define GROVEOPTIONS_H
 
-#pragma once
 
 #include <map>
 #include <vector>

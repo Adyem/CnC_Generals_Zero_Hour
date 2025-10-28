@@ -26,7 +26,6 @@
 // Author: Graham Smallwood, February 2002
 // Desc:   State machine that controls when and with who a Truck docks
 
-#pragma once
 
 #ifndef _SUPPLY_TRUCK_AI_UPDATE_H_
 #define _SUPPLY_TRUCK_AI_UPDATE_H_

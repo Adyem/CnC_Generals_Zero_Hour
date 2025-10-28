@@ -27,7 +27,6 @@
 // Desc:   Changes the Objects shroud clearing range
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __DYNAMIC_SHROUD_RANGE_UPDATE_H_
 #define __DYNAMIC_SHROUD_RANGE_UPDATE_H_

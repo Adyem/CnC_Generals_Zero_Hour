@@ -27,7 +27,6 @@
 // Desc:   Contain module that just gives aiHackInternet command to passengers
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __INTERNET_HACK_CONTAIN_H
 #define __INTERNET_HACK_CONTAIN_H

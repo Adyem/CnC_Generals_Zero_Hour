@@ -26,7 +26,6 @@
 // Basic data types needed for the game engine. This is an extension of BaseType.h.
 // Author: Michael S. Booth, April 2001
 
-#pragma once
 
 #ifndef _ModelState_H_
 #define _ModelState_H_

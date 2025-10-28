@@ -27,7 +27,6 @@
 // Desc:   When a building is created, tell special powers to start counting down
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _SPECIAL_POWER_CREATE_H_
 #define _SPECIAL_POWER_CREATE_H_

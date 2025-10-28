@@ -1,4 +1,3 @@
-#pragma once
 
 // Auto-generated version metadata placeholder for non-Windows builds.
 // Define these macros before including this header to override defaults.

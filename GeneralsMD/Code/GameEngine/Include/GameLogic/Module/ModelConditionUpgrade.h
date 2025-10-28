@@ -27,7 +27,6 @@
 // Desc:	 UpgradeModule that sets a modelcondition flag
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _MODEL_CONDITION_UPGRADE_H
 #define _MODEL_CONDITION_UPGRADE_H

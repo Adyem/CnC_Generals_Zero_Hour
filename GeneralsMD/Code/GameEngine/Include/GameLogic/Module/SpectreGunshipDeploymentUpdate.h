@@ -27,7 +27,6 @@
 // Desc:   Update module to handle deployment of the SpectreGunship Generals special power.from command center
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __SPECTRE_GUNSHIP_DEPLOYMENT_UPDATE_H_
 #define __SPECTRE_GUNSHIP_DEPLOYMENT_UPDATE_H_

@@ -28,7 +28,6 @@
 // Description: Saving/Loading of skirmish battle honors info
 ///////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __SKIRMISHBATTLEHONORS_H__
 #define __SKIRMISHBATTLEHONORS_H__

@@ -27,7 +27,6 @@
 // Description: GameSpy online config
 ///////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __GSCONFIG_H__
 #define __GSCONFIG_H__

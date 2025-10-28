@@ -35,7 +35,6 @@
 /* Desc:       // Define Guard Retaliation states for AI                     */
 /*---------------------------------------------------------------------------*/
 
-#pragma once
 #ifndef __AI_GUARD_RETALIATION_H
 #define __AI_GUARD_RETALIATION_H
 

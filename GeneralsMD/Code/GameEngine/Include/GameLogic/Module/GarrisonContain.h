@@ -27,7 +27,6 @@
 // Desc:   Contain module for structures that can be garrisoned
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __GARRISONCONTAIN_H_
 #define __GARRISONCONTAIN_H_

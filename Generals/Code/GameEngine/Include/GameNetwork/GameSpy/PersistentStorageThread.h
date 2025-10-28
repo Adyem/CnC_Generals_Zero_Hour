@@ -26,7 +26,6 @@
 // Generals GameSpy Persistent Storage thread class interface
 // Author: Matthew D. Campbell, July 2002
 
-#pragma once
 
 #ifndef __PERSISTENTSTORAGETHREAD_H__
 #define __PERSISTENTSTORAGETHREAD_H__

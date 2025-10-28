@@ -28,7 +28,6 @@
 //					This instance refuses to spit a second out until the first is clear
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _QUEUE_PRODUCTION_EXIT_UPDATE_H
 #define _QUEUE_PRODUCTION_EXIT_UPDATE_H

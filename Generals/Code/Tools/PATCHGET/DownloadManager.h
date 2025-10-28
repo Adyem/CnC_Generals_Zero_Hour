@@ -20,7 +20,6 @@
 // Generals download class definitions
 // Author: Matthew D. Campbell, July 2002
 
-#pragma once
 
 #ifndef __DOWNLOADMANAGER_H__
 #define __DOWNLOADMANAGER_H__

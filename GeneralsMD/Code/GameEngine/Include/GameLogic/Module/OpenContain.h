@@ -30,7 +30,6 @@
 //				 implementations, those implementations are found here
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __OPENCONTAIN_H_
 #define __OPENCONTAIN_H_

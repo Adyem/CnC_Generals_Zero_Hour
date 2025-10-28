@@ -27,7 +27,6 @@
 // Desc:   Chunk in the save game file that will hold a pristine version of the map file
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __GAME_STATE_MAP_H_
 #define __GAME_STATE_MAP_H_

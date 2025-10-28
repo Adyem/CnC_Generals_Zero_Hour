@@ -27,7 +27,6 @@
 // Author: Matthew D. Campbell, August 2002
 // Note: adapted from WOLAPI
 
-#pragma once
 
 #ifndef __PINGTHREAD_H__
 #define __PINGTHREAD_H__

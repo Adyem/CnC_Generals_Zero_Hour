@@ -26,7 +26,6 @@
 // Part of header detangling
 // JKMCD Aug 2002
 
-#pragma once
 #ifndef __WEAPONBONUSCONDITIONFLAGS_H__
 #define __WEAPONBONUSCONDITIONFLAGS_H__
 

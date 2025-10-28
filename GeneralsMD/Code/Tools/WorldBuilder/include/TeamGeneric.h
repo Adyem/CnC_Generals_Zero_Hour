@@ -17,7 +17,6 @@
 */
 
 
-#pragma once
 
 #ifndef __TEAMGENERIC_H__
 #define __TEAMGENERIC_H__

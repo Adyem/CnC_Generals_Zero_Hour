@@ -27,7 +27,6 @@
 // Desc:   Update module to handle independent targeting of point defense laser.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __POINT_DEFENSE_LASER_UPDATE_H_
 #define __POINT_DEFENSE_LASER_UPDATE_H_

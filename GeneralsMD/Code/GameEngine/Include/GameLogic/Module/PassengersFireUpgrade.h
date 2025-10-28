@@ -27,7 +27,6 @@
 // Desc:	 UpgradeModule that sets containmodules flag for passengersAllowedToFire
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __PASSENGERS_FIRE_UPGRADE_H_
 #define __PASSENGERS_FIRE_UPGRADE_H_

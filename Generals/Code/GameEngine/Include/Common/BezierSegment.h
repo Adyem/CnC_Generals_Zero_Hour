@@ -27,7 +27,6 @@
 // September 2002
 // DO NOT DISTRIBUTE
 
-#pragma once
 #ifndef __BEZIERSEGMENT_H__
 #define __BEZIERSEGMENT_H__
 

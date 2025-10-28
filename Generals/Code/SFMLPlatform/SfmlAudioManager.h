@@ -1,4 +1,3 @@
-#pragma once
 
 #include "Common/GameAudio.h"
 #include "wpaudio/device.h"

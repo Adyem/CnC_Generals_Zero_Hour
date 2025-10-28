@@ -28,7 +28,6 @@
 // Modifications: Kris Morness - Oct 2002 -- moved to Client update (will rename later)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __LASER_UPDATE_H
 #define __LASER_UPDATE_H

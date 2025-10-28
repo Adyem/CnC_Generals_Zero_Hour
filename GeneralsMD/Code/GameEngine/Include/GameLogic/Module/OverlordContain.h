@@ -27,7 +27,6 @@
 // Desc:   Contain module that acts as transport normally, but when full it redirects queries to the first passenger
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __OVERLORD_CONTAIN_H_
 #define __OVERLORD_CONTAIN_H_

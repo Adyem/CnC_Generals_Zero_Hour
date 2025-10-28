@@ -27,7 +27,6 @@
 // Desc:   Behavior module for Bunker Buster... it kills garrisoned objects
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __BUNKERBUSTER_BEHAVIOR_H_
 #define __BUNKERBUSTER_BEHAVIOR_H_

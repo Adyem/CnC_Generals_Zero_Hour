@@ -30,7 +30,6 @@
 //				 knowledge of each other like ther logical and visual terrain
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __W3DMODULEFACTORY_H_
 #define __W3DMODULEFACTORY_H_

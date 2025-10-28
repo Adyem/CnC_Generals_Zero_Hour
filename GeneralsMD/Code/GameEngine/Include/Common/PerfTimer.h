@@ -26,7 +26,6 @@
 // John McDonald
 // July 2002
 
-#pragma once
 
 #ifndef __PERFTIMER_H__
 #define __PERFTIMER_H__

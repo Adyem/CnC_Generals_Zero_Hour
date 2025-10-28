@@ -28,7 +28,6 @@
 //         firing, and all the conditions are met, then it'll create the specified OCL.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __FIRE_OCL_AFTER_WEAPON_COOLDOWN_UPDATE_H
 #define __FIRE_OCL_AFTER_WEAPON_COOLDOWN_UPDATE_H

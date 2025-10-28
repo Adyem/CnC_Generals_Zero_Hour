@@ -20,7 +20,6 @@
 #define AFX_TEAMBEHAVIOR_H__40A707E0_08CB_4544_9FF1_AF0DACAB02A6__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // TeamBehavior.h : header file
 //

@@ -27,7 +27,6 @@
 // Desc:   Tech building basic behavior
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __TECH_BUILDING_BEHAVIOR_H_
 #define __TECH_BUILDING_BEHAVIOR_H_

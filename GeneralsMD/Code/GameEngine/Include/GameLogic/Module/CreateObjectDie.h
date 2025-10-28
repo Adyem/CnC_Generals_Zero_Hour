@@ -27,7 +27,6 @@
 // Desc:   Create object at current object's death
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _CREATE_OBJECT_DIE_H_
 #define _CREATE_OBJECT_DIE_H_

@@ -27,7 +27,6 @@
 // Desc:   Shoot something that collides with me every frame with my weapon
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __FireWeaponCollide_H_
 #define __FireWeaponCollide_H_

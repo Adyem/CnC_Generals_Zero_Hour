@@ -26,7 +26,6 @@
 // Docking behavior
 // Author: Michael S. Booth, February 2002
 
-#pragma once
 
 #ifndef _AI_DOCK_H_
 #define _AI_DOCK_H_

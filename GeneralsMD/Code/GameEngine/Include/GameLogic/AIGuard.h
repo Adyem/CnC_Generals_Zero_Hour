@@ -37,7 +37,6 @@
 /*		3/29/2002 : Initial creation                                           */
 /*---------------------------------------------------------------------------*/
 
-#pragma once
 #ifndef _H_AIGUARD_
 #define _H_AIGUARD_
 

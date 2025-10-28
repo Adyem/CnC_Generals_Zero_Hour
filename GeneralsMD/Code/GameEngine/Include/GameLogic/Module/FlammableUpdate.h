@@ -27,7 +27,6 @@
 // Desc:   Update that manages Aflame and Burned statuses and their effects
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __FLAMMABLE_UPDATE_H_
 #define __FLAMMABLE_UPDATE_H_

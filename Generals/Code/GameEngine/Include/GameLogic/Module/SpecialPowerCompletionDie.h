@@ -27,7 +27,6 @@
 // Desc:   Die method responsible for telling TheScriptEngine that a special power has been completed
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _SPECIAL_POWER_COMPLETION_DIE_H_
 #define _SPECIAL_POWER_COMPLETION_DIE_H_

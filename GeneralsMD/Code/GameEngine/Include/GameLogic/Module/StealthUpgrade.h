@@ -27,7 +27,6 @@
 // Desc:	 An upgrade that set's the owner's OBJECT_STATUS_CAN_STEALTH Status
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __STEALTH_UPGRADE_H_
 #define __STEALTH_UPGRADE_H_

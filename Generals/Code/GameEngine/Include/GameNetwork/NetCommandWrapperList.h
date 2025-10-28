@@ -25,7 +25,6 @@
 ////// NetCommandWrapperList.h ////////////////////////////////
 // Bryan Cleveland
 
-#pragma once
 
 #ifndef __NETCOMMANDWRAPPERLIST_H
 #define __NETCOMMANDWRAPPERLIST_H

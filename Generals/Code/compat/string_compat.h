@@ -1,4 +1,3 @@
-#pragma once
 
 #ifndef _WIN32
 #include <cctype>

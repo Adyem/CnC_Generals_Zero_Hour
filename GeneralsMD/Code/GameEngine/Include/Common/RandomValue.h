@@ -26,7 +26,6 @@
 // Random number generation system
 // Author: Michael S. Booth, January 1998
 
-#pragma once
 
 #ifndef _RANDOM_VALUE_H_
 #define _RANDOM_VALUE_H_

@@ -27,7 +27,6 @@
 // Desc:   Update module for the neutron missile superweapon object
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __NEUTRONMISSILESlowDeathBehavior_H_
 #define __NEUTRONMISSILESlowDeathBehavior_H_

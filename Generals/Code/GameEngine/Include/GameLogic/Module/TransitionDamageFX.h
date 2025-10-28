@@ -27,7 +27,6 @@
 // Desc:   Damage module capable of launching various effects on damage transitions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __TRANSITIONDAMAGEFX_H_
 #define __TRANSITIONDAMAGEFX_H_

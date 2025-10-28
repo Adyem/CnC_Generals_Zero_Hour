@@ -25,7 +25,6 @@
 // JetAIUpdate.h //////////
 // Author: Steven Johnson, June 2002
  
-#pragma once
 
 #ifndef _JET_AI_UPDATE_H_
 #define _JET_AI_UPDATE_H_

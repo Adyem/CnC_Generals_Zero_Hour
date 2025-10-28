@@ -20,7 +20,6 @@
 #define AFX_VIEWDBSII_H__AC697EE4_6D37_4F29_ACC7_8B260A33DA2E__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // VIEWDBSII.h : header file
 //

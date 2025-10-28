@@ -26,7 +26,6 @@
 // Generals LAN game setup information
 // Author: Matthew D. Campbell, December 2001
 
-#pragma once
 
 #ifndef __LANGAMEINFO_H__
 #define __LANGAMEINFO_H__

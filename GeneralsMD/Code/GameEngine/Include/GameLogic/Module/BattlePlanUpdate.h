@@ -27,7 +27,6 @@
 // Desc:   Update module to handle building states and battle plan execution & changes
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __BATTLE_PLAN_UPDATE_H_
 #define __BATTLE_PLAN_UPDATE_H_

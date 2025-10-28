@@ -1,4 +1,3 @@
-#pragma once
 
 // Auto-generated build version placeholder for non-Windows builds.
 // These values can be overridden at compile time by defining the macros

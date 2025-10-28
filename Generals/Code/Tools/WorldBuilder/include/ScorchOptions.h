@@ -20,7 +20,6 @@
 #define AFX_SCORCHOPTIONS_H__33FD4D9A_2C39_4494_A4EF_A20CEC76A95D__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // ScorchOptions.h : header file
 //

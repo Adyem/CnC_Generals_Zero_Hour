@@ -27,7 +27,6 @@
 // Desc:   Update module to handle weapon firing of the SpectreGunship Generals special power.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __SPECTRE_GUNSHIP_UPDATE_H_
 #define __SPECTRE_GUNSHIP_UPDATE_H_

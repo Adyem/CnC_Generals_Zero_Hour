@@ -1,4 +1,3 @@
-#pragma once
 
 // Platform abstraction helpers used throughout the original codebase.
 // The legacy projects relied on a Windows-only "osdep" layer to collect

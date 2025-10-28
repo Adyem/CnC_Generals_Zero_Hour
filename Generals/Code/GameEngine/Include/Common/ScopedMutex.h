@@ -21,7 +21,6 @@
 // Desc:   A scoped mutex class to easily lock a scope with a pre-existing mutex object.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __SCOPEDMUTEX_H__
 #define __SCOPEDMUTEX_H__

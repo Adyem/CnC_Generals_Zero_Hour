@@ -27,7 +27,6 @@
 // Desc:   The action of this dock update is identifying who is docking and either taking Boxes away or giving them
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _SUPPLY_WAREHOUSE_DOCK_UPDATE_H_
 #define _SUPPLY_WAREHOUSE_DOCK_UPDATE_H_

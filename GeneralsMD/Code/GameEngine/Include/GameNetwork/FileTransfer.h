@@ -28,7 +28,6 @@
 // Description: File Transfer wrapper using TheNetwork
 ///////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 #ifndef __FILE_TRANSFER_H__
 #define __FILE_TRANSFER_H__
 

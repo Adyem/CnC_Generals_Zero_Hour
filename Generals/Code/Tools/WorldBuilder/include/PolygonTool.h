@@ -20,7 +20,6 @@
 // Polygon area trigger tool for worldbuilder.
 // Author: John Ahlquist, Nov. 2001
 
-#pragma once
 
 #ifndef POLYGONTOOL_H
 #define POLYGONTOOL_H

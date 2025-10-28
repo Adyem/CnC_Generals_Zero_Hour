@@ -20,7 +20,6 @@
 #define AFX_BASEBUILDPROPS_H__71A01D97_E81A_45F8_982D_57D83E5342DF__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // BaseBuildProps.h : header file
 //

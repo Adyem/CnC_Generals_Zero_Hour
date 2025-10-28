@@ -1,4 +1,3 @@
-#pragma once
 
 // Minimal placeholder for the legacy WW3D2 text rendering helper.  The real
 // implementation depends on Direct3D and other Windows-specific facilities,

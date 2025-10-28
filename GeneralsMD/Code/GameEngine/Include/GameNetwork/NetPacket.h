@@ -34,7 +34,6 @@ be specialized code.
 
 
 
-#pragma once
 
 #ifndef __NETPACKET_H
 #define __NETPACKET_H

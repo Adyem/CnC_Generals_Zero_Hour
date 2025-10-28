@@ -26,7 +26,6 @@
 // LAN Player Class used for both the LANAPI and LANGameInfo
 // Author: Matthew D. Campbell, October 2001 (Pulled out of LANAPI.h by CLH on 12/21/01
 
-#pragma once
 
 #ifndef _LANPLAYER_H_
 #define _LANPLAYER_H_

@@ -29,7 +29,6 @@
 // Legacy compatibility wrapper that exposes the neutral online services
 // façade through the historic GameSpy include path.
 
-#pragma once
 
 #ifndef __PEERDEFS_H__
 #define __PEERDEFS_H__

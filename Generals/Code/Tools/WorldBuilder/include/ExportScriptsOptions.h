@@ -20,7 +20,6 @@
 #define AFX_EXPORTSCRIPTSOPTIONS_H__706D8D87_E01C_431A_ADB8_DFC4CA8A8422__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // ExportScriptsOptions.h : header file
 //

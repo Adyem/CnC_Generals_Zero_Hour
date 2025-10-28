@@ -20,7 +20,6 @@
 // Class to do custom toolbar.
 // Author: John Ahlquist, April 2001
 
-#pragma once
 
 #ifndef MYTOOLBAR_H
 #define MYTOOLBAR_H

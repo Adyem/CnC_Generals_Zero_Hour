@@ -20,7 +20,6 @@
 // Texture selection tool for worldbuilder.
 // Author: John Ahlquist, April 2001
 
-#pragma once
 
 #ifndef WAYPOINTTOOL_H
 #define WAYPOINTTOOL_H

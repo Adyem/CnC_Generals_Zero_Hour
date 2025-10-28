@@ -27,7 +27,6 @@
 // Desc:   System responsible for Crates as code objects - ini, new/delete etc
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef CRATE_SYSTEM_H
 #define CRATE_SYSTEM_H

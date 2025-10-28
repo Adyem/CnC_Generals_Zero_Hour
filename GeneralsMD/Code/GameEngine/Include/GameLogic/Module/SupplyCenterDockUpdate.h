@@ -27,7 +27,6 @@
 // Desc:   The action of this dock update is taking boxes and turning them into money for my ownerplayer
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _SUPPLY_CENTER_DOCK_UPDATE_H_
 #define _SUPPLY_CENTER_DOCK_UPDATE_H_

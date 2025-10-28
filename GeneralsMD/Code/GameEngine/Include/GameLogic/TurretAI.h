@@ -26,7 +26,6 @@
 // Author: Steven Johnson, April 2002
 // Simple turret behavior
 
-#pragma once
 
 #ifndef _TURRETAI_H_
 #define _TURRETAI_H_

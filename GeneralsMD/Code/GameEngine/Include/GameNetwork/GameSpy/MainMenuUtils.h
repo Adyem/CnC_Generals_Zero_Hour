@@ -27,7 +27,6 @@
 // Description: GameSpy version check, patch download, etc utils
 ///////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __MAINMENUUTILS_H__
 #define __MAINMENUUTILS_H__

@@ -18,7 +18,6 @@
 
 // GameSpy staging room metadata and slot helpers.
 
-#pragma once
 
 #ifndef __STAGINGROOMGAMEINFO_H__
 #define __STAGINGROOMGAMEINFO_H__

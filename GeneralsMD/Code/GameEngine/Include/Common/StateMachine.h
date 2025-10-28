@@ -26,7 +26,6 @@
 // Finite state machine encapsulation
 // Author: Michael S. Booth, January 2002
 
-#pragma once
 
 #ifndef _STATE_MACHINE_H_
 #define _STATE_MACHINE_H_

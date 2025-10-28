@@ -27,7 +27,6 @@
 // Desc:	 A Module that responds to PlayerUpgrade Bitsetting by executing code once and only once
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __UPGRADE_MODULE_H_
 #define __UPGRADE_MODULE_H_

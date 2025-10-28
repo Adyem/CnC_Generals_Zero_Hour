@@ -27,7 +27,6 @@
 // Desc:	 UpgradeModule that sets a weapon set bit for the Best Fit weapon set chooser to discover
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __WEAPON_SET_UPGRADE_H_
 #define __WEAPON_SET_UPGRADE_H_

@@ -20,7 +20,6 @@
 #define AFX_EditAction_H__64465BA2_AD81_4EFD_BAB4_93F66C90ECD1__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // EditAction.h : header file
 //

@@ -26,7 +26,6 @@
 // Generals GameSpy GameInfo
 // Author: Matthew D. Campbell, Sept 2002
 
-#pragma once
 
 #ifndef __STAGINGROOMGAMEINFO_H__
 #define __STAGINGROOMGAMEINFO_H__

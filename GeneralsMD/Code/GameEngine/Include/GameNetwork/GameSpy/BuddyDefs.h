@@ -26,7 +26,6 @@
 // Generals GameSpy Buddy (GP) definitions
 // Author: Matthew D. Campbell, July 2002
 
-#pragma once
 
 #ifndef __BUDDYDEFS_H__
 #define __BUDDYDEFS_H__

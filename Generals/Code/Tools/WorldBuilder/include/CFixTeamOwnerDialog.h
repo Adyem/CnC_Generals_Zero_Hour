@@ -20,7 +20,6 @@
 class TeamsInfo;
 class SidesList;
 
-#pragma once
 
 class CFixTeamOwnerDialog : public CDialog
 {

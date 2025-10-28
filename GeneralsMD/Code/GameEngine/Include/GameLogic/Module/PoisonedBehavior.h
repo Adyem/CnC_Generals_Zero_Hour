@@ -27,7 +27,6 @@
 // Desc:   Behavior that reacts to poison Damage by continuously damaging us further in an Update
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __Poisoned_Behavior_H_
 #define __Poisoned_Behavior_H_

@@ -1,4 +1,3 @@
-#pragma once
 
 #include "wpaudio/attributes.h"
 

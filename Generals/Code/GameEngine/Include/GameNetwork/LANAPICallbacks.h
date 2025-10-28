@@ -27,7 +27,6 @@
 // Author: Chris Huybregts, October 2001
 // Description: LAN API Callbacks header
 ///////////////////////////////////////////////////////////////////////////////////////
-#pragma once
 
 #ifndef _LANAPI_CALLBACKS_H_
 #define _LANAPI_CALLBACKS_H_

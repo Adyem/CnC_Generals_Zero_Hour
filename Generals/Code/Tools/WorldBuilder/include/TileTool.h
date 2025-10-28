@@ -20,7 +20,6 @@
 // Texture tiling tools for worldbuilder.
 // Author: John Ahlquist, April 2001
 
-#pragma once
 
 #ifndef TILETOOL_H
 #define TILETOOL_H

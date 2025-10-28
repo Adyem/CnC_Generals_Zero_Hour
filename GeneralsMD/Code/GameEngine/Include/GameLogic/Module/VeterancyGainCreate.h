@@ -27,7 +27,6 @@
 // Desc:   On creation, will set Object's veterancy level if required Science is present.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __VETERANCY_GAIN_CREATE_H_
 #define __VETERANCY_GAIN_CREATE_H_

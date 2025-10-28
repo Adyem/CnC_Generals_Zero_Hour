@@ -20,7 +20,6 @@
 #define AFX_PROPEDIT_H__93C02F45_592B_4CFD_A092_7445559D26EB__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // propedit.h : header file
 //

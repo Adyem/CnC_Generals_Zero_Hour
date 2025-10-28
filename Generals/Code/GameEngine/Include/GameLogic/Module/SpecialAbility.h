@@ -28,7 +28,6 @@
 //         many different styles and rules for various attacks.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __SPECIAL_ABILITY_H_
 #define __SPECIAL_ABILITY_H_

@@ -26,7 +26,6 @@
 // Electronic Arts Pacific
 // Do Not Distribute
 
-#pragma once
 
 #ifndef __OSDISPLAY_H__
 #define __OSDISPLAY_H__

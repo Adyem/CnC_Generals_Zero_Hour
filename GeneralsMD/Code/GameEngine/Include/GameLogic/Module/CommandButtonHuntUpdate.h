@@ -27,7 +27,6 @@
 // Desc:   Update module to handle wounded idle infantry finding a heal unit or structure.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __COMMAND_BUTTON_HUNT_UPDATE_H_
 #define __COMMAND_BUTTON_HUNT_UPDATE_H_

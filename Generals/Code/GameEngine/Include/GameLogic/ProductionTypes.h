@@ -1,4 +1,3 @@
-#pragma once
 
 // Shared production identifiers and enums used by UI and module code.
 enum ProductionID

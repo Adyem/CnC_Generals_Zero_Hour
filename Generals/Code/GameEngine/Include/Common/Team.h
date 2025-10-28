@@ -26,7 +26,6 @@
 // Team interface definition
 // Author: Michael S. Booth, Steven Johnson, March 2001
 
-#pragma once
 
 #ifndef _TEAM_H_
 #define _TEAM_H_

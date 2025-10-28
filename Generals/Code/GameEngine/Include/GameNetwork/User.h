@@ -26,7 +26,6 @@
  * User class used by the network.
  */
 
-#pragma once
 
 #ifndef __USER_H
 #define __USER_H

@@ -27,7 +27,6 @@
 // Class to encapsulate Sides and Build Lists for maps.
 // Author: John Ahlquist, November 2001
 
-#pragma once
 
 #ifndef SIDESLIST_H
 #define SIDESLIST_H

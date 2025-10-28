@@ -27,7 +27,6 @@
  * from here, as well as removed through here.
  */
 
-#pragma once
 
 #ifndef __CONNECTIONMANAGER_H
 #define __CONNECTIONMANAGER_H

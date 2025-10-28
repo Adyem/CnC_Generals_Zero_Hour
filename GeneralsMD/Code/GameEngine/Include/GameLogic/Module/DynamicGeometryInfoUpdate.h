@@ -27,7 +27,6 @@
 // Desc:   Update module that changes the object's GeometryInfo
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __DYNAMIC_GEOMETRY_INFO_UPDATE_H_
 #define __DYNAMIC_GEOMETRY_INFO_UPDATE_H_

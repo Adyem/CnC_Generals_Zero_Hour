@@ -20,7 +20,6 @@
 #define AFX_PICKUNITDIALOG_H__B4C16E7D_FEED_472B_95FC_496D4C9006F5__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // PickUnitDialog.h : header file
 //

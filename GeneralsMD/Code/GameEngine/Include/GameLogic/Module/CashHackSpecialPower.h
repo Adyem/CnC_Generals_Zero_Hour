@@ -27,7 +27,6 @@
 // Desc:   The Spy Satellite will reveal shrouded areas of the map that the player chooses
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __CASHHACKSPECIALPOWER_H_
 #define __CASHHACKSPECIALPOWER_H_

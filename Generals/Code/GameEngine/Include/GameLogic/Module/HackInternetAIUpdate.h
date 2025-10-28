@@ -26,7 +26,6 @@
 // Author: Kris Morness, June 2002
 // Desc:   State machine that allows hacking cash from the internet (free money).
 
-#pragma once
 
 #ifndef __HACK_INTERNET_AI_UPDATE_H
 #define __HACK_INTERNET_AI_UPDATE_H

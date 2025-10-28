@@ -17,7 +17,6 @@
 */
 
 
-#pragma once
 
 #include "CButtonShowColor.h"
 #include "GameClient/ParticleSys.h"

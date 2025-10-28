@@ -20,7 +20,6 @@
 // Texture tiling tools for worldbuilder.
 // Author: John Ahlquist, June 2001
 
-#pragma once
 
 #ifndef RoadTool_H
 #define RoadTool_H

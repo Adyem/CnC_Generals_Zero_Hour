@@ -27,7 +27,6 @@
 // Desc:	 Just like Active Body, but won't let health drop below 1
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __IMMORTAL_BODY_H
 #define __IMMORTAL_BODY_H

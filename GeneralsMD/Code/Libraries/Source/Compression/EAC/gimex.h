@@ -67,7 +67,6 @@ gimex.h - Primary header file for the GIMEX API.
 #define __GIMEX_H 1
 
 #if defined(_MSC_VER)
-#pragma once
 #pragma warning(disable : 4100)
 /* warning C4100: unreferenced parameter */
 #endif

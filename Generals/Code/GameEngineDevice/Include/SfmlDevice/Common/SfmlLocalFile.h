@@ -29,7 +29,6 @@
 //   memory-pool allocation helpers remain available outside of the Win32 layer.
 ////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __SFMLLOCALFILE_H
 #define __SFMLLOCALFILE_H

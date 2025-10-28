@@ -27,7 +27,6 @@
 // Desc:   Active bodies have health, they can die and are affected by health
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __ACTIVEBODY_H_
 #define __ACTIVEBODY_H_

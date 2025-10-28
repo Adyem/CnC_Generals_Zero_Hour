@@ -20,7 +20,6 @@
 // Simple interface for storing/retreiving registry values
 // Author: Matthew D. Campbell, December 2001
 
-#pragma once
 
 #ifndef __REGISTRY_H__
 #define __REGISTRY_H__

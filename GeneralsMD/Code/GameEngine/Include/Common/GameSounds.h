@@ -39,7 +39,6 @@
 //
 //----------------------------------------------------------------------------
 
-#pragma once
 #ifndef __COMMON_GAMESOUNDS_H_
 #define __COMMON_GAMESOUNDS_H_
 

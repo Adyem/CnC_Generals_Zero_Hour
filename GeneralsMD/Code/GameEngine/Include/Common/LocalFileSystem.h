@@ -26,7 +26,6 @@
 // Bryan Cleveland, August 2002
 //////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __LOCALFILESYSTEM_H
 #define __LOCALFILESYSTEM_H

@@ -31,7 +31,6 @@
 /*		3/23/2002 : Initial creation                                          */
 /*---------------------------------------------------------------------------*/
 
-#pragma once
 #ifndef _H_MOREPARMSDIALOG_
 #define _H_MOREPARMSDIALOG_
 

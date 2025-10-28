@@ -26,7 +26,6 @@
 // Version and interface info for map file writers and reader.
 // Author: John Ahlquist, October 2001
 
-#pragma once
 
 #ifndef _MAP_READER_WRITER_INFO_H_
 #define _MAP_READER_WRITER_INFO_H_

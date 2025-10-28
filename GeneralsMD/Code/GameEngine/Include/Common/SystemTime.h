@@ -1,4 +1,3 @@
-#pragma once
 
 #ifndef COMMON_SYSTEM_TIME_H
 #define COMMON_SYSTEM_TIME_H

@@ -28,7 +28,6 @@
 //   ArchiveFile implementation for BIG archives used by the SFML device layer.
 ////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __SFMLBIGFILE_H
 #define __SFMLBIGFILE_H

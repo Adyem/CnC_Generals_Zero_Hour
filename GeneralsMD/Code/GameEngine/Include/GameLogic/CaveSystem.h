@@ -27,7 +27,6 @@
 // Desc:   System responsible for keeping track of the connectedness of all cave systems on the map
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef CAVE_SYSTEM_H
 #define CAVE_SYSTEM_H

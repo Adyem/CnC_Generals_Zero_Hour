@@ -27,7 +27,6 @@
 // Desc:   When a Supply Center is created, it needs to update all the Resource brains in all players
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _SUPPLY_CENTER_CREATE_H_
 #define _SUPPLY_CENTER_CREATE_H_

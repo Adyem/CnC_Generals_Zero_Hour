@@ -20,7 +20,6 @@
 #define AFX_MESHMOLDOPTIONS_H__D5E62CB9_2830_4FA1_8306_DE18DD971087__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // MeshMoldOptions.h : header file
 //

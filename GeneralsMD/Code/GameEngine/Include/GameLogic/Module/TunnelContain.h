@@ -28,7 +28,6 @@
 //					TunnelTracker.  All queries about capacity and contents are also redirected.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __TUNNEL_CONTAIN_H_
 #define __TUNNEL_CONTAIN_H_

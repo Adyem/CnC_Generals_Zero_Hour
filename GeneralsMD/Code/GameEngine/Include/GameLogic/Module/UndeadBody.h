@@ -27,7 +27,6 @@
 // Desc:	 First death is intercepted and sets flags and setMaxHealth.  Second death is handled normally.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __UNDEAD_BODY_H
 #define __UNDEAD_BODY_H

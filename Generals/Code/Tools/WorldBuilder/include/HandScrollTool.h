@@ -20,7 +20,6 @@
 // Scrolling tool for worldbuilder.
 // Author: John Ahlquist, May 2001
 
-#pragma once
 
 #ifndef HandScrollTool_H
 #define HandScrollTool_H

@@ -27,7 +27,6 @@
 // Desc:   Update will change model state conditions based on special power state
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _MissileLauncherBuildingUpdate_H_
 #define _MissileLauncherBuildingUpdate_H_

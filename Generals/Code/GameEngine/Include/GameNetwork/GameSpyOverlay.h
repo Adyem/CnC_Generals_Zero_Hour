@@ -26,7 +26,6 @@
 // Generals GameSpy overlay screens
 // Author: Matthew D. Campbell, March 2002
 
-#pragma once
 
 #ifndef __GAMESPYOVERLAY_H__
 #define __GAMESPYOVERLAY_H__

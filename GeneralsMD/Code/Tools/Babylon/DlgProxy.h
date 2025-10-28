@@ -23,7 +23,6 @@
 #define AFX_DLGPROXY_H__2BF3124F_3BA1_11D3_B9DA_006097B90D93__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 
 class CBabylonDlg;

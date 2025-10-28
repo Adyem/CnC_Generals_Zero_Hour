@@ -45,7 +45,6 @@
  *   WindowsVersionInfo::IsOSR2Release --													   *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#pragma once
 
 #ifndef WINFIX_H
 #define WINFIX_H

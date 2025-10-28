@@ -28,7 +28,6 @@
 //					This instance simply spits the guy out at a point.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _DEFAULT_PRODUCTION_EXIT_UPDATE_H
 #define _DEFAULT_PRODUCTION_EXIT_UPDATE_H

@@ -27,7 +27,6 @@
 // Desc: Railed transport contain module
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __RAILED_TRANSPORT_CONTAIN_H_
 #define __RAILED_TRANSPORT_CONTAIN_H_

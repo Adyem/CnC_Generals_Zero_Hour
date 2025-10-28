@@ -27,7 +27,6 @@
 // Desc:   Contain module for mob units. Acts as proxy for UI and AI
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __MOBNEXUSCONTAIN_H_
 #define __MOBNEXUSCONTAIN_H_

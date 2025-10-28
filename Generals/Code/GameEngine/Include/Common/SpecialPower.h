@@ -28,7 +28,6 @@
 // Edited: Kris Morness -- July 2002 (added BitFlag system)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __SPECIALPOWER_H_
 #define __SPECIALPOWER_H_

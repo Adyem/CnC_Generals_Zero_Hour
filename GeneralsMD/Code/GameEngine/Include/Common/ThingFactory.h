@@ -27,7 +27,6 @@
 // Desc:		This is how we go and make our things, we make our things, we make our things!	
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __THINGFACTORY_H_
 #define __THINGFACTORY_H_

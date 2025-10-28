@@ -20,7 +20,6 @@
 #define AFX_EDITCOORDPARAMETER_H__465E4002_6405_47E3_97BA_D46A8C108600__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // EditCoordParameter.h : header file
 //

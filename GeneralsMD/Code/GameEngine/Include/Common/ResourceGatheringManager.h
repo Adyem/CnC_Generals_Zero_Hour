@@ -28,7 +28,6 @@
 // Author: Graham Smallwood, January, 2002
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef RESOURCE_GATHER_MANAGER_H
 #define RESOURCE_GATHER_MANAGER_H

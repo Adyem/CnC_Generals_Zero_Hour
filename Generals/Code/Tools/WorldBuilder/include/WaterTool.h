@@ -20,7 +20,6 @@
 // Polygon area trigger tool for worldbuilder.
 // Author: John Ahlquist, Nov. 2001
 
-#pragma once
 
 #ifndef WaterTool_H
 #define WaterTool_H

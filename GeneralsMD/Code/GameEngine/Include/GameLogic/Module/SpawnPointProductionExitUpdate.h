@@ -28,7 +28,6 @@
 //					This instance puts guys at named bones.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _SPAWN_POINT_PRODUCTION_EXIT_UPDATE_H
 #define _SPAWN_POINT_PRODUCTION_EXIT_UPDATE_H

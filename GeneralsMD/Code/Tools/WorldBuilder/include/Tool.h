@@ -20,7 +20,6 @@
 // Tool classes for worldbuilder.
 // Author: John Ahlquist, April 2001
 
-#pragma once
 
 #ifndef TOOL_H
 #define TOOL_H

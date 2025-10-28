@@ -20,7 +20,6 @@
 // Build list tool for worldbuilder.
 // Author: John Ahlquist, Nov 2001
 
-#pragma once
 
 #ifndef BUILDLISTTOOL_H
 #define BUILDLISTTOOL_H

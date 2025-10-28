@@ -26,7 +26,6 @@
 // Will give self random move commands
 // Author: Graham Smallwood, April 2002
  
-#pragma once
 
 #ifndef _WANDER_AI_UPDATE_H_
 #define _WANDER_AI_UPDATE_H_

@@ -35,7 +35,6 @@
 //
 //----------------------------------------------------------------------------
 
-#pragma once
 
 #ifndef __WSYS_STDFILE_H
 #define __WSYS_STDFILE_H

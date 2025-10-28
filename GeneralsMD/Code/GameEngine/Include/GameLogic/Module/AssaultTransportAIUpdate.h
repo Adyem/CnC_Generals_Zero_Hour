@@ -28,7 +28,6 @@
 //         troops, order them to attack, then return. Can do extra things like ordering
 //         injured troops to return to the transport for healing purposes.
 
-#pragma once
 
 #ifndef __ASSAULT_TRANSPORT_AI_UPDATE_H
 #define __ASSAULT_TRANSPORT_AI_UPDATE_H

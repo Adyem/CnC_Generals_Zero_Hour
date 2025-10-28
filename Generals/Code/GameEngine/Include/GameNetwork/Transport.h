@@ -26,7 +26,6 @@
 // Transport layer - a thin layer around a UDP socket, with queues.
 // Author: Matthew D. Campbell, July 2001
 
-#pragma once
 
 #ifndef _TRANSPORT_H_
 #define _TRANSPORT_H_

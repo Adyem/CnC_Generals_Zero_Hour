@@ -27,7 +27,6 @@
 // Desc:   A couple of "buckets" so that we can have things sort easily in the editor
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __THINGSORT_H_
 #define __THINGSORT_H_

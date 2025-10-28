@@ -25,7 +25,6 @@
 // ChinookAIUpdate.h //////////
 // Author: Steven Johnson, June 2002
  
-#pragma once
 
 #ifndef _ChinookAIUpdate_H_
 #define _ChinookAIUpdate_H_

@@ -43,7 +43,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#pragma once
 
 #ifndef __ACADEMY_STATS_H
 #define __ACADEMY_STATS_H

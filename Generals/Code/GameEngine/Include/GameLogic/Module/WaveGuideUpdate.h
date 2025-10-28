@@ -27,7 +27,6 @@
 // Desc:   Update module for the waver wave objects to create flooding
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __WATERWAVE_H_
 #define __WATERWAVE_H_

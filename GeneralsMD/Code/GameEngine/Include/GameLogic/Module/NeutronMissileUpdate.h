@@ -26,7 +26,6 @@
 // Author:	Michael S. Booth, December 2001
 // Desc:		Missile behavior
 
-#pragma once
 
 #ifndef _MISSILE_UPDATE_H_
 #define _MISSILE_UPDATE_H_

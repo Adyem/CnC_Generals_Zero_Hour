@@ -26,7 +26,6 @@
 // LANAPI singleton class - defines interface to LAN broadcast communications
 // Author: Matthew D. Campbell, October 2001
 
-#pragma once
 
 #ifndef _LANAPI_H_
 #define _LANAPI_H_

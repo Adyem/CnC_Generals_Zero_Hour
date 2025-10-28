@@ -27,7 +27,6 @@
 // Script data structures.
 // Author: John Ahlquist, November 2001
 
-#pragma once
 
 #ifndef SCRIPTS_H
 #define SCRIPTS_H

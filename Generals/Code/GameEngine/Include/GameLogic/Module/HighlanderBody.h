@@ -27,7 +27,6 @@
 // Desc:	 Takes damage according to armor, but can't die from normal damage.  Can die from Unresistable though
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __HIGHLANDER_BODY_H
 #define __HIGHLANDER_BODY_H

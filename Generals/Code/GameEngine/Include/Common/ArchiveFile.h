@@ -26,7 +26,6 @@
 // Bryan Cleveland, August 2002
 //////////////////////////////////////////
 
-#pragma once
 
 #ifndef __ARCHIVEFILE_H
 #define __ARCHIVEFILE_H

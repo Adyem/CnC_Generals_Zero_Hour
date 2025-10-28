@@ -27,7 +27,6 @@
 // Desc:   Object helper - Clears Status conditions on a timer.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __StatusDamageHelper_H_
 #define __StatusDamageHelper_H_

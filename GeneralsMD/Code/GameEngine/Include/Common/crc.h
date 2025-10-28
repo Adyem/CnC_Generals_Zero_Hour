@@ -26,7 +26,6 @@
 // A class encapsulating CRC calculation
 // Author: Matthew D. Campbell, October 2001
 
-#pragma once
 
 #ifndef _CRC_H_
 #define _CRC_H_

@@ -27,7 +27,6 @@
 // Desc:   State machine that allows deploying/undeploying to control the AI. 
 //         When deployed, you can't move, when undeployed, you can't attack.
 
-#pragma once
 
 #ifndef __DEPLOY_STYLE_AI_UPDATE_H
 #define __DEPLOY_STYLE_AI_UPDATE_H

@@ -27,7 +27,6 @@
 // Desc:   Update module to handle demo trap proximity triggering.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __DEMO_TRAP_UPDATE_H_
 #define __DEMO_TRAP_UPDATE_H_

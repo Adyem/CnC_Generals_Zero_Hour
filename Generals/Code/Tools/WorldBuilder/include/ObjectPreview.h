@@ -20,7 +20,6 @@
 #define AFX_OBJECTPREVIEW_H__2EC47AA6_06CA_43D1_9003_15472AE76CE7__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // ObjectPreview.h : header file
 //

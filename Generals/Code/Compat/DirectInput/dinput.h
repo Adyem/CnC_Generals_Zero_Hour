@@ -1,4 +1,3 @@
-#pragma once
 
 // Minimal DirectInput compatibility header for non-Windows builds.  Only the
 // types referenced by the Command & Conquer Generals headers are declared

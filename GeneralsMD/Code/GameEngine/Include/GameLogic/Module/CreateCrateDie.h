@@ -27,7 +27,6 @@
 // Desc:   A chance to create a crate on death according to certain condition checks
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _CREATE_CRATE_DIE_H_
 #define _CREATE_CRATE_DIE_H_

@@ -42,7 +42,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#pragma once
 
 #ifndef _MISSIONSTATS_H_
 #define _MISSIONSTATS_H_

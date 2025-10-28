@@ -27,7 +27,6 @@
 // Desc: Handles aircraft movement and parking behavior for aircraft carriers.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __FLIGHT_DECK_BEHAVIOR_H
 #define __FLIGHT_DECK_BEHAVIOR_H

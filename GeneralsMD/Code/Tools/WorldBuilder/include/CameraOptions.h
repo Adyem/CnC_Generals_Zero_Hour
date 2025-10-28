@@ -20,7 +20,6 @@
 #define AFX_CAMERAOPTIONS_H__4EF4F775_1290_47AE_817F_9340BA3A898C__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // CameraOptions.h : header file
 //

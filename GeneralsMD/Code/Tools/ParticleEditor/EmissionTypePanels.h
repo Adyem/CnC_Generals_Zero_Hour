@@ -31,7 +31,6 @@
 /*		3/21/2002 : Initial creation                                           */
 /*---------------------------------------------------------------------------*/
 
-#pragma once
 #ifndef _H_EMISSIONTYPEPANELS_
 #define _H_EMISSIONTYPEPANELS_
 

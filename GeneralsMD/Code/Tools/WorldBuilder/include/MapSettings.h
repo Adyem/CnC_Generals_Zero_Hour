@@ -20,7 +20,6 @@
 #define AFX_MAPSETTINGS_H__21749744_4DF4_462C_8DD4_FEEC1003DCFE__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // MapSettings.h : header file
 //

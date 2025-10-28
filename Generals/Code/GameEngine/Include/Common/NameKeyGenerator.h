@@ -28,7 +28,6 @@
 // Desc:       Name key system to translate between names and unique key ids
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __NAMEKEYGENERATOR_H_
 #define __NAMEKEYGENERATOR_H_

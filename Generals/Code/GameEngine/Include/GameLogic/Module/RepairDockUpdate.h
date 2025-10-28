@@ -27,7 +27,6 @@
 // Desc:   The action of docking with a structure for repairs
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __REPAIRDOCKUPDATE_H_
 #define __REPAIRDOCKUPDATE_H_

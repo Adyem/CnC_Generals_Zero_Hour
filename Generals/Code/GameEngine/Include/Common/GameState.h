@@ -27,7 +27,6 @@
 // Desc:   Game state singleton from which to load and save the game state
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __GAME_STATE_H_
 #define __GAME_STATE_H_

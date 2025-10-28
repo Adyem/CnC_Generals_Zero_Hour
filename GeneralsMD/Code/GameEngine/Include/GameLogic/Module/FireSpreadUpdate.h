@@ -27,7 +27,6 @@
 // Desc:   Update looks for ::Aflame and explicitly ignites someone nearby if set
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __FIRE_SPREAD_UPDATE_H_
 #define __FIRE_SPREAD_UPDATE_H_

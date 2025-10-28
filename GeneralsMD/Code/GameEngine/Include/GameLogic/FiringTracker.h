@@ -27,7 +27,6 @@
 // Desc:   Keeps track of shots fired and people targeted for weapons that want a history of such a thing
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef FIRING_TRACKER_H
 #define FIRING_TRACKER_H

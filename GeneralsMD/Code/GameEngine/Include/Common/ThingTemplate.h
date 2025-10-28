@@ -27,7 +27,6 @@
 // Desc:	 Thing templates are a 'roadmap' to creating things
 ///////////////////////////////////////////////////////////////////////////////////////////////////	
 
-#pragma once
 
 #ifndef __THINGTEMPLATE_H_
 #define __THINGTEMPLATE_H_

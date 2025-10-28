@@ -37,7 +37,6 @@
 /*		3/29/2002 : Initial creation                                           */
 /*---------------------------------------------------------------------------*/
 
-#pragma once
 #ifndef _H_AITNGUARD_
 #define _H_AITNGUARD_
 

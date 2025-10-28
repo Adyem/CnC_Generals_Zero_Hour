@@ -27,7 +27,6 @@
 // a player can see them fogged.
 // Author: Mark Wilczynski, August 2002
 
-#pragma once
 
 #ifndef _GHOSTOBJECT_H_
 #define _GHOSTOBJECT_H_

@@ -25,7 +25,6 @@
 // FILE: GUIUtil.h //////////////////////////////////////////////////////
 // Author: Matthew D. Campbell, Sept 2002
 
-#pragma once
 
 #ifndef __GUIUTIL_H__
 #define __GUIUTIL_H__

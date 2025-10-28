@@ -27,7 +27,6 @@
 // Desc:   Free's producer's upgrade (assuming this object was created via an upgrade).
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __UPGRADEDIE_H
 #define __UPGRADEDIE_H

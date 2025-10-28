@@ -27,7 +27,6 @@
 // Desc:   Update that will collapse a building.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __StructureCollapseUpdate_H_
 #define __StructureCollapseUpdate_H_
