@@ -26,7 +26,6 @@
 // The command-line interface
 // Author: Matthew D. Campbell, September 2001
 
-#pragma once
 
 #ifndef _COMMAND_LINE_H_
 #define _COMMAND_LINE_H_

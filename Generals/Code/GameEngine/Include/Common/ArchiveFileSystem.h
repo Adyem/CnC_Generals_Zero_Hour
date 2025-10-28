@@ -41,7 +41,6 @@
 //
 //----------------------------------------------------------------------------
 
-#pragma once
 
 #ifndef __ARCHIVEFILESYSTEM_H_
 #define __ARCHIVEFILESYSTEM_H_

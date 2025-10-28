@@ -32,7 +32,6 @@
 /*		3/21/2002 : Initial creation                                           */
 /*---------------------------------------------------------------------------*/
 
-#pragma once
 #ifndef _H_ISWAPABLEPANEL_
 #define _H_ISWAPABLEPANEL_
 

@@ -17,7 +17,6 @@
 */
 
 
-#pragma once
 
 #ifndef __IMPASSABLEOPTIONS_H__
 #define __IMPASSABLEOPTIONS_H__

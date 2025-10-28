@@ -27,7 +27,6 @@
 // Desc:   Uses animation states to handle steering.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __ANIMATION_STEERING_UPDATE_H
 #define __ANIMATION_STEERING_UPDATE_H

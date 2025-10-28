@@ -16,7 +16,6 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
 #include "Tool.h"
 
 class BorderTool : public Tool

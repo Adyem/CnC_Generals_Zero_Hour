@@ -26,7 +26,6 @@
 // Will obey to spawner... or die trying... used by angry mob members
 // Author: Mark Lorenzen, August 2002
  
-#pragma once
 
 #ifndef _MOBMEMBER_SLAVED_UPDATE_H_
 #define _MOBMEMBER_SLAVED_UPDATE_H_

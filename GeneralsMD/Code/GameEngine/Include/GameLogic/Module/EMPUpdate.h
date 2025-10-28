@@ -27,7 +27,6 @@
 // Desc:   Update that makes the electromagnetic pulse field grow, fade and disable junk
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __EMPUPDATE_H_
 #define __EMPUPDATE_H_

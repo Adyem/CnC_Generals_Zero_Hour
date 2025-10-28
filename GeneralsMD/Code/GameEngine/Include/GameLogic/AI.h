@@ -26,7 +26,6 @@
 // AI header file
 // Author: Michael S. Booth, November 2000
 
-#pragma once
 
 #ifndef _AI_H_
 #define _AI_H_

@@ -18,7 +18,6 @@
 
 // Lightweight compatibility wrapper for the historic GameSpy game info API.
 
-#pragma once
 
 #ifndef __GAMESPYGAMEINFO_H__
 #define __GAMESPYGAMEINFO_H__

@@ -27,7 +27,6 @@
 // Desc:   Update module that will fire off FX lists at bone locations at random intervals
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __BONEFXUPDATE_H_
 #define __BONEFXUPDATE_H_

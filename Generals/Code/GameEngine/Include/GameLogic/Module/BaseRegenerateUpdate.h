@@ -27,7 +27,6 @@
 // Desc:   Update module for base objects automatically regenerating health
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __BASE_REGENERATE_UPDATE_H_
 #define __BASE_REGENERATE_UPDATE_H_

@@ -26,7 +26,6 @@
 // John McDonald, Jr
 // Do not distribute
 
-#pragma once
 
 #ifndef _AUDIOHANDLESPECIALVALUES_H_
 #define _AUDIOHANDLESPECIALVALUES_H_

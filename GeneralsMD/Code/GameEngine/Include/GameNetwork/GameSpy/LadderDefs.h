@@ -26,7 +26,6 @@
 // Generals ladder definitions
 // Author: Matthew D. Campbell, August 2002
 
-#pragma once
 
 #ifndef __LADDERDEFS_H__
 #define __LADDERDEFS_H__

@@ -27,7 +27,6 @@
 // Desc:   Update that will count down a lifetime and destroy object when it reaches zero
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __FireWeaponWhenDeadBehavior_H_
 #define __FireWeaponWhenDeadBehavior_H_

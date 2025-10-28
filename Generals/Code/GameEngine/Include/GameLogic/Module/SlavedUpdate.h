@@ -29,7 +29,6 @@
 //        soldiers that are close to a stinger site. It's important to note that any slaved units
 //				can use any or all features, some of which are specialized.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma once
 
 #ifndef _SLAVED_UPDATE_H_
 #define _SLAVED_UPDATE_H_

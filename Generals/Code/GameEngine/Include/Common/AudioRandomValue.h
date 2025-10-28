@@ -27,7 +27,6 @@
 // Author: Michael S. Booth, January 1998
 // Split out into separate Logic/Client/Audio headers by MDC Sept 2002
 
-#pragma once
 
 #ifndef _AUDIO_RANDOM_VALUE_H_
 #define _AUDIO_RANDOM_VALUE_H_

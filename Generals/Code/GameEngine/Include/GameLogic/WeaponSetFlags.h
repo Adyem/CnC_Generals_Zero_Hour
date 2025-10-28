@@ -26,7 +26,6 @@
 // Part of header detangling
 // JKMCD Aug 2002
 
-#pragma once
 #ifndef __WEAPONSETFLAGS_H__
 #define __WEAPONSETFLAGS_H__
 

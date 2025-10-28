@@ -27,7 +27,6 @@
 // Desc:   Update that will count down a lifetime and destroy object when it reaches zero
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __DELETION_UPDATE_H_
 #define __DELETION_UPDATE_H_

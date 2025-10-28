@@ -17,7 +17,6 @@
 */
 
 
-#pragma once
 
 #ifndef __SPLASHSCREEN_H__
 #define __SPLASHSCREEN_H__

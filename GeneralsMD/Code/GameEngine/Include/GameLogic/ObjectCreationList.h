@@ -30,7 +30,6 @@
 // Kris: August 23, 2003
 // All OCLs return the first object that is created (or NULL if not applicable).
 
-#pragma once
 
 #ifndef _ObjectCreationList_H_
 #define _ObjectCreationList_H_

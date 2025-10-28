@@ -20,7 +20,6 @@
 #define AFX_NEWHEIGHTMAP_H__239CD6A3_2919_11D5_8CE0_00010297BBAC__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // NewHeightMap.h : header file
 //

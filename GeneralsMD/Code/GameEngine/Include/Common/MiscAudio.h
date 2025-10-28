@@ -25,7 +25,6 @@
 ///MiscAudio.h/////////////////////////////////////////////////////////////////////////////////////
 // This file is for miscellaneous sound hooks that don't have another happy home.
 
-#pragma once
 
 #ifndef _MISCAUDIO_H_
 #define _MISCAUDIO_H_

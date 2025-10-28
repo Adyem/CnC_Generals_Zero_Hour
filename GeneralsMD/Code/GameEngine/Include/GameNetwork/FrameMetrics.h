@@ -24,7 +24,6 @@
 
 /** FrameMetrics.h */
 
-#pragma once
 
 #ifndef __FRAMEMETRICS_H
 #define __FRAMEMETRICS_H

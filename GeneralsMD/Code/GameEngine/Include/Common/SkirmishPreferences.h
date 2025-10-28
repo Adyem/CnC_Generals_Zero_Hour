@@ -28,7 +28,6 @@
 // Description: Saving/Loading of skirmish preferences
 ///////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __SKIRMISHPREFERENCES_H__
 #define __SKIRMISHPREFERENCES_H__

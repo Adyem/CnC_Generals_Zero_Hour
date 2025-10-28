@@ -26,7 +26,6 @@
 // Author: John McDonald, Jr August 2002
 // Do Not Distribute
 
-#pragma once
 
 #ifndef __PERFMETRICS_H__
 #define __PERFMETRICS_H__

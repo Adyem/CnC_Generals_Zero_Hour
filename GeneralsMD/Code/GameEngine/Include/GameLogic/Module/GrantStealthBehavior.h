@@ -27,7 +27,6 @@
 // Desc:   Update that grants permanent stealth to those whose stealth is permanently grantable
 //------------------------------------------
 
-#pragma once
 
 #ifndef __GrantStealthBehavior_H_
 #define __GrantStealthBehavior_H_

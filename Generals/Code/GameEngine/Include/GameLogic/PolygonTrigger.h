@@ -31,7 +31,6 @@
 // See the m_isWaterArea to differentiate.
 // Author: John Ahlquist, November 2001
 
-#pragma once
 
 #ifndef PolygonTrigger_H
 #define PolygonTrigger_H

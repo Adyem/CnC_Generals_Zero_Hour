@@ -26,7 +26,6 @@
 // AI pathfinding system
 // Author: Michael S. Booth, October 2001
 
-#pragma once
 
 #ifndef _PATHFIND_H_
 #define _PATHFIND_H_												 

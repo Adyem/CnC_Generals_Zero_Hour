@@ -28,7 +28,6 @@
 // Description: Saving/Loading of custom match preferences
 ///////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __CUSTOMMATCHPREFERENCES_H__
 #define __CUSTOMMATCHPREFERENCES_H__

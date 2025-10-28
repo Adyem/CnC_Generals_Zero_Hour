@@ -27,7 +27,6 @@
 // Desc:   Tracks all projectiles fired so they can be drawn as a stream
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __PROJECTILE_STREAM_UPDATE_H_
 #define __PROJECTILE_STREAM_UPDATE_H_

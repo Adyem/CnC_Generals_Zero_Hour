@@ -20,7 +20,6 @@
 // Author: Matthew D. Campbell
 //////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __COMPRESSION_H__
 #define __COMPRESSION_H__

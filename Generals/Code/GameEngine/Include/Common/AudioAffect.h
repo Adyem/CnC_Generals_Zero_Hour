@@ -25,7 +25,6 @@
 // EA Pacific
 // John McDonald, Jr
 // Do not distribute
-#pragma once
 
 #ifndef _AUDIOAFFECT_H_
 #define _AUDIOAFFECT_H_

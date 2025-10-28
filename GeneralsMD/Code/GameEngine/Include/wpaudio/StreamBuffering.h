@@ -1,4 +1,3 @@
-#pragma once
 
 #include "wpaudio/altypes.h"
 #include "wpaudio/list.h"

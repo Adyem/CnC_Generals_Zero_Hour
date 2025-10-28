@@ -41,7 +41,6 @@
 //
 //----------------------------------------------------------------------------
 
-#pragma once
 
 #ifndef _COMMON_CDMANAGER_H_
 #define _COMMON_CDMANAGER_H_

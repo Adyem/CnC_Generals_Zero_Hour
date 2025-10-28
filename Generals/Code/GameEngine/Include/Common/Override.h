@@ -26,7 +26,6 @@
 // Electronic Arts Pacific
 // Do Not Distribute
 
-#pragma once
 
 #ifndef _OVERRIDE_H_
 #define _OVERRIDE_H_

@@ -1,4 +1,3 @@
-#pragma once
 
 #ifndef __STATICGAMELODLEVEL_H_
 #define __STATICGAMELODLEVEL_H_

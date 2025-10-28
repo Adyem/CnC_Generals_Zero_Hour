@@ -1,4 +1,3 @@
-#pragma once
 
 // Minimal Direct3D 8 compatibility declarations for non-Windows builds.
 // These definitions are sufficient to satisfy the subset of the legacy

@@ -26,7 +26,6 @@
 // Generals multiplayer victory condition specifications
 // Author: Matthew D. Campbell, February 2002
 
-#pragma once
 
 #ifndef __VICTORYCONDITIONS_H__
 #define __VICTORYCONDITIONS_H__

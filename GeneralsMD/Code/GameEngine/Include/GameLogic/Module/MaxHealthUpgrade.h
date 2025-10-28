@@ -27,7 +27,6 @@
 // Desc:	 UpgradeModule that increases an object's maximum health.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __MAX_HEALTH_UPGRADE_H_
 #define __MAX_HEALTH_UPGRADE_H_

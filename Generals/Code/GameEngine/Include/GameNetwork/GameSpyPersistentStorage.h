@@ -26,7 +26,6 @@
 // Generals GameSpy Persistent Storage
 // Author: Matthew D. Campbell, March 2002
 
-#pragma once
 
 #ifndef __GAMESPYPersistentStorage_H__
 #define __GAMESPYPersistentStorage_H__

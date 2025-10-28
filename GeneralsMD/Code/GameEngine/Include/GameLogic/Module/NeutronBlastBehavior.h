@@ -27,7 +27,6 @@
 // Desc:   Create a neutron blast behavior that wipes out infantry, no matter where they hide
 //------------------------------------------
 
-#pragma once
 
 #ifndef __NeutronBlastBehavior_H_
 #define __NeutronBlastBehavior_H_

@@ -26,7 +26,6 @@
 // Generals GameSpy BuddyList thread class interface
 // Author: Matthew D. Campbell, June 2002
 
-#pragma once
 
 #ifndef __BUDDYTHREAD_H__
 #define __BUDDYTHREAD_H__

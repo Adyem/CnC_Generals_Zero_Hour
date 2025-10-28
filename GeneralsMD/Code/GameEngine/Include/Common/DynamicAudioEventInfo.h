@@ -26,7 +26,6 @@
 // Derivation of AudioEventInfo structure, for customized sounds
 // Author: Ian Barkley-Yeung, June 2003
 
-#pragma once
 
 
 #ifndef DYNAMICAUDIOEVENTINFO_H_INCLUDED

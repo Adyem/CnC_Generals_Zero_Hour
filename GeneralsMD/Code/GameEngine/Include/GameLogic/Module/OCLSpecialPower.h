@@ -27,7 +27,6 @@
 // Desc:   Special powers that are driven by object creation lists
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __OCLSPECIALPOWER_H_
 #define __OCLSPECIALPOWER_H_

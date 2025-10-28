@@ -27,7 +27,6 @@
 // September 2002
 // DO NOT DISTRIBUTE
 
-#pragma once
 
 #ifndef __DISCRETECIRCLE_H__
 #define __DISCRETECIRCLE_H__

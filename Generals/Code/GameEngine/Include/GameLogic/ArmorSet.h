@@ -24,7 +24,6 @@
 
 // ArmorSet.h
 
-#pragma once
 
 #ifndef _ArmorSet_H_
 #define _ArmorSet_H_

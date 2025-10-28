@@ -26,7 +26,6 @@
 // Class for enumerating IP addresses
 // Author: Matthew D. Campbell, October 2001
 
-#pragma once
 
 #ifndef _IPENUMERATION_H_
 #define _IPENUMERATION_H_

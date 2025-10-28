@@ -27,7 +27,6 @@
 //              the shell can degrade to an offline mode while we replace the
 //              networking stack.
 
-#pragma once
 
 #ifndef __ONLINE_SERVICES_H__
 #define __ONLINE_SERVICES_H__

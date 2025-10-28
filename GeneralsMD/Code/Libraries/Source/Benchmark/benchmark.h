@@ -16,7 +16,6 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
 
 #ifndef __BENCHMARK_H__
 #define __BENCHMARK_H__

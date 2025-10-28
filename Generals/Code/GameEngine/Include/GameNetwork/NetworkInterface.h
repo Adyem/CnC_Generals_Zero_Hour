@@ -26,7 +26,6 @@
 // Network singleton class - defines interface to Network methods
 // Author: Matthew D. Campbell, July 2001
 
-#pragma once
 
 #ifndef _NETWORK_INTERFACE_H_
 #define _NETWORK_INTERFACE_H_

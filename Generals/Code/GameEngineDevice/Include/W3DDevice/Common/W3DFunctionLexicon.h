@@ -27,7 +27,6 @@
 // Desc:       Function lexicon for w3d specific funtion pointers
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __W3DFUNCTIONLEXICON_H_
 #define __W3DFUNCTIONLEXICON_H_

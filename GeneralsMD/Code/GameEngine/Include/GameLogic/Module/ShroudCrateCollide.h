@@ -27,7 +27,6 @@
 // Desc:   A crate that clears the shroud for the pickerupper
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef SHROUD_CRATE_COLLIDE_H_
 #define SHROUD_CRATE_COLLIDE_H_

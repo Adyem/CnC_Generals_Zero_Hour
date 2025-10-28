@@ -27,7 +27,6 @@
 // Desc:   Update that will topple over a building and crush and destroy stuff that it hits.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __StructureToppleUpdate_H_
 #define __StructureToppleUpdate_H_

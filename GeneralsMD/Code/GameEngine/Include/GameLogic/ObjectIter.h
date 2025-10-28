@@ -26,7 +26,6 @@
 // Class definitions for various object iterators
 // Author: Steven Johnson, September 2001
 
-#pragma once
 
 #ifndef _OBJECT_ITER_H_
 #define _OBJECT_ITER_H_

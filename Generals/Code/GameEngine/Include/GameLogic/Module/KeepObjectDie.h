@@ -30,7 +30,6 @@
 //         they default to the destroydie module which outright removes the object.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __KEEP_OBJECT_DIE_H_
 #define __KEEP_OBJECT_DIE_H_

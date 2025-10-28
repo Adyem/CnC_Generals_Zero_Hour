@@ -26,7 +26,6 @@
 // John McDonald, Jr
 // Do not distribute
 
-#pragma once
 
 #ifndef _AUDIOREQUEST_H_
 #define _AUDIOREQUEST_H_

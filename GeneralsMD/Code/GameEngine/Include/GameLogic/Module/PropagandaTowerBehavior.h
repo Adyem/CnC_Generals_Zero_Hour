@@ -27,7 +27,6 @@
 // Desc:   Behavior module for PropagandaTower
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __PROPAGANDA_TOWER_BEHAVIOR_H_
 #define __PROPAGANDA_TOWER_BEHAVIOR_H_

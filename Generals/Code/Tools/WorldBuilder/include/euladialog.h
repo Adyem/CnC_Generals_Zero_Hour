@@ -20,7 +20,6 @@
 #define AFX_EULADIALOG_H__9F6A134E_C2A3_425E_8485_F90B1A5F9B58__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // euladialog.h : header file
 //

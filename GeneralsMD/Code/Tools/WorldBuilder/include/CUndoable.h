@@ -20,7 +20,6 @@
 // Class to handle undo/redo.
 // Author: John Ahlquist, April 2001
 
-#pragma once
 
 #ifndef CUNDOABLE_H
 #define CUNDOABLE_H

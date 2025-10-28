@@ -41,7 +41,6 @@
 //
 //----------------------------------------------------------------------------
 
-#pragma once
 
 #ifndef __STREAMINGARCHIVEFILE_H
 #define __STREAMINGARCHIVEFILE_H

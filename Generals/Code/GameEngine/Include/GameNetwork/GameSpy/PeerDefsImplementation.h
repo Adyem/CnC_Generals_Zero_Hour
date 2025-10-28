@@ -29,7 +29,6 @@
 // Stub retained for legacy includes. The actual implementation has been
 // replaced by the neutral OnlineServices façade.
 
-#pragma once
 
 #ifndef __PEERDEFSIMPLEMENTATION_H__
 #define __PEERDEFSIMPLEMENTATION_H__

@@ -27,7 +27,6 @@
 // Desc:   Helicoptor slow deaths
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __HelicopterSlowDeathBehavior_H_
 #define __HelicopterSlowDeathBehavior_H_

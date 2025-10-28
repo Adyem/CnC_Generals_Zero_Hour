@@ -18,7 +18,6 @@
 
 
 // jkmcd
-#pragma once
 
 struct BorderColor
 {

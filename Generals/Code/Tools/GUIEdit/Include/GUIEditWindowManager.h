@@ -32,7 +32,6 @@
 //						 here for editing and interacting with the GUI windows.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __GUIEDITWINDOWMANAGER_H_
 #define __GUIEDITWINDOWMANAGER_H_

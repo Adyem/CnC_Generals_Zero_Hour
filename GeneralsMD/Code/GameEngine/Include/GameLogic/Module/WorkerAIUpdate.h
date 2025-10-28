@@ -27,7 +27,6 @@
 // Desc:   A Worker is a unit that is both a Dozer and a Supply Truck.  Holy Fuck.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __WORKER_AI_UPDATE_H_
 #define __WORKER_AI_UPDATE_H_

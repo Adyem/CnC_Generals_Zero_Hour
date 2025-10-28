@@ -35,7 +35,6 @@
 //
 //----------------------------------------------------------------------------
 
-#pragma once
 
 #ifndef __WSYS_RAMFILE_H
 #define __WSYS_RAMFILE_H

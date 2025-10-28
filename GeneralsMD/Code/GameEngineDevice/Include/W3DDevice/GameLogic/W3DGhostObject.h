@@ -27,7 +27,6 @@
 // a player can see them fogged.
 // Author: Mark Wilczynski, August 2002
 
-#pragma once
 
 #ifndef _W3DGHOSTOBJECT_H_
 #define _W3DGHOSTOBJECT_H_

@@ -27,7 +27,6 @@
 // Desc:   Update that will fudge a falling object's position just slightly, to make it find its target better
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __SMARTBOMB_UPDATE_H_
 #define __SMARTBOMB_UPDATE_H_

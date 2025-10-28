@@ -26,7 +26,6 @@
 // AudioEventInfo structure
 // Author: John K. McDonald, March 2002
 
-#pragma once
 #ifndef _H_AUDIOEVENTINFO_
 #define _H_AUDIOEVENTINFO_
 

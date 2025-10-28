@@ -27,7 +27,6 @@
 // Desc:   Update module to encapsulate what it means to be "prone"
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __PRONE_UPDATE_H_
 #define __PRONE_UPDATE_H_

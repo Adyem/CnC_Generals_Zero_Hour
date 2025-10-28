@@ -26,7 +26,6 @@
 // Generals GameSpy Chat
 // Author: Matthew D. Campbell, February 2002
 
-#pragma once
 
 #ifndef __GAMESPYCHAT_H__
 #define __GAMESPYCHAT_H__

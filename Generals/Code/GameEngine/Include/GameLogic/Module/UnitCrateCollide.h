@@ -27,7 +27,6 @@
 // Desc:   A crate that gives n units of type m the the pickerupper
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef UNIT_CRATE_COLLIDE_H_
 #define UNIT_CRATE_COLLIDE_H_

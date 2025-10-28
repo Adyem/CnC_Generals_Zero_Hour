@@ -26,7 +26,6 @@
 // Generals game setup information
 // Author: Matthew D. Campbell, December 2001
 
-#pragma once
 
 #ifndef __GAMEINFO_H__
 #define __GAMEINFO_H__

@@ -31,7 +31,6 @@
 // Author: Colin Day, April 2001
 ///////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __W3DGAMELOGIC_H_
 #define __W3DGAMELOGIC_H_

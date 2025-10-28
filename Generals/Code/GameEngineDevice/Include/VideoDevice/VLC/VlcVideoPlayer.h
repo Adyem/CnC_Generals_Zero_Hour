@@ -42,7 +42,6 @@
 //
 //----------------------------------------------------------------------------
 
-#pragma once
 
 #ifndef __VIDEODEVICE_VLCVIDEOPLAYER_H_
 #define __VIDEODEVICE_VLCVIDEOPLAYER_H_

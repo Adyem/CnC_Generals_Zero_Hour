@@ -26,7 +26,6 @@
 // Generals GameSpy GP (Buddy)
 // Author: Matthew D. Campbell, March 2002
 
-#pragma once
 
 #ifndef __GAMESPYGP_H__
 #define __GAMESPYGP_H__

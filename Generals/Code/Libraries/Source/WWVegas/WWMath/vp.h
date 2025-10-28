@@ -42,9 +42,6 @@
  *----------------------------------------------------------------------------------------------*
  */
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #ifndef VECTORPROCESSOR_H
 #define VECTORPROCESSOR_H

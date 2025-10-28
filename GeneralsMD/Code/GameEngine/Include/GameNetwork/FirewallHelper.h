@@ -46,7 +46,6 @@
  * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#pragma once
 
 #ifndef __FIREWALLHELPER_H
 #define __FIREWALLHELPER_H

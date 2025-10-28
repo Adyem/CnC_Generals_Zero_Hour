@@ -28,7 +28,6 @@
 //					This instance kicks things it outputs into SupplyTruck autopilot after exiting.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _SUPPLY_CENTER_PRODUCTION_EXIT_UPDATE_H
 #define _SUPPLY_CENTER_PRODUCTION_EXIT_UPDATE_H

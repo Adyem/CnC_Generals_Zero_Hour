@@ -27,7 +27,6 @@
 // Desc:   Object helpder - defection
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __OBJECT_DEFECTION_HELPER_H_
 #define __OBJECT_DEFECTION_HELPER_H_

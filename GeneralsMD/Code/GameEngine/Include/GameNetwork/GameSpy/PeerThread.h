@@ -26,7 +26,6 @@
 // Generals GameSpy Peer-to-peer chat thread class interface
 // Author: Matthew D. Campbell, June 2002
 
-#pragma once
 
 #ifndef __PEERTHREAD_H__
 #define __PEERTHREAD_H__

@@ -27,7 +27,6 @@
 // Desc:   Keeps track of experience points so Veterance levels can be gained
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef EXPERIENCE_TRACKER_H
 #define EXPERIENCE_TRACKER_H

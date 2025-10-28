@@ -27,7 +27,6 @@
 // Desc:   Death for the Battle Bus.  Can do a fake slow death before the real one if triggered intentionally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __BUS_SLOW_DEATH_BEHAVIOR_H_
 #define __BUS_SLOW_DEATH_BEHAVIOR_H_

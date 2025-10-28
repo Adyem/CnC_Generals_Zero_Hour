@@ -31,7 +31,6 @@
 //	
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef CONVERT_TO_HIJACKED_VEHICLE_CRATE_COLLIDE_H_
 #define CONVERT_TO_HIJACKED_VEHICLE_CRATE_COLLIDE_H_

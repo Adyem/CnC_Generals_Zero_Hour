@@ -26,7 +26,6 @@
 // Simple rigid body physics
 // Author: Michael S. Booth, November 2001
 
-#pragma once
 
 #ifndef _PHYSICSUPDATE_H_
 #define _PHYSICSUPDATE_H_

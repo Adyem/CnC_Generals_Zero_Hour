@@ -27,7 +27,6 @@
 // Desc:	 UpgradeModule that creates a new Object in our exact location and then deletes our object
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _REPLACE_OBJECT_UPGRADE_H
 #define _REPLACE_OBJECT_UPGRADE_H

@@ -20,7 +20,6 @@
 #define AFX_ADDPLAYERDIALOG_H__96179004_35C9_436A_A302_A777E77F8F04__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // addplayerdialog.h : header file
 //

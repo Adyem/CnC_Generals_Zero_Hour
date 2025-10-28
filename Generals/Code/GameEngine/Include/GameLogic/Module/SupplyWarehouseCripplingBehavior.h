@@ -27,7 +27,6 @@
 // Desc:   Behavior that Disables the building on ReallyDamaged edge state, and manages an Update timer to heal
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _SUPPLY_WAREHOUSE_CRIPPLING_BEHAVIOR_H
 #define _SUPPLY_WAREHOUSE_CRIPPLING_BEHAVIOR_H

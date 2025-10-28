@@ -28,7 +28,6 @@
 //       for diverting missiles to the flares.
 //------------------------------------------
 
-#pragma once
 
 #ifndef __COUNTERMEASURES_BEHAVIOR_H
 #define __COUNTERMEASURES_BEHAVIOR_H

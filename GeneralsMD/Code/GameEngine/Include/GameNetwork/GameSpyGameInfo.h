@@ -26,7 +26,6 @@
 // Generals GameSpy game setup information
 // Author: Matthew D. Campbell, February 2002
 
-#pragma once
 
 #error this file is obsolete
 

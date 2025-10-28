@@ -27,7 +27,6 @@
 // Class to encapsulate height map.
 // Author: John Ahlquist, April 2001
 
-#pragma once
 
 #ifndef MapObject_H
 #define MapObject_H

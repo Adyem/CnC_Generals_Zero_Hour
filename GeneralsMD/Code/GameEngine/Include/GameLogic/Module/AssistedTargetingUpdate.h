@@ -27,7 +27,6 @@
 // Desc:   Outside influences can tell me to attack something out of my normal targeting range
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _ASSISTED_TARGETING_UPDATE_H
 #define _ASSISTED_TARGETING_UPDATE_H

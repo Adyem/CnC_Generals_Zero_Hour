@@ -35,9 +35,6 @@
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #ifndef __SOUNDCULLOBJ_H
 #define __SOUNDCULLOBJ_H

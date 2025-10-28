@@ -26,7 +26,6 @@
 // Generals version number class
 // Author: Matthew D. Campbell, November 2001
 
-#pragma once
 
 #ifndef __VERSION_H__
 #define __VERSION_H__

@@ -27,7 +27,6 @@
 // Desc:   Object helper - Clears Temporary weapon bonus effects
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __TempWeaponBonusHelper_H_
 #define __TempWeaponBonusHelper_H_

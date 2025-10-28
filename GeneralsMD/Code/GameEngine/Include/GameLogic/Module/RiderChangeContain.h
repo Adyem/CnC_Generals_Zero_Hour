@@ -27,7 +27,6 @@
 // Desc:   Contain module for the combat bike (transport that switches units).
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __RIDER_CHANGE_CONTAIN_H
 #define __RIDER_CHANGE_CONTAIN_H

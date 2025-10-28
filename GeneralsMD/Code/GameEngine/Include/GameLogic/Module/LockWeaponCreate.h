@@ -27,7 +27,6 @@
 // Desc:   Locks the weapon choice to the slot specified on creation
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __LOCKWEAPONCREATE_H_
 #define __LOCKWEAPONCREATE_H_

@@ -28,7 +28,6 @@
 // Description: Saving/Loading of misc preferences
 ///////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __GAMESPYMISCPREFERENCES_H__
 #define __GAMESPYMISCPREFERENCES_H__

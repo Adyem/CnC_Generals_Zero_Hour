@@ -27,7 +27,6 @@
 // Desc:   Graham Smallwood, April 2002
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __DELAYED_WEAPON_SET_UPGRADE_UPDATE_H_
 #define __DELAYED_WEAPON_SET_UPGRADE_UPDATE_H_

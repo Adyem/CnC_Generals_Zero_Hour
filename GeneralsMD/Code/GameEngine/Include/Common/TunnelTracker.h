@@ -27,7 +27,6 @@
 // This has a similar interface to a ContainModule, naturally, but players can't have modules.
 // Author: Graham Smallwood, March, 2002
 
-#pragma once
 
 #ifndef TUNNEL_TRACKER_H
 #define TUNNEL_TRACKER_H

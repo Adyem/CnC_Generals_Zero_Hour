@@ -26,7 +26,6 @@
 // The Game engine interface
 // Author: Michael S. Booth, April 2001
 
-#pragma once
 
 #ifndef _GAME_ENGINE_H_
 #define _GAME_ENGINE_H_

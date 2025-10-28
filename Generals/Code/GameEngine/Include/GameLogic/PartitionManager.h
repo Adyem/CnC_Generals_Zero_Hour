@@ -44,7 +44,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#pragma once
 
 #ifndef __PARTITIONMANAGER_H_
 #define __PARTITIONMANAGER_H_

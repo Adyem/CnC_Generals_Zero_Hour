@@ -27,7 +27,6 @@
 // Desc:   Handles processing of unit special abilities.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __SPECIAL_ABILITY_UPDATE_H
 #define __SPECIAL_ABILITY_UPDATE_H

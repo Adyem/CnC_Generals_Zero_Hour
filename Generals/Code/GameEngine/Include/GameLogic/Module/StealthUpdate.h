@@ -27,7 +27,6 @@
 // Desc:	 An update that checks for a status bit to stealth the owning object
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __STEALTH_UPDATE_H_
 #define __STEALTH_UPDATE_H_

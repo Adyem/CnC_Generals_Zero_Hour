@@ -27,7 +27,6 @@
 // Desc:   This module allows things to be "constructed" from a building
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __PRODUCTIONUPDATE_H_
 #define __PRODUCTIONUPDATE_H_

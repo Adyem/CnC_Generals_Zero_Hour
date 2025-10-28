@@ -26,7 +26,6 @@
 // Generals GameSpy stuff
 // Author: Matthew D. Campbell, February 2002
 
-#pragma once
 
 #ifndef __GameSpy_H__
 #define __GameSpy_H__

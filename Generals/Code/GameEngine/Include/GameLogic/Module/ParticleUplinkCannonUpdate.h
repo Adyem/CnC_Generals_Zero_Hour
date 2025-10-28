@@ -27,7 +27,6 @@
 // Desc:   Update module to handle building states and weapon firing of the particle uplink cannon.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __PARTICLE_UPLINK_CANNON_UPDATE_H_
 #define __PARTICLE_UPLINK_CANNON_UPDATE_H_

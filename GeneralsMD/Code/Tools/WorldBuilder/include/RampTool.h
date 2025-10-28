@@ -31,7 +31,6 @@
 /*		4/19/2002 : Initial creation																					 */
 /*---------------------------------------------------------------------------*/
 
-#pragma once
 #ifndef _H_RAMPTOOL_
 #define _H_RAMPTOOL_
 

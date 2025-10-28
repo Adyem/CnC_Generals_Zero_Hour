@@ -28,7 +28,6 @@
 // Description: Saving/Loading of quickmatch preferences
 ///////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __QUICKMATCHPREFERENCES_H__
 #define __QUICKMATCHPREFERENCES_H__

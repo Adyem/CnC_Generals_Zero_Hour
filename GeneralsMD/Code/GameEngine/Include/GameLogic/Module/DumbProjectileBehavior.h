@@ -26,7 +26,6 @@
 // Author:	Steven Johnson, July 2002
 // Desc:		
 
-#pragma once
 
 #ifndef _DumbProjectileBehavior_H_
 #define _DumbProjectileBehavior_H_

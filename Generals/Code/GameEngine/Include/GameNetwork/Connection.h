@@ -33,7 +33,6 @@
  * get to their destination in time.
  */
 
-#pragma once
 
 #ifndef __CONNECTION_H
 #define __CONNECTION_H

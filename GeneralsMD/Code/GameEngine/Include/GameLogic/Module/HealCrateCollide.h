@@ -27,7 +27,6 @@
 // Desc:   A crate that heals everything owned by the collider
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef HEAL_CRATE_COLLIDE_H_
 #define HEAL_CRATE_COLLIDE_H_

@@ -28,7 +28,6 @@
 // Desc:   When a building is created, set the preorder status if necessary
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _PREORDER_CREATE_H_
 #define _PREORDER_CREATE_H_

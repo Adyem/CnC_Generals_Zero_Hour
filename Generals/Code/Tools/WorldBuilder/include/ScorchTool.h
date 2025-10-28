@@ -19,7 +19,6 @@
 // ScorchTool.h
 // Author: Dennis Griffin, April 2002
 
-#pragma once
 
 #ifndef SCORCHTOOL_H
 #define SCORCHTOOL_H

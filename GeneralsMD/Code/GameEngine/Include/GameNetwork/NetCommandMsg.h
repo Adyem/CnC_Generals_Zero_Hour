@@ -26,7 +26,6 @@
 // The CommandMsg class is a linked-list wrapper around GameMessage objects that
 // are queued up to execute at a later time
 
-#pragma once
 
 #ifndef __NETCOMMANDMSG_H
 #define __NETCOMMANDMSG_H

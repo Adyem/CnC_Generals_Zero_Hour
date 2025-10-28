@@ -40,7 +40,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#pragma once
 
 #ifndef __ProductionPrerequisite_H_
 #define __ProductionPrerequisite_H_

@@ -28,7 +28,6 @@
 // Desc:	 Behavior will create and monitor a group of spawned units and replace as needed
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _SPAWN_BEHAVIOR_H_
 #define _SPAWN_BEHAVIOR_H_

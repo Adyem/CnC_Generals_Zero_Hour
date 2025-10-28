@@ -27,7 +27,6 @@
 // Desc:   Special Power will spy on the vision of all enemy players.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __SPY_VISION_SPECIAL_POWER_H_
 #define __SPY_VISION_SPECIAL_POWER_H_

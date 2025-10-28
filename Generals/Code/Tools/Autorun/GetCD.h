@@ -29,7 +29,6 @@
  * Functions:																					*
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
-#pragma once
 
 #ifndef GETCD_H
 #define GETCD_H

@@ -27,7 +27,6 @@
 // Desc:   A crate that gives x money to the collider
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef MONEY_CRATE_COLLIDE_H_
 #define MONEY_CRATE_COLLIDE_H_

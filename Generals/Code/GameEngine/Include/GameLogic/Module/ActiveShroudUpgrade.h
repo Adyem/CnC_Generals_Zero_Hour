@@ -27,7 +27,6 @@
 // Desc:	 An upgrade that modifies the object's ShroudRange.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __ACTIVE_SHROUD_UPGRADE_H_
 #define __ACTIVE_SHROUD_UPGRADE_H_

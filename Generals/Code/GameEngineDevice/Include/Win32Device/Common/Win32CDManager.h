@@ -41,7 +41,6 @@
 //
 //----------------------------------------------------------------------------
 
-#pragma once
 
 #ifndef _WIN32DEVICE_COMMON_WIN32CDMANAGER_H_
 #define _WIN32DEVICE_COMMON_WIN32CDMANAGER_H_

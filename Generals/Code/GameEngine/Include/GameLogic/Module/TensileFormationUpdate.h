@@ -27,7 +27,6 @@
 // Desc:   Springy formation movement like that of say, an avalanche
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __TENSILEFORMATIONUPDATE_H_
 #define __TENSILEFORMATIONUPDATE_H_

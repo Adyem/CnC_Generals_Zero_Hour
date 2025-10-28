@@ -27,7 +27,6 @@
 // Desc:   Object status types that are stackable using the BitSet system. Used to be ObjectStatusBits
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __OBJECT_STATUS_TYPES_H
 #define __OBJECT_STATUS_TYPES_H

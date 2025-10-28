@@ -20,7 +20,6 @@
 // Simple interface for storing/retreiving registry values
 // Author: Matthew D. Campbell, December 2001
 
-#pragma once
 
 #ifndef __WWDOWNLOAD_REGISTRY_H__
 #define __WWDOWNLOAD_REGISTRY_H__

@@ -20,7 +20,6 @@
 // Terrain shaping tools for worldbuilder.
 // Author: John Ahlquist, Oct. 2001
 
-#pragma once
 
 #ifndef MESHMOLDTOOL_H
 #define MESHMOLDTOOL_H

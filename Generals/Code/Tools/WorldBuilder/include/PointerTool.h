@@ -20,7 +20,6 @@
 // Texture tiling tools for worldbuilder.
 // Author: John Ahlquist, April 2001
 
-#pragma once
 
 #ifndef POINTER_TOOL_H
 #define POINTER_TOOL_H

@@ -27,7 +27,6 @@
 // Description: Framework for subsystems singletons of the game engine
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __SUBSYSTEMINTERFACE_H_
 #define __SUBSYSTEMINTERFACE_H_

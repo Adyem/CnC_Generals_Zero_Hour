@@ -20,7 +20,6 @@
 #define AFX_TERRAINMATERIAL_H__D3FF66C5_711D_4DAC_8A29_5EAAB5C3A23E__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // terrainmaterial.h : header file
 //

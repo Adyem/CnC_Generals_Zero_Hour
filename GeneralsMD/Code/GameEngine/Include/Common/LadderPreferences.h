@@ -28,7 +28,6 @@
 // Description: Saving/Loading of ladder preferences
 ///////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __LADDERPREFERENCES_H__
 #define __LADDERPREFERENCES_H__

@@ -37,7 +37,6 @@
 /*		4/12/2002 : Initial creation                                           */
 /*---------------------------------------------------------------------------*/
 
-#pragma once
 #ifndef _H_PARTITIONSOLVER_
 #define _H_PARTITIONSOLVER_
 

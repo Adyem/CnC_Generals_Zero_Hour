@@ -27,7 +27,6 @@
 // Desc:   GLA Hole behavior that reconstructs a building after death
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __REBUILD_HOLE_BEHAVIOR_H_
 #define __REBUILD_HOLE_BEHAVIOR_H_

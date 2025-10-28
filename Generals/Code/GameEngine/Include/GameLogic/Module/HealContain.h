@@ -27,7 +27,6 @@
 // Desc:   Objects that are contained inside a heal contain ... get healed!  oh my!
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __HEALCONTAIN_H_
 #define __HEALCONTAIN_H_

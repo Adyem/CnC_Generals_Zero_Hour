@@ -20,7 +20,6 @@
 #define AFX_TEAMSDIALOG_H__1410F415_1597_4EAF_AE0B_42DACDEB35B9__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // teamsdialog.h : header file
 //

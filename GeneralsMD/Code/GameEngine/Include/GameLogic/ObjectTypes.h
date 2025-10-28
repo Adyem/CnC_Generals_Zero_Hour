@@ -27,7 +27,6 @@
 // September 2002
 // DO NOT DISTRIBUTE 
 
-#pragma once
 
 #ifndef __OBJECT_TYPES_H__
 #define __OBJECT_TYPES_H__

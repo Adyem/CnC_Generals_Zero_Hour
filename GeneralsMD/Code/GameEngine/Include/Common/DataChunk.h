@@ -26,7 +26,6 @@
 // Data chunk classes for saving and loading
 // Author: Michael S. Booth, October 2000
 
-#pragma once
 
 #ifndef _DATA_CHUNK_H_
 #define _DATA_CHUNK_H_

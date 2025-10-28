@@ -35,7 +35,6 @@
 //
 //----------------------------------------------------------------------------
 
-#pragma once
 
 #ifndef __WSYS_FILESYSTEM_H
 #define __WSYS_FILESYSTEM_H

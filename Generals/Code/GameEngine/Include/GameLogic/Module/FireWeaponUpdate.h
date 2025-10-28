@@ -27,7 +27,6 @@
 // Desc:   Update fires a weapon at its own feet as quickly as the weapon allows
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __FIRE_WEAPON_UPDATE_H_
 #define __FIRE_WEAPON_UPDATE_H_

@@ -36,7 +36,6 @@
  *   Intersect -- Find the intersection between two rectangles.                                * 
  *   Intersect -- Simple intersect between two rectangles.                                     * 
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#pragma once
 
 #ifndef RECT_H
 #define RECT_H

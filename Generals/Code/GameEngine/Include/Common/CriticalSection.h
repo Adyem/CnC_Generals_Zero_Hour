@@ -26,7 +26,6 @@
 // Utility class to use critical sections in areas of code.
 // Author: JohnM And MattC, August 13, 2002
 
-#pragma once
 
 #ifndef __CRITICALSECTION_H__
 #define __CRITICALSECTION_H__

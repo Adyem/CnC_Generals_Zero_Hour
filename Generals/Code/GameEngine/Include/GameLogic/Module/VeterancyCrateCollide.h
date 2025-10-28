@@ -27,7 +27,6 @@
 // Desc:   A crate that gives a level of experience to all within n distance
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef VETERANCY_CRATE_COLLIDE_H_
 #define VETERANCY_CRATE_COLLIDE_H_

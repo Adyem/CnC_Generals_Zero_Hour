@@ -28,7 +28,6 @@
 //				 and/or interactable (is that a world) with the player.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __STRUCTUREBODY_H_
 #define __STRUCTUREBODY_H_

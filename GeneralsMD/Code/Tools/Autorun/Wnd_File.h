@@ -38,7 +38,6 @@
 //							James McNeill
 //
 //****************************************************************************
-#pragma once
 
 #ifndef WND_FILE_H
 #define WND_FILE_H

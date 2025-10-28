@@ -27,7 +27,6 @@
 // Desc:	 UpgradeModule that sets a new override string for Command Set look ups
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _COMMAND_SET_UPGRADE_H
 #define _COMMAND_SET_UPGRADE_H

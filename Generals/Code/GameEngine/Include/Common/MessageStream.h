@@ -26,7 +26,6 @@
 // The message stream propagates all messages thru a series of "translators"
 // Author: Michael S. Booth, February 2001
 
-#pragma once
 
 #ifndef _MESSAGE_STREAM_H_
 #define _MESSAGE_STREAM_H_

@@ -20,7 +20,6 @@
 #define AFX_OPTIONSPANEL_H__CB473165_D123_42D9_AE80_32F16928E3AE__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // OptionsPanel.h : header file
 //

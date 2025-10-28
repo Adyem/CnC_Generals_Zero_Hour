@@ -20,7 +20,6 @@
 // Class to contain the editing functions subclass of WorldHeightMap.
 // Author: John Ahlquist, April 2001
 
-#pragma once
 
 #ifndef WHeightMapEdit_H
 #define WHeightMapEdit_H

@@ -42,7 +42,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#pragma once
 
 #ifndef _PLAYERTEMPLATE_H_
 #define _PLAYERTEMPLATE_H_

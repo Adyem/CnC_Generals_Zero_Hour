@@ -27,7 +27,6 @@
 // Desc:   Update module to handle independent targeting of hazards to cleanup.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __CLEANUP_HAZARD_UPDATE_H_
 #define __CLEANUP_HAZARD_UPDATE_H_

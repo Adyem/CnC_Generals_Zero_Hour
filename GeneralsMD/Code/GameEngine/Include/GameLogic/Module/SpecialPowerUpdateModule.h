@@ -27,7 +27,6 @@
 // Desc: Originally lived in UpdateModule.h
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __SPECIAL_POWER_UPDATE_MODULE_H
 #define __SPECIAL_POWER_UPDATE_MODULE_H

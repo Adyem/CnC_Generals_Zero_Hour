@@ -26,7 +26,6 @@
 // Needs to check legality of evacuate, and may move to a place that is better to evacuate at 
 // Author: Graham Smallwood, July 2002
  
-#pragma once
 
 #ifndef _TRANSPORT_AI_UPDATE_H_
 #define _TRANSPORT_AI_UPDATE_H_

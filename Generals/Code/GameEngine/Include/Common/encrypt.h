@@ -26,7 +26,6 @@
 // Ancient Westwood Online password encryption (obfuscation?) code
 // Author: Anonymous
 
-#pragma once
 
 #ifndef ENCRYPT_HEADER
 #define ENCRYPT_HEADER

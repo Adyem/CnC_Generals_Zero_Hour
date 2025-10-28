@@ -19,7 +19,6 @@
 // GroveTool.h
 // Author: John Ahlquist, May 2001
 
-#pragma once
 
 #ifndef GroveTool_H
 #define GroveTool_H

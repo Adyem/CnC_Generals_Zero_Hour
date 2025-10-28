@@ -20,7 +20,6 @@
 #define AFX_RETRANSLATEDLG_H__19E25401_0ECB_11D4_B9DB_006097B90D93__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
 #endif // _MSC_VER > 1000
 // RetranslateDlg.h : header file
 //

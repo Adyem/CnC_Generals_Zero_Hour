@@ -27,7 +27,6 @@
 // Desc:   Behavior module for the towers attached to bridges that can be targeted
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __BRIDGE_TOWER_BEHAVIOR_H_
 #define __BRIDGE_TOWER_BEHAVIOR_H_

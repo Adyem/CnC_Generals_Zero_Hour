@@ -27,7 +27,6 @@
 // Desc:   Update module to handle wounded idle infantry finding a heal unit or structure.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __PILOT_FIND_VEHICLE_UPDATE_H_
 #define __PILOT_FIND_VEHICLE_UPDATE_H_

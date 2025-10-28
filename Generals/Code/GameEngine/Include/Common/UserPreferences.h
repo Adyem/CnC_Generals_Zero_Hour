@@ -28,7 +28,6 @@
 // Description: Saving/Loading of user preferences
 ///////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __USERPREFERENCES_H__
 #define __USERPREFERENCES_H__

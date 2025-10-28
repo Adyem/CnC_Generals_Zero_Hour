@@ -27,7 +27,6 @@
 // Desc:   Object helper - Clears subdual status and heals subdual damage since Body modules can't have Updates
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __SubdualDamageHelper_H_
 #define __SubdualDamageHelper_H_

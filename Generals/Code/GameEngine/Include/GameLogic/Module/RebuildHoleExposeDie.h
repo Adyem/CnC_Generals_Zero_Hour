@@ -28,7 +28,6 @@
 //				 of the structure that will automatically rebuild the structure
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __REBUILD_HOLE_EXPOSE_DIE_H_
 #define __REBUILD_HOLE_EXPOSE_DIE_H_

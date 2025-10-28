@@ -26,7 +26,6 @@
 // AudioEventRTS structure
 // Author: John K. McDonald, March 2002
 
-#pragma once
 #ifndef _H_AUDIOEVENTRTS_
 #define _H_AUDIOEVENTRTS_
 

@@ -27,7 +27,6 @@
 // Desc:   Behavior common to all DockUpdates is here.  Everything but action()
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef _DOCK_UPDATE_H_
 #define _DOCK_UPDATE_H_

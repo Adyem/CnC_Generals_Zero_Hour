@@ -26,7 +26,6 @@
 // Bryan Cleveland, August 2002
 //////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __WIN32LOCALFILE_H
 #define __WIN32LOCALFILE_H

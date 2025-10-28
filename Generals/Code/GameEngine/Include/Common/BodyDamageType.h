@@ -1,4 +1,3 @@
-#pragma once
 
 #ifndef __BODYDAMAGETYPE_H_
 #define __BODYDAMAGETYPE_H_

@@ -27,7 +27,6 @@
 // Desc:  Defines all the types of disabled statii any given object can have.
 ///////////////////////////////////////////////////////////////////////////////////////////////////	
 
-#pragma once
 
 #ifndef __DISABLED_TYPES_H_
 #define __DISABLED_TYPES_H_

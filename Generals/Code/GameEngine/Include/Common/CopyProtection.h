@@ -27,7 +27,6 @@
 // Taken From: Denzil Long's code in Tiberian Sun, by way of Yuri's Revenge
 //////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef COPYPROTECTION_H
 #define COPYPROTECTION_H

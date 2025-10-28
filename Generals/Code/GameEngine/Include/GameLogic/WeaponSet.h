@@ -24,7 +24,6 @@
 
 // WeaponSet.h
 
-#pragma once
 
 #ifndef _WeaponSet_H_
 #define _WeaponSet_H_

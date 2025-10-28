@@ -27,7 +27,6 @@
 // Desc:	 UpgradeModule that adds a scalar to the object's experience gain.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __EXPERIENCE_SCALAR_UPGRADE_H_
 #define __EXPERIENCE_SCALAR_UPGRADE_H_

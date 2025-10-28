@@ -1,4 +1,3 @@
-#pragma once
 
 #ifndef __NAMEKEYTYPE_H_
 #define __NAMEKEYTYPE_H_

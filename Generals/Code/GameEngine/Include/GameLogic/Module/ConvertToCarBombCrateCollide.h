@@ -28,7 +28,6 @@
 //         it's weapon and then activating it's AI.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef CONVERT_TO_CAR_BOMB_CRATE_COLLIDE_H_
 #define CONVERT_TO_CAR_BOMB_CRATE_COLLIDE_H_

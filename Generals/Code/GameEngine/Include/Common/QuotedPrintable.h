@@ -27,7 +27,6 @@
 // Description: Quoted-printable encode/decode
 ////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __QUOTEDPRINTABLE_H__
 #define __QUOTEDPRINTABLE_H__
