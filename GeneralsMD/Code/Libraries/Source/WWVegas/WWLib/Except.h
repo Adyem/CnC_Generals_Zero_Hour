@@ -34,7 +34,6 @@
  * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#pragma once
 
 #ifndef EXCEPT_H
 #define EXCEPT_H

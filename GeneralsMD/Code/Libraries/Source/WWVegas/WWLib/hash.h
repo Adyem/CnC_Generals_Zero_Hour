@@ -36,9 +36,6 @@
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #ifndef HASH_H
 #define HASH_H

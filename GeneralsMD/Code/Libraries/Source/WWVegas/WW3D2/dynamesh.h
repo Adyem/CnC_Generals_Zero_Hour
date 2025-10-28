@@ -33,9 +33,6 @@
  *-------------------------------------------------------------------------*/
 
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #ifndef DYNAMESH_H
 #define DYNAMESH_H

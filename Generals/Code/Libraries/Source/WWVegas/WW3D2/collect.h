@@ -34,9 +34,6 @@
  * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #ifndef COLLECT_H
 #define COLLECT_H

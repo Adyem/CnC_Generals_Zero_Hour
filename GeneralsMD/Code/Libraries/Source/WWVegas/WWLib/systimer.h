@@ -16,6 +16,9 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef GENERALSMD_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_SYSTIMER_H
+#define GENERALSMD_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_SYSTIMER_H
+
 /***********************************************************************************************
  ***                            Confidential - Westwood Studios                              ***
  ***********************************************************************************************
@@ -34,7 +37,6 @@
  * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#pragma once
 #ifndef _SYSTIMER_H
 
 #include "always.h"
@@ -143,3 +145,4 @@ WWINLINE unsigned long SysTimeClass::Get(void)
 
 
 #endif //_SYSTIMER_H
+#endif // GENERALSMD_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_SYSTIMER_H

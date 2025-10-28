@@ -1,4 +1,5 @@
-#pragma once
+#ifndef GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WW3D2_DX8WEBBROWSER_H
+#define GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WW3D2_DX8WEBBROWSER_H
 
 #ifdef _UNIX
 #include "Compat/Windows/windows_compat.h"
@@ -43,3 +44,4 @@ public:
 #include "dx8webbrowser.h"
 #endif
 
+#endif // GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WW3D2_DX8WEBBROWSER_H

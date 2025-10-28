@@ -16,6 +16,9 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef GENERALSMD_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_BORLANDC_H
+#define GENERALSMD_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_BORLANDC_H
+
 /*********************************************************************************************** 
  ***              C O N F I D E N T I A L  ---  W E S T W O O D  S T U D I O S               *** 
  *********************************************************************************************** 
@@ -33,9 +36,6 @@
  *---------------------------------------------------------------------------------------------* 
  * Functions:                                                                                  * 
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#if _MSC_VER >= 1000
-#pragma once
-#endif // _MSC_VER >= 1000
 
 #if !defined(BORLANDC_H) && defined(__BORLANDC__)
 #define BORLANDC_H
@@ -46,3 +46,4 @@
 */
 
 #endif
+#endif // GENERALSMD_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_BORLANDC_H

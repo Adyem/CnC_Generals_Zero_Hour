@@ -1,7 +1,10 @@
+#ifndef GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_INT_H
+#define GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_INT_H
+
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
 // Lowercase shim for the original INT.H header.
 
-#pragma once
 
 #include "INT.H"
+#endif // GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_INT_H

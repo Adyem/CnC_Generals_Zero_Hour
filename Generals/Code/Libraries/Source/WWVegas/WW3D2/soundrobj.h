@@ -34,9 +34,6 @@
  * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #ifndef __SOUNDROBJ_H
 #define __SOUNDROBJ_H

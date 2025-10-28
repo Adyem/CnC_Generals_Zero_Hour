@@ -1,7 +1,10 @@
+#ifndef GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_XPIPE_H
+#define GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_XPIPE_H
+
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
 // Lowercase alias for the legacy XPIPE.H header.
 
-#pragma once
 
 #include "XPIPE.H"
+#endif // GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_XPIPE_H

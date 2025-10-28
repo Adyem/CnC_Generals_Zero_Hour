@@ -16,7 +16,9 @@
 **      along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#ifndef GENERALSMD_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_SFML_MESSAGE_PUMP_H
+#define GENERALSMD_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_SFML_MESSAGE_PUMP_H
+
 
 #include <SFML/Window/ContextSettings.hpp>
 #include <SFML/Window/Event.hpp>
@@ -131,3 +133,4 @@ private:
 
 } // namespace WWLib
 
+#endif // GENERALSMD_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_SFML_MESSAGE_PUMP_H

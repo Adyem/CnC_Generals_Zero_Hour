@@ -18,9 +18,6 @@
 
 // regexpr.h
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #ifndef REGEXPR_H
 #define REGEXPR_H

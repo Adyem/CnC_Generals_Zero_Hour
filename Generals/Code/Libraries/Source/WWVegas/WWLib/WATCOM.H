@@ -16,6 +16,9 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_WATCOM_H
+#define GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_WATCOM_H
+
 /*********************************************************************************************** 
  ***              C O N F I D E N T I A L  ---  W E S T W O O D  S T U D I O S               *** 
  *********************************************************************************************** 
@@ -33,9 +36,6 @@
  *---------------------------------------------------------------------------------------------* 
  * Functions:                                                                                  * 
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#if _MSC_VER >= 1000
-#pragma once
-#endif // _MSC_VER >= 1000
 
 #if !defined(WATCOM_H) && defined(__WATCOMC__)
 #define WATCOM_H
@@ -116,3 +116,4 @@
 
 
 #endif
+#endif // GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_WATCOM_H

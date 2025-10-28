@@ -16,6 +16,9 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WW3D2_MESHDAM_H
+#define GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WW3D2_MESHDAM_H
+
 /***********************************************************************************************
  ***              C O N F I D E N T I A L  ---  W E S T W O O D  S T U D I O S               ***
  ***********************************************************************************************
@@ -36,9 +39,6 @@
 
 #if 0
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #ifndef MESHDAM_H
 #define MESHDAM_H
@@ -106,3 +106,4 @@ protected:
 
 
 #endif //0
+#endif // GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WW3D2_MESHDAM_H

@@ -35,9 +35,6 @@
  * Functions:                                                                                  * 
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #ifndef W3DEXCLUSIONLIST_H
 #define W3DEXCLUSIONLIST_H

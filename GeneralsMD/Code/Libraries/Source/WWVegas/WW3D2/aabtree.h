@@ -37,9 +37,6 @@
  * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #ifndef AABTREE_H
 #define AABTREE_H

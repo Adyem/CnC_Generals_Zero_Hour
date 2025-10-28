@@ -34,9 +34,6 @@
  * Functions:                                                              * 
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #ifndef TXT2D_H
 #define TXT2D_H

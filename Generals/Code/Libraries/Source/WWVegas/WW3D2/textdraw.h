@@ -33,9 +33,6 @@
  *-------------------------------------------------------------------------*/
 
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #ifndef TEXTDRAW_H
 #define TEXTDRAW_H
