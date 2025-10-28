@@ -1,4 +1,5 @@
-#pragma once
+#ifndef GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WW3D2_WW3DFORMAT_H
+#define GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WW3D2_WW3DFORMAT_H
 
 // Windows file systems are case-insensitive, but most POSIX platforms are not.
 // The original code base frequently includes this header using the mixed case
@@ -7,3 +8,4 @@
 // header so builds succeed on case-sensitive file systems.
 
 #include "ww3dformat.h"
+#endif // GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WW3D2_WW3DFORMAT_H

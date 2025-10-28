@@ -19,9 +19,6 @@
 #ifndef TEXTUREFILE_H
 #define TEXTUREFILE_H
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #include "always.h"
 #include "classid.h"

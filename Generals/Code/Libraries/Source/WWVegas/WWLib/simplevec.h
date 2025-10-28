@@ -47,9 +47,6 @@
  *   SimpleDynVecClass<T>::Delete_All -- delete all items from the array                       * 
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #ifndef SIMPLEVEC_H
 #define SIMPLEVEC_H

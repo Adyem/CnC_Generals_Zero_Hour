@@ -35,9 +35,6 @@
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #ifndef RENDER2D_H
 #define RENDER2D_H

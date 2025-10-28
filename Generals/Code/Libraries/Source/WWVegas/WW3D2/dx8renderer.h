@@ -37,9 +37,6 @@
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #ifndef DX8_RENDERER_H
 #define DX8_RENDERER_H

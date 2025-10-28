@@ -37,9 +37,6 @@
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 
 #ifndef COLTYPE_H

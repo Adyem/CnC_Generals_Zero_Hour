@@ -33,9 +33,6 @@
  *-------------------------------------------------------------------------*/
 
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #ifndef CLASSID_H
 #define CLASSID_H

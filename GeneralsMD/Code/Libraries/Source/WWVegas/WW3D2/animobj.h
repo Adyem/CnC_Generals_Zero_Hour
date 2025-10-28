@@ -38,9 +38,6 @@
  *   Animatable3DObjClass::Combo_Update -- Animation update for a combination of anims         *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #ifndef ANIMOBJ_H
 #define ANIMOBJ_H

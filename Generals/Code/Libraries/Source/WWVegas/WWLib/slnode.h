@@ -1,6 +1,8 @@
-#pragma once
+#ifndef GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_SLNODE_H
+#define GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_SLNODE_H
 
 // Case-preserving shim for the legacy "SLNODE.H" header on case-sensitive
 // platforms.
 
 #include "SLNODE.H"
+#endif // GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_SLNODE_H

@@ -40,9 +40,6 @@
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #ifndef TEXTURE_H
 #define TEXTURE_H

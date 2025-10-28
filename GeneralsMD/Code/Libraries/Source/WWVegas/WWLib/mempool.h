@@ -43,9 +43,6 @@
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #ifndef MEMPOOL_H
 #define MEMPOOL_H

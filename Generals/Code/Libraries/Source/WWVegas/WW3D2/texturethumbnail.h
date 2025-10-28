@@ -19,9 +19,6 @@
 #ifndef TEXTURETHUMBNAIL_H
 #define TEXTURETHUMBNAIL_H
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
 
 #include "always.h"
 #include "wwstring.h"

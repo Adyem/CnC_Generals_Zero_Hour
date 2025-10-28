@@ -17,10 +17,6 @@
 */
 
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
-
 #ifndef INTERSEC_INL
 #define INTERSEC_INL
 

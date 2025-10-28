@@ -16,7 +16,9 @@
 **      along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#ifndef GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_SFML_MESSAGE_PUMP_H
+#define GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_SFML_MESSAGE_PUMP_H
+
 
 #include <cstdint>
 #include <functional>
@@ -249,3 +251,4 @@ private:
 
 } // namespace WWLib
 
+#endif // GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_SFML_MESSAGE_PUMP_H

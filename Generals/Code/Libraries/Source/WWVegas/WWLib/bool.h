@@ -16,6 +16,9 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_BOOL_H
+#define GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_BOOL_H
+
 /*********************************************************************************************** 
  ***              C O N F I D E N T I A L  ---  W E S T W O O D  S T U D I O S               *** 
  *********************************************************************************************** 
@@ -33,9 +36,6 @@
  *---------------------------------------------------------------------------------------------* 
  * Functions:                                                                                  * 
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#if _MSC_VER >= 1000
-#pragma once
-#endif // _MSC_VER >= 1000
 
 #if !defined(TRUE_FALSE_DEFINED) && !defined(__BORLANDC__) && (_MSC_VER < 1100) && !defined(__WATCOMC__)
 #define TRUE_FALSE_DEFINED
@@ -62,3 +62,4 @@ typedef int bool;
 #endif
 
 #endif
+#endif // GENERALS_CODE_LIBRARIES_SOURCE_WWVEGAS_WWLIB_BOOL_H
