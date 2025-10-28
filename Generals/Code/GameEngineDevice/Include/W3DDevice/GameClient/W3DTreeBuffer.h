@@ -42,10 +42,9 @@
 //
 //-----------------------------------------------------------------------------
 
-#pragma once
 
-#ifndef __W3DTREE_BUFFER_H_
-#define __W3DTREE_BUFFER_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DTREEBUFFER_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DTREEBUFFER_H
 
 //-----------------------------------------------------------------------------
 //           Includes                                                      
@@ -146,4 +145,4 @@ protected:
 	void sort( Int iterations );								 ///< Performs partial bubble sort.
 };
 
-#endif  // end __W3DTREE_BUFFER_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DTREEBUFFER_H

@@ -23,10 +23,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-#pragma once
 
-#ifndef __HEIGHTMAP_H_
-#define __HEIGHTMAP_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_HEIGHTMAP_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_HEIGHTMAP_H
 
 #include "always.h"
 #include "rendobj.h"
@@ -323,4 +322,4 @@ protected:
 };
 
 extern HeightMapRenderObjClass *TheTerrainRenderObject;
-#endif  // end __HEIGHTMAP_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_HEIGHTMAP_H

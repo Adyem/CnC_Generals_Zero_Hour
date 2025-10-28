@@ -34,10 +34,8 @@
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-
-#ifndef _W3D_OVERLORD_AIRCRAFT_DRAW_H_
-#define _W3D_OVERLORD_AIRCRAFT_DRAW_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DOVERLORDAIRCRAFTDRAW_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DOVERLORDAIRCRAFTDRAW_H
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "W3DDevice/GameClient/Module/W3DModelDraw.h"
@@ -71,5 +69,5 @@ protected:
 
 };
 
-#endif
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DOVERLORDAIRCRAFTDRAW_H
 

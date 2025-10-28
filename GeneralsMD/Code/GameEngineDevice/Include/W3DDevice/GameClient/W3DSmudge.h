@@ -18,10 +18,9 @@
 
 // FILE: W3DSmudge.h /////////////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef _W3DSMUDGE_H_
-#define _W3DSMUDGE_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DSMUDGE_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DSMUDGE_H
 
 #include "GameClient/Smudge.h"
 #include "sharebuf.h"
@@ -66,4 +65,4 @@ private:
 	Int m_backBufferHeight;
 };
 
-#endif	//_W3DSMUDGE_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DSMUDGE_H

@@ -26,10 +26,9 @@
 // Class to hold 1 tile's data.
 // Author: John Ahlquist, April 2001
 
-#pragma once
 
-#ifndef TileData_H
-#define TileData_H
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_TILEDATA_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_TILEDATA_H
 
 #include <stdio.h>
 
@@ -105,4 +104,4 @@ public:
 	UnsignedByte *getRGBDataForWidth(Int width);
 };
 
-#endif
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_TILEDATA_H

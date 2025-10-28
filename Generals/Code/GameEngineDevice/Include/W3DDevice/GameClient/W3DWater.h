@@ -24,10 +24,9 @@
 
 // FILE: W3DWater.h ///////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef __W3DWater_H_
-#define __W3DWater_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DWATER_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DWATER_H
 
 #include "always.h"
 #include "rendobj.h"
@@ -292,4 +291,4 @@ inline Bool WaterRenderObjClass::worldToGridSpace(Real worldX, Real worldY, Real
 
 extern WaterRenderObjClass *TheWaterRenderObj; ///<global water rendering object
 
-#endif  // end __W3DWater_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DWATER_H

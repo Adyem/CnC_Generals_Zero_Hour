@@ -31,10 +31,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef __W3DDISPLAY_H_
-#define __W3DDISPLAY_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DDISPLAY_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DDISPLAY_H
 
 #include "GameClient/Display.h"
 #include "WW3D2/lightenvironment.h"
@@ -200,4 +199,4 @@ protected:
 
 };  // end W3DDisplay
 
-#endif  // end __W3DDISPLAY_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DDISPLAY_H

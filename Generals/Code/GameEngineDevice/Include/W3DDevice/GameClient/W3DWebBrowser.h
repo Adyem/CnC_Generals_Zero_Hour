@@ -25,10 +25,9 @@
 ///// W3DWebBrowser.h ////////////////////////
 // July 2002, Bryan Cleveland
 
-#pragma once
 
-#ifndef W3DWEBBROWSER_H
-#define W3DWEBBROWSER_H
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DWEBBROWSER_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DWEBBROWSER_H
 
 #include "GameNetwork/WOLBrowser/WebBrowser.h"
 
@@ -46,4 +45,4 @@ class W3DWebBrowser : public WebBrowser
 
 };
 
-#endif // #ifndef W3DWEBBROWSER_H
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DWEBBROWSER_H

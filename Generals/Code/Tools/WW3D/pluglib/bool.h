@@ -33,9 +33,8 @@
  *---------------------------------------------------------------------------------------------* 
  * Functions:                                                                                  * 
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#if _MSC_VER >= 1000
-#pragma once
-#endif // _MSC_VER >= 1000
+#ifndef GENERALS_CODE_TOOLS_WW3D_PLUGLIB_BOOL_H
+#define GENERALS_CODE_TOOLS_WW3D_PLUGLIB_BOOL_H
 
 #if !defined(TRUE_FALSE_DEFINED) && !defined(__BORLANDC__) && (_MSC_VER < 1100) && !defined(__WATCOMC__)
 #define TRUE_FALSE_DEFINED
@@ -62,3 +61,5 @@ typedef int bool;
 #endif
 
 #endif
+
+#endif // GENERALS_CODE_TOOLS_WW3D_PLUGLIB_BOOL_H

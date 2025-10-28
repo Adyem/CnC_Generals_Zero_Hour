@@ -39,10 +39,9 @@
 //
 //----------------------------------------------------------------------------
 
-#pragma once
 
-#ifndef __W3DDEVICE_GAMECLIENT_W3DVIDEOBUFFER_H_
-#define __W3DDEVICE_GAMECLIENT_W3DVIDEOBUFFER_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DVIDEOBUFFER_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DVIDEOBUFFER_H
 
 
 //----------------------------------------------------------------------------
@@ -102,4 +101,4 @@ class W3DVideoBuffer : public VideoBuffer
 
 inline TextureClass* W3DVideoBuffer::texture( void ) { return m_texture; }
 
-#endif // __W3DDEVICE_GAMECLIENT_W3DVIDEOBUFFER_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DVIDEOBUFFER_H

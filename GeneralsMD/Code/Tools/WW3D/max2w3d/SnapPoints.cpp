@@ -35,9 +35,8 @@
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
-#if defined(_MSC_VER)
-#pragma once
-#endif
+#ifndef MAX2W3D_ZH_SNAPPOINTS_CPP
+#define MAX2W3D_ZH_SNAPPOINTS_CPP
 
 #include "SnapPoints.h"
 #include "chunkio.h"
@@ -96,3 +95,5 @@ void SnapPointsClass::Export_Points(INode * scene_root,TimeValue time,ChunkSaveC
 		csave.End_Chunk();
 	}
 }
+
+#endif // MAX2W3D_ZH_SNAPPOINTS_CPP

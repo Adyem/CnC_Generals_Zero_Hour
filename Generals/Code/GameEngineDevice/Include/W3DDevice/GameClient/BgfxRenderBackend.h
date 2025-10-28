@@ -16,7 +16,9 @@
 **      along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_BGFXRENDERBACKEND_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_BGFXRENDERBACKEND_H
 
 #include "W3DDevice/GameClient/RenderBackend.h"
 
@@ -29,3 +31,5 @@ public:
 
 extern BgfxRenderBackend g_bgfxRenderBackend;
 
+
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_BGFXRENDERBACKEND_H

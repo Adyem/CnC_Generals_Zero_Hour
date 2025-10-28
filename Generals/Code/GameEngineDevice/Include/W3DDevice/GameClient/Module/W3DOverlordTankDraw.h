@@ -28,10 +28,8 @@
 // and he needs direct access to get that rider when everyone else can't see it because of the OverlordContain.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-
-#ifndef _W3D_OVERLORD_TANK_DRAW_H_
-#define _W3D_OVERLORD_TANK_DRAW_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DOVERLORDTANKDRAW_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DOVERLORDTANKDRAW_H
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "W3DDevice/GameClient/Module/W3DTankDraw.h"
@@ -71,5 +69,5 @@ protected:
 
 };
 
-#endif
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DOVERLORDTANKDRAW_H
 

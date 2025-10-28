@@ -48,10 +48,9 @@
 //
 //-----------------------------------------------------------------------------
 
-#pragma once
 
-#ifndef __W3D_WAYPOINT_BUFFER_H
-#define __W3D_WAYPOINT_BUFFER_H
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DWAYPOINTBUFFER_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DWAYPOINTBUFFER_H
 
 //-----------------------------------------------------------------------------
 //           Includes                                                      
@@ -88,4 +87,4 @@ private:
 	TextureClass *m_texture;
 };
 
-#endif  // end __W3D_WAYPOINT_BUFFER_H
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DWAYPOINTBUFFER_H

@@ -28,10 +28,9 @@
 //						 a W3D implementation
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef __W3DGUICALLBACKS_H_
-#define __W3DGUICALLBACKS_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DGUICALLBACKS_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DGUICALLBACKS_H
 
 class GameWindow;
 class WindowLayout;
@@ -68,5 +67,5 @@ extern void W3DDrawMapPreview( GameWindow *window, WinInstanceData *instData );
 
 void W3DMainMenuInit( WindowLayout *layout, void *userData );
 
-#endif // __W3DGUICALLBACKS_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DGUICALLBACKS_H
 

@@ -27,10 +27,9 @@
 // Class to encapsulate height map.
 // Author: John Ahlquist, April 2001
 
-#pragma once
 
-#ifndef WorldHeightMap_H
-#define WorldHeightMap_H
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_WORLDHEIGHTMAP_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_WORLDHEIGHTMAP_H
 
 #include "Lib/BaseType.h"
 #include "WWLib/RefCount.h"
@@ -280,4 +279,4 @@ protected:
 
 };
 
-#endif
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_WORLDHEIGHTMAP_H

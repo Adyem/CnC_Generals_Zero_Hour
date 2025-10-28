@@ -43,10 +43,9 @@
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef __W3DGAMEWINDOW_H_
-#define __W3DGAMEWINDOW_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DGAMEWINDOW_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DGAMEWINDOW_H
 
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 
@@ -101,5 +100,5 @@ protected:
 extern void W3DGameWinDefaultDraw( GameWindow *window, 
 																	 WinInstanceData *instData );
 
-#endif // __W3DGAMEWINDOW_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DGAMEWINDOW_H
 

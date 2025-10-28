@@ -25,10 +25,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-// tell the compiler to only load this file once
-#pragma once
-
-
 #ifndef _BASE_TYPE_H_
 #define _BASE_TYPE_H_
 

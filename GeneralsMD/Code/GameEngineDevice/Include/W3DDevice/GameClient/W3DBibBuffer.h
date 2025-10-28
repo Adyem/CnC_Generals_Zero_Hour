@@ -42,10 +42,9 @@
 //
 //-----------------------------------------------------------------------------
 
-#pragma once
 
-#ifndef __W3DBIB_BUFFER_H_
-#define __W3DBIB_BUFFER_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DBIBBUFFER_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DBIBBUFFER_H
 
 //-----------------------------------------------------------------------------
 //           Includes                                                      
@@ -132,4 +131,4 @@ protected:
 	void freeBibBuffers(void);									 ///< Frees the index and vertex buffers.
 };
 
-#endif  // end __W3DBIB_BUFFER_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DBIBBUFFER_H

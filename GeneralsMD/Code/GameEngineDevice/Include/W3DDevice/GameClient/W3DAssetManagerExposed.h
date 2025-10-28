@@ -37,9 +37,8 @@
 /*		4/27/2002 : Initial creation                                           */
 /*---------------------------------------------------------------------------*/
 
-#pragma once
-#ifndef _H_W3DASSETMANAGEREXPOSED_
-#define _H_W3DASSETMANAGEREXPOSED_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DASSETMANAGEREXPOSED_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DASSETMANAGEREXPOSED_H
 
 // INCLUDES ///////////////////////////////////////////////////////////////////
 // DEFINES ////////////////////////////////////////////////////////////////////
@@ -53,4 +52,4 @@
 // @todo Remove this function when we are no longer editing particles.
 void ReloadAllTextures(void);
 
-#endif /* _H_W3DASSETMANAGEREXPOSED_ */
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DASSETMANAGEREXPOSED_H

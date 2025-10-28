@@ -31,10 +31,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef __W3DSHADERMANAGER_H_
-#define __W3DSHADERMANAGER_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DSHADERMANAGER_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DSHADERMANAGER_H
 
 #include "WW3D2/Texture.h"
 #include <cstdint>
@@ -310,4 +309,4 @@ protected:
 	static TextureClass *m_fadePatternTexture;	///<shape/pattern of the fade
 };
 
-#endif //__W3DSHADERMANAGER_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DSHADERMANAGER_H

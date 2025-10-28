@@ -27,10 +27,8 @@
 // Author: John Ahlquist, March 2002
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-
-#ifndef _W3D_TRUCK_DRAW_H_
-#define _W3D_TRUCK_DRAW_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DTRUCKDRAW_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DTRUCKDRAW_H
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/DrawModule.h"
@@ -142,5 +140,5 @@ protected:
 	void updateBones( void );
 };
 
-#endif // _W3D_TRUCK_DRAW_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DTRUCKDRAW_H
 

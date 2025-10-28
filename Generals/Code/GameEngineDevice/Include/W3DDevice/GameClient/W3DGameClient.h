@@ -32,10 +32,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef __W3DGAMEINTERFACE_H_
-#define __W3DGAMEINTERFACE_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DGAMECLIENT_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DGAMECLIENT_H
 
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 
@@ -136,4 +135,4 @@ inline Mouse *W3DGameClient::createMouse( void )
         return mouse;
 }
 
-#endif  // end __W3DGAMEINTERFACE_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DGAMECLIENT_H

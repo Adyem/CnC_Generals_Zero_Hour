@@ -27,10 +27,8 @@
 // Desc:   Debris drawing
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-
-#ifndef __W3D_DEBRIS_DRAW_H_
-#define __W3D_DEBRIS_DRAW_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DDEBRISDRAW_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DDEBRISDRAW_H
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/GameType.h"
@@ -99,5 +97,5 @@ private:
 
 };
 
-#endif // __W3D_DEBRIS_DRAW_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DDEBRISDRAW_H
 

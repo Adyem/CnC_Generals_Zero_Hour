@@ -30,10 +30,9 @@
 //
 //
 ///////////////////////////////////////////////////////////////////////////////
-#pragma once
 
-#ifndef __W3D_PROJECTED_SHADOW_H_
-#define __W3D_PROJECTED_SHADOW_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DPROJECTEDSHADOW_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DPROJECTEDSHADOW_H
 
 #include "GameClient/Shadow.h"
 
@@ -89,4 +88,4 @@ class W3DProjectedShadowManager	: public ProjectedShadowManager
 
 extern W3DProjectedShadowManager *TheW3DProjectedShadowManager;
 
-#endif	//__W3D_PROJECTED_SHADOW_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DPROJECTEDSHADOW_H

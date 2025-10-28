@@ -41,10 +41,9 @@
 //
 //----------------------------------------------------------------------------
 
-#pragma once
 
-#ifndef __W3DDEVICE_GAMECLIENT_W3DDEBUGDISPLAY_H
-#define __W3DDEVICE_GAMECLIENT_W3DDEBUGDISPLAY_H
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DDEBUGDISPLAY_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DDEBUGDISPLAY_H
 
 
 //----------------------------------------------------------------------------
@@ -101,4 +100,4 @@ class W3DDebugDisplay : public DebugDisplay
 
 
 
-#endif // __W3DDEVICE_GAMECLIENT_W3DDEBUGDISPLAY_H
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DDEBUGDISPLAY_H

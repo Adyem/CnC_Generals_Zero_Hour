@@ -27,10 +27,8 @@
 // Author: Mark Wilczynski, August 2002
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-
-#ifndef _W3D_TANKTRUCK_DRAW_H_
-#define _W3D_TANKTRUCK_DRAW_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DTANKTRUCKDRAW_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DTANKTRUCKDRAW_H
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/DrawModule.h"
@@ -153,5 +151,5 @@ protected:
 	void updateTreadPositions(Real uvDelta);									///< update uv coordinates on each tread
 };
 
-#endif // _W3D_TANKTRUCK_DRAW_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DTANKTRUCKDRAW_H
 

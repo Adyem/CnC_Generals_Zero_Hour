@@ -42,10 +42,9 @@
 //
 //-----------------------------------------------------------------------------
 
-#pragma once
 
-#ifndef __W3DCUSTOM_EDGING_H_
-#define __W3DCUSTOM_EDGING_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DCUSTOMEDGING_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DCUSTOMEDGING_H
 
 //-----------------------------------------------------------------------------
 //           Includes                                                      
@@ -108,4 +107,4 @@ protected:
 	void loadEdgingsInVertexAndIndexBuffers(WorldHeightMap *pMap, Int minX, Int maxX, Int minY, Int maxY);
 };
 
-#endif  // end __W3DCUSTOM_EDGING_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DCUSTOMEDGING_H

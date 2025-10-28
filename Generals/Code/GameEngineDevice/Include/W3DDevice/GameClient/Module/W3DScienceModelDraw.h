@@ -27,10 +27,8 @@
 // Desc: Draw module just like Model, except it only draws if the local player has the specified science
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-
-#ifndef _W3D_SCIENCE_MODEL_DRAW_H_
-#define _W3D_SCIENCE_MODEL_DRAW_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DSCIENCEMODELDRAW_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DSCIENCEMODELDRAW_H
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "W3DDevice/GameClient/Module/W3DModelDraw.h"
@@ -64,5 +62,5 @@ public:
 protected:
 };
 
-#endif
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DSCIENCEMODELDRAW_H
 

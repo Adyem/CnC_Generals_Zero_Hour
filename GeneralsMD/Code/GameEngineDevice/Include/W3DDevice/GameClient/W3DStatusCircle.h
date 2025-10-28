@@ -23,10 +23,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-#pragma once
 
-#ifndef __STATUS_CIRCLE_H_
-#define __STATUS_CIRCLE_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DSTATUSCIRCLE_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DSTATUSCIRCLE_H
 
 #include "always.h"
 #include "rendobj.h"
@@ -99,4 +98,4 @@ protected:
 	Int updateScreenVB(Int diffuse);
 };
 
-#endif  // end __DRAW_OBJECT_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DSTATUSCIRCLE_H

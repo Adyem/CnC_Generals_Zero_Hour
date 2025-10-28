@@ -34,10 +34,9 @@
 #include "vertmaterial.h"
 #include "Lib/BaseType.h"
 
-#pragma once
 
-#ifndef __W3DGRANNY_H_
-#define __W3DGRANNY_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DGRANNY_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DGRANNY_H
 
 #ifdef	INCLUDE_GRANNY_IN_BUILD
 
@@ -301,4 +300,4 @@ extern GrannyRenderObjClassSystem *TheGrannyRenderObjClassSystem; ///< singleton
 
 #endif	//INCLUDE_GRANNY_IN_BUILD
 
-#endif  // end __W3DGRANNY_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DGRANNY_H

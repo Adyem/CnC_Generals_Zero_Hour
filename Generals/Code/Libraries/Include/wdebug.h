@@ -7,6 +7,9 @@
 // historic header name can include it without needing Windows-specific search
 // paths.
 
-#pragma once
+#ifndef GENERALS_CODE_LIBRARIES_INCLUDE_WDEBUG_H
+#define GENERALS_CODE_LIBRARIES_INCLUDE_WDEBUG_H
 
 #include "../Tools/matchbot/wlib/wdebug.h"
+
+#endif // GENERALS_CODE_LIBRARIES_INCLUDE_WDEBUG_H

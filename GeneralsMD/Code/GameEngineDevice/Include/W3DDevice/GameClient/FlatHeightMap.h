@@ -23,10 +23,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-#pragma once
 
-#ifndef __FLAT_HEIGHTMAP_H_
-#define __FLAT_HEIGHTMAP_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_FLATHEIGHTMAP_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_FLATHEIGHTMAP_H
 
 #include "always.h"
 #include "rendobj.h"
@@ -95,4 +94,4 @@ protected:
 
 };
 
-#endif  // end __FLAT_HEIGHTMAP_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_FLATHEIGHTMAP_H

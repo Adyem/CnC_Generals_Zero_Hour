@@ -31,10 +31,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef __W3DINGAMEUI_H_
-#define __W3DINGAMEUI_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DINGAMEUI_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DINGAMEUI_H
 
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 
@@ -86,4 +85,4 @@ protected:
 
 };  // end class W3DInGameUI
 
-#endif  // end __W3DINGAMEUI_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DINGAMEUI_H

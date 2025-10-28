@@ -23,10 +23,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-#pragma once
 
-#ifndef __W3DMirror_H_
-#define __W3DMirror_H_
+#ifndef GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DMIRROR_H
+#define GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DMIRROR_H
 
 #include "always.h"
 #include "rendobj.h"
@@ -116,4 +115,4 @@ protected:
 	void renderWaterMesh(void);
 };
 
-#endif  // end __W3DMirror_H_
+#endif // GENERALS_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DMIRROR_H

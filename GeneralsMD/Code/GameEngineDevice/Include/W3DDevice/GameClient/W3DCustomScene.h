@@ -22,10 +22,9 @@
 //																																						//
 ////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
-#ifndef __W3DCUSTOMSCENE_H_
-#define __W3DCUSTOMSCENE_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DCUSTOMSCENE_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DCUSTOMSCENE_H
 
 enum CustomScenePassModes
 {
@@ -33,4 +32,4 @@ enum CustomScenePassModes
 	SCENE_PASS_ALPHA_MASK
 };
 
-#endif //W3DCUSTOMSCENE
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_W3DCUSTOMSCENE_H

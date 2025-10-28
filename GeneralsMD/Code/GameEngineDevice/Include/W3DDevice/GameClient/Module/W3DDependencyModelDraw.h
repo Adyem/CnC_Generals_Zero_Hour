@@ -32,10 +32,8 @@
 // draw after he draws.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-
-#ifndef _W3D_DEPENDENCY_MODEL_DRAW_H_
-#define _W3D_DEPENDENCY_MODEL_DRAW_H_
+#ifndef GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DDEPENDENCYMODELDRAW_H
+#define GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DDEPENDENCYMODELDRAW_H
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "W3DDevice/GameClient/Module/W3DModelDraw.h"
@@ -70,5 +68,5 @@ protected:
 	Bool m_dependencyCleared; // The thing we depend on will clear this, and we will relatch it after we draw.
 };
 
-#endif // _W3D_DEPENDENCY_MODEL_DRAW_H_
+#endif // GENERALSMD_CODE_GAMEENGINEDEVICE_INCLUDE_W3DDEVICE_GAMECLIENT_MODULE_W3DDEPENDENCYMODELDRAW_H
 
