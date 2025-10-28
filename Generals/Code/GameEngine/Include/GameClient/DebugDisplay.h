@@ -41,7 +41,6 @@
 //
 //----------------------------------------------------------------------------
 
-#pragma once
 
 #ifndef __GAMECLIENT_DEBUGDISPLAY_H
 #define __GAMECLIENT_DEBUGDISPLAY_H

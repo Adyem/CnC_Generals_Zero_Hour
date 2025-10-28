@@ -26,7 +26,6 @@
 // Contains the SelectionInfo structure and the contextCommandForNewSelection
 // Author: John McDonald, Jr, October 2002
 
-#pragma once
 
 #ifndef __SELECTIONINFO_H__
 #define __SELECTIONINFO_H__

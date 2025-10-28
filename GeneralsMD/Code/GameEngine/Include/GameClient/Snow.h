@@ -18,7 +18,6 @@
 
 // FILE: Snow.h /////////////////////////////////////////////////////////
 
-#pragma once
 #ifndef _SNOW_H_
 #define _SNOW_H_
 

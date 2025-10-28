@@ -27,7 +27,6 @@
 // Description: Map utility/convenience routines
 ////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __MAPUTIL_H__
 #define __MAPUTIL_H__

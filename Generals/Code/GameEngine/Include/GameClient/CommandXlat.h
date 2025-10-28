@@ -25,7 +25,6 @@
 // FILE: CommandXlat.h ///////////////////////////////////////////////////////////
 // Author: Steven Johnson, Dec 2001
 
-#pragma once
 
 #ifndef _H_CommandXlat
 #define _H_CommandXlat

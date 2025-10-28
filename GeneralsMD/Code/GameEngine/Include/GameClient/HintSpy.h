@@ -25,7 +25,6 @@
 // FILE: HintSpy.h ///////////////////////////////////////////////////////////
 // Author: Steven Johnson, Dec 2001
 
-#pragma once
 
 #ifndef _H_HintSpy
 #define _H_HintSpy

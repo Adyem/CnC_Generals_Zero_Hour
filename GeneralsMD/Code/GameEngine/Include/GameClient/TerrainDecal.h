@@ -26,7 +26,6 @@
 // Desc: Terrain decal enumeration shared between draw modules and drawables.
 ////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef GAMECLIENT_TERRAINDECAL_H
 #define GAMECLIENT_TERRAINDECAL_H

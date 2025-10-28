@@ -26,7 +26,6 @@
 // AudioEventRTS structure
 // Author: John K. McDonald, March 2002
 
-#pragma once
 #ifndef _H_DRAWGROUPINFO_
 #define _H_DRAWGROUPINFO_
 

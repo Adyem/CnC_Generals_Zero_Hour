@@ -26,7 +26,6 @@
 // Author: John K. McDonald, Jr.
 // DO NOT DISTRIBUTE
 
-#pragma once
 #ifndef __EVA_H__
 #define __EVA_H__
 

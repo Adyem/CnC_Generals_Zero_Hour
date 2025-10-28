@@ -28,7 +28,6 @@
 //              we get this file instead.  Phooey.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __EXTENDEDMESSAGEBOX_H_
 #define __EXTENDEDMESSAGEBOX_H_

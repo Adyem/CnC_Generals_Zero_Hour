@@ -28,7 +28,6 @@
 //						 written so we have a way to refer to images in the windows GUI.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __IMAGE_H_
 #define __IMAGE_H_

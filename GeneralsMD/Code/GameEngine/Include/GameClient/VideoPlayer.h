@@ -39,7 +39,6 @@
 //
 //----------------------------------------------------------------------------
 
-#pragma once
 
 #ifndef __GAMECLIENT_VIDEOPLAYER_H_
 #define __GAMECLIENT_VIDEOPLAYER_H_

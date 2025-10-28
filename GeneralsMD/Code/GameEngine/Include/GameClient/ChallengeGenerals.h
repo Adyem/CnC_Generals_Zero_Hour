@@ -27,7 +27,6 @@
 // Desc:   This is a manager for data pertaining to the Generals' Challenge personas and related GUI.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
 
 #ifndef __CHALLENGEGENERALS_H_
 #define __CHALLENGEGENERALS_H_

@@ -26,7 +26,6 @@
 // Simple structure used to hold font descriptions.
 // Author: Mark Wilczynski, October 2002
 
-#pragma once
 #ifndef _FONTDESC_H_
 #define _FONTDESC_H_
 

@@ -26,7 +26,6 @@
 // The graphics display singleton
 // Author: Michael S. Booth, March 2001
 
-#pragma once
 
 #ifndef _GAME_DISPLAY_H_
 #define _GAME_DISPLAY_H_
