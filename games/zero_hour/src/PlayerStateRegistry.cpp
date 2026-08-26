@@ -108,6 +108,7 @@ uint64_t PlayerStateRegistry::canonical_state_hash() const noexcept
     {
         mix(entry->player.value);
         mix(entry->state.faction().value);
+        mix(entry->state.commander().value);
         mix(entry->state.science_points());
     }
     return hash;
@@ -123,8 +124,15 @@ cnc::Error PlayerStateRegistry::export_snapshot(Snapshot *snapshot_out) const no
         snapshot_out->entries.clear();
         snapshot_out->entries.reserve(_entries.size());
         for (const Entry &entry : _entries)
+        {
+            cnc::DefinitionId general;
+            if (entry.state.commander().is_valid() &&
+                _generals->find(entry.state.commander(), &general) != FT_ERR_SUCCESS)
+                return FT_ERR_INVALID_STATE;
             snapshot_out->entries.push_back(SnapshotEntry{
-                entry.player, entry.state.faction(), entry.state.science_points()});
+                entry.player, entry.state.faction(), entry.state.commander(), general,
+                entry.state.science_points()});
+        }
         std::sort(snapshot_out->entries.begin(), snapshot_out->entries.end(),
                   [](const SnapshotEntry &first, const SnapshotEntry &second) noexcept
                   { return first.player.value < second.player.value; });
@@ -163,6 +171,12 @@ cnc::Error PlayerStateRegistry::import_snapshot(const Snapshot &snapshot) noexce
             {
                 error = entry.state.set_faction(record.faction);
                 if (error != FT_ERR_SUCCESS) { discard(); return error; }
+            }
+            if (record.commander.is_valid())
+            {
+                if (record.general.value == 0U ||
+                    entry.state.assign_general(record.commander, record.general) != FT_ERR_SUCCESS)
+                { discard(); return FT_ERR_CONFIGURATION; }
             }
             error = entry.state.set_science_points(record.science_points);
             if (error != FT_ERR_SUCCESS) { discard(); return error; }

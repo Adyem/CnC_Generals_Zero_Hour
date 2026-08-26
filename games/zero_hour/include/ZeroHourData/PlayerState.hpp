@@ -23,6 +23,7 @@ public:
     cnc::Error activate_power(cnc::DefinitionId power, cnc::SimulationTick now,
                               cnc::SimulationTick *ready_at) noexcept;
     cnc::DefinitionId faction() const noexcept;
+    cnc::EntityId commander() const noexcept;
     uint32_t science_points() const noexcept;
     cnc::Error shutdown() noexcept;
 

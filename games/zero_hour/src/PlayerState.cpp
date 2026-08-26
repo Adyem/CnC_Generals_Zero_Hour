@@ -78,6 +78,7 @@ cnc::Error PlayerState::activate_power(cnc::DefinitionId power, cnc::SimulationT
 }
 
 cnc::DefinitionId PlayerState::faction() const noexcept { return _faction; }
+cnc::EntityId PlayerState::commander() const noexcept { return _commander; }
 uint32_t PlayerState::science_points() const noexcept { return _science_points; }
 
 cnc::Error PlayerState::shutdown() noexcept

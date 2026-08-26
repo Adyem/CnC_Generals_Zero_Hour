@@ -19,6 +19,8 @@ public:
     {
         cnc::PlayerId player;
         cnc::DefinitionId faction;
+        cnc::EntityId commander;
+        cnc::DefinitionId general;
         uint32_t science_points = 0U;
     };
     struct Snapshot

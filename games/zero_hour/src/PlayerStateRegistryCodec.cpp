@@ -9,7 +9,7 @@ namespace zero_hour
 namespace
 {
 constexpr cnc::Size header_size = 8U;
-constexpr cnc::Size entry_size = 20U;
+constexpr cnc::Size entry_size = 36U;
 void append_u32(std::vector<uint8_t> &bytes, uint32_t value)
 { for (uint32_t shift = 0U; shift < 32U; shift += 8U) bytes.push_back(static_cast<uint8_t>((value >> shift) & 0xFFU)); }
 void append_u64(std::vector<uint8_t> &bytes, uint64_t value)
@@ -35,7 +35,9 @@ cnc::Error PlayerStateRegistryCodec::encode(const PlayerStateRegistry::Snapshot 
         for (const PlayerStateRegistry::SnapshotEntry &entry : snapshot.entries)
         {
             if (!entry.player.is_valid()) { bytes_out->clear(); return FT_ERR_INVALID_ARGUMENT; }
-            append_u32(*bytes_out, entry.player.value); append_u64(*bytes_out, entry.faction.value); append_u32(*bytes_out, entry.science_points); append_u32(*bytes_out, 0U);
+            append_u32(*bytes_out, entry.player.value); append_u64(*bytes_out, entry.faction.value);
+            append_u64(*bytes_out, entry.commander.value); append_u64(*bytes_out, entry.general.value);
+            append_u32(*bytes_out, entry.science_points); append_u32(*bytes_out, 0U);
         }
     }
     catch (...) { bytes_out->clear(); return FT_ERR_NO_MEMORY; }
@@ -59,10 +61,12 @@ cnc::Error PlayerStateRegistryCodec::decode(const uint8_t *bytes, cnc::Size byte
             const cnc::PlayerId player{read_u32(bytes + offset)};
             if (!player.is_valid() ||
                 (index != 0U && decoded.entries.back().player.value >= player.value) ||
-                read_u32(bytes + offset + 16U) != 0U)
+                read_u32(bytes + offset + 32U) != 0U)
                 return FT_ERR_CONFIGURATION;
             decoded.entries.push_back(PlayerStateRegistry::SnapshotEntry{
-                player, cnc::DefinitionId{read_u64(bytes + offset + 4U)}, read_u32(bytes + offset + 12U)});
+                player, cnc::DefinitionId{read_u64(bytes + offset + 4U)},
+                cnc::EntityId{read_u64(bytes + offset + 12U)},
+                cnc::DefinitionId{read_u64(bytes + offset + 20U)}, read_u32(bytes + offset + 28U)});
         }
     }
     catch (...) { return FT_ERR_NO_MEMORY; }
