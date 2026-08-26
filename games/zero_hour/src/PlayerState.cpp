@@ -39,14 +39,14 @@ cnc::Error PlayerState::set_science_points(uint32_t points) noexcept
 cnc::Error PlayerState::purchase_science(cnc::DefinitionId science) noexcept
 {
     if (!_initialized) return FT_ERR_INVALID_STATE;
-    if (!_faction.is_valid()) return FT_ERR_INVALID_STATE;
+    if (_faction.value == 0U) return FT_ERR_INVALID_STATE;
     return _science->purchase(_faction, science, _science_points, &_science_points);
 }
 
 cnc::Error PlayerState::assign_general(cnc::EntityId entity, cnc::DefinitionId general) noexcept
 {
     if (!_initialized) return FT_ERR_INVALID_STATE;
-    if (!_faction.is_valid()) return FT_ERR_INVALID_STATE;
+    if (_faction.value == 0U) return FT_ERR_INVALID_STATE;
     const GeneralDefinition *definition = _catalog->find_general(general);
     if (definition == nullptr) return FT_ERR_NOT_FOUND;
     if (definition->faction.value != _faction.value) return FT_ERR_PERMISSION_DENIED;
@@ -57,7 +57,7 @@ cnc::Error PlayerState::activate_power(cnc::DefinitionId power, cnc::SimulationT
                                        cnc::SimulationTick *ready_at) noexcept
 {
     if (!_initialized) return FT_ERR_INVALID_STATE;
-    if (!_faction.is_valid()) return FT_ERR_INVALID_STATE;
+    if (_faction.value == 0U) return FT_ERR_INVALID_STATE;
     return _powers->activate(power, now, ready_at);
 }
 
