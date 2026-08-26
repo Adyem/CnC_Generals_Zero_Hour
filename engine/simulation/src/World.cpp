@@ -173,7 +173,7 @@ Error DeterministicWorld::export_snapshot(WorldSnapshot *snapshot_out) const noe
 Error DeterministicWorld::import_snapshot(const WorldSnapshot &snapshot) noexcept
 {
     if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
-    if (snapshot.schema_version != WorldSnapshot::schema_version ||
+    if (snapshot.schema_version != 1U ||
         snapshot.entries.size() > static_cast<std::vector<WorldSnapshotEntry>::size_type>(1U << 20U))
         return FT_ERR_CONFIGURATION;
     std::vector<EntityState> restored;
