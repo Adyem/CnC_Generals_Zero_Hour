@@ -1,0 +1,66 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "dev-headless",
+      "displayName": "Development headless",
+      "description": "Portable Libft Basic integration and smoke tests; multiplayer is disabled.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/dev-headless",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CNC_BUILD_LIBFT_BASIC": "ON",
+        "CNC_BUILD_SMOKE_TEST": "ON",
+        "CNC_BUILD_LEGACY_REFERENCE": "OFF",
+        "CNC_ENABLE_MULTIPLAYER": "OFF",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "release-offline",
+      "displayName": "Offline release",
+      "description": "Portable optimized Libft integration without legacy proprietary backends.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/release-offline",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CNC_BUILD_LIBFT_BASIC": "ON",
+        "CNC_BUILD_SMOKE_TEST": "ON",
+        "CNC_BUILD_LEGACY_REFERENCE": "OFF",
+        "CNC_ENABLE_MULTIPLAYER": "OFF",
+        "BUILD_TESTING": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "dev-headless",
+      "configurePreset": "dev-headless"
+    },
+    {
+      "name": "release-offline",
+      "configurePreset": "release-offline"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "dev-headless",
+      "configurePreset": "dev-headless",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "release-offline",
+      "configurePreset": "release-offline",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

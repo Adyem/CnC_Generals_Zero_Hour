@@ -1373,6 +1373,21 @@ The CMake migration is complete when:
 - configure/build/test/install/package workflows are reproducible through presets;
 - the `.dsw/.dsp` files are no longer consulted by active builds and can move to an archival directory.
 
+### 13.18 First implemented slice on `libft-engine-migration`
+
+The implementation branch now contains the configure/build skeleton described above:
+
+```text
+CMakeLists.txt                         # project options, CTest, profile checks
+CMakePresets.json                      # dev-headless and release-offline presets
+cmake/LibftBasic.cmake                 # explicit pinned Basic source manifest
+tests/smoke/libft_smoke.cpp            # type/error/checked-arithmetic smoke test
+```
+
+This deliberately builds only Libft `Basic` (excluding `basic_locale_compare.cpp`, which links `System_utils`) and the smoke executable. It does not claim to build SAGE, the renderer, or the game yet. The smoke slice was compiled and executed with Clang in this environment; the installed environment did not contain the `cmake` executable, so CMake configure/build itself remains to be run on a machine with CMake 3.20+ and Ninja or another supported generator.
+
+The next implementation step is to add a maintained Libft CMake target (or a temporary explicit adapter) for the transitive `Errno`, `System_utils`, `Time`, `File`, and `Game` modules, then replace this smoke executable with a headless Libft world test. Do not expand the manifest to every Libft `.cpp` file until each module's platform and third-party dependencies are represented as CMake targets.
+
 ## 14. Engine replacement phases
 
 ### Phase 0 — Baseline and archaeology
