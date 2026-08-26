@@ -56,7 +56,7 @@ Error WorldSnapshotCodec::encode(const WorldSnapshot &snapshot,
     if (bytes_out == nullptr) return FT_ERR_INVALID_POINTER;
     const ft_size_t count = static_cast<ft_size_t>(snapshot.entries.size());
     ft_size_t wire_size = 0U;
-    if (snapshot.schema_version != WorldSnapshot::schema_version ||
+    if (snapshot.schema_version != wire_schema_version ||
         !checked_wire_size(count, &wire_size) || count > std::numeric_limits<uint32_t>::max())
         return FT_ERR_INVALID_ARGUMENT;
     try
@@ -106,6 +106,7 @@ Error WorldSnapshotCodec::decode(const uint8_t *bytes, ft_size_t byte_count,
     try
     {
         snapshot_out->entries.reserve(static_cast<std::vector<WorldSnapshotEntry>::size_type>(count));
+        snapshot_out->schema_version = wire_schema_version;
         snapshot_out->tick = SimulationTick{tick};
         for (uint32_t index = 0U; index < count; ++index)
         {

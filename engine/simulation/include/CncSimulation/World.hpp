@@ -24,7 +24,7 @@ struct WorldSnapshotEntry
 
 struct WorldSnapshot
 {
-    static constexpr uint32_t schema_version = 1U;
+    uint32_t schema_version = 1U;
     SimulationTick tick;
     std::vector<WorldSnapshotEntry> entries;
 };
