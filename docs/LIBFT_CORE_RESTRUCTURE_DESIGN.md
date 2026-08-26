@@ -1852,9 +1852,10 @@ The visibility payload is staged in the same way, so a restored session cannot
 expose entities that its saved shroud state marked hidden.
 The Zero Hour player-state payload is staged through a temporary
 `PlayerStateRegistry` after it is decoded. Faction selection and science points
-are currently persisted; commander/general bindings and purchased/active power
-state remain a follow-up payload because their roster and cooldown ownership
-need the same swap-safe contract. A malformed player-state record or allocation
+faction, science points, commander, and selected general are currently
+persisted; purchased science and active power cooldowns are persisted in their
+global ledgers. A malformed
+player-state record or allocation
 failure therefore cannot replace only part of a player's authoritative data.
 Special-power cooldowns now use the same pattern: the global power ledger is
 serialized as a bounded payload, validated against the game catalog, staged
