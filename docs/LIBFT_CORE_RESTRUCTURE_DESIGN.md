@@ -1439,6 +1439,13 @@ future Libft networking adapter and local UI can produce the same command stream
 without becoming simulation dependencies. Multiplayer remains disabled; this
 is only the offline command path.
 
+The first determinism gate is now implemented in
+`tests/determinism/replay.cpp`. It runs the same typed command stream through two
+fresh sessions and compares the canonical state hash after every tick. The test
+is exposed as the `cnc_determinism_replay` CMake target and the
+`determinism.replay` CTest case. This should remain a blocking test as concrete
+faction, economy, combat, and map systems replace the scaffold.
+
 The next implementation step is to add maintained Libft CMake targets (or temporary explicit adapters) for the transitive `Errno`, `System_utils`, `Time`, `File`, and `Game` modules, then replace this scaffold's storage with Libft `Game` registries and typed systems. Do not expand the manifest to every Libft `.cpp` file until each module's platform and third-party dependencies are represented as CMake targets.
 
 The first dependency probe is represented by `cmake/LibftTime.cmake`. It has an
