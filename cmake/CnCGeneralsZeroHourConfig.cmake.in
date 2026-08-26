@@ -1,0 +1,9 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/cncTargets.cmake")
+
+if(TARGET cnc::basic AND NOT TARGET libft::basic)
+    add_library(libft::basic ALIAS cnc::basic)
+endif()
+
+check_required_components(CnCGeneralsZeroHour)

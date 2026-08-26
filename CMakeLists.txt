@@ -6,6 +6,7 @@ project(CnCGeneralsZeroHour
 )
 
 include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(CTest)
@@ -320,41 +321,50 @@ message(STATUS "CNC multiplayer: disabled (offline migration stage)")
 # Installation is target-scoped and never copies the legacy Run/ tree. The
 # optional offline package contains only project-owned native artifacts.
 if(TARGET libft_basic)
-    install(TARGETS libft_basic ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    set_target_properties(libft_basic PROPERTIES EXPORT_NAME basic)
+    install(TARGETS libft_basic EXPORT cncTargets ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 endif()
 if(TARGET libft_game)
-    install(TARGETS libft_game ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    set_target_properties(libft_game PROPERTIES EXPORT_NAME game)
+    install(TARGETS libft_game EXPORT cncTargets ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
     install(DIRECTORY external/libft/Modules/Game/ DESTINATION
         "${CMAKE_INSTALL_INCLUDEDIR}/libft/Game" FILES_MATCHING PATTERN "*.hpp")
 endif()
 if(TARGET cnc_runtime)
-    install(TARGETS cnc_runtime ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    set_target_properties(cnc_runtime PROPERTIES EXPORT_NAME runtime)
+    install(TARGETS cnc_runtime EXPORT cncTargets ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
     install(DIRECTORY engine/runtime/include/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/generated/CncBuild/BuildInfo.hpp"
         DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/CncBuild")
 endif()
 if(TARGET cnc_simulation)
-    install(TARGETS cnc_simulation ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    set_target_properties(cnc_simulation PROPERTIES EXPORT_NAME simulation)
+    install(TARGETS cnc_simulation EXPORT cncTargets ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
     install(DIRECTORY engine/simulation/include/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 endif()
 if(TARGET cnc_zero_hour_data)
-    install(TARGETS cnc_zero_hour_data ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    set_target_properties(cnc_zero_hour_data PROPERTIES EXPORT_NAME zero_hour_data)
+    install(TARGETS cnc_zero_hour_data EXPORT cncTargets ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
     install(DIRECTORY games/zero_hour/include/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 endif()
 if(TARGET cnc_game_session)
-    install(TARGETS cnc_game_session ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    set_target_properties(cnc_game_session PROPERTIES EXPORT_NAME game_session)
+    install(TARGETS cnc_game_session EXPORT cncTargets ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
     install(DIRECTORY engine/game/include/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 endif()
 if(TARGET cnc_render)
-    install(TARGETS cnc_render ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    set_target_properties(cnc_render PROPERTIES EXPORT_NAME render)
+    install(TARGETS cnc_render EXPORT cncTargets ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
     install(DIRECTORY engine/render/include/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 endif()
 if(TARGET cnc_network_stub)
-    install(TARGETS cnc_network_stub ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    set_target_properties(cnc_network_stub PROPERTIES EXPORT_NAME network_stub)
+    install(TARGETS cnc_network_stub EXPORT cncTargets ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
     install(DIRECTORY engine/network/include/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 endif()
 if(TARGET cnc_zero_hour_headless)
-    install(TARGETS cnc_zero_hour_headless RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    set_target_properties(cnc_zero_hour_headless PROPERTIES EXPORT_NAME zero_hour_headless)
+    install(TARGETS cnc_zero_hour_headless EXPORT cncTargets RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
     add_custom_target(stage_zero_hour
         COMMAND ${CMAKE_COMMAND}
             -DCNC_GAME_DATA_ROOT=${CNC_GAME_DATA_ROOT}
@@ -365,6 +375,21 @@ if(TARGET cnc_zero_hour_headless)
         DEPENDS cnc_zero_hour_headless
         VERBATIM)
 endif()
+
+install(EXPORT cncTargets
+    NAMESPACE cnc::
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/CnCGeneralsZeroHour")
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CnCGeneralsZeroHourConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/CnCGeneralsZeroHourConfig.cmake"
+    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/CnCGeneralsZeroHour")
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/CnCGeneralsZeroHourConfigVersion.cmake"
+    COMPATIBILITY SameMajorVersion)
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/CnCGeneralsZeroHourConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/CnCGeneralsZeroHourConfigVersion.cmake"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/CnCGeneralsZeroHour")
 
 set(CPACK_PACKAGE_NAME "cnc-generals-zero-hour")
 set(CPACK_PACKAGE_VENDOR "CnC Generals Zero Hour contributors")

@@ -23,6 +23,8 @@ jobs:
         run: cmake --build --preset dev-headless
       - name: Test
         run: ctest --preset dev-headless
+      - name: Install package
+        run: cmake --install out/build/dev-headless --prefix out/install
 
   clang-sanitizers:
     name: clang-sanitizers
@@ -40,3 +42,5 @@ jobs:
         run: cmake --build --preset ci-sanitizers
       - name: Test
         run: ctest --preset ci-sanitizers
+      - name: Install package
+        run: cmake --install out/build/ci-sanitizers --prefix out/install

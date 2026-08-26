@@ -1497,6 +1497,13 @@ at stage time and copies the executable, declared project manifest, and data
 into `build/stage/zero_hour`. The root is empty by default, so compilation and
 unit tests never require proprietary game files.
 
+The install graph now exports native targets under the relocatable
+`CnCGeneralsZeroHour` package configuration. Consumers can use
+`find_package(CnCGeneralsZeroHour CONFIG REQUIRED)` and link targets such as
+`cnc::runtime`, `cnc::simulation`, or `cnc::game_session`; the package defines a
+compatibility `libft::basic` alias for the exported Libft Basic target. Exported
+interfaces do not contain source-tree paths.
+
 Configure-time build metadata now replaces the legacy `versionUpdate.exe` and
 `buildVersionUpdate.exe` mutation flow. CMake generates
 `CncBuild/BuildInfo.hpp` in the binary tree with the project version and a short
