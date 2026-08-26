@@ -175,8 +175,13 @@ int main()
         session.science_ledger().purchase_count() != static_cast<cnc::Size>(0U))
         return 22;
     cnc::GameSession manifest_session;
+#ifdef CNC_ZERO_HOUR_MANIFEST_PATH
+    const char *const session_manifest_path = CNC_ZERO_HOUR_MANIFEST_PATH;
+#else
+    const char *const session_manifest_path = "tests/fixtures/zero_hour_manifest.csv";
+#endif
     if (manifest_session.initialize() != FT_ERR_SUCCESS ||
-        manifest_session.load_data_manifest("tests/fixtures/zero_hour_manifest.csv") != FT_ERR_SUCCESS ||
+        manifest_session.load_data_manifest(session_manifest_path) != FT_ERR_SUCCESS ||
         manifest_session.catalog().definition_count() != static_cast<cnc::Size>(4U) ||
         manifest_session.shutdown() != FT_ERR_SUCCESS)
         return 25;
