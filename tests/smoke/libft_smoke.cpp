@@ -84,6 +84,8 @@ int main()
         world.advance_one_tick() != FT_ERR_OUT_OF_RANGE ||
         world.read_value(entity, &value) != FT_ERR_SUCCESS || value != 42)
         return 34;
+    if (world.discard_pending_commands() != FT_ERR_SUCCESS)
+        return 35;
     if (world.shutdown() != FT_ERR_SUCCESS)
         return 11;
 

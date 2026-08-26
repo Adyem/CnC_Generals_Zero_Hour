@@ -1408,6 +1408,9 @@ storage while command, tick, and hash contracts remain stable.
 a shadow state: cumulative integer overflow or tick exhaustion leaves the live
 world and pending command queue unchanged. This is required for deterministic
 replay and gives a future Libft Game backend an explicit atomic-tick contract.
+`discard_pending_commands()` lets the session roll back queued input when an
+ingest or tick operation fails; session commands remain available for a
+deterministic retry without being applied twice.
 Entity IDs and command sequence IDs also refuse `uint64_t` exhaustion with
 `FT_ERR_OUT_OF_RANGE`, preventing wraparound from changing entity identity or
 deterministic ordering.

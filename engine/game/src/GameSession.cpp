@@ -116,14 +116,26 @@ Error GameSession::advance_one_tick() noexcept
     for (const WorldDeltaCommand &command : _commands)
     {
         const Error queue_error = _world.queue_delta(command.entity, command.delta);
-        if (queue_error != FT_ERR_SUCCESS) return queue_error;
+        if (queue_error != FT_ERR_SUCCESS)
+        {
+            (void)_world.discard_pending_commands();
+            return queue_error;
+        }
     }
-    _commands.clear();
 
     Error error = _systems.run(SystemPhase::ingest_commands, _world.tick());
-    if (error != FT_ERR_SUCCESS) return error;
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)_world.discard_pending_commands();
+        return error;
+    }
     error = _world.advance_one_tick();
-    if (error != FT_ERR_SUCCESS) return error;
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)_world.discard_pending_commands();
+        return error;
+    }
+    _commands.clear();
     error = _systems.run(SystemPhase::simulation, _world.tick());
     if (error != FT_ERR_SUCCESS) return error;
     error = _systems.run(SystemPhase::presentation, _world.tick());

@@ -84,6 +84,13 @@ Error DeterministicWorld::queue_delta(EntityId entity_id, int64_t delta) noexcep
     return FT_ERR_SUCCESS;
 }
 
+Error DeterministicWorld::discard_pending_commands() noexcept
+{
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    _pending_commands.clear();
+    return FT_ERR_SUCCESS;
+}
+
 Error DeterministicWorld::advance_one_tick() noexcept
 {
     if (_initialized != FT_TRUE)

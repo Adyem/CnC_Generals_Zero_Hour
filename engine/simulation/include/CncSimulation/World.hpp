@@ -25,6 +25,7 @@ public:
     virtual Error create_entity(EntityId *entity_id_out) noexcept = 0;
     virtual Error destroy_entity(EntityId entity_id) noexcept = 0;
     virtual Error queue_delta(EntityId entity_id, int64_t delta) noexcept = 0;
+    virtual Error discard_pending_commands() noexcept = 0;
     virtual Error advance_one_tick() noexcept = 0;
     virtual SimulationTick tick() const noexcept = 0;
     virtual Error read_value(EntityId entity_id, int64_t *value_out) const noexcept = 0;
@@ -45,6 +46,7 @@ public:
     Error create_entity(EntityId *entity_id_out) noexcept override;
     Error destroy_entity(EntityId entity_id) noexcept override;
     Error queue_delta(EntityId entity_id, int64_t delta) noexcept override;
+    Error discard_pending_commands() noexcept override;
     Error advance_one_tick() noexcept override;
 
     SimulationTick tick() const noexcept override;
