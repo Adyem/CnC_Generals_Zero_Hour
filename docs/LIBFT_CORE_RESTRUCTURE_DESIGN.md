@@ -551,6 +551,10 @@ sequence; Zero Hour supplies costs, prerequisites, build placement, and the
 definition-to-unit factory. Enqueue checks tick overflow, while completion
 copies and orders pending work before swapping completed/remaining sets, so a
 failed allocation cannot remove only part of a production queue.
+The queue now also exposes a bounded snapshot and codec for producer, opaque
+definition, ready tick, and monotonic sequence fields. It is ready for session
+composition; wiring factory ownership and completion effects into the game
+session remains the next gameplay step.
 `cnc::VisibilityRegistry` is the generic fog/shroud seam: it associates a
 player and entity with `hidden`, `explored`, or `visible`, returns visible
 entities in stable ID order, and supports deterministic cleanup when players
