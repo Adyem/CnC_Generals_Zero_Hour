@@ -1,6 +1,11 @@
 #include "ZeroHourData/Catalog.hpp"
 
 #include <new>
+#include <charconv>
+#include <fstream>
+#include <limits>
+#include <string>
+#include <vector>
 
 #include "errno.hpp"
 
@@ -32,6 +37,32 @@ void destroy_science(void *raw) noexcept { delete static_cast<ScienceDefinition 
 void destroy_faction(void *raw) noexcept { delete static_cast<FactionDefinition *>(raw); }
 void destroy_general(void *raw) noexcept { delete static_cast<GeneralDefinition *>(raw); }
 void destroy_special_power(void *raw) noexcept { delete static_cast<SpecialPowerDefinition *>(raw); }
+cnc::Error validate_general(const void *raw, cnc::ValidationReport &report) noexcept;
+cnc::Error validate_special_power(const void *raw, cnc::ValidationReport &report) noexcept;
+
+cnc::Error register_types(cnc::DefinitionRegistry &registry) noexcept
+{
+    const cnc::DefinitionTypeDescriptor science{Catalog::science_type, "zero_hour.science", &validate_science, &destroy_science};
+    const cnc::DefinitionTypeDescriptor faction{Catalog::faction_type, "zero_hour.faction", &validate_faction, &destroy_faction};
+    const cnc::DefinitionTypeDescriptor general{Catalog::general_type, "zero_hour.general", &validate_general, &destroy_general};
+    const cnc::DefinitionTypeDescriptor power{Catalog::special_power_type, "zero_hour.special_power", &validate_special_power, &destroy_special_power};
+    const cnc::DefinitionTypeDescriptor descriptors[] = {science, faction, general, power};
+    for (const auto &descriptor : descriptors)
+    {
+        const cnc::Error error = registry.register_type(descriptor);
+        if (error != FT_ERR_SUCCESS) return error;
+    }
+    return FT_ERR_SUCCESS;
+}
+
+bool parse_u64(const std::string &token, uint64_t *value) noexcept
+{
+    if (token.empty() || value == nullptr) return false;
+    const char *begin = token.data();
+    const char *end = begin + token.size();
+    const auto result = std::from_chars(begin, end, *value);
+    return result.ec == std::errc() && result.ptr == end;
+}
 
 cnc::Error validate_general(const void *raw, cnc::ValidationReport &report) noexcept
 {
@@ -56,20 +87,70 @@ Catalog::~Catalog() noexcept { (void)shutdown(); }
 cnc::Error Catalog::initialize() noexcept
 {
     if (_initialized) return FT_ERR_ALREADY_INITIALISED;
-    const cnc::DefinitionTypeDescriptor science{science_type, "zero_hour.science", &validate_science, &destroy_science};
-    const cnc::DefinitionTypeDescriptor faction{faction_type, "zero_hour.faction", &validate_faction, &destroy_faction};
-    const cnc::DefinitionTypeDescriptor general{general_type, "zero_hour.general", &validate_general, &destroy_general};
-    const cnc::DefinitionTypeDescriptor power{special_power_type, "zero_hour.special_power", &validate_special_power, &destroy_special_power};
-    cnc::Error error = _registry.register_type(science);
-    if (error != FT_ERR_SUCCESS) return error;
-    error = _registry.register_type(faction);
-    if (error != FT_ERR_SUCCESS) { (void)_registry.clear(); return error; }
-    error = _registry.register_type(general);
-    if (error != FT_ERR_SUCCESS) { (void)_registry.clear(); return error; }
-    error = _registry.register_type(power);
+    const cnc::Error error = register_types(_registry);
     if (error != FT_ERR_SUCCESS) { (void)_registry.clear(); return error; }
     _initialized = true;
     return FT_ERR_SUCCESS;
+}
+
+cnc::Error Catalog::load_manifest(const char *path) noexcept
+{
+    if (!_initialized) return FT_ERR_INVALID_STATE;
+    if (path == nullptr) return FT_ERR_INVALID_POINTER;
+    if (_registry.definition_count() != 0U) return FT_ERR_ALREADY_EXISTS;
+    std::ifstream input(path);
+    if (!input.is_open()) return FT_ERR_FILE_OPEN_FAILED;
+    try
+    {
+    std::string line;
+    while (std::getline(input, line))
+    {
+        if (line.empty() || line[0] == '#') continue;
+        std::vector<std::string> fields;
+        std::size_t start = 0U;
+        while (start <= line.size())
+        {
+            const std::size_t comma = line.find(',', start);
+            fields.push_back(line.substr(start, comma == std::string::npos ? std::string::npos : comma - start));
+            if (comma == std::string::npos) break;
+            start = comma + 1U;
+        }
+        uint64_t values[3] = {0U, 0U, 0U};
+        if (fields.empty() || fields.size() > 4U) return FT_ERR_INVALID_ARGUMENT;
+        const std::size_t value_count = fields.size() - 1U;
+        if (value_count > 3U) return FT_ERR_INVALID_ARGUMENT;
+        for (std::size_t index = 0U; index < value_count; ++index)
+            if (!parse_u64(fields[index + 1U], &values[index])) return FT_ERR_INVALID_ARGUMENT;
+        void *record = nullptr;
+        cnc::DefinitionType type;
+        cnc::DefinitionId id{values[0]};
+        if (fields[0] == "SCIENCE" && fields.size() == 4U && values[1] <= std::numeric_limits<uint32_t>::max() && values[2] <= std::numeric_limits<uint32_t>::max())
+            record = new (std::nothrow) ScienceDefinition{id, static_cast<uint32_t>(values[1]), static_cast<uint32_t>(values[2])}, type = science_type;
+        else if (fields[0] == "FACTION" && fields.size() == 3U)
+            record = new (std::nothrow) FactionDefinition{id, cnc::DefinitionId{values[1]}}, type = faction_type;
+        else if (fields[0] == "GENERAL" && fields.size() == 4U)
+            record = new (std::nothrow) GeneralDefinition{id, cnc::DefinitionId{values[1]}, cnc::DefinitionId{values[2]}}, type = general_type;
+        else if (fields[0] == "POWER" && fields.size() == 4U && values[1] <= std::numeric_limits<uint32_t>::max() && values[2] <= std::numeric_limits<uint32_t>::max())
+            record = new (std::nothrow) SpecialPowerDefinition{id, static_cast<uint32_t>(values[1]), static_cast<uint32_t>(values[2])}, type = special_power_type;
+        else return FT_ERR_INVALID_ARGUMENT;
+        if (record == nullptr) return FT_ERR_NO_MEMORY;
+        const cnc::Error error = _registry.register_definition(type, id, record);
+        if (error != FT_ERR_SUCCESS)
+        {
+            if (type.value == science_type.value) destroy_science(record);
+            else if (type.value == faction_type.value) destroy_faction(record);
+            else if (type.value == general_type.value) destroy_general(record);
+            else destroy_special_power(record);
+            return error;
+        }
+    }
+    cnc::ValidationReport report;
+    return validate(report);
+    }
+    catch (...)
+    {
+        return FT_ERR_NO_MEMORY;
+    }
 }
 
 cnc::Error Catalog::install_default_definitions() noexcept

@@ -115,21 +115,34 @@ int main()
         catalog.shutdown() != FT_ERR_SUCCESS)
         return 17;
 
+    zero_hour::Catalog manifest_catalog;
+#ifdef CNC_ZERO_HOUR_MANIFEST_PATH
+    const char *const manifest_path = CNC_ZERO_HOUR_MANIFEST_PATH;
+#else
+    const char *const manifest_path = "tests/fixtures/zero_hour_manifest.csv";
+#endif
+    if (manifest_catalog.initialize() != FT_ERR_SUCCESS ||
+        manifest_catalog.load_manifest(manifest_path) != FT_ERR_SUCCESS ||
+        manifest_catalog.definition_count() != static_cast<cnc::Size>(4U))
+        return 18;
+    if (manifest_catalog.shutdown() != FT_ERR_SUCCESS)
+        return 19;
+
     cnc::GameSession session;
     if (session.initialize() != FT_ERR_SUCCESS ||
         session.install_default_data() != FT_ERR_SUCCESS ||
         session.catalog().definition_count() != static_cast<cnc::Size>(4U))
-        return 18;
+        return 20;
     cnc::EntityId session_entity;
     if (session.world().create_entity(&session_entity) != FT_ERR_SUCCESS ||
         session.submit_world_delta(session_entity, 5) != FT_ERR_SUCCESS ||
         session.advance_one_tick() != FT_ERR_SUCCESS)
-        return 19;
+        return 21;
     int64_t session_value = 0;
     if (session.world().read_value(session_entity, &session_value) != FT_ERR_SUCCESS ||
         session_value != 5 || session.world().tick().value != 1U ||
         session.shutdown() != FT_ERR_SUCCESS || session.is_initialized() == FT_TRUE)
-        return 20;
+        return 22;
 
     std::cout << "libft smoke ok (" << CNC_PROJECT_VERSION << ")\n";
     return 0;

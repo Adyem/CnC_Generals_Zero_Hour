@@ -1425,6 +1425,15 @@ The catalog also exposes a validation pass that dispatches each concrete record
 through its game-owned validator and returns a `ValidationReport`; malformed
 asset data can therefore be rejected before a match starts.
 
+`Catalog::load_manifest` provides the first asset-facing path. It accepts a
+deterministic CSV grammar (`SCIENCE`, `FACTION`, `GENERAL`, `POWER`), parses
+fixed-width numeric fields with range checks, rejects malformed or duplicate
+records, and validates the complete catalog before returning. The fixture at
+`tests/fixtures/zero_hour_manifest.csv` is copied by CMake and loaded by the
+smoke test. This is an interim game-owned loader; once Libft File is portable it
+should replace the stream I/O while preserving this grammar and ownership
+boundary.
+
 `cnc::GameSession` now acts as the headless composition root. Its startup order
 is Runtime -> DeterministicWorld -> Zero Hour Catalog; shutdown reverses that
 order and clears scheduled systems. A tick runs ingest systems, advances the

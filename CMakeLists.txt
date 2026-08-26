@@ -164,6 +164,9 @@ if(CNC_BUILD_SMOKE_TEST)
     add_executable(cnc_libft_smoke
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/smoke/libft_smoke.cpp"
     )
+    configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/zero_hour_manifest.csv"
+        "${CMAKE_CURRENT_BINARY_DIR}/zero_hour_manifest.csv" COPYONLY)
     target_compile_features(cnc_libft_smoke PRIVATE cxx_std_17)
     target_link_libraries(cnc_libft_smoke PRIVATE libft::basic)
     if(TARGET cnc::runtime)
@@ -181,6 +184,7 @@ if(CNC_BUILD_SMOKE_TEST)
     cnc_enable_native_warnings(cnc_libft_smoke)
     target_compile_definitions(cnc_libft_smoke PRIVATE
         CNC_PROJECT_VERSION="${PROJECT_VERSION}"
+        CNC_ZERO_HOUR_MANIFEST_PATH="${CMAKE_CURRENT_BINARY_DIR}/zero_hour_manifest.csv"
     )
 
     if(BUILD_TESTING)
