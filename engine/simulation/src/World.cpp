@@ -70,6 +70,8 @@ Error DeterministicWorld::queue_delta(EntityId entity_id, int64_t delta) noexcep
         return FT_ERR_NOT_INITIALISED;
     if (find_entity(entity_id) == nullptr)
         return FT_ERR_NOT_FOUND;
+    if (_next_command_sequence == std::numeric_limits<uint64_t>::max())
+        return FT_ERR_OUT_OF_RANGE;
     try
     {
         _pending_commands.push_back(WorldCommand{entity_id, delta,
