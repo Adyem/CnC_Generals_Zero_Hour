@@ -25,6 +25,7 @@
 #include "ZeroHourData/PlayerState.hpp"
 #include "ZeroHourData/PlayerStateRegistry.hpp"
 #include "ZeroHourData/PlayerStateRegistryCodec.hpp"
+#include "CncSimulation/ProductionQueueCodec.hpp"
 #include "ZeroHourData/ScienceLedger.hpp"
 #include "CncGame/GameSession.hpp"
 #include "CncRender/Renderer.hpp"
@@ -506,6 +507,21 @@ int main()
         return 57;
     if (session.phase() != cnc::GameSession::Phase::data_ready)
         return 33;
+    cnc::ProductionQueue production;
+    cnc::ProductionQueue::Snapshot production_snapshot;
+    cnc::ProductionQueue::Snapshot decoded_production;
+    std::vector<uint8_t> production_bytes;
+    if (production.initialize() != FT_ERR_SUCCESS ||
+        production.enqueue(cnc::EntityId{1U}, cnc::DefinitionId{1U},
+                            cnc::SimulationTick{0U}, cnc::SimulationTick{5U}) != FT_ERR_SUCCESS ||
+        production.export_snapshot(&production_snapshot) != FT_ERR_SUCCESS ||
+        cnc::ProductionQueueCodec::encode(production_snapshot, &production_bytes) != FT_ERR_SUCCESS ||
+        cnc::ProductionQueueCodec::decode(production_bytes.data(),
+            static_cast<cnc::Size>(production_bytes.size()), &decoded_production) != FT_ERR_SUCCESS ||
+        decoded_production.orders.size() != static_cast<cnc::Size>(1U) ||
+        decoded_production.orders[0].ready_at.value != 5U ||
+        production.shutdown() != FT_ERR_SUCCESS)
+        return 58;
     if (session.validate_game_data() != FT_ERR_SUCCESS)
         return 31;
     cnc::GameSession manifest_session;
