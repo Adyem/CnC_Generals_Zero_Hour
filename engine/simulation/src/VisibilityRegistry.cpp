@@ -152,6 +152,14 @@ Error VisibilityRegistry::import_snapshot(const VisibilitySnapshot &snapshot) no
     return FT_ERR_SUCCESS;
 }
 
+void VisibilityRegistry::swap(VisibilityRegistry &other) noexcept
+{
+    _records.swap(other._records);
+    const Bool initialized = _initialized;
+    _initialized = other._initialized;
+    other._initialized = initialized;
+}
+
 uint64_t VisibilityRegistry::canonical_state_hash() const noexcept
 {
     if (_initialized != FT_TRUE) return 0U;

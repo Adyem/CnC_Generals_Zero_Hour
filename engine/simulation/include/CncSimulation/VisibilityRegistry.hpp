@@ -43,6 +43,7 @@ public:
     Error remove_entity(EntityId entity) noexcept;
     Error export_snapshot(VisibilitySnapshot *snapshot_out) const noexcept;
     Error import_snapshot(const VisibilitySnapshot &snapshot) noexcept;
+    void swap(VisibilityRegistry &other) noexcept;
     uint64_t canonical_state_hash() const noexcept;
     Size size() const noexcept;
 

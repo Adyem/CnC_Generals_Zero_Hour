@@ -504,6 +504,8 @@ int main()
         session.players().set_owner(session_entity, cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
         session.spatial().set_position(session_entity, 100, 200, 1U) != FT_ERR_SUCCESS ||
         session.combat().register_health(session_entity, 100) != FT_ERR_SUCCESS ||
+        session.visibility().set_visibility(cnc::PlayerId{1U}, session_entity,
+                                             cnc::VisibilityState::visible) != FT_ERR_SUCCESS ||
         session.submit_world_delta(session_entity, 5) != FT_ERR_SUCCESS ||
         session.advance_one_tick() != FT_ERR_SUCCESS)
         return 26;
@@ -528,6 +530,7 @@ int main()
     cnc::PlayerId restored_owner;
     cnc::SpatialPosition restored_position;
     cnc::HealthState restored_health;
+    cnc::VisibilityState restored_visibility;
     if (session.save_snapshot(&saved_session) != FT_ERR_SUCCESS ||
         session.combat().queue_damage(session_entity, 25) != FT_ERR_SUCCESS ||
         session.combat().apply() != FT_ERR_SUCCESS ||
@@ -542,6 +545,9 @@ int main()
         restored_position.x != 100 || restored_position.y != 200 ||
         session.combat().health(session_entity, &restored_health) != FT_ERR_SUCCESS ||
         restored_health.current != 100 ||
+        session.visibility().visibility(cnc::PlayerId{1U}, session_entity,
+                                        &restored_visibility) != FT_ERR_SUCCESS ||
+        restored_visibility != cnc::VisibilityState::visible ||
         session.world().tick().value != 1U ||
         !session.replay_history().empty())
         return 39;

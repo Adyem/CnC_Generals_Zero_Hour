@@ -5,13 +5,14 @@
 #include "CncSimulation/PlayerRegistryCodec.hpp"
 #include "CncSimulation/SpatialIndexCodec.hpp"
 #include "CncSimulation/CombatRegistryCodec.hpp"
+#include "CncSimulation/VisibilityRegistryCodec.hpp"
 #include "errno.hpp"
 
 namespace cnc
 {
 namespace
 {
-constexpr ft_size_t header_size = 20U;
+constexpr ft_size_t header_size = 24U;
 
 void append_u32(std::vector<uint8_t> &bytes, uint32_t value)
 {
@@ -29,12 +30,14 @@ uint32_t read_u32(const uint8_t *bytes)
 
 bool checked_total(ft_size_t world_size, ft_size_t players_size, ft_size_t spatial_size,
                    ft_size_t combat_size,
+                   ft_size_t visibility_size,
                    ft_size_t *total_out) noexcept
 {
     if (total_out == nullptr || world_size > std::numeric_limits<uint32_t>::max() ||
         players_size > std::numeric_limits<uint32_t>::max() ||
         spatial_size > std::numeric_limits<uint32_t>::max() ||
         combat_size > std::numeric_limits<uint32_t>::max() ||
+        visibility_size > std::numeric_limits<uint32_t>::max() ||
         world_size > std::numeric_limits<ft_size_t>::max() - header_size)
         return false;
     const ft_size_t with_world = header_size + world_size;
@@ -43,7 +46,9 @@ bool checked_total(ft_size_t world_size, ft_size_t players_size, ft_size_t spati
     if (spatial_size > std::numeric_limits<ft_size_t>::max() - with_players) return false;
     const ft_size_t with_spatial = with_players + spatial_size;
     if (combat_size > std::numeric_limits<ft_size_t>::max() - with_spatial) return false;
-    *total_out = with_spatial + combat_size;
+    const ft_size_t with_combat = with_spatial + combat_size;
+    if (visibility_size > std::numeric_limits<ft_size_t>::max() - with_combat) return false;
+    *total_out = with_combat + visibility_size;
     return true;
 }
 }
@@ -56,12 +61,14 @@ Error SessionSnapshotCodec::encode(const SessionSnapshot &snapshot,
         snapshot.world.schema_version != WorldSnapshotCodec::wire_schema_version ||
         snapshot.players.schema_version != PlayerRegistryCodec::wire_schema_version ||
         snapshot.spatial.schema_version != SpatialIndexCodec::wire_schema_version ||
-        snapshot.combat.schema_version != CombatRegistryCodec::wire_schema_version)
+        snapshot.combat.schema_version != CombatRegistryCodec::wire_schema_version ||
+        snapshot.visibility.schema_version != VisibilityRegistryCodec::wire_schema_version)
         return FT_ERR_INVALID_ARGUMENT;
     std::vector<uint8_t> world_bytes;
     std::vector<uint8_t> player_bytes;
     std::vector<uint8_t> spatial_bytes;
     std::vector<uint8_t> combat_bytes;
+    std::vector<uint8_t> visibility_bytes;
     Error error = WorldSnapshotCodec::encode(snapshot.world, &world_bytes);
     if (error != FT_ERR_SUCCESS) return error;
     error = PlayerRegistryCodec::encode(snapshot.players, &player_bytes);
@@ -70,11 +77,14 @@ Error SessionSnapshotCodec::encode(const SessionSnapshot &snapshot,
     if (error != FT_ERR_SUCCESS) return error;
     error = CombatRegistryCodec::encode(snapshot.combat, &combat_bytes);
     if (error != FT_ERR_SUCCESS) return error;
+    error = VisibilityRegistryCodec::encode(snapshot.visibility, &visibility_bytes);
+    if (error != FT_ERR_SUCCESS) return error;
     ft_size_t total_size = 0U;
     if (!checked_total(static_cast<ft_size_t>(world_bytes.size()),
                        static_cast<ft_size_t>(player_bytes.size()),
                        static_cast<ft_size_t>(spatial_bytes.size()),
-                       static_cast<ft_size_t>(combat_bytes.size()), &total_size))
+                       static_cast<ft_size_t>(combat_bytes.size()),
+                       static_cast<ft_size_t>(visibility_bytes.size()), &total_size))
         return FT_ERR_OUT_OF_RANGE;
     try
     {
@@ -85,10 +95,12 @@ Error SessionSnapshotCodec::encode(const SessionSnapshot &snapshot,
         append_u32(*bytes_out, static_cast<uint32_t>(player_bytes.size()));
         append_u32(*bytes_out, static_cast<uint32_t>(spatial_bytes.size()));
         append_u32(*bytes_out, static_cast<uint32_t>(combat_bytes.size()));
+        append_u32(*bytes_out, static_cast<uint32_t>(visibility_bytes.size()));
         bytes_out->insert(bytes_out->end(), world_bytes.begin(), world_bytes.end());
         bytes_out->insert(bytes_out->end(), player_bytes.begin(), player_bytes.end());
         bytes_out->insert(bytes_out->end(), spatial_bytes.begin(), spatial_bytes.end());
         bytes_out->insert(bytes_out->end(), combat_bytes.begin(), combat_bytes.end());
+        bytes_out->insert(bytes_out->end(), visibility_bytes.begin(), visibility_bytes.end());
     }
     catch (...)
     {
@@ -108,18 +120,21 @@ Error SessionSnapshotCodec::decode(const uint8_t *bytes, ft_size_t byte_count,
     const uint32_t players_size = read_u32(bytes + 8U);
     const uint32_t spatial_size = read_u32(bytes + 12U);
     const uint32_t combat_size = read_u32(bytes + 16U);
+    const uint32_t visibility_size = read_u32(bytes + 20U);
     ft_size_t expected_size = 0U;
     if (schema != wire_schema_version ||
         !checked_total(static_cast<ft_size_t>(world_size),
                        static_cast<ft_size_t>(players_size),
                        static_cast<ft_size_t>(spatial_size),
-                       static_cast<ft_size_t>(combat_size), &expected_size) ||
+                       static_cast<ft_size_t>(combat_size),
+                       static_cast<ft_size_t>(visibility_size), &expected_size) ||
         expected_size != byte_count)
         return FT_ERR_CONFIGURATION;
     WorldSnapshot world;
     PlayerRegistrySnapshot players;
     SpatialIndexSnapshot spatial;
     CombatRegistrySnapshot combat;
+    VisibilitySnapshot visibility;
     Error error = WorldSnapshotCodec::decode(bytes + header_size, world_size, &world);
     if (error != FT_ERR_SUCCESS) return error;
     error = PlayerRegistryCodec::decode(bytes + header_size + world_size, players_size, &players);
@@ -129,6 +144,9 @@ Error SessionSnapshotCodec::decode(const uint8_t *bytes, ft_size_t byte_count,
     if (error != FT_ERR_SUCCESS) return error;
     error = CombatRegistryCodec::decode(bytes + header_size + world_size + players_size + spatial_size,
                                          combat_size, &combat);
+    if (error != FT_ERR_SUCCESS) return error;
+    error = VisibilityRegistryCodec::decode(bytes + header_size + world_size + players_size + spatial_size + combat_size,
+                                            visibility_size, &visibility);
     if (error != FT_ERR_SUCCESS) return error;
     snapshot_out->schema_version = wire_schema_version;
     snapshot_out->world.schema_version = world.schema_version;
@@ -144,6 +162,8 @@ Error SessionSnapshotCodec::decode(const uint8_t *bytes, ft_size_t byte_count,
     snapshot_out->spatial.entries.swap(spatial.entries);
     snapshot_out->combat.schema_version = combat.schema_version;
     snapshot_out->combat.health.swap(combat.health);
+    snapshot_out->visibility.schema_version = visibility.schema_version;
+    snapshot_out->visibility.records.swap(visibility.records);
     return FT_ERR_SUCCESS;
 }
 }

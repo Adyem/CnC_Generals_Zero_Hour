@@ -1800,8 +1800,8 @@ encodes the five generic record groups as bounded little-endian arrays and
 rejects schema, length, count, and enum violations during decode. A session
 save can therefore compose the world codec and registry codec without making
 the codec aware of Generals factions, sciences, generals, powers, or assets.
-`SessionSnapshotCodec` now provides that composition: a version-two envelope
-contains world, registry, spatial, and combat payloads, each decoded
+`SessionSnapshotCodec` now provides that composition: a version-three envelope
+contains world, registry, spatial, combat, and visibility payloads, each decoded
 through its own validator. `GameSession::load_snapshot` validates the registry
 into a temporary `PlayerRegistry`, imports the world through its atomic path,
 then swaps the validated registry; a failed registry decode or world import
@@ -1817,6 +1817,8 @@ and the canonical session hash includes those records. This keeps a restored
 unit's entity, position, owner, and health as one coherent state boundary;
 damage requests themselves remain transient and are never serialized midway
 through application.
+The visibility payload is staged in the same way, so a restored session cannot
+expose entities that its saved shroud state marked hidden.
 Frame ingestion is transactional: the session validates every referenced live
 entity and builds a projected command queue before swapping it in. If any
 record is rejected, or queue allocation fails, no earlier record from that

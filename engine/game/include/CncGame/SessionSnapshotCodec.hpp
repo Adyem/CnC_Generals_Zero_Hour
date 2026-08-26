@@ -7,23 +7,25 @@
 #include "CncSimulation/SnapshotCodec.hpp"
 #include "CncSimulation/SpatialIndex.hpp"
 #include "CncSimulation/CombatRegistry.hpp"
+#include "CncSimulation/VisibilityRegistry.hpp"
 
 namespace cnc
 {
 
 struct SessionSnapshot
 {
-    uint32_t schema_version = 2U;
+    uint32_t schema_version = 3U;
     WorldSnapshot world;
     PlayerRegistrySnapshot players;
     SpatialIndexSnapshot spatial;
     CombatRegistrySnapshot combat;
+    VisibilitySnapshot visibility;
 };
 
 class SessionSnapshotCodec final
 {
 public:
-    static constexpr uint32_t wire_schema_version = 2U;
+    static constexpr uint32_t wire_schema_version = 3U;
     static Error encode(const SessionSnapshot &snapshot,
                         std::vector<uint8_t> *bytes_out) noexcept;
     static Error decode(const uint8_t *bytes, ft_size_t byte_count,
