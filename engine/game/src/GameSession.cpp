@@ -161,6 +161,34 @@ Error GameSession::advance_one_tick() noexcept
     return FT_ERR_SUCCESS;
 }
 
+Error GameSession::save_snapshot(std::vector<uint8_t> *bytes_out) const noexcept
+{
+    if (_initialized != FT_TRUE ||
+        (_phase != Phase::data_ready && _phase != Phase::running))
+        return FT_ERR_INVALID_STATE;
+    WorldSnapshot snapshot;
+    Error error = _world.export_snapshot(&snapshot);
+    if (error != FT_ERR_SUCCESS) return error;
+    return WorldSnapshotCodec::encode(snapshot, bytes_out);
+}
+
+Error GameSession::load_snapshot(const uint8_t *bytes, Size byte_count) noexcept
+{
+    if (_initialized != FT_TRUE ||
+        (_phase != Phase::data_ready && _phase != Phase::running))
+        return FT_ERR_INVALID_STATE;
+    WorldSnapshot snapshot;
+    Error error = WorldSnapshotCodec::decode(bytes, byte_count, &snapshot);
+    if (error != FT_ERR_SUCCESS) return error;
+    error = _world.import_snapshot(snapshot);
+    if (error != FT_ERR_SUCCESS) return error;
+    _commands.clear();
+    _next_command_sequence = 0U;
+    _replay_history.clear();
+    _phase = snapshot.tick.value == 0U ? Phase::data_ready : Phase::running;
+    return FT_ERR_SUCCESS;
+}
+
 Error GameSession::shutdown() noexcept
 {
     if (_initialized != FT_TRUE) return FT_ERR_SUCCESS;

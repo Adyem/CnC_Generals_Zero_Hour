@@ -115,6 +115,11 @@ int main()
             snapshot_bytes.data(), static_cast<ft_size_t>(snapshot_bytes.size()),
             &decoded_snapshot) != FT_ERR_CONFIGURATION)
         return 38;
+    cnc::WorldSnapshot invalid_snapshot = snapshot;
+    invalid_snapshot.entries.push_back(snapshot.entries[0]);
+    if (world.import_snapshot(invalid_snapshot) != FT_ERR_CONFIGURATION ||
+        world.read_value(entity, &value) != FT_ERR_SUCCESS || value != 42)
+        return 40;
     if (world.queue_delta(entity, INT64_MAX) != FT_ERR_SUCCESS ||
         world.advance_one_tick() != FT_ERR_OUT_OF_RANGE ||
         world.read_value(entity, &value) != FT_ERR_SUCCESS || value != 42)
@@ -318,6 +323,17 @@ int main()
     std::vector<cnc::GameSession::ReplayRecord> divergent_replay{divergent_record};
     if (session.verify_replay(divergent_replay) != FT_ERR_CONFIGURATION)
         return 28;
+    std::vector<uint8_t> saved_session;
+    int64_t restored_value = 0;
+    if (session.save_snapshot(&saved_session) != FT_ERR_SUCCESS ||
+        session.submit_world_delta(session_entity, 10) != FT_ERR_SUCCESS ||
+        session.advance_one_tick() != FT_ERR_SUCCESS ||
+        session.load_snapshot(saved_session.data(),
+                              static_cast<cnc::Size>(saved_session.size())) != FT_ERR_SUCCESS ||
+        session.world().read_value(session_entity, &restored_value) != FT_ERR_SUCCESS ||
+        restored_value != 5 || session.world().tick().value != 1U ||
+        !session.replay_history().empty())
+        return 39;
     if (session.shutdown() != FT_ERR_SUCCESS || session.is_initialized() == FT_TRUE)
         return 29;
 

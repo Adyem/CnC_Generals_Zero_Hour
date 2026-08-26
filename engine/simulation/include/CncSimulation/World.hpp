@@ -44,6 +44,7 @@ public:
     virtual SimulationTick tick() const noexcept = 0;
     virtual Error read_value(EntityId entity_id, int64_t *value_out) const noexcept = 0;
     virtual Error export_snapshot(WorldSnapshot *snapshot_out) const noexcept = 0;
+    virtual Error import_snapshot(const WorldSnapshot &snapshot) noexcept = 0;
     virtual uint64_t canonical_state_hash() const noexcept = 0;
 };
 
@@ -67,6 +68,7 @@ public:
     SimulationTick tick() const noexcept override;
     Error read_value(EntityId entity_id, int64_t *value_out) const noexcept override;
     Error export_snapshot(WorldSnapshot *snapshot_out) const noexcept override;
+    Error import_snapshot(const WorldSnapshot &snapshot) noexcept override;
     uint64_t canonical_state_hash() const noexcept override;
 
 private:

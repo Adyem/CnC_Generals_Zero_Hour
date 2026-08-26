@@ -170,6 +170,42 @@ Error DeterministicWorld::export_snapshot(WorldSnapshot *snapshot_out) const noe
     return FT_ERR_SUCCESS;
 }
 
+Error DeterministicWorld::import_snapshot(const WorldSnapshot &snapshot) noexcept
+{
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    if (snapshot.schema_version != WorldSnapshot::schema_version ||
+        snapshot.entries.size() > static_cast<std::vector<WorldSnapshotEntry>::size_type>(1U << 20U))
+        return FT_ERR_CONFIGURATION;
+    std::vector<EntityState> restored;
+    EntityIdValue next_id = 1U;
+    try
+    {
+        restored.reserve(snapshot.entries.size());
+        EntityIdValue previous_id = 0U;
+        for (const WorldSnapshotEntry &entry : snapshot.entries)
+        {
+            if (!entry.entity.is_valid() || entry.entity.value <= previous_id ||
+                (entry.alive != FT_TRUE && entry.alive != FT_FALSE))
+                return FT_ERR_CONFIGURATION;
+            restored.push_back(EntityState{entry.entity, entry.value, entry.alive});
+            previous_id = entry.entity.value;
+            if (previous_id == std::numeric_limits<EntityIdValue>::max())
+                return FT_ERR_OUT_OF_RANGE;
+            next_id = previous_id + 1U;
+        }
+    }
+    catch (...)
+    {
+        return FT_ERR_NO_MEMORY;
+    }
+    _entities.swap(restored);
+    _pending_commands.clear();
+    _next_entity_id = next_id;
+    _next_command_sequence = 0U;
+    _tick = snapshot.tick.value;
+    return FT_ERR_SUCCESS;
+}
+
 uint64_t DeterministicWorld::canonical_state_hash() const noexcept
 {
     uint64_t hash = 1469598103934665603ULL;

@@ -6,6 +6,7 @@
 #include "CncRuntime/Runtime.hpp"
 #include "CncSimulation/SystemRegistry.hpp"
 #include "CncSimulation/World.hpp"
+#include "CncSimulation/SnapshotCodec.hpp"
 #include "ZeroHourData/Catalog.hpp"
 #include "ZeroHourData/ScienceLedger.hpp"
 #include "ZeroHourData/SpecialPowerLedger.hpp"
@@ -44,6 +45,8 @@ public:
     Error load_data_manifest(const char *path) noexcept;
     Error submit_world_delta(EntityId entity, int64_t delta) noexcept;
     Error advance_one_tick() noexcept;
+    Error save_snapshot(std::vector<uint8_t> *bytes_out) const noexcept;
+    Error load_snapshot(const uint8_t *bytes, Size byte_count) noexcept;
     Error shutdown() noexcept;
     void clear_replay_history() noexcept;
     Error verify_replay(const std::vector<ReplayRecord> &expected) const noexcept;

@@ -1700,7 +1700,13 @@ Decode validates the schema, exact wire length, nonzero IDs, boolean encoding,
 and the one-million-entry allocation limit before publishing any entries. It
 returns `FT_ERR_CONFIGURATION` for incompatible or malformed bytes, leaving
 the output entries empty. File, replay, and network adapters should call this
-codec rather than serializing C++ object memory.
+codec rather than serializing C++ object memory. `SimulationWorld::import_snapshot`
+validates strictly increasing IDs, fixed-width state, schema, and alive flags
+before swapping the restored world into place. `GameSession::save_snapshot` and
+`load_snapshot` compose the codec with that import/export contract; loading
+clears pending commands and replay history, resets command sequencing, and
+resumes in `data_ready` or `running` according to the restored tick. A failed
+decode or import leaves the live world untouched.
 
 The active-source exclusion audit is implemented in
 `cmake/ValidateMigrationSources.cmake`, exposed as the
