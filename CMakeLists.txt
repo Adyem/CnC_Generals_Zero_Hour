@@ -5,6 +5,8 @@ project(CnCGeneralsZeroHour
     LANGUAGES CXX
 )
 
+include(GNUInstallDirs)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(CTest)
 
@@ -249,3 +251,38 @@ endif()
 message(STATUS "CNC build profile: ${CMAKE_BUILD_TYPE}")
 message(STATUS "CNC Libft root: ${CNC_LIBFT_ROOT}")
 message(STATUS "CNC multiplayer: disabled (offline migration stage)")
+
+# Installation is target-scoped and never copies the legacy Run/ tree. The
+# optional offline package contains only project-owned native artifacts.
+if(TARGET libft_basic)
+    install(TARGETS libft_basic ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+endif()
+if(TARGET cnc_runtime)
+    install(TARGETS cnc_runtime ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    install(DIRECTORY engine/runtime/include/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+endif()
+if(TARGET cnc_simulation)
+    install(TARGETS cnc_simulation ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    install(DIRECTORY engine/simulation/include/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+endif()
+if(TARGET cnc_zero_hour_data)
+    install(TARGETS cnc_zero_hour_data ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    install(DIRECTORY games/zero_hour/include/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+endif()
+if(TARGET cnc_game_session)
+    install(TARGETS cnc_game_session ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    install(DIRECTORY engine/game/include/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+endif()
+if(TARGET cnc_render)
+    install(TARGETS cnc_render ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    install(DIRECTORY engine/render/include/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+endif()
+if(TARGET cnc_zero_hour_headless)
+    install(TARGETS cnc_zero_hour_headless RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+endif()
+
+set(CPACK_PACKAGE_NAME "cnc-generals-zero-hour")
+set(CPACK_PACKAGE_VENDOR "CnC Generals Zero Hour contributors")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_GENERATOR "ZIP;TGZ")
+include(CPack)
