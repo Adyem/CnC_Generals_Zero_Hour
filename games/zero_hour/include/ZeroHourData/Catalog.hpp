@@ -22,11 +22,27 @@ struct FactionDefinition
     cnc::DefinitionId starting_science;
 };
 
+struct GeneralDefinition
+{
+    cnc::DefinitionId id;
+    cnc::DefinitionId faction;
+    cnc::DefinitionId signature_power;
+};
+
+struct SpecialPowerDefinition
+{
+    cnc::DefinitionId id;
+    uint32_t recharge_ticks = 0U;
+    uint32_t energy_cost = 0U;
+};
+
 class Catalog final
 {
 public:
     static constexpr cnc::DefinitionType science_type{0x5A485343U};
     static constexpr cnc::DefinitionType faction_type{0x5A484641U};
+    static constexpr cnc::DefinitionType general_type{0x5A484745U};
+    static constexpr cnc::DefinitionType special_power_type{0x5A485350U};
 
     Catalog() noexcept = default;
     ~Catalog() noexcept;
@@ -36,8 +52,11 @@ public:
     cnc::Error initialize() noexcept;
     cnc::Error install_default_definitions() noexcept;
     cnc::Error shutdown() noexcept;
+    cnc::Error validate(cnc::ValidationReport &report) const noexcept;
     const ScienceDefinition *find_science(cnc::DefinitionId id) const noexcept;
     const FactionDefinition *find_faction(cnc::DefinitionId id) const noexcept;
+    const GeneralDefinition *find_general(cnc::DefinitionId id) const noexcept;
+    const SpecialPowerDefinition *find_special_power(cnc::DefinitionId id) const noexcept;
     cnc::Size definition_count() const noexcept;
 
 private:

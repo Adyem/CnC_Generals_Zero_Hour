@@ -98,19 +98,27 @@ int main()
     zero_hour::Catalog catalog;
     if (catalog.initialize() != FT_ERR_SUCCESS ||
         catalog.install_default_definitions() != FT_ERR_SUCCESS ||
-        catalog.definition_count() != static_cast<cnc::Size>(2U))
+        catalog.definition_count() != static_cast<cnc::Size>(4U))
         return 16;
     const auto *science = catalog.find_science(cnc::DefinitionId{1U});
     const auto *faction = catalog.find_faction(cnc::DefinitionId{1U});
+    const auto *general = catalog.find_general(cnc::DefinitionId{1U});
+    const auto *power = catalog.find_special_power(cnc::DefinitionId{1U});
+    cnc::ValidationReport catalog_report;
+    if (catalog.validate(catalog_report) != FT_ERR_SUCCESS ||
+        catalog_report.issue_count != 0U)
+        return 17;
     if (science == nullptr || science->purchase_cost != 1U || faction == nullptr ||
         faction->starting_science.value != science->id.value ||
+        general == nullptr || general->faction.value != faction->id.value ||
+        power == nullptr || power->recharge_ticks != 60U ||
         catalog.shutdown() != FT_ERR_SUCCESS)
         return 17;
 
     cnc::GameSession session;
     if (session.initialize() != FT_ERR_SUCCESS ||
         session.install_default_data() != FT_ERR_SUCCESS ||
-        session.catalog().definition_count() != static_cast<cnc::Size>(2U))
+        session.catalog().definition_count() != static_cast<cnc::Size>(4U))
         return 18;
     cnc::EntityId session_entity;
     if (session.world().create_entity(&session_entity) != FT_ERR_SUCCESS ||

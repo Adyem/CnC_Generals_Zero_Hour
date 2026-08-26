@@ -1413,14 +1413,17 @@ games/zero_hour/include/ZeroHourData/Catalog.hpp
 games/zero_hour/src/Catalog.cpp
 ```
 
-`zero_hour::Catalog` registers faction and science type descriptors, allocates the
-concrete records, installs a minimal default dataset, and exposes typed lookup
-functions. The registry destroys the records, so ownership remains explicit and
-the Libft-facing layer never needs to know what a faction or science means. The
-smoke test exercises initialization, registration, typed lookup, and shutdown.
-This pattern is the template for adding generals, powers, units, and rules data;
-it should be extended with real asset IDs and loaders rather than moving those
-records into Libft.
+`zero_hour::Catalog` registers faction, science, general, and special-power type
+descriptors, allocates the concrete records, installs a minimal default dataset,
+and exposes typed lookup functions. The registry destroys the records, so
+ownership remains explicit and the Libft-facing layer never needs to know what a
+faction, general, or power means. The smoke test exercises initialization,
+registration, typed lookup, and shutdown. This pattern is the template for
+adding units and rules data; it should be extended with real asset IDs and
+loaders rather than moving those records into Libft.
+The catalog also exposes a validation pass that dispatches each concrete record
+through its game-owned validator and returns a `ValidationReport`; malformed
+asset data can therefore be rejected before a match starts.
 
 `cnc::GameSession` now acts as the headless composition root. Its startup order
 is Runtime -> DeterministicWorld -> Zero Hour Catalog; shutdown reverses that
