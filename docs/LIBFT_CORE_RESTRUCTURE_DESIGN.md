@@ -1859,6 +1859,9 @@ failure therefore cannot replace only part of a player's authoritative data.
 Special-power cooldowns now use the same pattern: the global power ledger is
 serialized as a bounded payload, validated against the game catalog, staged
 before player states, and swapped before their backend pointer is rebound.
+The science ledger now has the same validated snapshot seam; its session
+payload integration is the next step so purchased sciences can be committed
+alongside cooldowns and player progression.
 Commander persistence must not be added by calling `PlayerState::assign_general`
 while loading into a temporary player registry: that API writes the shared live
 `GeneralRoster`. The implementation sequence is therefore to give
