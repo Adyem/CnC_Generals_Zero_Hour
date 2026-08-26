@@ -619,6 +619,11 @@ int main()
     if (session.production().enqueue(session_entity, cnc::DefinitionId{1U},
                                      session.world().tick(), cnc::SimulationTick{10U}) != FT_ERR_SUCCESS)
         return 59;
+    cnc::SimulationTick power_ready;
+    if (session.player_states().find(cnc::PlayerId{1U})->purchase_science(cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
+        session.player_states().find(cnc::PlayerId{1U})->activate_power(
+            cnc::DefinitionId{1U}, session.world().tick(), &power_ready) != FT_ERR_SUCCESS)
+        return 60;
     if (session.save_snapshot(&saved_session) != FT_ERR_SUCCESS ||
         session.player_states().find(cnc::PlayerId{1U})->set_science_points(2U) != FT_ERR_SUCCESS ||
         session.production().discard() != FT_ERR_SUCCESS ||
@@ -641,7 +646,8 @@ int main()
         session.player_states().find(cnc::PlayerId{1U}) == nullptr ||
         session.player_states().find(cnc::PlayerId{1U})->faction().value != 1U ||
         session.player_states().find(cnc::PlayerId{1U})->commander().value != session_entity.value ||
-        session.player_states().find(cnc::PlayerId{1U})->science_points() != 7U ||
+        !session.science_ledger().is_purchased(cnc::DefinitionId{1U}) ||
+        session.special_power_ledger().is_ready(cnc::DefinitionId{1U}, session.world().tick()) ||
         session.production().pending_count() != static_cast<cnc::Size>(1U) ||
         session.world().tick().value != 1U ||
         !session.replay_history().empty())
