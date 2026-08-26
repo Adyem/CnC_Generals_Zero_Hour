@@ -4,6 +4,7 @@
 #include <charconv>
 #include <fstream>
 #include <limits>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -97,11 +98,28 @@ cnc::Error Catalog::load_manifest(const char *path) noexcept
 {
     if (!_initialized) return FT_ERR_INVALID_STATE;
     if (path == nullptr) return FT_ERR_INVALID_POINTER;
-    if (_registry.definition_count() != 0U) return FT_ERR_ALREADY_EXISTS;
-    std::ifstream input(path);
-    if (!input.is_open()) return FT_ERR_FILE_OPEN_FAILED;
     try
     {
+        std::ifstream input(path);
+        if (!input.is_open()) return FT_ERR_FILE_OPEN_FAILED;
+        std::ostringstream contents;
+        contents << input.rdbuf();
+        return load_manifest_text(contents.str().c_str());
+    }
+    catch (...)
+    {
+        return FT_ERR_NO_MEMORY;
+    }
+}
+
+cnc::Error Catalog::load_manifest_text(const char *text) noexcept
+{
+    if (!_initialized) return FT_ERR_INVALID_STATE;
+    if (text == nullptr) return FT_ERR_INVALID_POINTER;
+    if (_registry.definition_count() != 0U) return FT_ERR_ALREADY_EXISTS;
+    try
+    {
+    std::istringstream input(text);
     std::string line;
     while (std::getline(input, line))
     {

@@ -130,6 +130,15 @@ int main()
     if (manifest_catalog.shutdown() != FT_ERR_SUCCESS)
         return 19;
 
+    zero_hour::Catalog text_catalog;
+    if (text_catalog.initialize() != FT_ERR_SUCCESS ||
+        text_catalog.load_manifest_text(
+            "SCIENCE,1,1,0\nFACTION,1,1\nGENERAL,1,1,1\nPOWER,1,60,1\n") !=
+            FT_ERR_SUCCESS ||
+        text_catalog.definition_count() != static_cast<cnc::Size>(4U) ||
+        text_catalog.shutdown() != FT_ERR_SUCCESS)
+        return 20;
+
     zero_hour::Catalog invalid_catalog;
 #ifdef CNC_ZERO_HOUR_INVALID_MANIFEST_PATH
     const char *const invalid_manifest_path = CNC_ZERO_HOUR_INVALID_MANIFEST_PATH;
@@ -141,25 +150,25 @@ int main()
         invalid_catalog.load_manifest(invalid_manifest_path) != FT_ERR_CONFIGURATION ||
         invalid_catalog.validate(invalid_report) != FT_ERR_CONFIGURATION ||
         invalid_report.issue_count == 0U || invalid_catalog.shutdown() != FT_ERR_SUCCESS)
-        return 20;
+        return 21;
 
     cnc::GameSession session;
     if (session.initialize() != FT_ERR_SUCCESS ||
         session.install_default_data() != FT_ERR_SUCCESS ||
         session.catalog().definition_count() != static_cast<cnc::Size>(4U))
-        return 21;
+        return 22;
     cnc::EntityId session_entity;
     if (session.world().create_entity(&session_entity) != FT_ERR_SUCCESS ||
         session.submit_world_delta(session_entity, 5) != FT_ERR_SUCCESS ||
         session.advance_one_tick() != FT_ERR_SUCCESS)
-        return 22;
+        return 23;
     int64_t session_value = 0;
     if (session.world().read_value(session_entity, &session_value) != FT_ERR_SUCCESS ||
         session_value != 5 || session.world().tick().value != 1U ||
         session.replay_history().size() != 1U ||
         session.replay_history()[0].state_hash != session.world().canonical_state_hash() ||
         session.shutdown() != FT_ERR_SUCCESS || session.is_initialized() == FT_TRUE)
-        return 23;
+        return 24;
 
     cnc::HeadlessRenderer renderer;
     if (renderer.initialize() != FT_ERR_SUCCESS ||

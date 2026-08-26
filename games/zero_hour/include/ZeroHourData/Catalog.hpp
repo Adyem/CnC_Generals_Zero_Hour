@@ -52,6 +52,7 @@ public:
     cnc::Error initialize() noexcept;
     cnc::Error install_default_definitions() noexcept;
     cnc::Error load_manifest(const char *path) noexcept;
+    cnc::Error load_manifest_text(const char *text) noexcept;
     cnc::Error shutdown() noexcept;
     cnc::Error validate(cnc::ValidationReport &report) const noexcept;
     const ScienceDefinition *find_science(cnc::DefinitionId id) const noexcept;

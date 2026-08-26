@@ -1434,6 +1434,11 @@ smoke test. This is an interim game-owned loader; once Libft File is portable it
 should replace the stream I/O while preserving this grammar and ownership
 boundary.
 
+The parser is now exposed separately as `Catalog::load_manifest_text`. File
+acquisition delegates to that function, so a future Libft File adapter can feed
+the exact same parser without changing ownership, validation, or error
+semantics. The smoke test covers both the staged-file and in-memory paths.
+
 Catalog validation also follows references between records: factions must point
 to an existing science, and generals must point to an existing faction and
 special power. The invalid fixture
