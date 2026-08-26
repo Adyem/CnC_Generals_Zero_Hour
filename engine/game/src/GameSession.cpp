@@ -114,11 +114,34 @@ Error GameSession::submit_command_frame(const uint8_t *bytes, Size byte_count) n
     const Error decode_error = WorldCommandCodec::decode(bytes, byte_count, &frame);
     if (decode_error != FT_ERR_SUCCESS) return decode_error;
     if (frame.tick.value != _world.tick().value) return FT_ERR_INVALID_OPERATION;
-    for (const WorldCommand &command : frame.commands)
+    using CommandCount = std::vector<WorldDeltaCommand>::size_type;
+    const CommandCount current_count = _commands.size();
+    const CommandCount incoming_count = frame.commands.size();
+    if (incoming_count > std::numeric_limits<CommandCount>::max() - current_count)
+        return FT_ERR_OUT_OF_RANGE;
+    std::vector<WorldDeltaCommand> projected;
+    uint64_t next_sequence = _next_command_sequence;
+    try
     {
-        const Error error = submit_world_delta(command.entity, command.delta);
-        if (error != FT_ERR_SUCCESS) return error;
+        projected = _commands;
+        projected.reserve(_commands.size() + frame.commands.size());
+        for (const WorldCommand &command : frame.commands)
+        {
+            if (!command.entity.is_valid()) return FT_ERR_INVALID_ARGUMENT;
+            int64_t current_value = 0;
+            const Error entity_error = _world.read_value(command.entity, &current_value);
+            if (entity_error != FT_ERR_SUCCESS) return entity_error;
+            if (next_sequence == std::numeric_limits<uint64_t>::max())
+                return FT_ERR_OUT_OF_RANGE;
+            projected.push_back(WorldDeltaCommand{command.entity, command.delta, next_sequence++});
+        }
     }
+    catch (...)
+    {
+        return FT_ERR_NO_MEMORY;
+    }
+    _commands.swap(projected);
+    _next_command_sequence = next_sequence;
     return FT_ERR_SUCCESS;
 }
 

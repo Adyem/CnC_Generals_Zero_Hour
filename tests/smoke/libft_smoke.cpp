@@ -360,6 +360,18 @@ int main()
         session.world().read_value(session_entity, &restored_value) != FT_ERR_SUCCESS ||
         restored_value != 8)
         return 42;
+    cnc::WorldCommandFrame mixed_frame;
+    mixed_frame.tick = session.world().tick();
+    mixed_frame.commands.push_back(cnc::WorldCommand{session_entity, 2, 0U});
+    mixed_frame.commands.push_back(cnc::WorldCommand{cnc::EntityId{999U}, 4, 1U});
+    std::vector<uint8_t> mixed_bytes;
+    if (cnc::WorldCommandCodec::encode(mixed_frame, &mixed_bytes) != FT_ERR_SUCCESS ||
+        session.submit_command_frame(
+            mixed_bytes.data(), static_cast<cnc::Size>(mixed_bytes.size())) != FT_ERR_NOT_FOUND ||
+        session.advance_one_tick() != FT_ERR_SUCCESS ||
+        session.world().read_value(session_entity, &restored_value) != FT_ERR_SUCCESS ||
+        restored_value != 8)
+        return 43;
     if (session.shutdown() != FT_ERR_SUCCESS || session.is_initialized() == FT_TRUE)
         return 29;
 

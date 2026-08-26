@@ -1721,6 +1721,12 @@ the frame, requires its tick to match the current authoritative tick, and feeds
 validated records through the same local command queue used by offline input.
 It intentionally does not open a socket or bypass command validation; the
 offline network backend continues returning `FT_ERR_INVALID_OPERATION`.
+Frame ingestion is transactional: the session validates every referenced live
+entity and builds a projected command queue before swapping it in. If any
+record is rejected, or queue allocation fails, no earlier record from that
+frame is retained. This is required for reliable Libft transport retries and
+prevents malformed multiplayer input from becoming a partial local command
+stream.
 
 The active-source exclusion audit is implemented in
 `cmake/ValidateMigrationSources.cmake`, exposed as the
