@@ -1830,7 +1830,7 @@ encodes the five generic record groups as bounded little-endian arrays and
 rejects schema, length, count, and enum violations during decode. A session
 save can therefore compose the world codec and registry codec without making
 the codec aware of Generals factions, sciences, generals, powers, or assets.
-`SessionSnapshotCodec` now provides that composition: a version-four envelope
+`SessionSnapshotCodec` now provides that composition: a version-five envelope
 contains world, generic registry, game-owned Zero Hour player-state, spatial,
 combat, and visibility payloads, each decoded through its own validator.
 `GameSession::load_snapshot` validates the registry
@@ -1862,9 +1862,11 @@ while loading into a temporary player registry: that API writes the shared live
 `GeneralRoster` its own validated snapshot and `swap`, stage that roster beside
 the player-state registry, and commit both together; only then should commander
 and selected-general fields be added to the wire record.
-The first part of that seam is now present: `GeneralRoster` has a sorted,
-validated snapshot contract and a fixed-width codec. It remains outside the
-session envelope until the paired staging and commit path is wired.
+`GeneralRoster` now travels as a separate sorted, validated payload. The load
+path stages that roster first, initializes the projected player-state registry
+against it, and swaps both before rebinding the live registry pointer. This
+keeps commander/general assignments from mutating the authoritative roster
+while a snapshot is still being validated.
 Frame ingestion is transactional: the session validates every referenced live
 entity and builds a projected command queue before swapping it in. If any
 record is rejected, or queue allocation fails, no earlier record from that
