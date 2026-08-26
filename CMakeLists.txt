@@ -53,6 +53,21 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/CompilerWarnings.cmake")
 
+set(CNC_GIT_COMMIT "unknown")
+execute_process(
+    COMMAND git rev-parse --short=12 HEAD
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    OUTPUT_VARIABLE CNC_GIT_COMMIT
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET)
+if(CNC_GIT_COMMIT STREQUAL "")
+    set(CNC_GIT_COMMIT "unknown")
+endif()
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/generated/CncBuild")
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/BuildInfo.hpp.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/generated/CncBuild/BuildInfo.hpp" @ONLY)
+
 if(CNC_BUILD_LIBFT_BASIC)
     include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibftBasic.cmake")
 endif()
@@ -84,6 +99,7 @@ if(CNC_BUILD_RUNTIME)
     target_include_directories(cnc_runtime
         PUBLIC
             "${CMAKE_CURRENT_SOURCE_DIR}/engine/runtime/include"
+            "${CMAKE_CURRENT_BINARY_DIR}/generated"
     )
     target_link_libraries(cnc_runtime PUBLIC libft::basic)
     cnc_enable_native_warnings(cnc_runtime)

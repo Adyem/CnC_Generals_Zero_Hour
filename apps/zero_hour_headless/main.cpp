@@ -3,6 +3,7 @@
 
 #include "CncGame/GameSession.hpp"
 #include "CncRender/Renderer.hpp"
+#include "CncBuild/BuildInfo.hpp"
 
 int main()
 {
@@ -22,7 +23,9 @@ int main()
         session.renderer().end_frame() != FT_ERR_SUCCESS)
         return 3;
 
-    std::cout << "zero_hour_headless tick=" << session.world().tick().value
+    std::cout << "zero_hour_headless version=" << CNC_BUILD_PROJECT_VERSION
+              << " commit=" << CNC_BUILD_GIT_COMMIT
+              << " tick=" << session.world().tick().value
               << " hash=" << session.world().canonical_state_hash()
               << " frame=" << session.renderer().frame_count()
               << " replay_records=" << session.replay_history().size() << "\n";

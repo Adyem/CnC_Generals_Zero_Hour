@@ -1490,6 +1490,12 @@ headers under standard `GNUInstallDirs` locations; it never copies the legacy
 and CPack emits ZIP/TGZ packages containing project-owned artifacts. Proprietary
 game data remains an explicit staging input and is not bundled automatically.
 
+Configure-time build metadata now replaces the legacy `versionUpdate.exe` and
+`buildVersionUpdate.exe` mutation flow. CMake generates
+`CncBuild/BuildInfo.hpp` in the binary tree with the project version and a short
+Git commit (or `unknown` outside a Git checkout); no tracked source is modified
+and no timestamp is embedded by default, preserving reproducible builds.
+
 `.github/workflows/headless.yml` now makes the portable matrix executable: each
 push/PR configures, builds, and tests `dev-headless` on Windows, Ubuntu, and
 macOS. A separate Ubuntu Clang job enables conversion warnings-as-errors plus
