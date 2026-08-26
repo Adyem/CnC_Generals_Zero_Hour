@@ -1647,6 +1647,9 @@ as successful replay frames.
 records and returns `FT_ERR_CONFIGURATION` on the first divergence. This gives
 the future Libft replay/file adapter a deterministic acceptance gate before
 playback or network synchronization is attempted.
+The retry smoke case also verifies that an injected ingest failure contributes
+no replay frame: the command remains pending and is recorded only after the
+later successful tick.
 
 The smoke test also exercises the failure path by flipping one recorded hash;
 the expected result is `FT_ERR_CONFIGURATION`, while the session remains

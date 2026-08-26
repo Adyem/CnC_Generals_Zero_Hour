@@ -311,7 +311,8 @@ int main()
         retry_session.advance_one_tick() != FT_ERR_CONFIGURATION ||
         retry_session.advance_one_tick() != FT_ERR_SUCCESS ||
         retry_session.world().read_value(retry_entity, &retry_value) != FT_ERR_SUCCESS ||
-        retry_value != 7 || retry_session.shutdown() != FT_ERR_SUCCESS)
+        retry_value != 7 || retry_session.replay_history().size() != 1U ||
+        retry_session.shutdown() != FT_ERR_SUCCESS)
         return 36;
 
     cnc::HeadlessRenderer renderer;
