@@ -16,6 +16,7 @@
 #include "CncSimulation/LocomotionQueue.hpp"
 #include "CncSimulation/CombatRegistry.hpp"
 #include "CncSimulation/ProductionQueue.hpp"
+#include "CncSimulation/VisibilityRegistry.hpp"
 #include "CncSimulation/SystemRegistry.hpp"
 #include "CncSimulation/DefinitionRegistry.hpp"
 #include "ZeroHourData/Catalog.hpp"
@@ -299,6 +300,29 @@ int main()
         completed_orders.size() != 1U || completed_orders[0].definition.value != 7U ||
         production.pending_count() != 0U || production.shutdown() != FT_ERR_SUCCESS)
         return 53;
+
+    cnc::VisibilityRegistry visibility;
+    std::vector<cnc::EntityId> visible_entities;
+    cnc::VisibilityState visibility_state;
+    if (visibility.initialize() != FT_ERR_SUCCESS ||
+        visibility.set_visibility(cnc::PlayerId{1U}, cnc::EntityId{12U},
+                                  cnc::VisibilityState::visible) != FT_ERR_SUCCESS ||
+        visibility.set_visibility(cnc::PlayerId{1U}, cnc::EntityId{4U},
+                                  cnc::VisibilityState::visible) != FT_ERR_SUCCESS ||
+        visibility.set_visibility(cnc::PlayerId{1U}, cnc::EntityId{9U},
+                                  cnc::VisibilityState::explored) != FT_ERR_SUCCESS ||
+        visibility.visible_entities(cnc::PlayerId{1U}, &visible_entities) != FT_ERR_SUCCESS ||
+        visible_entities.size() != 2U || visible_entities[0].value != 4U ||
+        visible_entities[1].value != 12U ||
+        visibility.visibility(cnc::PlayerId{1U}, cnc::EntityId{9U}, &visibility_state) != FT_ERR_SUCCESS ||
+        visibility_state != cnc::VisibilityState::explored ||
+        visibility.visibility(cnc::PlayerId{2U}, cnc::EntityId{9U}, &visibility_state) != FT_ERR_SUCCESS ||
+        visibility_state != cnc::VisibilityState::hidden ||
+        visibility.remove_entity(cnc::EntityId{4U}) != FT_ERR_SUCCESS ||
+        visibility.visible_entities(cnc::PlayerId{1U}, &visible_entities) != FT_ERR_SUCCESS ||
+        visible_entities.size() != 1U || visible_entities[0].value != 12U ||
+        visibility.shutdown() != FT_ERR_SUCCESS)
+        return 54;
 
     cnc::SystemRegistry systems;
     std::vector<uint64_t> execution_ticks;

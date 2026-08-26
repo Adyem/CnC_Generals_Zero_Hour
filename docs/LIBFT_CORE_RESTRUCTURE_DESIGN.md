@@ -533,6 +533,12 @@ sequence; Zero Hour supplies costs, prerequisites, build placement, and the
 definition-to-unit factory. Enqueue checks tick overflow, while completion
 copies and orders pending work before swapping completed/remaining sets, so a
 failed allocation cannot remove only part of a production queue.
+`cnc::VisibilityRegistry` is the generic fog/shroud seam: it associates a
+player and entity with `hidden`, `explored`, or `visible`, returns visible
+entities in stable ID order, and supports deterministic cleanup when players
+or entities disappear. Radar, stealth, line-of-sight geometry, reveal events,
+and rendering policy remain Zero Hour responsibilities; the registry is only
+the serializable visibility result that those systems publish and consume.
 
 ### 7.4 State, snapshot, and replay design
 
