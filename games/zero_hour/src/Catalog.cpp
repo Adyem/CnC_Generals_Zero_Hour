@@ -141,19 +141,22 @@ cnc::Error Catalog::load_manifest_text(const char *text) noexcept
     {
         if (line.empty() || line[0] == '#') continue;
         std::vector<std::string> fields;
-        std::size_t start = 0U;
+        ft_size_t start = 0U;
         while (start <= line.size())
         {
-            const std::size_t comma = line.find(',', start);
-            fields.push_back(line.substr(start, comma == std::string::npos ? std::string::npos : comma - start));
+            const std::string::size_type comma = line.find(
+                ',', static_cast<std::string::size_type>(start));
+            fields.push_back(line.substr(
+                static_cast<std::string::size_type>(start),
+                comma == std::string::npos ? std::string::npos : comma - start));
             if (comma == std::string::npos) break;
-            start = comma + 1U;
+            start = static_cast<ft_size_t>(comma + 1U);
         }
         uint64_t values[3] = {0U, 0U, 0U};
         if (fields.empty() || fields.size() > 4U) return FT_ERR_INVALID_ARGUMENT;
-        const std::size_t value_count = fields.size() - 1U;
+        const ft_size_t value_count = static_cast<ft_size_t>(fields.size() - 1U);
         if (value_count > 3U) return FT_ERR_INVALID_ARGUMENT;
-        for (std::size_t index = 0U; index < value_count; ++index)
+        for (ft_size_t index = 0U; index < value_count; ++index)
             if (!parse_u64(fields[index + 1U], &values[index])) return FT_ERR_INVALID_ARGUMENT;
         void *record = nullptr;
         cnc::DefinitionType type;

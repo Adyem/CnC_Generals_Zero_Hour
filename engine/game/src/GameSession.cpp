@@ -202,7 +202,7 @@ Error GameSession::verify_replay(const std::vector<ReplayRecord> &expected) cons
 {
     if (_initialized != FT_TRUE) return FT_ERR_INVALID_STATE;
     if (expected.size() != _replay_history.size()) return FT_ERR_CONFIGURATION;
-    for (std::size_t index = 0U; index < _replay_history.size(); ++index)
+    for (ft_size_t index = 0U; index < _replay_history.size(); ++index)
     {
         const ReplayRecord &actual = _replay_history[index];
         const ReplayRecord &reference = expected[index];
