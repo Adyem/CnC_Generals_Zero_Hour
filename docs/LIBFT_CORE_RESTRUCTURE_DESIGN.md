@@ -1735,6 +1735,11 @@ explicit allied diplomacy with shared-team membership. Zero Hour
 continues to own faction selection, generals, sciences, economy, diplomacy
 rules, and victory semantics; those systems can reference this registry without
 moving game data into Libft or the engine scaffold.
+`PlayerRegistrySnapshot` provides a separate versioned, caller-owned state view
+for persistence. Import validates sorted identities, valid team memberships,
+symmetric relationship records, and unique entity owners before swapping any
+state, so restoring player relationships has the same failure-atomic contract
+as world snapshots.
 Frame ingestion is transactional: the session validates every referenced live
 entity and builds a projected command queue before swapping it in. If any
 record is rejected, or queue allocation fails, no earlier record from that

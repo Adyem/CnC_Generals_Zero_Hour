@@ -175,6 +175,16 @@ int main()
         players.set_owner(cnc::EntityId{42U}, cnc::PlayerId{2U}) != FT_ERR_SUCCESS ||
         players.owned_entities(cnc::PlayerId{2U}, &owned_entities) != FT_ERR_SUCCESS ||
         owned_entities.size() != 1U || owned_entities[0].value != 42U ||
+        players.export_snapshot(nullptr) != FT_ERR_INVALID_POINTER)
+        return 45;
+    cnc::PlayerRegistrySnapshot registry_snapshot;
+    cnc::PlayerRegistry restored_players;
+    if (players.export_snapshot(&registry_snapshot) != FT_ERR_SUCCESS ||
+        restored_players.initialize() != FT_ERR_SUCCESS ||
+        restored_players.import_snapshot(registry_snapshot) != FT_ERR_SUCCESS ||
+        restored_players.player_count() != static_cast<cnc::Size>(2U) ||
+        restored_players.owner(cnc::EntityId{42U}, &owner_id) != FT_ERR_SUCCESS ||
+        owner_id.value != 2U || restored_players.shutdown() != FT_ERR_SUCCESS ||
         players.remove_player(cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
         players.relationship(cnc::PlayerId{2U}, cnc::PlayerId{1U}, &diplomacy) != FT_ERR_NOT_FOUND ||
         players.owner(cnc::EntityId{42U}, &owner_id) != FT_ERR_SUCCESS || owner_id.value != 2U ||

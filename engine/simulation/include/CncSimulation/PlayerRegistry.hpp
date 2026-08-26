@@ -28,6 +28,35 @@ enum class Diplomacy : uint8_t
     hostile = 2U
 };
 
+struct PlayerRelationship
+{
+    PlayerId first;
+    PlayerId second;
+    Diplomacy value = Diplomacy::neutral;
+};
+
+struct PlayerOwnership
+{
+    EntityId entity;
+    PlayerId owner;
+};
+
+struct TeamMembership
+{
+    PlayerId player;
+    TeamId team;
+};
+
+struct PlayerRegistrySnapshot
+{
+    uint32_t schema_version = 1U;
+    std::vector<PlayerId> players;
+    std::vector<TeamId> teams;
+    std::vector<TeamMembership> team_memberships;
+    std::vector<PlayerRelationship> relationships;
+    std::vector<PlayerOwnership> ownership;
+};
+
 // Generic player/relationship state. Game modules own faction, commander,
 // economy, and victory rules; the engine owns identity and deterministic links.
 class PlayerRegistry final
@@ -50,27 +79,15 @@ public:
     Error clear_owner(EntityId entity) noexcept;
     Error owner(EntityId entity, PlayerId *owner_out) const noexcept;
     Error owned_entities(PlayerId owner, std::vector<EntityId> *entities_out) const noexcept;
+    Error export_snapshot(PlayerRegistrySnapshot *snapshot_out) const noexcept;
+    Error import_snapshot(const PlayerRegistrySnapshot &snapshot) noexcept;
     Bool contains(PlayerId id) const noexcept;
     Size player_count() const noexcept;
     Error shutdown() noexcept;
 
 private:
-    struct RelationshipEntry
-    {
-        PlayerId first;
-        PlayerId second;
-        Diplomacy value = Diplomacy::neutral;
-    };
-    struct OwnershipEntry
-    {
-        EntityId entity;
-        PlayerId owner;
-    };
-    struct TeamMembership
-    {
-        PlayerId player;
-        TeamId team;
-    };
+    using RelationshipEntry = PlayerRelationship;
+    using OwnershipEntry = PlayerOwnership;
     std::vector<PlayerId> _players;
     std::vector<TeamId> _teams;
     std::vector<TeamMembership> _team_memberships;
