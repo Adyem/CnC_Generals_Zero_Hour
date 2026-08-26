@@ -1394,9 +1394,13 @@ engine/runtime/include/CncRuntime/Runtime.hpp
 engine/runtime/src/Runtime.cpp
 engine/simulation/include/CncSimulation/World.hpp
 engine/simulation/src/World.cpp
+engine/simulation/include/CncSimulation/SystemRegistry.hpp
+engine/simulation/src/SystemRegistry.cpp
 ```
 
 `cnc::Runtime` owns the first composition-root lifecycle and exposes Libft type/error conventions. `cnc::DeterministicWorld` is intentionally a generic scaffold rather than a Generals rules module: it provides stable 64-bit entity IDs, insertion-sequenced commands, fixed tick advancement, checked signed arithmetic, lifecycle error returns, and a canonical state hash. It is the seam where Libft `Game` facilities will be integrated next; it does not yet model factions, units, or SAGE behavior.
+
+`cnc::SystemRegistry` is the next generic seam. It registers callbacks by phase, explicit signed order, and registration sequence, then propagates the first non-success `FT_ERR_*` result. It deliberately has no knowledge of Generals systems; the future Zero Hour module will register its own science, production, combat, and victory systems through this interface.
 
 The next implementation step is to add maintained Libft CMake targets (or temporary explicit adapters) for the transitive `Errno`, `System_utils`, `Time`, `File`, and `Game` modules, then replace this scaffold's storage with Libft `Game` registries and typed systems. Do not expand the manifest to every Libft `.cpp` file until each module's platform and third-party dependencies are represented as CMake targets.
 

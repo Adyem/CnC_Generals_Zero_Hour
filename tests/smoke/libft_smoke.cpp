@@ -1,10 +1,23 @@
 #include <cstdint>
 #include <iostream>
+#include <vector>
 
 #include "basic.hpp"
 #include "errno.hpp"
 #include "CncRuntime/Runtime.hpp"
 #include "CncSimulation/World.hpp"
+#include "CncSimulation/SystemRegistry.hpp"
+
+namespace
+{
+int32_t record_system(void *user_data, cnc::SystemPhase,
+                     cnc::SimulationTick tick) noexcept
+{
+    auto *const output = static_cast<std::vector<uint64_t> *>(user_data);
+    output->push_back(tick.value);
+    return FT_ERR_SUCCESS;
+}
+}
 
 int main()
 {
@@ -49,6 +62,17 @@ int main()
         return 10;
     if (world.shutdown() != FT_ERR_SUCCESS)
         return 11;
+
+    cnc::SystemRegistry systems;
+    std::vector<uint64_t> execution_ticks;
+    if (systems.add(cnc::SystemPhase::simulation, 20, "late", record_system,
+                    &execution_ticks) != FT_ERR_SUCCESS ||
+        systems.add(cnc::SystemPhase::simulation, 10, "early", record_system,
+                    &execution_ticks) != FT_ERR_SUCCESS ||
+        systems.size() != static_cast<cnc::Size>(2U) ||
+        systems.run(cnc::SystemPhase::simulation, cnc::SimulationTick{7U}) !=
+            FT_ERR_SUCCESS || execution_ticks.size() != 2U)
+        return 12;
 
     std::cout << "libft smoke ok (" << CNC_PROJECT_VERSION << ")\n";
     return 0;
