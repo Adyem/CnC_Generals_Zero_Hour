@@ -1,4 +1,4 @@
 [submodule "external/libft"]
 	path = external/libft
-	url = git@github.com:LibftLegends/Libft.git
+	url = https://github.com/LibftLegends/Libft.git
 	branch = agent/flattened-make-terrain

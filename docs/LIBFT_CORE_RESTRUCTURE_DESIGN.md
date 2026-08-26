@@ -1462,6 +1462,13 @@ headers under standard `GNUInstallDirs` locations; it never copies the legacy
 and CPack emits ZIP/TGZ packages containing project-owned artifacts. Proprietary
 game data remains an explicit staging input and is not bundled automatically.
 
+`.github/workflows/headless.yml` now makes the portable matrix executable: each
+push/PR configures, builds, and tests `dev-headless` on Windows, Ubuntu, and
+macOS. A separate Ubuntu Clang job enables conversion warnings-as-errors plus
+ASan/UBSan. The Libft submodule URL is HTTPS so hosted runners do not require a
+developer SSH key; the pinned branch/commit remains controlled by the
+submodule metadata.
+
 `cnc::GameSession` now acts as the headless composition root. Its startup order
 is Runtime -> DeterministicWorld -> Zero Hour Catalog; shutdown reverses that
 order and clears scheduled systems. A tick runs ingest systems, advances the

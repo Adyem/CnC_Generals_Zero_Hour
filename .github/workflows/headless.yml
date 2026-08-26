@@ -1,0 +1,46 @@
+name: Headless engine
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  portable:
+    name: portable-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    steps:
+      - name: Checkout pinned dependencies
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Configure
+        run: cmake --preset dev-headless
+      - name: Build
+        run: cmake --build --preset dev-headless
+      - name: Test
+        run: ctest --preset dev-headless
+
+  clang-sanitizers:
+    name: clang-sanitizers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout pinned dependencies
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install Clang and Ninja
+        run: sudo apt-get update && sudo apt-get install --yes clang ninja-build
+      - name: Configure
+        run: >-
+          cmake --preset dev-headless
+          -DCMAKE_CXX_COMPILER=clang++
+          -DCNC_ENABLE_SANITIZERS=ON
+          -DCNC_WARNINGS_AS_ERRORS=ON
+      - name: Build
+        run: cmake --build --preset dev-headless
+      - name: Test
+        run: ctest --preset dev-headless
