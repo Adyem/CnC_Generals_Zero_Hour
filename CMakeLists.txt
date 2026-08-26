@@ -68,6 +68,7 @@ if(CNC_BUILD_SIMULATION)
     add_library(cnc_simulation STATIC
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/World.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/SystemRegistry.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/DefinitionRegistry.cpp"
     )
     add_library(cnc::simulation ALIAS cnc_simulation)
     target_compile_features(cnc_simulation PUBLIC cxx_std_17)

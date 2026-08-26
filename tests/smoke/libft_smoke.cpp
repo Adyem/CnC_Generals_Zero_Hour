@@ -7,6 +7,7 @@
 #include "CncRuntime/Runtime.hpp"
 #include "CncSimulation/World.hpp"
 #include "CncSimulation/SystemRegistry.hpp"
+#include "CncSimulation/DefinitionRegistry.hpp"
 
 namespace
 {
@@ -73,6 +74,24 @@ int main()
         systems.run(cnc::SystemPhase::simulation, cnc::SimulationTick{7U}) !=
             FT_ERR_SUCCESS || execution_ticks.size() != 2U)
         return 12;
+
+    cnc::DefinitionRegistry definitions;
+    if (definitions.register_type(cnc::DefinitionTypeDescriptor{
+            cnc::DefinitionType{1U}, "test_definition", nullptr,
+            [](void *pointer) noexcept { delete static_cast<uint64_t *>(pointer); }}) !=
+            FT_ERR_SUCCESS)
+        return 13;
+    auto *const definition = new uint64_t(123U);
+    if (definitions.register_definition(cnc::DefinitionType{1U},
+                                        cnc::DefinitionId{7U}, definition) !=
+            FT_ERR_SUCCESS)
+        return 14;
+    const void *found = nullptr;
+    if (definitions.find_definition(cnc::DefinitionType{1U},
+                                    cnc::DefinitionId{7U}, &found) != FT_ERR_SUCCESS ||
+        found != definition || definitions.definition_count() != static_cast<cnc::Size>(1U) ||
+        definitions.clear() != FT_ERR_SUCCESS)
+        return 15;
 
     std::cout << "libft smoke ok (" << CNC_PROJECT_VERSION << ")\n";
     return 0;
