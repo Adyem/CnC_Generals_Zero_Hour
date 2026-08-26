@@ -10,6 +10,7 @@
 #include "CncSimulation/World.hpp"
 #include "CncSimulation/SnapshotCodec.hpp"
 #include "CncSimulation/CommandCodec.hpp"
+#include "CncSimulation/PlayerRegistryCodec.hpp"
 #include "CncSimulation/PlayerRegistry.hpp"
 #include "CncSimulation/SystemRegistry.hpp"
 #include "CncSimulation/DefinitionRegistry.hpp"
@@ -193,6 +194,25 @@ int main()
         players.owner(cnc::EntityId{42U}, &owner_id) != FT_ERR_NOT_FOUND ||
         players.shutdown() != FT_ERR_SUCCESS)
         return 44;
+
+    std::vector<uint8_t> registry_bytes;
+    cnc::PlayerRegistrySnapshot decoded_registry;
+    std::vector<uint8_t> invalid_registry_bytes;
+    if (cnc::PlayerRegistryCodec::encode(registry_snapshot, &registry_bytes) != FT_ERR_SUCCESS ||
+        cnc::PlayerRegistryCodec::decode(registry_bytes.data(), registry_bytes.size(),
+                                          &decoded_registry) != FT_ERR_SUCCESS ||
+        decoded_registry.players.size() != registry_snapshot.players.size() ||
+        decoded_registry.relationships.size() != registry_snapshot.relationships.size() ||
+        decoded_registry.ownership.size() != registry_snapshot.ownership.size() ||
+        cnc::PlayerRegistryCodec::decode(registry_bytes.data(), registry_bytes.size() - 1U,
+                                         &decoded_registry) != FT_ERR_CONFIGURATION)
+        return 48;
+    invalid_registry_bytes = registry_bytes;
+    invalid_registry_bytes[60U] = 3U;
+    if (cnc::PlayerRegistryCodec::decode(invalid_registry_bytes.data(),
+                                         invalid_registry_bytes.size(), &decoded_registry) !=
+        FT_ERR_CONFIGURATION)
+        return 49;
 
     cnc::PlayerRegistry atomic_registry;
     if (atomic_registry.initialize() != FT_ERR_SUCCESS ||

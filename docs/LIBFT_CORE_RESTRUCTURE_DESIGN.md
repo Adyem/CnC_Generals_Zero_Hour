@@ -1759,6 +1759,11 @@ callers must never update one relationship direction or one owner in place and
 then report an error. Exports sort copies into the same canonical order so two
 equivalent registries produce identical persistence bytes without reordering
 the live simulation state.
+`PlayerRegistryCodec` is the transport-neutral binary seam for that state: it
+encodes the five generic record groups as bounded little-endian arrays and
+rejects schema, length, count, and enum violations during decode. A session
+save can therefore compose the world codec and registry codec without making
+the codec aware of Generals factions, sciences, generals, powers, or assets.
 Frame ingestion is transactional: the session validates every referenced live
 entity and builds a projected command queue before swapping it in. If any
 record is rejected, or queue allocation fails, no earlier record from that
