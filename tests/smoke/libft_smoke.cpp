@@ -11,6 +11,7 @@
 #include "ZeroHourData/Catalog.hpp"
 #include "CncGame/GameSession.hpp"
 #include "CncRender/Renderer.hpp"
+#include "CncNetwork/NetworkSession.hpp"
 
 namespace
 {
@@ -166,6 +167,14 @@ int main()
         renderer.end_frame() != FT_ERR_SUCCESS || renderer.frame_count() != 1U ||
         renderer.shutdown() != FT_ERR_SUCCESS)
         return 23;
+
+    cnc::OfflineNetworkSession network;
+    const uint8_t payload = 0U;
+    if (network.initialize() != FT_ERR_SUCCESS || network.is_online() == FT_TRUE ||
+        network.connect("offline.example") != FT_ERR_INVALID_OPERATION ||
+        network.send(&payload, static_cast<cnc::Size>(1U)) != FT_ERR_INVALID_OPERATION ||
+        network.shutdown() != FT_ERR_SUCCESS)
+        return 24;
 
     std::cout << "libft smoke ok (" << CNC_PROJECT_VERSION << ")\n";
     return 0;

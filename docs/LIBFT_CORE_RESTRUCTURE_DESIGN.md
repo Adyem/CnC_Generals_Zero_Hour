@@ -1474,6 +1474,13 @@ presets rather than inline cache overrides. Its binary directory is isolated
 from `dev-headless`, so local and CI runs cannot mix instrumented and normal
 objects.
 
+The offline-first multiplayer boundary is now explicit in
+`engine/network/CncNetwork/OfflineNetworkSession`. Initialization and shutdown
+are harmless, but connect/send return `FT_ERR_INVALID_OPERATION` and
+`is_online()` is always false. The stub is a real CMake target and smoke-tested,
+so future Libft networking can replace it behind a known capability contract
+without re-enabling GameSpy or silently creating a partially working lobby.
+
 `cnc::GameSession` now acts as the headless composition root. Its startup order
 is Runtime -> DeterministicWorld -> Zero Hour Catalog; shutdown reverses that
 order and clears scheduled systems. A tick runs ingest systems, advances the
