@@ -1442,6 +1442,13 @@ the same command contract, and an offscreen backend can verify parity without a
 display. The smoke test exercises one complete frame. No DirectX, X11, or GPGR
 source is linked until the renderer/resource API is expanded in its own target.
 
+The first end-to-end product target is `cnc_zero_hour_headless` under
+`apps/zero_hour_headless`. It initializes `GameSession`, installs the game-owned
+catalog, advances one typed command, submits one validated render command, and
+prints the resulting tick/hash/frame counters. CMake registers it as
+`integration.offline`; this is the initial runnable Zero Hour path and remains
+independent of SAGE, DirectX, SafeDisk, GameSpy, and multiplayer.
+
 `cnc::GameSession` now acts as the headless composition root. Its startup order
 is Runtime -> DeterministicWorld -> Zero Hour Catalog; shutdown reverses that
 order and clears scheduled systems. A tick runs ingest systems, advances the
