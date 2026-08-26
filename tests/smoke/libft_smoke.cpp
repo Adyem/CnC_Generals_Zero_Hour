@@ -7,6 +7,7 @@
 #include "errno.hpp"
 #include "CncRuntime/Runtime.hpp"
 #include "CncSimulation/World.hpp"
+#include "CncSimulation/SnapshotCodec.hpp"
 #include "CncSimulation/SystemRegistry.hpp"
 #include "CncSimulation/DefinitionRegistry.hpp"
 #include "ZeroHourData/Catalog.hpp"
@@ -98,6 +99,22 @@ int main()
         snapshot.entries.size() != 1U || snapshot.entries[0].entity.value != entity.value ||
         snapshot.entries[0].value != 42 || snapshot.entries[0].alive != FT_TRUE)
         return 33;
+    std::vector<uint8_t> snapshot_bytes;
+    cnc::WorldSnapshot decoded_snapshot;
+    if (cnc::WorldSnapshotCodec::encode(snapshot, &snapshot_bytes) != FT_ERR_SUCCESS ||
+        cnc::WorldSnapshotCodec::decode(
+            snapshot_bytes.data(), static_cast<ft_size_t>(snapshot_bytes.size()),
+            &decoded_snapshot) != FT_ERR_SUCCESS ||
+        decoded_snapshot.tick.value != snapshot.tick.value ||
+        decoded_snapshot.entries.size() != snapshot.entries.size() ||
+        decoded_snapshot.entries[0].entity.value != snapshot.entries[0].entity.value ||
+        decoded_snapshot.entries[0].value != snapshot.entries[0].value)
+        return 37;
+    snapshot_bytes[0] = 0U;
+    if (cnc::WorldSnapshotCodec::decode(
+            snapshot_bytes.data(), static_cast<ft_size_t>(snapshot_bytes.size()),
+            &decoded_snapshot) != FT_ERR_CONFIGURATION)
+        return 38;
     if (world.queue_delta(entity, INT64_MAX) != FT_ERR_SUCCESS ||
         world.advance_one_tick() != FT_ERR_OUT_OF_RANGE ||
         world.read_value(entity, &value) != FT_ERR_SUCCESS || value != 42)

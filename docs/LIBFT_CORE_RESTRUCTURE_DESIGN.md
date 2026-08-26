@@ -1693,6 +1693,15 @@ and closes the frame. The renderer therefore consumes presentation data rather
 than reading `SimulationWorld` storage; a future GPGR implementation can replace
 `HeadlessRenderer` without changing authoritative tick code.
 
+`WorldSnapshotCodec` provides the first persistence seam: a canonical
+little-endian record containing a schema version, 64-bit simulation tick,
+bounded entry count, 64-bit entity/value fields, and an explicit alive byte.
+Decode validates the schema, exact wire length, nonzero IDs, boolean encoding,
+and the one-million-entry allocation limit before publishing any entries. It
+returns `FT_ERR_CONFIGURATION` for incompatible or malformed bytes, leaving
+the output entries empty. File, replay, and network adapters should call this
+codec rather than serializing C++ object memory.
+
 The active-source exclusion audit is implemented in
 `cmake/ValidateMigrationSources.cmake`, exposed as the
 `cnc_validate_migration_sources` target and `migration.exclusions` CTest case.
