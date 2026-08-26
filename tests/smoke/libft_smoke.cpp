@@ -200,6 +200,8 @@ int main()
         return 22;
     if (session.has_game_data() != FT_TRUE)
         return 29;
+    if (session.validate_game_data() != FT_ERR_SUCCESS)
+        return 31;
     cnc::GameSession manifest_session;
 #ifdef CNC_ZERO_HOUR_MANIFEST_PATH
     const char *const session_manifest_path = CNC_ZERO_HOUR_MANIFEST_PATH;
@@ -210,6 +212,8 @@ int main()
         manifest_session.load_data_manifest(session_manifest_path) != FT_ERR_SUCCESS ||
         manifest_session.catalog().definition_count() != static_cast<cnc::Size>(4U))
         return 25;
+    if (manifest_session.validate_game_data() != FT_ERR_SUCCESS)
+        return 32;
     zero_hour::PlayerState &player = manifest_session.player_state();
     cnc::EntityId player_entity;
     cnc::EntityId replacement_entity;

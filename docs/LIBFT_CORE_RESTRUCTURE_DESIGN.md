@@ -1610,6 +1610,9 @@ uses `session.renderer()` and cannot accidentally bypass the configured session.
 `GameSession::has_game_data()` distinguishes an initialized backend graph from
 a session whose game-owned catalog has not yet been loaded, preventing launch
 and UI code from treating runtime startup as proof that rules data is ready.
+`validate_game_data()` exposes the catalog’s complete cross-reference pass at
+the session boundary, so launchers can reject malformed faction/general/power
+graphs before submitting simulation commands.
 Each backend contract also exposes a stable `backend_name()` identifier. The
 headless launcher prints the active runtime/world/renderer/network adapters,
 which makes accidental reintroduction of a legacy or partially initialized

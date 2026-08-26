@@ -48,6 +48,7 @@ public:
     Error verify_replay(const std::vector<ReplayRecord> &expected) const noexcept;
     Bool is_initialized() const noexcept;
     Bool has_game_data() const noexcept;
+    Error validate_game_data() const noexcept;
     Runtime &runtime() noexcept;
     SimulationWorld &world() noexcept;
     SystemRegistry &systems() noexcept;
