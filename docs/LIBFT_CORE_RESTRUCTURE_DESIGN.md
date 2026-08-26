@@ -1457,6 +1457,14 @@ tree) and fails on SafeDisk, copy-protection, or GameSpy references. This keeps
 retired middleware out of new code while the legacy inventory tracks what still
 must be removed when the optional reference target is dismantled.
 
+Native migration targets now share `cmake/CompilerWarnings.cmake`. On MSVC it
+enables `/W4` and `/permissive-`; on GCC/Clang it enables `-Wall`, `-Wextra`,
+`-Wpedantic`, `-Wconversion`, and `-Wsign-conversion`. `CNC_WARNINGS_AS_ERRORS`
+can promote those diagnostics to errors without imposing new flags on the
+third-party Libft archive or the obsolete SAGE reference. The conversion checks
+are intentional: they expose accidental narrowing while the codebase moves to
+Libft fixed-width aliases and explicit `FT_ERR_*` result handling.
+
 The next implementation step is to add maintained Libft CMake targets (or temporary explicit adapters) for the transitive `Errno`, `System_utils`, `Time`, `File`, and `Game` modules, then replace this scaffold's storage with Libft `Game` registries and typed systems. Do not expand the manifest to every Libft `.cpp` file until each module's platform and third-party dependencies are represented as CMake targets.
 
 The first dependency probe is represented by `cmake/LibftTime.cmake`. It has an

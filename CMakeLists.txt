@@ -16,6 +16,7 @@ option(CNC_BUILD_GAME_DATA "Build the game-owned Zero Hour definition catalog" O
 option(CNC_BUILD_GAME_SESSION "Build the headless game composition root" ON)
 option(CNC_BUILD_DETERMINISM_TEST "Build the deterministic replay test" ON)
 option(CNC_BUILD_MIGRATION_AUDIT "Build the SafeDisk/GameSpy exclusion audit" ON)
+option(CNC_WARNINGS_AS_ERRORS "Treat warnings as errors for migration targets" OFF)
 option(CNC_BUILD_SMOKE_TEST "Build the portable Libft integration smoke test" ON)
 option(CNC_BUILD_LEGACY_REFERENCE "Expose the legacy SAGE reference target (not implemented)" OFF)
 option(CNC_ENABLE_MULTIPLAYER "Enable the replacement multiplayer stack (not implemented)" OFF)
@@ -43,6 +44,7 @@ endif()
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/CompilerWarnings.cmake")
 
 if(CNC_BUILD_LIBFT_BASIC)
     include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibftBasic.cmake")
@@ -70,6 +72,7 @@ if(CNC_BUILD_RUNTIME)
             "${CMAKE_CURRENT_SOURCE_DIR}/engine/runtime/include"
     )
     target_link_libraries(cnc_runtime PUBLIC libft::basic)
+    cnc_enable_native_warnings(cnc_runtime)
 endif()
 
 if(CNC_BUILD_SIMULATION)
@@ -89,6 +92,7 @@ if(CNC_BUILD_SIMULATION)
             "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/include"
     )
     target_link_libraries(cnc_simulation PUBLIC cnc::runtime)
+    cnc_enable_native_warnings(cnc_simulation)
 endif()
 
 if(CNC_BUILD_GAME_DATA)
@@ -103,6 +107,7 @@ if(CNC_BUILD_GAME_DATA)
     target_include_directories(cnc_zero_hour_data PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/include")
     target_link_libraries(cnc_zero_hour_data PUBLIC cnc::simulation)
+    cnc_enable_native_warnings(cnc_zero_hour_data)
 endif()
 
 if(CNC_BUILD_GAME_SESSION)
@@ -117,6 +122,7 @@ if(CNC_BUILD_GAME_SESSION)
     target_include_directories(cnc_game_session PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/game/include")
     target_link_libraries(cnc_game_session PUBLIC cnc::zero_hour_data)
+    cnc_enable_native_warnings(cnc_game_session)
 endif()
 
 if(CNC_BUILD_DETERMINISM_TEST)
@@ -128,6 +134,7 @@ if(CNC_BUILD_DETERMINISM_TEST)
     )
     target_compile_features(cnc_determinism_replay PRIVATE cxx_std_17)
     target_link_libraries(cnc_determinism_replay PRIVATE cnc::game_session)
+    cnc_enable_native_warnings(cnc_determinism_replay)
     if(BUILD_TESTING)
         add_test(NAME determinism.replay COMMAND cnc_determinism_replay)
         set_tests_properties(determinism.replay PROPERTIES LABELS "determinism;unit")
@@ -171,6 +178,7 @@ if(CNC_BUILD_SMOKE_TEST)
     if(TARGET cnc::game_session)
         target_link_libraries(cnc_libft_smoke PRIVATE cnc::game_session)
     endif()
+    cnc_enable_native_warnings(cnc_libft_smoke)
     target_compile_definitions(cnc_libft_smoke PRIVATE
         CNC_PROJECT_VERSION="${PROJECT_VERSION}"
     )
