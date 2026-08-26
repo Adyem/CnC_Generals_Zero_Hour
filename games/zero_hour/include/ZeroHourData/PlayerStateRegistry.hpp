@@ -15,6 +15,17 @@ namespace zero_hour
 class PlayerStateRegistry final
 {
 public:
+    struct SnapshotEntry
+    {
+        cnc::PlayerId player;
+        cnc::DefinitionId faction;
+        uint32_t science_points = 0U;
+    };
+    struct Snapshot
+    {
+        uint32_t schema_version = 1U;
+        std::vector<SnapshotEntry> entries;
+    };
     cnc::Error initialize(const Catalog *catalog, ScienceLedger *science,
                           SpecialPowerLedger *powers, GeneralRoster *generals) noexcept;
     cnc::Error create(cnc::PlayerId player) noexcept;
@@ -23,6 +34,9 @@ public:
     const PlayerState *find(cnc::PlayerId player) const noexcept;
     cnc::Size size() const noexcept;
     uint64_t canonical_state_hash() const noexcept;
+    cnc::Error export_snapshot(Snapshot *snapshot_out) const noexcept;
+    cnc::Error import_snapshot(const Snapshot &snapshot) noexcept;
+    void swap(PlayerStateRegistry &other) noexcept;
     cnc::Error shutdown() noexcept;
 
 private:

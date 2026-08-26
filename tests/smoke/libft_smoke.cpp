@@ -581,7 +581,12 @@ int main()
     cnc::SpatialPosition restored_position;
     cnc::HealthState restored_health;
     cnc::VisibilityState restored_visibility;
+    if (session.player_states().find(cnc::PlayerId{1U}) == nullptr ||
+        session.player_states().find(cnc::PlayerId{1U})->set_faction(cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
+        session.player_states().find(cnc::PlayerId{1U})->set_science_points(7U) != FT_ERR_SUCCESS)
+        return 38;
     if (session.save_snapshot(&saved_session) != FT_ERR_SUCCESS ||
+        session.player_states().find(cnc::PlayerId{1U})->set_science_points(2U) != FT_ERR_SUCCESS ||
         session.combat().queue_damage(session_entity, 25) != FT_ERR_SUCCESS ||
         session.combat().apply() != FT_ERR_SUCCESS ||
         session.submit_world_delta(session_entity, 10) != FT_ERR_SUCCESS ||
@@ -598,6 +603,9 @@ int main()
         session.visibility().visibility(cnc::PlayerId{1U}, session_entity,
                                         &restored_visibility) != FT_ERR_SUCCESS ||
         restored_visibility != cnc::VisibilityState::visible ||
+        session.player_states().find(cnc::PlayerId{1U}) == nullptr ||
+        session.player_states().find(cnc::PlayerId{1U})->faction().value != 1U ||
+        session.player_states().find(cnc::PlayerId{1U})->science_points() != 7U ||
         session.world().tick().value != 1U ||
         !session.replay_history().empty())
         return 39;
