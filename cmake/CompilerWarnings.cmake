@@ -25,6 +25,10 @@ function(cnc_enable_native_sanitizers target_name)
     endif()
     target_compile_options(${target_name} PRIVATE
         -fsanitize=address,undefined -fno-omit-frame-pointer)
+    # Static libraries do not link the sanitizer runtimes themselves.  Publish
+    # the flags through the installed target so external consumers get the
+    # same instrumentation when they link a sanitized package.
+    target_link_options(${target_name} INTERFACE -fsanitize=address,undefined)
     get_target_property(_target_type ${target_name} TYPE)
     if(NOT _target_type STREQUAL "STATIC_LIBRARY")
         target_link_options(${target_name} PRIVATE -fsanitize=address,undefined)

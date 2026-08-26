@@ -49,6 +49,10 @@ jobs:
       - name: Install package
         run: cmake --install out/build/ci-sanitizers --prefix out/install
       - name: Configure package consumer
-        run: cmake -S tests/package_consumer -B out/consumer "-DCMAKE_PREFIX_PATH=${{ github.workspace }}/out/install"
+        run: >-
+          cmake -S tests/package_consumer -B out/consumer
+          "-DCMAKE_PREFIX_PATH=${{ github.workspace }}/out/install"
+          "-DCMAKE_CXX_FLAGS=-fsanitize=address,undefined -fno-omit-frame-pointer"
+          "-DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address,undefined"
       - name: Build package consumer
         run: cmake --build out/consumer
