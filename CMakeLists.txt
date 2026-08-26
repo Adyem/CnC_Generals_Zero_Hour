@@ -9,6 +9,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(CTest)
 
 option(CNC_BUILD_LIBFT_BASIC "Build the Libft Basic module" ON)
+option(CNC_BUILD_LIBFT_TIME "Build the Libft Time module (requires PThread/Compatibility)" OFF)
 option(CNC_BUILD_RUNTIME "Build the Libft-native runtime composition root" ON)
 option(CNC_BUILD_SIMULATION "Build the deterministic headless world scaffold" ON)
 option(CNC_BUILD_GAME_DATA "Build the game-owned Zero Hour definition catalog" ON)
@@ -42,6 +43,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 if(CNC_BUILD_LIBFT_BASIC)
     include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibftBasic.cmake")
+endif()
+
+if(CNC_BUILD_LIBFT_TIME)
+    if(NOT TARGET libft::basic)
+        message(FATAL_ERROR "CNC_BUILD_LIBFT_TIME requires CNC_BUILD_LIBFT_BASIC=ON")
+    endif()
+    include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibftTime.cmake")
 endif()
 
 if(CNC_BUILD_RUNTIME)

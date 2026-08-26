@@ -1424,6 +1424,16 @@ records into Libft.
 
 The next implementation step is to add maintained Libft CMake targets (or temporary explicit adapters) for the transitive `Errno`, `System_utils`, `Time`, `File`, and `Game` modules, then replace this scaffold's storage with Libft `Game` registries and typed systems. Do not expand the manifest to every Libft `.cpp` file until each module's platform and third-party dependencies are represented as CMake targets.
 
+The first dependency probe is represented by `cmake/LibftTime.cmake`. It has an
+explicit source manifest and a `libft::time` target, but `CNC_BUILD_LIBFT_TIME`
+defaults to `OFF`: the current Libft Time headers transitively include
+`PThread/recursive_mutex.hpp` (`pthread.h`) and `Errno` internal headers. That
+would make the default Windows graph fail before the platform abstraction is
+ready. This is an intentional capability gate, not a silent fallback. The
+portable runtime continues using `std::chrono` until Libft PThread and
+Compatibility are added as platform-selected targets; only then should the
+runtime link `libft::time`.
+
 ## 14. Engine replacement phases
 
 ### Phase 0 — Baseline and archaeology
