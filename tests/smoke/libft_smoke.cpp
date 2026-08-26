@@ -8,6 +8,7 @@
 #include "CncRuntime/Runtime.hpp"
 #include "CncSimulation/World.hpp"
 #include "CncSimulation/SnapshotCodec.hpp"
+#include "CncSimulation/CommandCodec.hpp"
 #include "CncSimulation/SystemRegistry.hpp"
 #include "CncSimulation/DefinitionRegistry.hpp"
 #include "ZeroHourData/Catalog.hpp"
@@ -120,6 +121,20 @@ int main()
     if (world.import_snapshot(invalid_snapshot) != FT_ERR_CONFIGURATION ||
         world.read_value(entity, &value) != FT_ERR_SUCCESS || value != 42)
         return 40;
+    cnc::WorldCommandFrame command_frame;
+    command_frame.tick = cnc::SimulationTick{9U};
+    command_frame.commands.push_back(cnc::WorldCommand{entity, -7, 1U});
+    std::vector<uint8_t> command_bytes;
+    cnc::WorldCommandFrame decoded_commands;
+    if (cnc::WorldCommandCodec::encode(command_frame, &command_bytes) != FT_ERR_SUCCESS ||
+        cnc::WorldCommandCodec::decode(
+            command_bytes.data(), static_cast<ft_size_t>(command_bytes.size()),
+            &decoded_commands) != FT_ERR_SUCCESS || decoded_commands.tick.value != 9U ||
+        decoded_commands.commands.size() != 1U ||
+        decoded_commands.commands[0].entity.value != entity.value ||
+        decoded_commands.commands[0].delta != -7 ||
+        decoded_commands.commands[0].sequence != 1U)
+        return 41;
     if (world.queue_delta(entity, INT64_MAX) != FT_ERR_SUCCESS ||
         world.advance_one_tick() != FT_ERR_OUT_OF_RANGE ||
         world.read_value(entity, &value) != FT_ERR_SUCCESS || value != 42)

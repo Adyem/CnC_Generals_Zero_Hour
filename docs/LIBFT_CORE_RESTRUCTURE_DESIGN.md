@@ -1708,6 +1708,15 @@ clears pending commands and replay history, resets command sequencing, and
 resumes in `data_ready` or `running` according to the restored tick. A failed
 decode or import leaves the live world untouched.
 
+The transport-neutral `WorldCommandCodec` is the corresponding command seam.
+Its version-one frame contains a schema, simulation tick, reserved flags, and
+fixed-width `(entity, delta, sequence)` records in little-endian order. It
+requires canonical increasing command sequences, rejects unknown flags and
+invalid IDs, and applies the same one-million-command bound as snapshots.
+Offline submission remains local and multiplayer remains disabled; a future
+Libft Networking adapter can carry these bytes without exposing `World` or
+`GameSession` internals.
+
 The active-source exclusion audit is implemented in
 `cmake/ValidateMigrationSources.cmake`, exposed as the
 `cnc_validate_migration_sources` target and `migration.exclusions` CTest case.

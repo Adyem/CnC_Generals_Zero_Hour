@@ -126,6 +126,7 @@ if(CNC_BUILD_SIMULATION)
     add_library(cnc_simulation STATIC
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/World.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/SnapshotCodec.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/CommandCodec.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/SystemRegistry.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/DefinitionRegistry.cpp"
     )
