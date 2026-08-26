@@ -15,6 +15,12 @@ struct PlayerId
     bool is_valid() const noexcept { return value != 0U; }
 };
 
+struct TeamId
+{
+    uint32_t value = 0U;
+    bool is_valid() const noexcept { return value != 0U; }
+};
+
 enum class Diplomacy : uint8_t
 {
     neutral = 0U,
@@ -30,6 +36,11 @@ public:
     Error initialize() noexcept;
     Error create_player(PlayerId id) noexcept;
     Error remove_player(PlayerId id) noexcept;
+    Error create_team(TeamId id) noexcept;
+    Error remove_team(TeamId id) noexcept;
+    Error assign_team(PlayerId player, TeamId team) noexcept;
+    Error team_of(PlayerId player, TeamId *team_out) const noexcept;
+    Error are_teammates(PlayerId first, PlayerId second, Bool *result_out) const noexcept;
     Error set_relationship(PlayerId first, PlayerId second,
                            Diplomacy relationship) noexcept;
     Error relationship(PlayerId first, PlayerId second,
@@ -53,7 +64,14 @@ private:
         EntityId entity;
         PlayerId owner;
     };
+    struct TeamMembership
+    {
+        PlayerId player;
+        TeamId team;
+    };
     std::vector<PlayerId> _players;
+    std::vector<TeamId> _teams;
+    std::vector<TeamMembership> _team_memberships;
     std::vector<RelationshipEntry> _relationships;
     std::vector<OwnershipEntry> _ownership;
     Bool _initialized = FT_FALSE;

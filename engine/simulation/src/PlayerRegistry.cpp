@@ -9,6 +9,8 @@ Error PlayerRegistry::initialize() noexcept
 {
     if (_initialized == FT_TRUE) return FT_ERR_ALREADY_INITIALISED;
     _players.clear();
+    _teams.clear();
+    _team_memberships.clear();
     _relationships.clear();
     _ownership.clear();
     _initialized = FT_TRUE;
@@ -59,6 +61,109 @@ Error PlayerRegistry::remove_player(PlayerId id) noexcept
         else
             ++iterator;
     }
+    for (auto iterator = _team_memberships.begin(); iterator != _team_memberships.end();)
+    {
+        if (iterator->player.value == id.value)
+            iterator = _team_memberships.erase(iterator);
+        else
+            ++iterator;
+    }
+    return FT_ERR_SUCCESS;
+}
+
+Error PlayerRegistry::create_team(TeamId id) noexcept
+{
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    if (!id.is_valid()) return FT_ERR_INVALID_ARGUMENT;
+    for (const TeamId team : _teams)
+        if (team.value == id.value) return FT_ERR_ALREADY_EXISTS;
+    try { _teams.push_back(id); }
+    catch (...) { return FT_ERR_NO_MEMORY; }
+    return FT_ERR_SUCCESS;
+}
+
+Error PlayerRegistry::remove_team(TeamId id) noexcept
+{
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    if (!id.is_valid()) return FT_ERR_INVALID_ARGUMENT;
+    bool found = false;
+    for (auto iterator = _teams.begin(); iterator != _teams.end(); ++iterator)
+    {
+        if (iterator->value == id.value)
+        {
+            _teams.erase(iterator);
+            found = true;
+            break;
+        }
+    }
+    if (!found) return FT_ERR_NOT_FOUND;
+    for (auto iterator = _team_memberships.begin(); iterator != _team_memberships.end();)
+    {
+        if (iterator->team.value == id.value)
+            iterator = _team_memberships.erase(iterator);
+        else
+            ++iterator;
+    }
+    return FT_ERR_SUCCESS;
+}
+
+Error PlayerRegistry::assign_team(PlayerId player, TeamId team) noexcept
+{
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    if (!player.is_valid() || !team.is_valid()) return FT_ERR_INVALID_ARGUMENT;
+    if (contains(player) != FT_TRUE) return FT_ERR_NOT_FOUND;
+    bool team_exists = false;
+    for (const TeamId candidate : _teams)
+        if (candidate.value == team.value) { team_exists = true; break; }
+    if (!team_exists) return FT_ERR_NOT_FOUND;
+    for (TeamMembership &membership : _team_memberships)
+    {
+        if (membership.player.value == player.value)
+        {
+            membership.team = team;
+            return FT_ERR_SUCCESS;
+        }
+    }
+    try { _team_memberships.push_back(TeamMembership{player, team}); }
+    catch (...) { return FT_ERR_NO_MEMORY; }
+    return FT_ERR_SUCCESS;
+}
+
+Error PlayerRegistry::team_of(PlayerId player, TeamId *team_out) const noexcept
+{
+    if (team_out == nullptr) return FT_ERR_INVALID_POINTER;
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    if (!player.is_valid() || contains(player) != FT_TRUE) return FT_ERR_NOT_FOUND;
+    for (const TeamMembership &membership : _team_memberships)
+    {
+        if (membership.player.value == player.value)
+        {
+            *team_out = membership.team;
+            return FT_ERR_SUCCESS;
+        }
+    }
+    return FT_ERR_NOT_FOUND;
+}
+
+Error PlayerRegistry::are_teammates(PlayerId first, PlayerId second,
+                                     Bool *result_out) const noexcept
+{
+    if (result_out == nullptr) return FT_ERR_INVALID_POINTER;
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    if (!first.is_valid() || !second.is_valid() || contains(first) != FT_TRUE ||
+        contains(second) != FT_TRUE)
+        return FT_ERR_NOT_FOUND;
+    if (first.value == second.value)
+    {
+        *result_out = FT_TRUE;
+        return FT_ERR_SUCCESS;
+    }
+    TeamId first_team;
+    TeamId second_team;
+    const Error first_error = team_of(first, &first_team);
+    const Error second_error = team_of(second, &second_team);
+    *result_out = (first_error == FT_ERR_SUCCESS && second_error == FT_ERR_SUCCESS &&
+                   first_team.value == second_team.value) ? FT_TRUE : FT_FALSE;
     return FT_ERR_SUCCESS;
 }
 
@@ -199,6 +304,8 @@ Size PlayerRegistry::player_count() const noexcept
 Error PlayerRegistry::shutdown() noexcept
 {
     _relationships.clear();
+    _teams.clear();
+    _team_memberships.clear();
     _ownership.clear();
     _players.clear();
     _initialized = FT_FALSE;
