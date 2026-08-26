@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 #include "CncSimulation/DefinitionRegistry.hpp"
 
@@ -39,6 +40,8 @@ struct SpecialPowerDefinition
 class Catalog final
 {
 public:
+    using ManifestReader = cnc::Error (*)(const char *path, std::string &contents,
+                                           void *context) noexcept;
     static constexpr cnc::DefinitionType science_type{0x5A485343U};
     static constexpr cnc::DefinitionType faction_type{0x5A484641U};
     static constexpr cnc::DefinitionType general_type{0x5A484745U};
@@ -52,6 +55,8 @@ public:
     cnc::Error initialize() noexcept;
     cnc::Error install_default_definitions() noexcept;
     cnc::Error load_manifest(const char *path) noexcept;
+    cnc::Error load_manifest_with_reader(const char *path, ManifestReader reader,
+                                         void *context) noexcept;
     cnc::Error load_manifest_text(const char *text) noexcept;
     cnc::Error shutdown() noexcept;
     cnc::Error validate(cnc::ValidationReport &report) const noexcept;

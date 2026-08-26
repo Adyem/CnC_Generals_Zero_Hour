@@ -38,6 +38,20 @@ void destroy_science(void *raw) noexcept { delete static_cast<ScienceDefinition 
 void destroy_faction(void *raw) noexcept { delete static_cast<FactionDefinition *>(raw); }
 void destroy_general(void *raw) noexcept { delete static_cast<GeneralDefinition *>(raw); }
 void destroy_special_power(void *raw) noexcept { delete static_cast<SpecialPowerDefinition *>(raw); }
+cnc::Error read_manifest_std(const char *path, std::string &contents, void *) noexcept
+{
+    if (path == nullptr) return FT_ERR_INVALID_POINTER;
+    try
+    {
+        std::ifstream input(path);
+        if (!input.is_open()) return FT_ERR_FILE_OPEN_FAILED;
+        std::ostringstream stream;
+        stream << input.rdbuf();
+        contents = stream.str();
+        return FT_ERR_SUCCESS;
+    }
+    catch (...) { return FT_ERR_NO_MEMORY; }
+}
 cnc::Error validate_general(const void *raw, cnc::ValidationReport &report) noexcept;
 cnc::Error validate_special_power(const void *raw, cnc::ValidationReport &report) noexcept;
 
@@ -96,20 +110,22 @@ cnc::Error Catalog::initialize() noexcept
 
 cnc::Error Catalog::load_manifest(const char *path) noexcept
 {
+    return load_manifest_with_reader(path, &read_manifest_std, nullptr);
+}
+
+cnc::Error Catalog::load_manifest_with_reader(const char *path, ManifestReader reader,
+                                              void *context) noexcept
+{
     if (!_initialized) return FT_ERR_INVALID_STATE;
-    if (path == nullptr) return FT_ERR_INVALID_POINTER;
+    if (path == nullptr || reader == nullptr) return FT_ERR_INVALID_POINTER;
     try
     {
-        std::ifstream input(path);
-        if (!input.is_open()) return FT_ERR_FILE_OPEN_FAILED;
-        std::ostringstream contents;
-        contents << input.rdbuf();
-        return load_manifest_text(contents.str().c_str());
+        std::string contents;
+        const cnc::Error error = reader(path, contents, context);
+        if (error != FT_ERR_SUCCESS) return error;
+        return load_manifest_text(contents.c_str());
     }
-    catch (...)
-    {
-        return FT_ERR_NO_MEMORY;
-    }
+    catch (...) { return FT_ERR_NO_MEMORY; }
 }
 
 cnc::Error Catalog::load_manifest_text(const char *text) noexcept

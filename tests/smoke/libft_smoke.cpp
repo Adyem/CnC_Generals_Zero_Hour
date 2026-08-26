@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include "basic.hpp"
@@ -21,6 +22,13 @@ int32_t record_system(void *user_data, cnc::SystemPhase,
 {
     auto *const output = static_cast<std::vector<uint64_t> *>(user_data);
     output->push_back(tick.value);
+    return FT_ERR_SUCCESS;
+}
+
+cnc::Error manifest_reader(const char *, std::string &contents, void *context) noexcept
+{
+    if (context == nullptr) return FT_ERR_INVALID_POINTER;
+    contents = *static_cast<const std::string *>(context);
     return FT_ERR_SUCCESS;
 }
 }
@@ -154,6 +162,16 @@ int main()
         text_catalog.definition_count() != static_cast<cnc::Size>(4U) ||
         text_catalog.shutdown() != FT_ERR_SUCCESS)
         return 21;
+
+    std::string callback_manifest =
+        "SCIENCE,1,1,0\nFACTION,1,1\nGENERAL,1,1,1\nPOWER,1,60,1\n";
+    zero_hour::Catalog callback_catalog;
+    if (callback_catalog.initialize() != FT_ERR_SUCCESS ||
+        callback_catalog.load_manifest_with_reader("memory", &manifest_reader,
+                                                   &callback_manifest) != FT_ERR_SUCCESS ||
+        callback_catalog.definition_count() != static_cast<cnc::Size>(4U) ||
+        callback_catalog.shutdown() != FT_ERR_SUCCESS)
+        return 22;
 
     zero_hour::Catalog invalid_catalog;
 #ifdef CNC_ZERO_HOUR_INVALID_MANIFEST_PATH

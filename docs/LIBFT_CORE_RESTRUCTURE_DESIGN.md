@@ -1445,6 +1445,11 @@ special-power, and general ledgers to that catalog. Call it only on a fresh
 session (a populated catalog returns `FT_ERR_ALREADY_EXISTS`) so live rules
 cannot change under a running simulation. A future Libft File adapter can feed
 the same API without moving ownership into Libft.
+The catalog now separates acquisition from parsing with
+`Catalog::load_manifest_with_reader`. A reader callback supplies file contents
+and can be implemented with Libft File/Filesystem later; validation and game
+ownership remain entirely in Zero Hour. The current `load_manifest` is only the
+standard-library reader used until that Libft adapter is enabled.
 
 Command sequencing is also bounded: the session refuses a new command when
 its 64-bit insertion sequence reaches `UINT64_MAX`, returning
