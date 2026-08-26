@@ -114,7 +114,7 @@ int main()
         return 18;
     cnc::EntityId session_entity;
     if (session.world().create_entity(&session_entity) != FT_ERR_SUCCESS ||
-        session.world().queue_delta(session_entity, 5) != FT_ERR_SUCCESS ||
+        session.submit_world_delta(session_entity, 5) != FT_ERR_SUCCESS ||
         session.advance_one_tick() != FT_ERR_SUCCESS)
         return 19;
     int64_t session_value = 0;

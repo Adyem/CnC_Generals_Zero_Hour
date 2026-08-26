@@ -1430,6 +1430,15 @@ production, combat, renderer, and networking modules one explicit lifecycle
 without embedding Generals rules in Libft. `engine/game` is exposed as the
 `cnc::game_session` CMake target and is covered by the smoke executable.
 
+The session also owns the first input boundary: `submit_world_delta` accepts a
+validated entity command, assigns a monotonically increasing sequence number,
+and stores it until the next tick. Commands are stably sorted and dispatched to
+the deterministic world before ingest systems run; a failed world validation
+leaves the tick unsuccessful. This is deliberately transport-neutral, so the
+future Libft networking adapter and local UI can produce the same command stream
+without becoming simulation dependencies. Multiplayer remains disabled; this
+is only the offline command path.
+
 The next implementation step is to add maintained Libft CMake targets (or temporary explicit adapters) for the transitive `Errno`, `System_utils`, `Time`, `File`, and `Game` modules, then replace this scaffold's storage with Libft `Game` registries and typed systems. Do not expand the manifest to every Libft `.cpp` file until each module's platform and third-party dependencies are represented as CMake targets.
 
 The first dependency probe is represented by `cmake/LibftTime.cmake`. It has an

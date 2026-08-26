@@ -2,6 +2,8 @@
 
 #include "errno.hpp"
 
+#include <algorithm>
+
 namespace cnc
 {
 
@@ -31,9 +33,34 @@ Error GameSession::install_default_data() noexcept
     return _catalog.install_default_definitions();
 }
 
+Error GameSession::submit_world_delta(EntityId entity, int64_t delta) noexcept
+{
+    if (_initialized != FT_TRUE) return FT_ERR_INVALID_STATE;
+    if (!entity.is_valid()) return FT_ERR_INVALID_ARGUMENT;
+    try
+    {
+        _commands.push_back(WorldDeltaCommand{entity, delta, _next_command_sequence++});
+    }
+    catch (...)
+    {
+        return FT_ERR_NO_MEMORY;
+    }
+    return FT_ERR_SUCCESS;
+}
+
 Error GameSession::advance_one_tick() noexcept
 {
     if (_initialized != FT_TRUE) return FT_ERR_INVALID_STATE;
+    std::stable_sort(_commands.begin(), _commands.end(),
+        [](const WorldDeltaCommand &left, const WorldDeltaCommand &right)
+        { return left.sequence < right.sequence; });
+    for (const WorldDeltaCommand &command : _commands)
+    {
+        const Error queue_error = _world.queue_delta(command.entity, command.delta);
+        if (queue_error != FT_ERR_SUCCESS) return queue_error;
+    }
+    _commands.clear();
+
     Error error = _systems.run(SystemPhase::ingest_commands, _world.tick());
     if (error != FT_ERR_SUCCESS) return error;
     error = _world.advance_one_tick();
@@ -47,6 +74,8 @@ Error GameSession::shutdown() noexcept
 {
     if (_initialized != FT_TRUE) return FT_ERR_SUCCESS;
     (void)_systems.clear();
+    _commands.clear();
+    _next_command_sequence = 0U;
     (void)_catalog.shutdown();
     (void)_world.shutdown();
     const Error error = _runtime.shutdown();
