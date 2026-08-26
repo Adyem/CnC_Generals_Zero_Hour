@@ -32,6 +32,7 @@ private:
     SpecialPowerLedger *_powers = nullptr;
     GeneralRoster *_generals = nullptr;
     cnc::DefinitionId _faction;
+    cnc::EntityId _commander;
     uint32_t _science_points = 0U;
     bool _initialized = false;
 };

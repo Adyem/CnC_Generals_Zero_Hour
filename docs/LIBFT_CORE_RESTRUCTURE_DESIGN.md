@@ -1500,6 +1500,10 @@ Generals rules into Libft.
 `GameSession` now owns and initializes this object after its ledgers, exposing
 `player_state()` as the single game-rule composition surface and destroying it
 before the ledgers during shutdown.
+Player state also binds the commander entity to its selected general and
+validates that activated powers are the general's declared signature power;
+generic ledgers provide storage and cooldowns, while this rule remains game
+owned.
 
 The presentation seam now has a portable `cnc::HeadlessRenderer` in
 `engine/render`. It models initialize/begin/submit/end/shutdown and validates

@@ -16,6 +16,7 @@ cnc::Error PlayerState::initialize(const Catalog *catalog, ScienceLedger *scienc
     _powers = powers;
     _generals = generals;
     _faction = cnc::DefinitionId{};
+    _commander = cnc::EntityId{};
     _science_points = 0U;
     _initialized = true;
     return FT_ERR_SUCCESS;
@@ -50,7 +51,9 @@ cnc::Error PlayerState::assign_general(cnc::EntityId entity, cnc::DefinitionId g
     const GeneralDefinition *definition = _catalog->find_general(general);
     if (definition == nullptr) return FT_ERR_NOT_FOUND;
     if (definition->faction.value != _faction.value) return FT_ERR_PERMISSION_DENIED;
-    return _generals->assign(entity, general);
+    const cnc::Error error = _generals->assign(entity, general);
+    if (error == FT_ERR_SUCCESS) _commander = entity;
+    return error;
 }
 
 cnc::Error PlayerState::activate_power(cnc::DefinitionId power, cnc::SimulationTick now,
@@ -58,6 +61,15 @@ cnc::Error PlayerState::activate_power(cnc::DefinitionId power, cnc::SimulationT
 {
     if (!_initialized) return FT_ERR_INVALID_STATE;
     if (_faction.value == 0U) return FT_ERR_INVALID_STATE;
+    if (!_commander.is_valid()) return FT_ERR_INVALID_STATE;
+    cnc::DefinitionId assigned_general;
+    if (_generals->find(_commander, &assigned_general) != FT_ERR_SUCCESS)
+        return FT_ERR_INVALID_STATE;
+    const GeneralDefinition *general = _catalog->find_general(assigned_general);
+    const SpecialPowerDefinition *definition = _catalog->find_special_power(power);
+    if (general == nullptr || definition == nullptr) return FT_ERR_NOT_FOUND;
+    if (general->signature_power.value != definition->id.value)
+        return FT_ERR_PERMISSION_DENIED;
     return _powers->activate(power, now, ready_at);
 }
 
@@ -71,6 +83,7 @@ cnc::Error PlayerState::shutdown() noexcept
     _powers = nullptr;
     _generals = nullptr;
     _faction = cnc::DefinitionId{};
+    _commander = cnc::EntityId{};
     _science_points = 0U;
     _initialized = false;
     return FT_ERR_SUCCESS;
