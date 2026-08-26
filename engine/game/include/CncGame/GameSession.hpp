@@ -7,6 +7,7 @@
 #include "CncSimulation/SystemRegistry.hpp"
 #include "CncSimulation/World.hpp"
 #include "ZeroHourData/Catalog.hpp"
+#include "ZeroHourData/ScienceLedger.hpp"
 #include "CncRender/Renderer.hpp"
 #include "CncNetwork/NetworkSession.hpp"
 
@@ -44,6 +45,7 @@ public:
     DeterministicWorld &world() noexcept;
     SystemRegistry &systems() noexcept;
     const zero_hour::Catalog &catalog() const noexcept;
+    zero_hour::ScienceLedger &science_ledger() noexcept;
     const std::vector<ReplayRecord> &replay_history() const noexcept;
     HeadlessRenderer &renderer() noexcept;
     OfflineNetworkSession &network() noexcept;
@@ -53,6 +55,7 @@ private:
     DeterministicWorld _world;
     SystemRegistry _systems;
     zero_hour::Catalog _catalog;
+    zero_hour::ScienceLedger _science_ledger;
     HeadlessRenderer _renderer;
     OfflineNetworkSession _network;
     std::vector<WorldDeltaCommand> _commands;

@@ -171,20 +171,26 @@ int main()
     cnc::GameSession session;
     if (session.initialize() != FT_ERR_SUCCESS ||
         session.install_default_data() != FT_ERR_SUCCESS ||
-        session.catalog().definition_count() != static_cast<cnc::Size>(4U))
+        session.catalog().definition_count() != static_cast<cnc::Size>(4U) ||
+        session.science_ledger().purchase_count() != static_cast<cnc::Size>(0U))
         return 22;
+    uint32_t session_points = 0U;
+    if (session.science_ledger().purchase(cnc::DefinitionId{1U}, cnc::DefinitionId{1U},
+                                          2U, &session_points) != FT_ERR_SUCCESS ||
+        session_points != 1U)
+        return 23;
     cnc::EntityId session_entity;
     if (session.world().create_entity(&session_entity) != FT_ERR_SUCCESS ||
         session.submit_world_delta(session_entity, 5) != FT_ERR_SUCCESS ||
         session.advance_one_tick() != FT_ERR_SUCCESS)
-        return 23;
+        return 24;
     int64_t session_value = 0;
     if (session.world().read_value(session_entity, &session_value) != FT_ERR_SUCCESS ||
         session_value != 5 || session.world().tick().value != 1U ||
         session.replay_history().size() != 1U ||
         session.replay_history()[0].state_hash != session.world().canonical_state_hash() ||
         session.shutdown() != FT_ERR_SUCCESS || session.is_initialized() == FT_TRUE)
-        return 24;
+        return 25;
 
     cnc::HeadlessRenderer renderer;
     if (renderer.initialize() != FT_ERR_SUCCESS ||

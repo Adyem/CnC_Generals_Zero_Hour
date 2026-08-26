@@ -1452,6 +1452,12 @@ purchase rules, tracks purchased science IDs, and reports failures with Libft
 `FT_ERR_*` results. Its state is game-owned and deterministic; Libft remains
 responsible only for the generic registry/data lifetime beneath it.
 
+`GameSession` now owns the ledger and initializes it after the catalog is
+installed; shutdown destroys ledger state before catalog records. Game systems
+can therefore access `session.science_ledger()` through the same composition
+root used for world commands, renderer state, and the offline network
+capability.
+
 The presentation seam now has a portable `cnc::HeadlessRenderer` in
 `engine/render`. It models initialize/begin/submit/end/shutdown and validates
 resource IDs and dimensions while retaining frame/command counters for tests.
