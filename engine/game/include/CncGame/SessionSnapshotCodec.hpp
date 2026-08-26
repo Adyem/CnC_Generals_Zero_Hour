@@ -13,7 +13,7 @@ namespace cnc
 
 struct SessionSnapshot
 {
-    uint32_t schema_version = 1U;
+    uint32_t schema_version = 2U;
     WorldSnapshot world;
     PlayerRegistrySnapshot players;
     SpatialIndexSnapshot spatial;
@@ -23,7 +23,7 @@ struct SessionSnapshot
 class SessionSnapshotCodec final
 {
 public:
-    static constexpr uint32_t wire_schema_version = 1U;
+    static constexpr uint32_t wire_schema_version = 2U;
     static Error encode(const SessionSnapshot &snapshot,
                         std::vector<uint8_t> *bytes_out) noexcept;
     static Error decode(const uint8_t *bytes, ft_size_t byte_count,
