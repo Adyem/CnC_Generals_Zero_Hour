@@ -1521,6 +1521,9 @@ configures and builds it against the installed prefix with
 `find_package(CnCGeneralsZeroHour CONFIG REQUIRED)`, proving exported targets,
 headers, and transitive links work after installation rather than only inside
 the repository build.
+The consumer explicitly uses Ninja, matching the single-configuration package
+producer and avoiding configuration-mapping differences on Windows IDE
+generators.
 Install rules declare archive, shared-library, and runtime destinations for
 each native target so the same exported package layout works with static or
 shared toolchains on all supported platforms.
