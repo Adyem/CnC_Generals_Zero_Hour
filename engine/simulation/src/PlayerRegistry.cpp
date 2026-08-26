@@ -216,6 +216,26 @@ Error PlayerRegistry::owner(EntityId entity, PlayerId *owner_out) const noexcept
     return FT_ERR_NOT_FOUND;
 }
 
+Error PlayerRegistry::owned_entities(PlayerId owner_id,
+                                     std::vector<EntityId> *entities_out) const noexcept
+{
+    if (entities_out == nullptr) return FT_ERR_INVALID_POINTER;
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    if (!owner_id.is_valid() || contains(owner_id) != FT_TRUE) return FT_ERR_NOT_FOUND;
+    try
+    {
+        entities_out->clear();
+        for (const OwnershipEntry &entry : _ownership)
+            if (entry.owner.value == owner_id.value) entities_out->push_back(entry.entity);
+    }
+    catch (...)
+    {
+        entities_out->clear();
+        return FT_ERR_NO_MEMORY;
+    }
+    return FT_ERR_SUCCESS;
+}
+
 PlayerRegistry::RelationshipEntry *PlayerRegistry::find_relationship(
     PlayerId first, PlayerId second) noexcept
 {

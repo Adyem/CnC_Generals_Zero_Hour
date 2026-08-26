@@ -150,6 +150,7 @@ int main()
     cnc::PlayerId owner_id;
     cnc::TeamId team_id;
     cnc::Bool teammates = FT_FALSE;
+    std::vector<cnc::EntityId> owned_entities;
     if (players.initialize() != FT_ERR_SUCCESS ||
         players.create_player(cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
         players.create_player(cnc::PlayerId{2U}) != FT_ERR_SUCCESS ||
@@ -169,6 +170,8 @@ int main()
         players.owner(cnc::EntityId{42U}, nullptr) != FT_ERR_INVALID_POINTER ||
         players.owner(cnc::EntityId{42U}, &owner_id) != FT_ERR_SUCCESS || owner_id.value != 1U ||
         players.set_owner(cnc::EntityId{42U}, cnc::PlayerId{2U}) != FT_ERR_SUCCESS ||
+        players.owned_entities(cnc::PlayerId{2U}, &owned_entities) != FT_ERR_SUCCESS ||
+        owned_entities.size() != 1U || owned_entities[0].value != 42U ||
         players.remove_player(cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
         players.relationship(cnc::PlayerId{2U}, cnc::PlayerId{1U}, &diplomacy) != FT_ERR_NOT_FOUND ||
         players.owner(cnc::EntityId{42U}, &owner_id) != FT_ERR_SUCCESS || owner_id.value != 2U ||

@@ -48,6 +48,7 @@ public:
     Error set_owner(EntityId entity, PlayerId owner) noexcept;
     Error clear_owner(EntityId entity) noexcept;
     Error owner(EntityId entity, PlayerId *owner_out) const noexcept;
+    Error owned_entities(PlayerId owner, std::vector<EntityId> *entities_out) const noexcept;
     Bool contains(PlayerId id) const noexcept;
     Size player_count() const noexcept;
     Error shutdown() noexcept;
