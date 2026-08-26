@@ -171,6 +171,8 @@ int main()
         players.set_owner(cnc::EntityId{42U}, cnc::PlayerId{2U}) != FT_ERR_SUCCESS ||
         players.remove_player(cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
         players.relationship(cnc::PlayerId{2U}, cnc::PlayerId{1U}, &diplomacy) != FT_ERR_NOT_FOUND ||
+        players.owner(cnc::EntityId{42U}, &owner_id) != FT_ERR_SUCCESS || owner_id.value != 2U ||
+        players.remove_player(cnc::PlayerId{2U}) != FT_ERR_SUCCESS ||
         players.owner(cnc::EntityId{42U}, &owner_id) != FT_ERR_NOT_FOUND ||
         players.shutdown() != FT_ERR_SUCCESS)
         return 44;
