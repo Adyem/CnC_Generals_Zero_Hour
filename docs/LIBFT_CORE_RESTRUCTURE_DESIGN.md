@@ -1490,6 +1490,13 @@ headers under standard `GNUInstallDirs` locations; it never copies the legacy
 and CPack emits ZIP/TGZ packages containing project-owned artifacts. Proprietary
 game data remains an explicit staging input and is not bundled automatically.
 
+The new `stage_zero_hour` target implements the explicit staging boundary. Set
+`CNC_GAME_DATA_ROOT` to a legally owned data directory, then run
+`cmake --build <build-dir> --target stage_zero_hour`; CMake validates the path
+at stage time and copies the executable, declared project manifest, and data
+into `build/stage/zero_hour`. The root is empty by default, so compilation and
+unit tests never require proprietary game files.
+
 Configure-time build metadata now replaces the legacy `versionUpdate.exe` and
 `buildVersionUpdate.exe` mutation flow. CMake generates
 `CncBuild/BuildInfo.hpp` in the binary tree with the project version and a short

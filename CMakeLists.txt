@@ -41,6 +41,8 @@ endif()
 
 set(CNC_LIBFT_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/external/libft" CACHE PATH
     "Path to the pinned Libft checkout")
+set(CNC_GAME_DATA_ROOT "" CACHE PATH
+    "Legally owned Generals/Zero Hour data root used only by stage_zero_hour")
 
 if(NOT EXISTS "${CNC_LIBFT_ROOT}/FullLibft.hpp")
     message(FATAL_ERROR
@@ -353,6 +355,15 @@ if(TARGET cnc_network_stub)
 endif()
 if(TARGET cnc_zero_hour_headless)
     install(TARGETS cnc_zero_hour_headless RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    add_custom_target(stage_zero_hour
+        COMMAND ${CMAKE_COMMAND}
+            -DCNC_GAME_DATA_ROOT=${CNC_GAME_DATA_ROOT}
+            -DCNC_STAGE_ROOT=${CMAKE_BINARY_DIR}/stage/zero_hour
+            -DCNC_EXECUTABLE=$<TARGET_FILE:cnc_zero_hour_headless>
+            -DCNC_PROJECT_MANIFEST=${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/zero_hour_manifest.csv
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/StageZeroHour.cmake"
+        DEPENDS cnc_zero_hour_headless
+        VERBATIM)
 endif()
 
 set(CPACK_PACKAGE_NAME "cnc-generals-zero-hour")
