@@ -25,6 +25,12 @@ Error OfflineNetworkSession::send(const uint8_t *payload, Size size) noexcept
     return FT_ERR_INVALID_OPERATION;
 }
 
+Error OfflineNetworkSession::send_command_frame(const WorldCommandFrame &frame) noexcept
+{
+    (void)frame;
+    return FT_ERR_INVALID_OPERATION;
+}
+
 Error OfflineNetworkSession::shutdown() noexcept { return FT_ERR_SUCCESS; }
 Bool OfflineNetworkSession::is_initialized() const noexcept { return FT_TRUE; }
 Bool OfflineNetworkSession::is_online() const noexcept { return FT_FALSE; }

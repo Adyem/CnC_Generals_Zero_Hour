@@ -7,6 +7,8 @@
 namespace cnc
 {
 
+struct WorldCommandFrame;
+
 // Backend-neutral contract. A future Libft transport can replace the offline
 // implementation without changing GameSession or game rules.
 class NetworkSession
@@ -17,6 +19,7 @@ public:
     virtual const char *backend_name() const noexcept = 0;
     virtual Error connect(const char *endpoint) noexcept = 0;
     virtual Error send(const uint8_t *payload, Size size) noexcept = 0;
+    virtual Error send_command_frame(const WorldCommandFrame &frame) noexcept = 0;
     virtual Error shutdown() noexcept = 0;
     virtual Bool is_initialized() const noexcept = 0;
     virtual Bool is_online() const noexcept = 0;
@@ -30,6 +33,7 @@ public:
     const char *backend_name() const noexcept override;
     Error connect(const char *endpoint) noexcept override;
     Error send(const uint8_t *payload, Size size) noexcept override;
+    Error send_command_frame(const WorldCommandFrame &frame) noexcept override;
     Error shutdown() noexcept override;
     Bool is_initialized() const noexcept override;
     Bool is_online() const noexcept override;

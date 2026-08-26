@@ -407,6 +407,7 @@ int main()
     if (network.initialize() != FT_ERR_SUCCESS || network.is_online() == FT_TRUE ||
         network.connect("offline.example") != FT_ERR_INVALID_OPERATION ||
         network.send(&payload, static_cast<cnc::Size>(1U)) != FT_ERR_INVALID_OPERATION ||
+        network.send_command_frame(command_frame) != FT_ERR_INVALID_OPERATION ||
         network.shutdown() != FT_ERR_SUCCESS)
         return 24;
 

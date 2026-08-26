@@ -1721,6 +1721,10 @@ the frame, requires its tick to match the current authoritative tick, and feeds
 validated records through the same local command queue used by offline input.
 It intentionally does not open a socket or bypass command validation; the
 offline network backend continues returning `FT_ERR_INVALID_OPERATION`.
+`NetworkSession::send_command_frame` mirrors this typed boundary for outbound
+frames. `OfflineNetworkSession` rejects it unconditionally, making an attempted
+multiplayer path observable and safe while the eventual Libft Networking
+implementation can encode and transmit the same canonical frame.
 Frame ingestion is transactional: the session validates every referenced live
 entity and builds a projected command queue before swapping it in. If any
 record is rejected, or queue allocation fails, no earlier record from that
