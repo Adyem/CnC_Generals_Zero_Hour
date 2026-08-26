@@ -24,6 +24,7 @@
 #include "ZeroHourData/Catalog.hpp"
 #include "ZeroHourData/PlayerState.hpp"
 #include "ZeroHourData/PlayerStateRegistry.hpp"
+#include "ZeroHourData/PlayerStateRegistryCodec.hpp"
 #include "ZeroHourData/ScienceLedger.hpp"
 #include "CncGame/GameSession.hpp"
 #include "CncRender/Renderer.hpp"
@@ -487,7 +488,17 @@ int main()
         player_states.find(cnc::PlayerId{1U}) == nullptr ||
         ((player_state_hash = player_states.canonical_state_hash()) == 0U) ||
         player_states.find(cnc::PlayerId{1U})->set_faction(cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
-        player_states.canonical_state_hash() == player_state_hash ||
+        player_states.canonical_state_hash() == player_state_hash)
+        return 57;
+    zero_hour::PlayerStateRegistry::Snapshot player_state_snapshot;
+    std::vector<uint8_t> player_state_bytes;
+    zero_hour::PlayerStateRegistry::Snapshot decoded_player_state;
+    if (player_states.export_snapshot(&player_state_snapshot) != FT_ERR_SUCCESS ||
+        zero_hour::PlayerStateRegistryCodec::encode(player_state_snapshot, &player_state_bytes) != FT_ERR_SUCCESS ||
+        zero_hour::PlayerStateRegistryCodec::decode(player_state_bytes.data(),
+            static_cast<cnc::Size>(player_state_bytes.size()), &decoded_player_state) != FT_ERR_SUCCESS ||
+        decoded_player_state.entries.size() != player_state_snapshot.entries.size() ||
+        decoded_player_state.entries[0].player.value != player_state_snapshot.entries[0].player.value ||
         player_states.remove(cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
         player_states.find(cnc::PlayerId{1U}) != nullptr ||
         player_states.remove(cnc::PlayerId{2U}) != FT_ERR_SUCCESS ||
