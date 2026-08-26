@@ -148,6 +148,7 @@ if(CNC_BUILD_SIMULATION)
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/ProductionQueue.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/VisibilityRegistry.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/SelectionState.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/GridPathfinder.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/VisibilityRegistryCodec.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/PlayerRegistry.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/SystemRegistry.cpp"

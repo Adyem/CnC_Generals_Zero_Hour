@@ -18,6 +18,7 @@
 #include "CncSimulation/ProductionQueue.hpp"
 #include "CncSimulation/VisibilityRegistry.hpp"
 #include "CncSimulation/SelectionState.hpp"
+#include "CncSimulation/GridPathfinder.hpp"
 #include "CncSimulation/SystemRegistry.hpp"
 #include "CncSimulation/DefinitionRegistry.hpp"
 #include "ZeroHourData/Catalog.hpp"
@@ -339,6 +340,19 @@ int main()
         selected.size() != 1U || selected[0].value != 9U ||
         selection.shutdown() != FT_ERR_SUCCESS)
         return 55;
+
+    cnc::GridPathfinder pathfinder;
+    std::vector<cnc::GridCell> path;
+    if (pathfinder.initialize(5U, 5U) != FT_ERR_SUCCESS ||
+        pathfinder.set_blocked(1U, 0U, FT_TRUE) != FT_ERR_SUCCESS ||
+        pathfinder.set_blocked(1U, 1U, FT_TRUE) != FT_ERR_SUCCESS ||
+        pathfinder.find_path(cnc::GridCell{0U, 0U}, cnc::GridCell{2U, 0U}, &path) != FT_ERR_SUCCESS ||
+        path.empty() || path.front().x != 0U || path.front().y != 0U ||
+        path.back().x != 2U || path.back().y != 0U ||
+        pathfinder.set_blocked(0U, 1U, FT_TRUE) != FT_ERR_SUCCESS ||
+        pathfinder.find_path(cnc::GridCell{0U, 0U}, cnc::GridCell{2U, 0U}, &path) != FT_ERR_NOT_FOUND ||
+        !path.empty() || pathfinder.shutdown() != FT_ERR_SUCCESS)
+        return 56;
 
     cnc::SystemRegistry systems;
     std::vector<uint64_t> execution_ticks;

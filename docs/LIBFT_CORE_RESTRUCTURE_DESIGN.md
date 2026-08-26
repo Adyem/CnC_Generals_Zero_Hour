@@ -545,6 +545,12 @@ supports ten numbered groups per player, and removes destroyed entities from
 all groups. It is deliberately excluded from authoritative session snapshots:
 selection is local input/presentation state, while commands generated from it
 still enter the validated simulation command queue.
+`cnc::GridPathfinder` is the bounded deterministic path-request primitive. It
+uses fixed-width grid coordinates, a hard cell-count limit, explicit blocked
+cells, and a fixed neighbor order for reproducible routes. It does not assign
+terrain costs or mutate entities; Zero Hour can layer weighted movement,
+formations, and blocked-path recovery on top without moving map semantics into
+the generic engine.
 
 ### 7.4 State, snapshot, and replay design
 
