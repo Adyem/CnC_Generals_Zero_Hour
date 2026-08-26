@@ -76,8 +76,10 @@ add_library(libft::basic ALIAS libft_basic)
 target_compile_features(libft_basic PUBLIC cxx_std_17)
 target_include_directories(libft_basic
     PUBLIC
-        "${_cnc_libft_basic_dir}"
-        "${CNC_LIBFT_ROOT}/Modules/Errno"
+        $<BUILD_INTERFACE:${_cnc_libft_basic_dir}>
+        $<BUILD_INTERFACE:${CNC_LIBFT_ROOT}/Modules/Errno>
+        $<INSTALL_INTERFACE:include/Basic>
+        $<INSTALL_INTERFACE:include/Errno>
 )
 
 set_target_properties(libft_basic PROPERTIES

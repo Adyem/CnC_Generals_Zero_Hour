@@ -32,8 +32,11 @@ add_library(libft::game ALIAS libft_game)
 target_compile_features(libft_game PUBLIC cxx_std_17)
 target_compile_definitions(libft_game PRIVATE LIBFT_INTERNAL_HEADERS)
 target_include_directories(libft_game PUBLIC
-    "${CNC_LIBFT_ROOT}/Modules/Game"
-    "${CNC_LIBFT_ROOT}/Modules/Basic"
-    "${CNC_LIBFT_ROOT}/Modules/Errno")
+    $<BUILD_INTERFACE:${CNC_LIBFT_ROOT}/Modules/Game>
+    $<BUILD_INTERFACE:${CNC_LIBFT_ROOT}/Modules/Basic>
+    $<BUILD_INTERFACE:${CNC_LIBFT_ROOT}/Modules/Errno>
+    $<INSTALL_INTERFACE:include/libft/Game>
+    $<INSTALL_INTERFACE:include/Basic>
+    $<INSTALL_INTERFACE:include/Errno>)
 target_link_libraries(libft_game PUBLIC libft::basic)
 set_target_properties(libft_game PROPERTIES POSITION_INDEPENDENT_CODE ON)

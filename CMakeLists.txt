@@ -101,8 +101,9 @@ if(CNC_BUILD_RUNTIME)
     target_compile_features(cnc_runtime PUBLIC cxx_std_17)
     target_include_directories(cnc_runtime
         PUBLIC
-            "${CMAKE_CURRENT_SOURCE_DIR}/engine/runtime/include"
-            "${CMAKE_CURRENT_BINARY_DIR}/generated"
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/engine/runtime/include>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/generated>
+            $<INSTALL_INTERFACE:include>
     )
     target_link_libraries(cnc_runtime PUBLIC libft::basic)
     cnc_enable_native_warnings(cnc_runtime)
@@ -123,7 +124,8 @@ if(CNC_BUILD_SIMULATION)
     target_compile_features(cnc_simulation PUBLIC cxx_std_17)
     target_include_directories(cnc_simulation
         PUBLIC
-            "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/include"
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/include>
+            $<INSTALL_INTERFACE:include>
     )
     target_link_libraries(cnc_simulation PUBLIC cnc::runtime)
     cnc_enable_native_warnings(cnc_simulation)
@@ -143,7 +145,8 @@ if(CNC_BUILD_GAME_DATA)
     add_library(cnc::zero_hour_data ALIAS cnc_zero_hour_data)
     target_compile_features(cnc_zero_hour_data PUBLIC cxx_std_17)
     target_include_directories(cnc_zero_hour_data PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/include")
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/include>
+        $<INSTALL_INTERFACE:include>)
     target_link_libraries(cnc_zero_hour_data PUBLIC cnc::simulation)
     cnc_enable_native_warnings(cnc_zero_hour_data)
     cnc_enable_native_sanitizers(cnc_zero_hour_data)
@@ -159,7 +162,8 @@ if(CNC_BUILD_GAME_SESSION)
     add_library(cnc::game_session ALIAS cnc_game_session)
     target_compile_features(cnc_game_session PUBLIC cxx_std_17)
     target_include_directories(cnc_game_session PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}/engine/game/include")
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/engine/game/include>
+        $<INSTALL_INTERFACE:include>)
     target_link_libraries(cnc_game_session PUBLIC cnc::zero_hour_data)
     if(TARGET cnc::render)
         target_link_libraries(cnc_game_session PUBLIC cnc::render)
@@ -180,7 +184,8 @@ if(CNC_BUILD_RENDERER)
     add_library(cnc::render ALIAS cnc_render)
     target_compile_features(cnc_render PUBLIC cxx_std_17)
     target_include_directories(cnc_render PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}/engine/render/include")
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/engine/render/include>
+        $<INSTALL_INTERFACE:include>)
     target_link_libraries(cnc_render PUBLIC cnc::runtime)
     cnc_enable_native_warnings(cnc_render)
     cnc_enable_native_sanitizers(cnc_render)
@@ -195,7 +200,8 @@ if(CNC_BUILD_NETWORK_STUB)
     add_library(cnc::network_stub ALIAS cnc_network_stub)
     target_compile_features(cnc_network_stub PUBLIC cxx_std_17)
     target_include_directories(cnc_network_stub PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}/engine/network/include")
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/engine/network/include>
+        $<INSTALL_INTERFACE:include>)
     target_link_libraries(cnc_network_stub PUBLIC cnc::runtime)
     cnc_enable_native_warnings(cnc_network_stub)
     cnc_enable_native_sanitizers(cnc_network_stub)
@@ -323,6 +329,10 @@ message(STATUS "CNC multiplayer: disabled (offline migration stage)")
 if(TARGET libft_basic)
     set_target_properties(libft_basic PROPERTIES EXPORT_NAME basic)
     install(TARGETS libft_basic EXPORT cncTargets ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    install(DIRECTORY external/libft/Modules/Basic/ DESTINATION
+        "${CMAKE_INSTALL_INCLUDEDIR}/Basic" FILES_MATCHING PATTERN "*.hpp")
+    install(DIRECTORY external/libft/Modules/Errno/ DESTINATION
+        "${CMAKE_INSTALL_INCLUDEDIR}/Errno" FILES_MATCHING PATTERN "*.hpp")
 endif()
 if(TARGET libft_game)
     set_target_properties(libft_game PROPERTIES EXPORT_NAME game)
