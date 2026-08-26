@@ -1,16 +1,29 @@
 #include <cstdint>
 #include <iostream>
+#include <string>
 
 #include "CncGame/GameSession.hpp"
 #include "CncRender/Renderer.hpp"
 #include "CncBuild/BuildInfo.hpp"
 
-int main()
+int main(int argc, char **argv)
 {
     cnc::GameSession session;
-    if (session.initialize() != FT_ERR_SUCCESS ||
-        session.install_default_data() != FT_ERR_SUCCESS)
+    if (session.initialize() != FT_ERR_SUCCESS)
         return 1;
+
+    cnc::Error data_error = FT_ERR_SUCCESS;
+    if (argc == 1)
+        data_error = session.install_default_data();
+    else if (argc == 3 && std::string(argv[1]) == "--manifest")
+        data_error = session.load_data_manifest(argv[2]);
+    else
+        data_error = FT_ERR_INVALID_ARGUMENT;
+    if (data_error != FT_ERR_SUCCESS)
+    {
+        (void)session.shutdown();
+        return 1;
+    }
 
     cnc::EntityId entity;
     if (session.world().create_entity(&entity) != FT_ERR_SUCCESS ||

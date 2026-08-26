@@ -1495,6 +1495,8 @@ catalog, advances one typed command, submits one validated render command, and
 prints the resulting tick/hash/frame counters. CMake registers it as
 `integration.offline`; this is the initial runnable Zero Hour path and remains
 independent of SAGE, DirectX, SafeDisk, GameSpy, and multiplayer.
+With `--manifest <path>` it exercises the same game-owned manifest loader used
+by staged assets; without arguments it uses built-in defaults.
 
 The root CMake file now installs only declared native targets and their public
 headers under standard `GNUInstallDirs` locations; it never copies the legacy
