@@ -57,6 +57,19 @@ Error GameSession::install_default_data() noexcept
     return _general_roster.initialize(&_catalog);
 }
 
+Error GameSession::load_data_manifest(const char *path) noexcept
+{
+    if (_initialized != FT_TRUE) return FT_ERR_INVALID_STATE;
+    if (path == nullptr) return FT_ERR_INVALID_ARGUMENT;
+    Error error = _catalog.load_manifest(path);
+    if (error != FT_ERR_SUCCESS) return error;
+    error = _science_ledger.initialize(&_catalog);
+    if (error != FT_ERR_SUCCESS) return error;
+    error = _special_power_ledger.initialize(&_catalog);
+    if (error != FT_ERR_SUCCESS) return error;
+    return _general_roster.initialize(&_catalog);
+}
+
 Error GameSession::submit_world_delta(EntityId entity, int64_t delta) noexcept
 {
     if (_initialized != FT_TRUE) return FT_ERR_INVALID_STATE;

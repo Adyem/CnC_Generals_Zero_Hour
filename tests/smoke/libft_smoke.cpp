@@ -174,6 +174,12 @@ int main()
         session.catalog().definition_count() != static_cast<cnc::Size>(4U) ||
         session.science_ledger().purchase_count() != static_cast<cnc::Size>(0U))
         return 22;
+    cnc::GameSession manifest_session;
+    if (manifest_session.initialize() != FT_ERR_SUCCESS ||
+        manifest_session.load_data_manifest("tests/fixtures/zero_hour_manifest.csv") != FT_ERR_SUCCESS ||
+        manifest_session.catalog().definition_count() != static_cast<cnc::Size>(4U) ||
+        manifest_session.shutdown() != FT_ERR_SUCCESS)
+        return 25;
     uint32_t session_points = 0U;
     if (session.science_ledger().purchase(cnc::DefinitionId{1U}, cnc::DefinitionId{1U},
                                           2U, &session_points) != FT_ERR_SUCCESS ||

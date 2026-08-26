@@ -38,6 +38,8 @@ public:
 
     Error initialize() noexcept;
     Error install_default_data() noexcept;
+    // Loads game-owned definitions; the Libft core remains data-agnostic.
+    Error load_data_manifest(const char *path) noexcept;
     Error submit_world_delta(EntityId entity, int64_t delta) noexcept;
     Error advance_one_tick() noexcept;
     Error shutdown() noexcept;

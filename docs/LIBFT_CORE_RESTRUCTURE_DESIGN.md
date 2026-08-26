@@ -1439,6 +1439,13 @@ acquisition delegates to that function, so a future Libft File adapter can feed
 the exact same parser without changing ownership, validation, or error
 semantics. The smoke test covers both the staged-file and in-memory paths.
 
+`GameSession::load_data_manifest` is the composition-root entry point for a
+real match. It loads the game-owned catalog from a path and wires the science,
+special-power, and general ledgers to that catalog. Call it only on a fresh
+session (a populated catalog returns `FT_ERR_ALREADY_EXISTS`) so live rules
+cannot change under a running simulation. A future Libft File adapter can feed
+the same API without moving ownership into Libft.
+
 Catalog validation also follows references between records: factions must point
 to an existing science, and generals must point to an existing faction and
 special power. The invalid fixture
