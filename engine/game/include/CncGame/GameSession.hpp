@@ -7,6 +7,7 @@
 #include "CncSimulation/SystemRegistry.hpp"
 #include "CncSimulation/World.hpp"
 #include "CncSimulation/SnapshotCodec.hpp"
+#include "CncSimulation/CommandCodec.hpp"
 #include "ZeroHourData/Catalog.hpp"
 #include "ZeroHourData/ScienceLedger.hpp"
 #include "ZeroHourData/SpecialPowerLedger.hpp"
