@@ -1434,6 +1434,14 @@ smoke test. This is an interim game-owned loader; once Libft File is portable it
 should replace the stream I/O while preserving this grammar and ownership
 boundary.
 
+The presentation seam now has a portable `cnc::HeadlessRenderer` in
+`engine/render`. It models initialize/begin/submit/end/shutdown and validates
+resource IDs and dimensions while retaining frame/command counters for tests.
+The target is deliberately backend-free: a future GPGR renderer can implement
+the same command contract, and an offscreen backend can verify parity without a
+display. The smoke test exercises one complete frame. No DirectX, X11, or GPGR
+source is linked until the renderer/resource API is expanded in its own target.
+
 `cnc::GameSession` now acts as the headless composition root. Its startup order
 is Runtime -> DeterministicWorld -> Zero Hour Catalog; shutdown reverses that
 order and clears scheduled systems. A tick runs ingest systems, advances the

@@ -10,6 +10,7 @@
 #include "CncSimulation/DefinitionRegistry.hpp"
 #include "ZeroHourData/Catalog.hpp"
 #include "CncGame/GameSession.hpp"
+#include "CncRender/Renderer.hpp"
 
 namespace
 {
@@ -143,6 +144,15 @@ int main()
         session_value != 5 || session.world().tick().value != 1U ||
         session.shutdown() != FT_ERR_SUCCESS || session.is_initialized() == FT_TRUE)
         return 22;
+
+    cnc::HeadlessRenderer renderer;
+    if (renderer.initialize() != FT_ERR_SUCCESS ||
+        renderer.begin_frame() != FT_ERR_SUCCESS ||
+        renderer.submit(cnc::RenderCommand{1U, 0, 0, 64U, 64U}) != FT_ERR_SUCCESS ||
+        renderer.submitted_command_count() != static_cast<cnc::Size>(1U) ||
+        renderer.end_frame() != FT_ERR_SUCCESS || renderer.frame_count() != 1U ||
+        renderer.shutdown() != FT_ERR_SUCCESS)
+        return 23;
 
     std::cout << "libft smoke ok (" << CNC_PROJECT_VERSION << ")\n";
     return 0;
