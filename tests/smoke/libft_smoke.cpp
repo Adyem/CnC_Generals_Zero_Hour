@@ -200,6 +200,8 @@ int main()
         return 22;
     if (session.has_game_data() != FT_TRUE)
         return 29;
+    if (session.phase() != cnc::GameSession::Phase::data_ready)
+        return 33;
     if (session.validate_game_data() != FT_ERR_SUCCESS)
         return 31;
     cnc::GameSession manifest_session;
@@ -265,6 +267,7 @@ int main()
         session.replay_history().size() != 1U ||
         session.replay_history()[0].state_hash != session.world().canonical_state_hash() ||
         session.verify_replay(session.replay_history()) != FT_ERR_SUCCESS ||
+        session.phase() != cnc::GameSession::Phase::running ||
         session.shutdown() != FT_ERR_SUCCESS || session.is_initialized() == FT_TRUE)
         return 27;
 

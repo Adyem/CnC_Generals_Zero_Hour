@@ -42,6 +42,7 @@ Error GameSession::initialize() noexcept
         return error;
     }
     _initialized = FT_TRUE;
+    _phase = Phase::initialized;
     _replay_history.clear();
     return FT_ERR_SUCCESS;
 }
@@ -60,7 +61,9 @@ Error GameSession::install_default_data() noexcept
     error = _player_state.initialize(&_catalog, &_science_ledger,
                                      &_special_power_ledger, &_general_roster);
     if (error != FT_ERR_SUCCESS) return error;
-    return validate_game_data();
+    error = validate_game_data();
+    if (error == FT_ERR_SUCCESS) _phase = Phase::data_ready;
+    return error;
 }
 
 Error GameSession::load_data_manifest(const char *path) noexcept
@@ -78,12 +81,16 @@ Error GameSession::load_data_manifest(const char *path) noexcept
     error = _player_state.initialize(&_catalog, &_science_ledger,
                                      &_special_power_ledger, &_general_roster);
     if (error != FT_ERR_SUCCESS) return error;
-    return validate_game_data();
+    error = validate_game_data();
+    if (error == FT_ERR_SUCCESS) _phase = Phase::data_ready;
+    return error;
 }
 
 Error GameSession::submit_world_delta(EntityId entity, int64_t delta) noexcept
 {
-    if (_initialized != FT_TRUE) return FT_ERR_INVALID_STATE;
+    if (_initialized != FT_TRUE ||
+        (_phase != Phase::data_ready && _phase != Phase::running))
+        return FT_ERR_INVALID_STATE;
     if (!entity.is_valid()) return FT_ERR_INVALID_ARGUMENT;
     if (_next_command_sequence == std::numeric_limits<uint64_t>::max())
         return FT_ERR_OUT_OF_RANGE;
@@ -100,7 +107,9 @@ Error GameSession::submit_world_delta(EntityId entity, int64_t delta) noexcept
 
 Error GameSession::advance_one_tick() noexcept
 {
-    if (_initialized != FT_TRUE) return FT_ERR_INVALID_STATE;
+    if (_initialized != FT_TRUE ||
+        (_phase != Phase::data_ready && _phase != Phase::running))
+        return FT_ERR_INVALID_STATE;
     std::stable_sort(_commands.begin(), _commands.end(),
         [](const WorldDeltaCommand &left, const WorldDeltaCommand &right)
         { return left.sequence < right.sequence; });
@@ -127,6 +136,7 @@ Error GameSession::advance_one_tick() noexcept
     {
         return FT_ERR_NO_MEMORY;
     }
+    _phase = Phase::running;
     return FT_ERR_SUCCESS;
 }
 
@@ -147,6 +157,7 @@ Error GameSession::shutdown() noexcept
     (void)_world.shutdown();
     const Error error = _runtime.shutdown();
     _initialized = FT_FALSE;
+    _phase = Phase::cold;
     return error;
 }
 
@@ -162,6 +173,7 @@ Error GameSession::validate_game_data() const noexcept
     ValidationReport report;
     return _catalog.validate(report);
 }
+GameSession::Phase GameSession::phase() const noexcept { return _phase; }
 Runtime &GameSession::runtime() noexcept { return _runtime; }
 SimulationWorld &GameSession::world() noexcept { return _world; }
 SystemRegistry &GameSession::systems() noexcept { return _systems; }

@@ -20,6 +20,7 @@ namespace cnc
 class GameSession final
 {
 public:
+    enum class Phase : uint8_t { cold, initialized, data_ready, running };
     struct WorldDeltaCommand
     {
         EntityId entity;
@@ -49,6 +50,7 @@ public:
     Bool is_initialized() const noexcept;
     Bool has_game_data() const noexcept;
     Error validate_game_data() const noexcept;
+    Phase phase() const noexcept;
     Runtime &runtime() noexcept;
     SimulationWorld &world() noexcept;
     SystemRegistry &systems() noexcept;
@@ -76,6 +78,7 @@ private:
     uint64_t _next_command_sequence = 0U;
     std::vector<ReplayRecord> _replay_history;
     Bool _initialized = FT_FALSE;
+    Phase _phase = Phase::cold;
 };
 
 }

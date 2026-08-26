@@ -1616,6 +1616,10 @@ graphs before submitting simulation commands.
 Both `install_default_data()` and `load_data_manifest()` now invoke this gate
 before returning success, making validation part of startup rather than an
 optional caller convention.
+`GameSession::Phase` makes the lifecycle explicit (`cold`, `initialized`,
+`data_ready`, `running`); command submission and tick advancement are rejected
+outside the data-ready/running phases, preventing partially initialized Libft
+backends from receiving gameplay input.
 Each backend contract also exposes a stable `backend_name()` identifier. The
 headless launcher prints the active runtime/world/renderer/network adapters,
 which makes accidental reintroduction of a legacy or partially initialized
