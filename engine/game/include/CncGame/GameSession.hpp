@@ -55,7 +55,7 @@ public:
     zero_hour::GeneralRoster &general_roster() noexcept;
     const std::vector<ReplayRecord> &replay_history() const noexcept;
     HeadlessRenderer &renderer() noexcept;
-    OfflineNetworkSession &network() noexcept;
+    NetworkSession &network() noexcept;
 
 private:
     Runtime _runtime;

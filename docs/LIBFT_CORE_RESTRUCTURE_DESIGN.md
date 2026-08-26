@@ -1563,6 +1563,9 @@ are harmless, but connect/send return `FT_ERR_INVALID_OPERATION` and
 `is_online()` is always false. The stub is a real CMake target and smoke-tested,
 so future Libft networking can replace it behind a known capability contract
 without re-enabling GameSpy or silently creating a partially working lobby.
+`NetworkSession` is the abstract contract exposed by `GameSession`; the
+offline implementation is only one backend, keeping game code independent of
+transport selection.
 
 `cnc::GameSession` now acts as the headless composition root. Its startup order
 is Runtime -> DeterministicWorld -> Zero Hour Catalog; shutdown reverses that

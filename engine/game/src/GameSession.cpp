@@ -169,6 +169,6 @@ const std::vector<GameSession::ReplayRecord> &GameSession::replay_history() cons
     return _replay_history;
 }
 HeadlessRenderer &GameSession::renderer() noexcept { return _renderer; }
-OfflineNetworkSession &GameSession::network() noexcept { return _network; }
+NetworkSession &GameSession::network() noexcept { return _network; }
 
 }
