@@ -119,11 +119,6 @@ Error DeterministicWorld::advance_one_tick() noexcept
             return FT_ERR_OUT_OF_RANGE;
         entity->value += command.delta;
     }
-    for (const WorldCommand &command : _pending_commands)
-    {
-        EntityState *const entity = find_entity(command.entity);
-        if (entity != nullptr && entity->alive == FT_TRUE)
-    }
     if (_tick == std::numeric_limits<SimulationTickValue>::max())
         return FT_ERR_OUT_OF_RANGE;
     _entities.swap(projected);
