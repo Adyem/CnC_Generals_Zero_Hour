@@ -23,6 +23,7 @@
 #include "CncSimulation/DefinitionRegistry.hpp"
 #include "ZeroHourData/Catalog.hpp"
 #include "ZeroHourData/PlayerState.hpp"
+#include "ZeroHourData/PlayerStateRegistry.hpp"
 #include "ZeroHourData/ScienceLedger.hpp"
 #include "CncGame/GameSession.hpp"
 #include "CncRender/Renderer.hpp"
@@ -473,6 +474,20 @@ int main()
         return 22;
     if (session.has_game_data() != FT_TRUE)
         return 29;
+    zero_hour::PlayerStateRegistry player_states;
+    if (player_states.initialize(&session.catalog(), &session.science_ledger(),
+                                 &session.special_power_ledger(), &session.general_roster()) !=
+            FT_ERR_SUCCESS ||
+        player_states.create(cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
+        player_states.create(cnc::PlayerId{2U}) != FT_ERR_SUCCESS ||
+        player_states.size() != static_cast<cnc::Size>(2U) ||
+        player_states.find(cnc::PlayerId{1U}) == nullptr ||
+        player_states.find(cnc::PlayerId{1U})->set_faction(cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
+        player_states.remove(cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
+        player_states.find(cnc::PlayerId{1U}) != nullptr ||
+        player_states.remove(cnc::PlayerId{2U}) != FT_ERR_SUCCESS ||
+        player_states.shutdown() != FT_ERR_SUCCESS)
+        return 57;
     if (session.phase() != cnc::GameSession::Phase::data_ready)
         return 33;
     if (session.validate_game_data() != FT_ERR_SUCCESS)

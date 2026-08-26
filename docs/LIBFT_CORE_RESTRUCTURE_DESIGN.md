@@ -504,6 +504,14 @@ Libft `Game` needs reusable, data-agnostic interfaces for the following concepts
 
 The Generals/Zero Hour module then composes those interfaces into command sets, sciences, special powers, factions, generals, and named INI modules. None of those concrete definitions becomes a Libft header or source file.
 
+`zero_hour::PlayerStateRegistry` is the game-owned match composition for this
+boundary. It creates one existing `PlayerState` per generic `PlayerId`, sharing
+the catalog and game ledgers explicitly; Libft/engine owns identity and team
+relationships, while this table owns faction selection, science progression,
+general assignment, and special-power permissions. Returned `PlayerState*`
+handles are valid only until the next registry create/remove (the vector may
+reallocate), so callers should reacquire handles at phase boundaries.
+
 The first Phase 7 spatial seam is `cnc::SpatialIndex`. It stores fixed-width
 `int64_t` world coordinates and a numeric collision/query layer, supports
 position replacement and removal, and returns query results sorted by stable

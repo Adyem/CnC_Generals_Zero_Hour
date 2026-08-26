@@ -176,6 +176,7 @@ if(CNC_BUILD_GAME_DATA)
         "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/src/SpecialPowerLedger.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/src/GeneralRoster.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/src/PlayerState.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/src/PlayerStateRegistry.cpp"
     )
     add_library(cnc::zero_hour_data ALIAS cnc_zero_hour_data)
     target_compile_features(cnc_zero_hour_data PUBLIC cxx_std_17)
