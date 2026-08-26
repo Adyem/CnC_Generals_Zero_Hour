@@ -328,6 +328,8 @@ endif()
 if(TARGET cnc_runtime)
     install(TARGETS cnc_runtime ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
     install(DIRECTORY engine/runtime/include/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/generated/CncBuild/BuildInfo.hpp"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/CncBuild")
 endif()
 if(TARGET cnc_simulation)
     install(TARGETS cnc_simulation ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")

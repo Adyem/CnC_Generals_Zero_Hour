@@ -1495,6 +1495,8 @@ Configure-time build metadata now replaces the legacy `versionUpdate.exe` and
 `CncBuild/BuildInfo.hpp` in the binary tree with the project version and a short
 Git commit (or `unknown` outside a Git checkout); no tracked source is modified
 and no timestamp is embedded by default, preserving reproducible builds.
+The generated header is installed with the runtime public headers, so packaged
+offline builds expose the same version/commit contract to tools and launchers.
 
 `.github/workflows/headless.yml` now makes the portable matrix executable: each
 push/PR configures, builds, and tests `dev-headless` on Windows, Ubuntu, and
