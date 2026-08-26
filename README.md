@@ -22,7 +22,23 @@ If you wish to rebuild the source code and tools successfully you will need to f
 - LZH-Light (1.0) - (expected path `\Code\Libraries\Source\Compression\LZHCompress\CompLibSource` and `CompLibHeader`)
 
 
-## Compiling (Win32 Only)
+## Building the portable migration targets
+
+The maintained build is CMake-based and does not require the legacy Visual
+Studio workspace or proprietary SAGE SDKs. With CMake and Ninja installed:
+
+```sh
+cmake --preset dev-headless
+cmake --build --preset dev-headless
+ctest --preset dev-headless
+```
+
+Use `release-offline` for an optimized offline build. The presets deliberately
+keep multiplayer, GameSpy, SafeDisk, and the legacy reference target disabled;
+the default graph is the Libft-backed headless path. `ci-sanitizers` enables
+Clang AddressSanitizer/UndefinedBehaviorSanitizer and warnings-as-errors.
+
+## Legacy binaries (Win32 only)
 
 To use the compiled binaries, you must own the game. The C&C Ultimate Collection is available for purchase on [EA App](https://www.ea.com/en-gb/games/command-and-conquer/command-and-conquer-the-ultimate-collection/buy/pc) or [Steam](https://store.steampowered.com/bundle/39394/Command__Conquer_The_Ultimate_Collection/).
 
