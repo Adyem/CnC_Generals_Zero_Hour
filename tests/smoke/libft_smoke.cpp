@@ -190,18 +190,25 @@ int main()
                                                 cnc::SimulationTick{1U},
                                                 &power_ready) != FT_ERR_INVALID_OPERATION)
         return 24;
+    cnc::EntityId general_entity;
+    cnc::DefinitionId assigned_general;
+    if (session.world().create_entity(&general_entity) != FT_ERR_SUCCESS ||
+        session.general_roster().assign(general_entity, cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
+        session.general_roster().find(general_entity, &assigned_general) != FT_ERR_SUCCESS ||
+        assigned_general.value != 1U || session.general_roster().size() != static_cast<cnc::Size>(1U))
+        return 25;
     cnc::EntityId session_entity;
     if (session.world().create_entity(&session_entity) != FT_ERR_SUCCESS ||
         session.submit_world_delta(session_entity, 5) != FT_ERR_SUCCESS ||
         session.advance_one_tick() != FT_ERR_SUCCESS)
-        return 25;
+        return 26;
     int64_t session_value = 0;
     if (session.world().read_value(session_entity, &session_value) != FT_ERR_SUCCESS ||
         session_value != 5 || session.world().tick().value != 1U ||
         session.replay_history().size() != 1U ||
         session.replay_history()[0].state_hash != session.world().canonical_state_hash() ||
         session.shutdown() != FT_ERR_SUCCESS || session.is_initialized() == FT_TRUE)
-        return 26;
+        return 27;
 
     cnc::HeadlessRenderer renderer;
     if (renderer.initialize() != FT_ERR_SUCCESS ||

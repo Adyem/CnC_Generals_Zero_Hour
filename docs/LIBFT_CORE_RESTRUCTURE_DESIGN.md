@@ -1463,6 +1463,12 @@ rule seam. It validates power IDs through the catalog, computes fixed-tick
 ready times with overflow checks, rejects activation while cooling down, and is
 lifecycle-managed by `GameSession` alongside `ScienceLedger`.
 
+`zero_hour::GeneralRoster` binds generic `EntityId` values to validated
+game-owned general definitions. Duplicate or unknown assignments return
+`FT_ERR_*` errors, while the world itself remains ignorant of factions and
+generals. The roster is also owned and reset by `GameSession`, establishing the
+pattern for unit, faction, and player-component bindings.
+
 The presentation seam now has a portable `cnc::HeadlessRenderer` in
 `engine/render`. It models initialize/begin/submit/end/shutdown and validates
 resource IDs and dimensions while retaining frame/command counters for tests.
