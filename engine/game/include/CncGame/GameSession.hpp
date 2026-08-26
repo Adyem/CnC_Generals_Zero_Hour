@@ -9,6 +9,7 @@
 #include "CncSimulation/SnapshotCodec.hpp"
 #include "CncSimulation/CommandCodec.hpp"
 #include "CncSimulation/PlayerRegistry.hpp"
+#include "CncGame/SessionSnapshotCodec.hpp"
 #include "ZeroHourData/Catalog.hpp"
 #include "ZeroHourData/ScienceLedger.hpp"
 #include "ZeroHourData/SpecialPowerLedger.hpp"

@@ -389,6 +389,18 @@ Error PlayerRegistry::import_snapshot(const PlayerRegistrySnapshot &snapshot) no
     return FT_ERR_SUCCESS;
 }
 
+void PlayerRegistry::swap(PlayerRegistry &other) noexcept
+{
+    _players.swap(other._players);
+    _teams.swap(other._teams);
+    _team_memberships.swap(other._team_memberships);
+    _relationships.swap(other._relationships);
+    _ownership.swap(other._ownership);
+    const Bool initialized = _initialized;
+    _initialized = other._initialized;
+    other._initialized = initialized;
+}
+
 PlayerRegistry::RelationshipEntry *PlayerRegistry::find_relationship(
     PlayerId first, PlayerId second) noexcept
 {

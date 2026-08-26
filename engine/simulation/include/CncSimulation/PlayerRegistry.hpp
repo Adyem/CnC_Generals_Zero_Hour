@@ -81,6 +81,7 @@ public:
     Error owned_entities(PlayerId owner, std::vector<EntityId> *entities_out) const noexcept;
     Error export_snapshot(PlayerRegistrySnapshot *snapshot_out) const noexcept;
     Error import_snapshot(const PlayerRegistrySnapshot &snapshot) noexcept;
+    void swap(PlayerRegistry &other) noexcept;
     Bool contains(PlayerId id) const noexcept;
     Size player_count() const noexcept;
     Error shutdown() noexcept;

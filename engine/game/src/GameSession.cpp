@@ -216,10 +216,12 @@ Error GameSession::save_snapshot(std::vector<uint8_t> *bytes_out) const noexcept
     if (_initialized != FT_TRUE ||
         (_phase != Phase::data_ready && _phase != Phase::running))
         return FT_ERR_INVALID_STATE;
-    WorldSnapshot snapshot;
-    Error error = _world.export_snapshot(&snapshot);
+    SessionSnapshot snapshot;
+    Error error = _world.export_snapshot(&snapshot.world);
     if (error != FT_ERR_SUCCESS) return error;
-    return WorldSnapshotCodec::encode(snapshot, bytes_out);
+    error = _players.export_snapshot(&snapshot.players);
+    if (error != FT_ERR_SUCCESS) return error;
+    return SessionSnapshotCodec::encode(snapshot, bytes_out);
 }
 
 Error GameSession::load_snapshot(const uint8_t *bytes, Size byte_count) noexcept
@@ -227,15 +229,26 @@ Error GameSession::load_snapshot(const uint8_t *bytes, Size byte_count) noexcept
     if (_initialized != FT_TRUE ||
         (_phase != Phase::data_ready && _phase != Phase::running))
         return FT_ERR_INVALID_STATE;
-    WorldSnapshot snapshot;
-    Error error = WorldSnapshotCodec::decode(bytes, byte_count, &snapshot);
+    SessionSnapshot snapshot;
+    Error error = SessionSnapshotCodec::decode(bytes, byte_count, &snapshot);
     if (error != FT_ERR_SUCCESS) return error;
-    error = _world.import_snapshot(snapshot);
+    PlayerRegistry projected_players;
+    error = projected_players.initialize();
     if (error != FT_ERR_SUCCESS) return error;
+    error = projected_players.import_snapshot(snapshot.players);
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)projected_players.shutdown();
+        return error;
+    }
+    error = _world.import_snapshot(snapshot.world);
+    if (error != FT_ERR_SUCCESS) return error;
+    _players.swap(projected_players);
+    (void)projected_players.shutdown();
     _commands.clear();
     _next_command_sequence = 0U;
     _replay_history.clear();
-    _phase = snapshot.tick.value == 0U ? Phase::data_ready : Phase::running;
+    _phase = snapshot.world.tick.value == 0U ? Phase::data_ready : Phase::running;
     return FT_ERR_SUCCESS;
 }
 

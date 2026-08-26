@@ -171,6 +171,7 @@ if(CNC_BUILD_GAME_SESSION)
     endif()
     add_library(cnc_game_session STATIC
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/game/src/GameSession.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/engine/game/src/SessionSnapshotCodec.cpp"
     )
     add_library(cnc::game_session ALIAS cnc_game_session)
     target_compile_features(cnc_game_session PUBLIC cxx_std_17)

@@ -1764,6 +1764,12 @@ encodes the five generic record groups as bounded little-endian arrays and
 rejects schema, length, count, and enum violations during decode. A session
 save can therefore compose the world codec and registry codec without making
 the codec aware of Generals factions, sciences, generals, powers, or assets.
+`SessionSnapshotCodec` now provides that composition: a small versioned
+envelope contains one world payload and one registry payload, each decoded
+through its own validator. `GameSession::load_snapshot` validates the registry
+into a temporary `PlayerRegistry`, imports the world through its atomic path,
+then swaps the validated registry; a failed registry decode or world import
+cannot leave the session with mismatched ownership and entity state.
 Frame ingestion is transactional: the session validates every referenced live
 entity and builds a projected command queue before swapping it in. If any
 record is rejected, or queue allocation fails, no earlier record from that
