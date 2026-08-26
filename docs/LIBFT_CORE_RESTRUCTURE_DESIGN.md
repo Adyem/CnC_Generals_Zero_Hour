@@ -1579,6 +1579,15 @@ portable runtime continues using `std::chrono` until Libft PThread and
 Compatibility are added as platform-selected targets; only then should the
 runtime link `libft::time`.
 
+`cmake/LibftGame.cmake` now records the complete Libft Game source manifest as
+an opt-in `libft::game` target. `CNC_BUILD_LIBFT_GAME` defaults to `OFF` because
+Game includes Template containers, PThread mutexes, internal Errno headers,
+Lua, and platform Compatibility code; linking it into the default target would
+reintroduce the exact portability failure the migration is avoiding. Once those
+dependencies have platform-selected CMake targets, this manifest is the single
+place to enable Game and the game-owned adapters can consume only the specific
+Libft services they need.
+
 ## 14. Engine replacement phases
 
 ### Phase 0 — Baseline and archaeology
