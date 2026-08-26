@@ -102,7 +102,7 @@ Error ProductionQueue::export_snapshot(Snapshot *out) const noexcept
 {
     if (out == nullptr) return FT_ERR_INVALID_POINTER;
     if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
-    try { out->schema_version=1U; out->orders=_orders; out->next_sequence=_next_sequence; }
+    try { out->schema_version=1U; out->orders=_orders; std::stable_sort(out->orders.begin(), out->orders.end(), [](const ProductionOrder&a,const ProductionOrder&b) noexcept{return a.sequence<b.sequence;}); out->next_sequence=_next_sequence; }
     catch (...) { out->orders.clear(); return FT_ERR_NO_MEMORY; }
     return FT_ERR_SUCCESS;
 }
@@ -116,6 +116,7 @@ Error ProductionQueue::import_snapshot(const Snapshot &snapshot) noexcept
         for (Size i=0U;i<snapshot.orders.size();++i) {
             const ProductionOrder &o=snapshot.orders[i];
             if (!o.producer.is_valid() || o.definition.value==0U ||
+                o.sequence >= snapshot.next_sequence ||
                 (i!=0U && snapshot.orders[i-1U].sequence>=o.sequence)) return FT_ERR_CONFIGURATION;
             restored.push_back(o);
         }
