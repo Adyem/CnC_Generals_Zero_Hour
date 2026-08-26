@@ -45,6 +45,13 @@ Error SystemRegistry::run(SystemPhase phase, SimulationTick tick) noexcept
     return FT_ERR_SUCCESS;
 }
 
+Error SystemRegistry::clear() noexcept
+{
+    _entries.clear();
+    _next_sequence = 0U;
+    return FT_ERR_SUCCESS;
+}
+
 Size SystemRegistry::size() const noexcept
 {
     return static_cast<Size>(_entries.size());

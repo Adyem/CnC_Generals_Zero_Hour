@@ -9,6 +9,7 @@
 #include "CncSimulation/SystemRegistry.hpp"
 #include "CncSimulation/DefinitionRegistry.hpp"
 #include "ZeroHourData/Catalog.hpp"
+#include "CncGame/GameSession.hpp"
 
 namespace
 {
@@ -105,6 +106,22 @@ int main()
         faction->starting_science.value != science->id.value ||
         catalog.shutdown() != FT_ERR_SUCCESS)
         return 17;
+
+    cnc::GameSession session;
+    if (session.initialize() != FT_ERR_SUCCESS ||
+        session.install_default_data() != FT_ERR_SUCCESS ||
+        session.catalog().definition_count() != static_cast<cnc::Size>(2U))
+        return 18;
+    cnc::EntityId session_entity;
+    if (session.world().create_entity(&session_entity) != FT_ERR_SUCCESS ||
+        session.world().queue_delta(session_entity, 5) != FT_ERR_SUCCESS ||
+        session.advance_one_tick() != FT_ERR_SUCCESS)
+        return 19;
+    int64_t session_value = 0;
+    if (session.world().read_value(session_entity, &session_value) != FT_ERR_SUCCESS ||
+        session_value != 5 || session.world().tick().value != 1U ||
+        session.shutdown() != FT_ERR_SUCCESS || session.is_initialized() == FT_TRUE)
+        return 20;
 
     std::cout << "libft smoke ok (" << CNC_PROJECT_VERSION << ")\n";
     return 0;

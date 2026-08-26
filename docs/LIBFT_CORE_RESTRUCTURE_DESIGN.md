@@ -1422,6 +1422,14 @@ This pattern is the template for adding generals, powers, units, and rules data;
 it should be extended with real asset IDs and loaders rather than moving those
 records into Libft.
 
+`cnc::GameSession` now acts as the headless composition root. Its startup order
+is Runtime -> DeterministicWorld -> Zero Hour Catalog; shutdown reverses that
+order and clears scheduled systems. A tick runs ingest systems, advances the
+world, then runs simulation and presentation systems. This gives future unit,
+production, combat, renderer, and networking modules one explicit lifecycle
+without embedding Generals rules in Libft. `engine/game` is exposed as the
+`cnc::game_session` CMake target and is covered by the smoke executable.
+
 The next implementation step is to add maintained Libft CMake targets (or temporary explicit adapters) for the transitive `Errno`, `System_utils`, `Time`, `File`, and `Game` modules, then replace this scaffold's storage with Libft `Game` registries and typed systems. Do not expand the manifest to every Libft `.cpp` file until each module's platform and third-party dependencies are represented as CMake targets.
 
 The first dependency probe is represented by `cmake/LibftTime.cmake`. It has an

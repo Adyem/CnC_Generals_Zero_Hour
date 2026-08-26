@@ -25,6 +25,7 @@ public:
     Error add(SystemPhase phase, int32_t order, const char *name,
               SystemCallback callback, void *user_data) noexcept;
     Error run(SystemPhase phase, SimulationTick tick) noexcept;
+    Error clear() noexcept;
     Size size() const noexcept;
 
 private:
