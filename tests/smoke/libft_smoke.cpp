@@ -34,6 +34,18 @@ cnc::Error manifest_reader(const char *, std::string &contents, void *context) n
 }
 
 uint64_t fixed_clock() noexcept { return 123456U; }
+
+cnc::Error fail_once(void *user_data, cnc::SystemPhase,
+                     cnc::SimulationTick) noexcept
+{
+    auto *failed = static_cast<bool *>(user_data);
+    if (!*failed)
+    {
+        *failed = true;
+        return FT_ERR_CONFIGURATION;
+    }
+    return FT_ERR_SUCCESS;
+}
 }
 
 int main()
@@ -276,6 +288,22 @@ int main()
         session.phase() != cnc::GameSession::Phase::running ||
         session.shutdown() != FT_ERR_SUCCESS || session.is_initialized() == FT_TRUE)
         return 27;
+
+    cnc::GameSession retry_session;
+    cnc::EntityId retry_entity;
+    bool failed_once = false;
+    int64_t retry_value = 0;
+    if (retry_session.initialize() != FT_ERR_SUCCESS ||
+        retry_session.install_default_data() != FT_ERR_SUCCESS ||
+        retry_session.world().create_entity(&retry_entity) != FT_ERR_SUCCESS ||
+        retry_session.systems().add(cnc::SystemPhase::ingest_commands, 0, "fail_once",
+                                    &fail_once, &failed_once) != FT_ERR_SUCCESS ||
+        retry_session.submit_world_delta(retry_entity, 7) != FT_ERR_SUCCESS ||
+        retry_session.advance_one_tick() != FT_ERR_CONFIGURATION ||
+        retry_session.advance_one_tick() != FT_ERR_SUCCESS ||
+        retry_session.world().read_value(retry_entity, &retry_value) != FT_ERR_SUCCESS ||
+        retry_value != 7 || retry_session.shutdown() != FT_ERR_SUCCESS)
+        return 36;
 
     cnc::HeadlessRenderer renderer;
     if (renderer.initialize() != FT_ERR_SUCCESS ||

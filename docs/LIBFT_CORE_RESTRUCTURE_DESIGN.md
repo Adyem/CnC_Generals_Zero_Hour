@@ -1411,6 +1411,9 @@ replay and gives a future Libft Game backend an explicit atomic-tick contract.
 `discard_pending_commands()` lets the session roll back queued input when an
 ingest or tick operation fails; session commands remain available for a
 deterministic retry without being applied twice.
+The smoke suite injects a one-shot ingest failure, retries the tick, and checks
+that the entity receives the delta exactly once. This protects the boundary
+between Libft-backed system callbacks and future network/replay input.
 Entity IDs and command sequence IDs also refuse `uint64_t` exhaustion with
 `FT_ERR_OUT_OF_RANGE`, preventing wraparound from changing entity identity or
 deterministic ordering.
