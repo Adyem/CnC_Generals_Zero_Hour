@@ -24,10 +24,19 @@ Error GameSession::initialize() noexcept
         (void)_runtime.shutdown();
         return error;
     }
+    error = _players.initialize();
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)_catalog.shutdown();
+        (void)_world.shutdown();
+        (void)_runtime.shutdown();
+        return error;
+    }
     error = _network.initialize();
     if (error != FT_ERR_SUCCESS)
     {
         (void)_catalog.shutdown();
+        (void)_players.shutdown();
         (void)_world.shutdown();
         (void)_runtime.shutdown();
         return error;
@@ -36,6 +45,7 @@ Error GameSession::initialize() noexcept
     if (error != FT_ERR_SUCCESS)
     {
         (void)_network.shutdown();
+        (void)_players.shutdown();
         (void)_catalog.shutdown();
         (void)_world.shutdown();
         (void)_runtime.shutdown();
@@ -242,6 +252,7 @@ Error GameSession::shutdown() noexcept
     (void)_player_state.shutdown();
     (void)_special_power_ledger.shutdown();
     (void)_general_roster.shutdown();
+    (void)_players.shutdown();
     (void)_catalog.shutdown();
     (void)_world.shutdown();
     const Error error = _runtime.shutdown();
@@ -266,6 +277,7 @@ GameSession::Phase GameSession::phase() const noexcept { return _phase; }
 Runtime &GameSession::runtime() noexcept { return _runtime; }
 SimulationWorld &GameSession::world() noexcept { return _world; }
 SystemRegistry &GameSession::systems() noexcept { return _systems; }
+PlayerRegistry &GameSession::players() noexcept { return _players; }
 const zero_hour::Catalog &GameSession::catalog() const noexcept { return _catalog; }
 zero_hour::ScienceLedger &GameSession::science_ledger() noexcept { return _science_ledger; }
 zero_hour::SpecialPowerLedger &GameSession::special_power_ledger() noexcept

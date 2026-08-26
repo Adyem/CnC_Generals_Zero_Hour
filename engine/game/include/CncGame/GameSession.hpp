@@ -8,6 +8,7 @@
 #include "CncSimulation/World.hpp"
 #include "CncSimulation/SnapshotCodec.hpp"
 #include "CncSimulation/CommandCodec.hpp"
+#include "CncSimulation/PlayerRegistry.hpp"
 #include "ZeroHourData/Catalog.hpp"
 #include "ZeroHourData/ScienceLedger.hpp"
 #include "ZeroHourData/SpecialPowerLedger.hpp"
@@ -59,6 +60,7 @@ public:
     Runtime &runtime() noexcept;
     SimulationWorld &world() noexcept;
     SystemRegistry &systems() noexcept;
+    PlayerRegistry &players() noexcept;
     const zero_hour::Catalog &catalog() const noexcept;
     zero_hour::ScienceLedger &science_ledger() noexcept;
     zero_hour::SpecialPowerLedger &special_power_ledger() noexcept;
@@ -72,6 +74,7 @@ private:
     Runtime _runtime;
     DeterministicWorld _world;
     SystemRegistry _systems;
+    PlayerRegistry _players;
     zero_hour::Catalog _catalog;
     zero_hour::ScienceLedger _science_ledger;
     zero_hour::SpecialPowerLedger _special_power_ledger;

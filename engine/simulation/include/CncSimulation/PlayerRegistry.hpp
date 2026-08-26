@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "CncRuntime/Types.hpp"
+#include "CncSimulation/World.hpp"
 
 namespace cnc
 {
@@ -33,6 +34,9 @@ public:
                            Diplomacy relationship) noexcept;
     Error relationship(PlayerId first, PlayerId second,
                        Diplomacy *relationship_out) const noexcept;
+    Error set_owner(EntityId entity, PlayerId owner) noexcept;
+    Error clear_owner(EntityId entity) noexcept;
+    Error owner(EntityId entity, PlayerId *owner_out) const noexcept;
     Bool contains(PlayerId id) const noexcept;
     Size player_count() const noexcept;
     Error shutdown() noexcept;
@@ -44,8 +48,14 @@ private:
         PlayerId second;
         Diplomacy value = Diplomacy::neutral;
     };
+    struct OwnershipEntry
+    {
+        EntityId entity;
+        PlayerId owner;
+    };
     std::vector<PlayerId> _players;
     std::vector<RelationshipEntry> _relationships;
+    std::vector<OwnershipEntry> _ownership;
     Bool _initialized = FT_FALSE;
 
     RelationshipEntry *find_relationship(PlayerId first, PlayerId second) noexcept;

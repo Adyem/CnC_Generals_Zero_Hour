@@ -147,15 +147,23 @@ int main()
 
     cnc::PlayerRegistry players;
     cnc::Diplomacy diplomacy = cnc::Diplomacy::hostile;
+    cnc::PlayerId owner_id;
     if (players.initialize() != FT_ERR_SUCCESS ||
         players.create_player(cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
         players.create_player(cnc::PlayerId{2U}) != FT_ERR_SUCCESS ||
         players.set_relationship(cnc::PlayerId{1U}, cnc::PlayerId{2U},
+                                 cnc::Diplomacy::hostile) != FT_ERR_SUCCESS ||
+        players.set_relationship(cnc::PlayerId{1U}, cnc::PlayerId{2U},
                                  cnc::Diplomacy::allied) != FT_ERR_SUCCESS ||
         players.relationship(cnc::PlayerId{2U}, cnc::PlayerId{1U}, &diplomacy) != FT_ERR_SUCCESS ||
         diplomacy != cnc::Diplomacy::allied || players.player_count() != static_cast<cnc::Size>(2U) ||
+        players.set_owner(cnc::EntityId{42U}, cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
+        players.owner(cnc::EntityId{42U}, nullptr) != FT_ERR_INVALID_POINTER ||
+        players.owner(cnc::EntityId{42U}, &owner_id) != FT_ERR_SUCCESS || owner_id.value != 1U ||
+        players.set_owner(cnc::EntityId{42U}, cnc::PlayerId{2U}) != FT_ERR_SUCCESS ||
         players.remove_player(cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
         players.relationship(cnc::PlayerId{2U}, cnc::PlayerId{1U}, &diplomacy) != FT_ERR_NOT_FOUND ||
+        players.owner(cnc::EntityId{42U}, &owner_id) != FT_ERR_NOT_FOUND ||
         players.shutdown() != FT_ERR_SUCCESS)
         return 44;
 
@@ -272,7 +280,9 @@ int main()
     if (session.initialize() != FT_ERR_SUCCESS ||
         session.install_default_data() != FT_ERR_SUCCESS ||
         session.catalog().definition_count() != static_cast<cnc::Size>(4U) ||
-        session.science_ledger().purchase_count() != static_cast<cnc::Size>(0U))
+        session.science_ledger().purchase_count() != static_cast<cnc::Size>(0U) ||
+        session.players().create_player(cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
+        session.players().player_count() != static_cast<cnc::Size>(1U))
         return 22;
     if (session.has_game_data() != FT_TRUE)
         return 29;

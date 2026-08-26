@@ -10,6 +10,7 @@ Error PlayerRegistry::initialize() noexcept
     if (_initialized == FT_TRUE) return FT_ERR_ALREADY_INITIALISED;
     _players.clear();
     _relationships.clear();
+    _ownership.clear();
     _initialized = FT_TRUE;
     return FT_ERR_SUCCESS;
 }
@@ -51,7 +52,63 @@ Error PlayerRegistry::remove_player(PlayerId id) noexcept
         else
             ++iterator;
     }
+    for (auto iterator = _ownership.begin(); iterator != _ownership.end();)
+    {
+        if (iterator->owner.value == id.value)
+            iterator = _ownership.erase(iterator);
+        else
+            ++iterator;
+    }
     return FT_ERR_SUCCESS;
+}
+
+Error PlayerRegistry::set_owner(EntityId entity, PlayerId owner_id) noexcept
+{
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    if (!entity.is_valid() || !owner_id.is_valid()) return FT_ERR_INVALID_ARGUMENT;
+    if (contains(owner_id) != FT_TRUE) return FT_ERR_NOT_FOUND;
+    for (OwnershipEntry &entry : _ownership)
+    {
+        if (entry.entity.value == entity.value)
+        {
+            entry.owner = owner_id;
+            return FT_ERR_SUCCESS;
+        }
+    }
+    try { _ownership.push_back(OwnershipEntry{entity, owner_id}); }
+    catch (...) { return FT_ERR_NO_MEMORY; }
+    return FT_ERR_SUCCESS;
+}
+
+Error PlayerRegistry::clear_owner(EntityId entity) noexcept
+{
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    if (!entity.is_valid()) return FT_ERR_INVALID_ARGUMENT;
+    for (auto iterator = _ownership.begin(); iterator != _ownership.end(); ++iterator)
+    {
+        if (iterator->entity.value == entity.value)
+        {
+            _ownership.erase(iterator);
+            return FT_ERR_SUCCESS;
+        }
+    }
+    return FT_ERR_NOT_FOUND;
+}
+
+Error PlayerRegistry::owner(EntityId entity, PlayerId *owner_out) const noexcept
+{
+    if (owner_out == nullptr) return FT_ERR_INVALID_POINTER;
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    if (!entity.is_valid()) return FT_ERR_INVALID_ARGUMENT;
+    for (const OwnershipEntry &entry : _ownership)
+    {
+        if (entry.entity.value == entity.value)
+        {
+            *owner_out = entry.owner;
+            return FT_ERR_SUCCESS;
+        }
+    }
+    return FT_ERR_NOT_FOUND;
 }
 
 PlayerRegistry::RelationshipEntry *PlayerRegistry::find_relationship(
@@ -86,19 +143,28 @@ Error PlayerRegistry::set_relationship(PlayerId first, PlayerId second,
     try
     {
         std::vector<RelationshipEntry> projected = _relationships;
-        RelationshipEntry *entry = nullptr;
-        RelationshipEntry *reverse = nullptr;
-        for (RelationshipEntry &candidate : projected)
+        ft_size_t entry_index = 0U;
+        ft_size_t reverse_index = 0U;
+        bool has_entry = false;
+        bool has_reverse = false;
+        for (ft_size_t index = 0U; index < projected.size(); ++index)
         {
+            const RelationshipEntry &candidate = projected[index];
             if (candidate.first.value == first.value && candidate.second.value == second.value)
-                entry = &candidate;
+            {
+                entry_index = index;
+                has_entry = true;
+            }
             if (candidate.first.value == second.value && candidate.second.value == first.value)
-                reverse = &candidate;
+            {
+                reverse_index = index;
+                has_reverse = true;
+            }
         }
-        if (entry == nullptr) projected.push_back(RelationshipEntry{first, second, value});
-        else entry->value = value;
-        if (reverse == nullptr) projected.push_back(RelationshipEntry{second, first, value});
-        else reverse->value = value;
+        if (!has_entry) projected.push_back(RelationshipEntry{first, second, value});
+        else projected[entry_index].value = value;
+        if (!has_reverse) projected.push_back(RelationshipEntry{second, first, value});
+        else projected[reverse_index].value = value;
         _relationships.swap(projected);
     }
     catch (...)
@@ -133,6 +199,7 @@ Size PlayerRegistry::player_count() const noexcept
 Error PlayerRegistry::shutdown() noexcept
 {
     _relationships.clear();
+    _ownership.clear();
     _players.clear();
     _initialized = FT_FALSE;
     return FT_ERR_SUCCESS;
