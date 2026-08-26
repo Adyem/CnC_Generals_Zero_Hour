@@ -26,7 +26,7 @@ jobs:
       - name: Install package
         run: cmake --install out/build/dev-headless --prefix out/install
       - name: Configure package consumer
-        run: cmake -S tests/package_consumer -B out/consumer -DCMAKE_PREFIX_PATH=out/install
+        run: cmake -S tests/package_consumer -B out/consumer "-DCMAKE_PREFIX_PATH=${{ github.workspace }}/out/install"
       - name: Build package consumer
         run: cmake --build out/consumer
 
@@ -49,6 +49,6 @@ jobs:
       - name: Install package
         run: cmake --install out/build/ci-sanitizers --prefix out/install
       - name: Configure package consumer
-        run: cmake -S tests/package_consumer -B out/consumer -DCMAKE_PREFIX_PATH=out/install
+        run: cmake -S tests/package_consumer -B out/consumer "-DCMAKE_PREFIX_PATH=${{ github.workspace }}/out/install"
       - name: Build package consumer
         run: cmake --build out/consumer
