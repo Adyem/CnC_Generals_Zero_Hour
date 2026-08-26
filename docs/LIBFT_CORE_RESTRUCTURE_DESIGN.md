@@ -539,6 +539,12 @@ entities in stable ID order, and supports deterministic cleanup when players
 or entities disappear. Radar, stealth, line-of-sight geometry, reveal events,
 and rendering policy remain Zero Hour responsibilities; the registry is only
 the serializable visibility result that those systems publish and consume.
+`cnc::SelectionState` provides the client-side selection/control-group seam.
+It canonicalizes entity lists by stable ID, rejects invalid or duplicate IDs,
+supports ten numbered groups per player, and removes destroyed entities from
+all groups. It is deliberately excluded from authoritative session snapshots:
+selection is local input/presentation state, while commands generated from it
+still enter the validated simulation command queue.
 
 ### 7.4 State, snapshot, and replay design
 

@@ -17,6 +17,7 @@
 #include "CncSimulation/CombatRegistry.hpp"
 #include "CncSimulation/ProductionQueue.hpp"
 #include "CncSimulation/VisibilityRegistry.hpp"
+#include "CncSimulation/SelectionState.hpp"
 #include "CncSimulation/SystemRegistry.hpp"
 #include "CncSimulation/DefinitionRegistry.hpp"
 #include "ZeroHourData/Catalog.hpp"
@@ -323,6 +324,21 @@ int main()
         visible_entities.size() != 1U || visible_entities[0].value != 12U ||
         visibility.shutdown() != FT_ERR_SUCCESS)
         return 54;
+
+    cnc::SelectionState selection;
+    std::vector<cnc::EntityId> selected;
+    const std::vector<cnc::EntityId> selection_input{cnc::EntityId{9U}, cnc::EntityId{3U}};
+    if (selection.initialize() != FT_ERR_SUCCESS ||
+        selection.set_selection(cnc::PlayerId{1U}, selection_input) != FT_ERR_SUCCESS ||
+        selection.selection(cnc::PlayerId{1U}, &selected) != FT_ERR_SUCCESS ||
+        selected.size() != 2U || selected[0].value != 3U || selected[1].value != 9U ||
+        selection.set_control_group(cnc::PlayerId{1U}, 2U, selection_input) != FT_ERR_SUCCESS ||
+        selection.control_group(cnc::PlayerId{1U}, 2U, &selected) != FT_ERR_SUCCESS ||
+        selected.size() != 2U || selection.remove_entity(cnc::EntityId{3U}) != FT_ERR_SUCCESS ||
+        selection.selection(cnc::PlayerId{1U}, &selected) != FT_ERR_SUCCESS ||
+        selected.size() != 1U || selected[0].value != 9U ||
+        selection.shutdown() != FT_ERR_SUCCESS)
+        return 55;
 
     cnc::SystemRegistry systems;
     std::vector<uint64_t> execution_ticks;
