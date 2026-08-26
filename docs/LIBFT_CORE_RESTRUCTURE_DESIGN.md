@@ -1504,6 +1504,12 @@ The install graph now exports native targets under the relocatable
 compatibility `libft::basic` alias for the exported Libft Basic target. Exported
 interfaces do not contain source-tree paths.
 
+`tests/package_consumer` is an out-of-tree-style package smoke project. CI
+configures and builds it against the installed prefix with
+`find_package(CnCGeneralsZeroHour CONFIG REQUIRED)`, proving exported targets,
+headers, and transitive links work after installation rather than only inside
+the repository build.
+
 Configure-time build metadata now replaces the legacy `versionUpdate.exe` and
 `buildVersionUpdate.exe` mutation flow. CMake generates
 `CncBuild/BuildInfo.hpp` in the binary tree with the project version and a short
