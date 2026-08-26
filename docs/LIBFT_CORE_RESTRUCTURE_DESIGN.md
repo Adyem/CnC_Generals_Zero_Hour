@@ -1644,6 +1644,9 @@ manifest and include graph. It is deliberately OFF by default because File
 still depends on Libft CMA, PThread, Observability, and C++ utility targets;
 enabling it is the next dependency-integration checkpoint, not a silent partial
 replacement of the standard-library reader.
+The opt-in `libft::time` target is also installed and exported when enabled,
+including its public headers, so Time integration can be consumed and tested
+through the same relocatable package rather than only in-tree.
 
 The first dependency probe is represented by `cmake/LibftTime.cmake`. It has an
 explicit source manifest and a `libft::time` target, but `CNC_BUILD_LIBFT_TIME`

@@ -345,6 +345,15 @@ if(TARGET libft_basic)
     install(DIRECTORY external/libft/Modules/Errno/ DESTINATION
         "${CMAKE_INSTALL_INCLUDEDIR}/Errno" FILES_MATCHING PATTERN "*.hpp")
 endif()
+if(TARGET libft_time)
+    set_target_properties(libft_time PROPERTIES EXPORT_NAME time)
+    install(TARGETS libft_time EXPORT cncTargets
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    install(DIRECTORY external/libft/Modules/Time/ DESTINATION
+        "${CMAKE_INSTALL_INCLUDEDIR}/libft/Time" FILES_MATCHING PATTERN "*.hpp")
+endif()
 if(TARGET libft_game)
     set_target_properties(libft_game PROPERTIES EXPORT_NAME game)
     install(TARGETS libft_game EXPORT cncTargets
