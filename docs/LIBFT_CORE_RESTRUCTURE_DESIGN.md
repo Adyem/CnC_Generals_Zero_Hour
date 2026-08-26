@@ -1837,7 +1837,7 @@ encodes the five generic record groups as bounded little-endian arrays and
 rejects schema, length, count, and enum violations during decode. A session
 save can therefore compose the world codec and registry codec without making
 the codec aware of Generals factions, sciences, generals, powers, or assets.
-`SessionSnapshotCodec` now provides that composition: a version-seven envelope
+`SessionSnapshotCodec` now provides that composition: a version-eight envelope
 contains world, generic registry, game-owned Zero Hour player-state, spatial,
 combat, and visibility payloads, each decoded through its own validator.
 `GameSession::load_snapshot` validates the registry
