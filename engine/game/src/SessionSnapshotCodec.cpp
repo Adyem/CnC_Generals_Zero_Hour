@@ -10,13 +10,14 @@
 #include "ZeroHourData/GeneralRosterCodec.hpp"
 #include "ZeroHourData/SpecialPowerLedgerCodec.hpp"
 #include "ZeroHourData/ScienceLedgerCodec.hpp"
+#include "CncSimulation/ProductionQueueCodec.hpp"
 #include "errno.hpp"
 
 namespace cnc
 {
 namespace
 {
-constexpr ft_size_t header_size = 40U;
+constexpr ft_size_t header_size = 44U;
 
 void append_u32(std::vector<uint8_t> &bytes, uint32_t value)
 {
@@ -38,6 +39,7 @@ bool checked_total(ft_size_t world_size, ft_size_t players_size, ft_size_t spati
                    ft_size_t generals_size,
                    ft_size_t powers_size,
                    ft_size_t science_size,
+                   ft_size_t production_size,
                    ft_size_t visibility_size,
                    ft_size_t *total_out) noexcept
 {
@@ -49,6 +51,7 @@ bool checked_total(ft_size_t world_size, ft_size_t players_size, ft_size_t spati
         generals_size > std::numeric_limits<uint32_t>::max() ||
         powers_size > std::numeric_limits<uint32_t>::max() ||
         science_size > std::numeric_limits<uint32_t>::max() ||
+        production_size > std::numeric_limits<uint32_t>::max() ||
         visibility_size > std::numeric_limits<uint32_t>::max() ||
         world_size > std::numeric_limits<ft_size_t>::max() - header_size)
         return false;
@@ -67,8 +70,10 @@ bool checked_total(ft_size_t world_size, ft_size_t players_size, ft_size_t spati
     const ft_size_t with_powers = with_generals + powers_size;
     if (science_size > std::numeric_limits<ft_size_t>::max() - with_powers) return false;
     const ft_size_t with_science = with_powers + science_size;
-    if (visibility_size > std::numeric_limits<ft_size_t>::max() - with_science) return false;
-    *total_out = with_science + visibility_size;
+    if (production_size > std::numeric_limits<ft_size_t>::max() - with_science) return false;
+    const ft_size_t with_production = with_science + production_size;
+    if (visibility_size > std::numeric_limits<ft_size_t>::max() - with_production) return false;
+    *total_out = with_production + visibility_size;
     return true;
 }
 }
@@ -86,6 +91,7 @@ Error SessionSnapshotCodec::encode(const SessionSnapshot &snapshot,
         snapshot.generals.schema_version != zero_hour::GeneralRosterCodec::wire_schema_version ||
         snapshot.powers.schema_version != zero_hour::SpecialPowerLedgerCodec::wire_schema_version ||
         snapshot.science.schema_version != zero_hour::ScienceLedgerCodec::wire_schema_version ||
+        snapshot.production.schema_version != ProductionQueueCodec::wire_schema_version ||
         snapshot.visibility.schema_version != VisibilityRegistryCodec::wire_schema_version)
         return FT_ERR_INVALID_ARGUMENT;
     std::vector<uint8_t> world_bytes;
@@ -96,6 +102,7 @@ Error SessionSnapshotCodec::encode(const SessionSnapshot &snapshot,
     std::vector<uint8_t> general_bytes;
     std::vector<uint8_t> power_bytes;
     std::vector<uint8_t> science_bytes;
+    std::vector<uint8_t> production_bytes;
     std::vector<uint8_t> visibility_bytes;
     Error error = WorldSnapshotCodec::encode(snapshot.world, &world_bytes);
     if (error != FT_ERR_SUCCESS) return error;
@@ -113,6 +120,8 @@ Error SessionSnapshotCodec::encode(const SessionSnapshot &snapshot,
     if (error != FT_ERR_SUCCESS) return error;
     error = zero_hour::ScienceLedgerCodec::encode(snapshot.science, &science_bytes);
     if (error != FT_ERR_SUCCESS) return error;
+    error = ProductionQueueCodec::encode(snapshot.production, &production_bytes);
+    if (error != FT_ERR_SUCCESS) return error;
     error = VisibilityRegistryCodec::encode(snapshot.visibility, &visibility_bytes);
     if (error != FT_ERR_SUCCESS) return error;
     ft_size_t total_size = 0U;
@@ -124,6 +133,7 @@ Error SessionSnapshotCodec::encode(const SessionSnapshot &snapshot,
                        static_cast<ft_size_t>(general_bytes.size()),
                        static_cast<ft_size_t>(power_bytes.size()),
                        static_cast<ft_size_t>(science_bytes.size()),
+                       static_cast<ft_size_t>(production_bytes.size()),
                        static_cast<ft_size_t>(visibility_bytes.size()), &total_size))
         return FT_ERR_OUT_OF_RANGE;
     try
@@ -139,6 +149,7 @@ Error SessionSnapshotCodec::encode(const SessionSnapshot &snapshot,
         append_u32(*bytes_out, static_cast<uint32_t>(general_bytes.size()));
         append_u32(*bytes_out, static_cast<uint32_t>(power_bytes.size()));
         append_u32(*bytes_out, static_cast<uint32_t>(science_bytes.size()));
+        append_u32(*bytes_out, static_cast<uint32_t>(production_bytes.size()));
         append_u32(*bytes_out, static_cast<uint32_t>(visibility_bytes.size()));
         bytes_out->insert(bytes_out->end(), world_bytes.begin(), world_bytes.end());
         bytes_out->insert(bytes_out->end(), player_bytes.begin(), player_bytes.end());
@@ -148,6 +159,7 @@ Error SessionSnapshotCodec::encode(const SessionSnapshot &snapshot,
         bytes_out->insert(bytes_out->end(), general_bytes.begin(), general_bytes.end());
         bytes_out->insert(bytes_out->end(), power_bytes.begin(), power_bytes.end());
         bytes_out->insert(bytes_out->end(), science_bytes.begin(), science_bytes.end());
+        bytes_out->insert(bytes_out->end(), production_bytes.begin(), production_bytes.end());
         bytes_out->insert(bytes_out->end(), visibility_bytes.begin(), visibility_bytes.end());
     }
     catch (...)
@@ -172,7 +184,8 @@ Error SessionSnapshotCodec::decode(const uint8_t *bytes, ft_size_t byte_count,
     const uint32_t generals_size = read_u32(bytes + 24U);
     const uint32_t powers_size = read_u32(bytes + 28U);
     const uint32_t science_size = read_u32(bytes + 32U);
-    const uint32_t visibility_size = read_u32(bytes + 36U);
+    const uint32_t production_size = read_u32(bytes + 36U);
+    const uint32_t visibility_size = read_u32(bytes + 40U);
     ft_size_t expected_size = 0U;
     if (schema != wire_schema_version ||
         !checked_total(static_cast<ft_size_t>(world_size),
@@ -183,6 +196,7 @@ Error SessionSnapshotCodec::decode(const uint8_t *bytes, ft_size_t byte_count,
                        static_cast<ft_size_t>(generals_size),
                        static_cast<ft_size_t>(powers_size),
                        static_cast<ft_size_t>(science_size),
+                       static_cast<ft_size_t>(production_size),
                        static_cast<ft_size_t>(visibility_size), &expected_size) ||
         expected_size != byte_count)
         return FT_ERR_CONFIGURATION;
@@ -194,6 +208,7 @@ Error SessionSnapshotCodec::decode(const uint8_t *bytes, ft_size_t byte_count,
     zero_hour::GeneralRoster::Snapshot generals;
     zero_hour::SpecialPowerLedger::Snapshot powers;
     zero_hour::ScienceLedger::Snapshot science;
+    ProductionQueue::Snapshot production;
     VisibilitySnapshot visibility;
     Error error = WorldSnapshotCodec::decode(bytes + header_size, world_size, &world);
     if (error != FT_ERR_SUCCESS) return error;
@@ -217,7 +232,10 @@ Error SessionSnapshotCodec::decode(const uint8_t *bytes, ft_size_t byte_count,
     error = zero_hour::ScienceLedgerCodec::decode(bytes + header_size + world_size + players_size + spatial_size + combat_size + player_states_size + generals_size + powers_size,
                                             science_size, &science);
     if (error != FT_ERR_SUCCESS) return error;
-    error = VisibilityRegistryCodec::decode(bytes + header_size + world_size + players_size + spatial_size + combat_size + player_states_size + generals_size + powers_size + science_size,
+    error = ProductionQueueCodec::decode(bytes + header_size + world_size + players_size + spatial_size + combat_size + player_states_size + generals_size + powers_size + science_size,
+                                            production_size, &production);
+    if (error != FT_ERR_SUCCESS) return error;
+    error = VisibilityRegistryCodec::decode(bytes + header_size + world_size + players_size + spatial_size + combat_size + player_states_size + generals_size + powers_size + science_size + production_size,
                                             visibility_size, &visibility);
     if (error != FT_ERR_SUCCESS) return error;
     snapshot_out->schema_version = wire_schema_version;
@@ -242,6 +260,9 @@ Error SessionSnapshotCodec::decode(const uint8_t *bytes, ft_size_t byte_count,
     snapshot_out->powers.cooldowns.swap(powers.cooldowns);
     snapshot_out->science.schema_version = science.schema_version;
     snapshot_out->science.purchased.swap(science.purchased);
+    snapshot_out->production.schema_version = production.schema_version;
+    snapshot_out->production.orders.swap(production.orders);
+    snapshot_out->production.next_sequence = production.next_sequence;
     snapshot_out->visibility.schema_version = visibility.schema_version;
     snapshot_out->visibility.records.swap(visibility.records);
     return FT_ERR_SUCCESS;

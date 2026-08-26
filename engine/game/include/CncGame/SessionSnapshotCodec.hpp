@@ -12,19 +12,21 @@
 #include "ZeroHourData/GeneralRoster.hpp"
 #include "ZeroHourData/SpecialPowerLedger.hpp"
 #include "ZeroHourData/ScienceLedger.hpp"
+#include "CncSimulation/ProductionQueue.hpp"
 
 namespace cnc
 {
 
 struct SessionSnapshot
 {
-    uint32_t schema_version = 7U;
+    uint32_t schema_version = 8U;
     WorldSnapshot world;
     PlayerRegistrySnapshot players;
     zero_hour::PlayerStateRegistry::Snapshot player_states;
     zero_hour::GeneralRoster::Snapshot generals;
     zero_hour::SpecialPowerLedger::Snapshot powers;
     zero_hour::ScienceLedger::Snapshot science;
+    ProductionQueue::Snapshot production;
     SpatialIndexSnapshot spatial;
     CombatRegistrySnapshot combat;
     VisibilitySnapshot visibility;
@@ -33,7 +35,7 @@ struct SessionSnapshot
 class SessionSnapshotCodec final
 {
 public:
-    static constexpr uint32_t wire_schema_version = 7U;
+    static constexpr uint32_t wire_schema_version = 8U;
     static Error encode(const SessionSnapshot &snapshot,
                         std::vector<uint8_t> *bytes_out) noexcept;
     static Error decode(const uint8_t *bytes, ft_size_t byte_count,

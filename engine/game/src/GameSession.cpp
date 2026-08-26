@@ -288,6 +288,8 @@ Error GameSession::save_snapshot(std::vector<uint8_t> *bytes_out) const noexcept
     if (error != FT_ERR_SUCCESS) return error;
     error = _science_ledger.export_snapshot(&snapshot.science);
     if (error != FT_ERR_SUCCESS) return error;
+    error = _production.export_snapshot(&snapshot.production);
+    if (error != FT_ERR_SUCCESS) return error;
     error = _spatial.export_snapshot(&snapshot.spatial);
     if (error != FT_ERR_SUCCESS) return error;
     error = _combat.export_snapshot(&snapshot.combat);
@@ -354,6 +356,17 @@ Error GameSession::load_snapshot(const uint8_t *bytes, Size byte_count) noexcept
     if (error != FT_ERR_SUCCESS)
     {
         (void)projected_science.shutdown(); (void)projected_powers.shutdown(); (void)projected_generals.shutdown(); (void)projected_players.shutdown(); return error;
+    }
+    ProductionQueue projected_production;
+    error = projected_production.initialize();
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)projected_science.shutdown(); (void)projected_powers.shutdown(); (void)projected_generals.shutdown(); (void)projected_players.shutdown(); return error;
+    }
+    error = projected_production.import_snapshot(snapshot.production);
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)projected_production.shutdown(); (void)projected_science.shutdown(); (void)projected_powers.shutdown(); (void)projected_generals.shutdown(); (void)projected_players.shutdown(); return error;
     }
     zero_hour::PlayerStateRegistry projected_player_states;
     error = projected_player_states.initialize(&_catalog, &_science_ledger,
@@ -457,6 +470,7 @@ Error GameSession::load_snapshot(const uint8_t *bytes, Size byte_count) noexcept
     _general_roster.swap(projected_generals);
     _special_power_ledger.swap(projected_powers);
     _science_ledger.swap(projected_science);
+    _production.swap(projected_production);
     _player_states.swap(projected_player_states);
     _player_states.rebind_generals(&_general_roster);
     _player_states.rebind_powers(&_special_power_ledger);
@@ -469,6 +483,7 @@ Error GameSession::load_snapshot(const uint8_t *bytes, Size byte_count) noexcept
     (void)projected_generals.shutdown();
     (void)projected_powers.shutdown();
     (void)projected_science.shutdown();
+    (void)projected_production.shutdown();
     (void)projected_spatial.shutdown();
     (void)projected_combat.shutdown();
     (void)projected_visibility.shutdown();
