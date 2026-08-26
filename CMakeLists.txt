@@ -9,6 +9,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(CTest)
 
 option(CNC_BUILD_LIBFT_BASIC "Build the Libft Basic module" ON)
+option(CNC_BUILD_RUNTIME "Build the Libft-native runtime composition root" ON)
+option(CNC_BUILD_SIMULATION "Build the deterministic headless world scaffold" ON)
 option(CNC_BUILD_SMOKE_TEST "Build the portable Libft integration smoke test" ON)
 option(CNC_BUILD_LEGACY_REFERENCE "Expose the legacy SAGE reference target (not implemented)" OFF)
 option(CNC_ENABLE_MULTIPLAYER "Enable the replacement multiplayer stack (not implemented)" OFF)
@@ -41,6 +43,40 @@ if(CNC_BUILD_LIBFT_BASIC)
     include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibftBasic.cmake")
 endif()
 
+if(CNC_BUILD_RUNTIME)
+    if(NOT TARGET libft::basic)
+        message(FATAL_ERROR "CNC_BUILD_RUNTIME requires CNC_BUILD_LIBFT_BASIC=ON")
+    endif()
+
+    add_library(cnc_runtime STATIC
+        "${CMAKE_CURRENT_SOURCE_DIR}/engine/runtime/src/Runtime.cpp"
+    )
+    add_library(cnc::runtime ALIAS cnc_runtime)
+    target_compile_features(cnc_runtime PUBLIC cxx_std_17)
+    target_include_directories(cnc_runtime
+        PUBLIC
+            "${CMAKE_CURRENT_SOURCE_DIR}/engine/runtime/include"
+    )
+    target_link_libraries(cnc_runtime PUBLIC libft::basic)
+endif()
+
+if(CNC_BUILD_SIMULATION)
+    if(NOT TARGET cnc::runtime)
+        message(FATAL_ERROR "CNC_BUILD_SIMULATION requires CNC_BUILD_RUNTIME=ON")
+    endif()
+
+    add_library(cnc_simulation STATIC
+        "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/World.cpp"
+    )
+    add_library(cnc::simulation ALIAS cnc_simulation)
+    target_compile_features(cnc_simulation PUBLIC cxx_std_17)
+    target_include_directories(cnc_simulation
+        PUBLIC
+            "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/include"
+    )
+    target_link_libraries(cnc_simulation PUBLIC cnc::runtime)
+endif()
+
 if(CNC_BUILD_SMOKE_TEST)
     if(NOT TARGET libft::basic)
         message(FATAL_ERROR "CNC_BUILD_SMOKE_TEST requires CNC_BUILD_LIBFT_BASIC=ON")
@@ -51,6 +87,12 @@ if(CNC_BUILD_SMOKE_TEST)
     )
     target_compile_features(cnc_libft_smoke PRIVATE cxx_std_17)
     target_link_libraries(cnc_libft_smoke PRIVATE libft::basic)
+    if(TARGET cnc::runtime)
+        target_link_libraries(cnc_libft_smoke PRIVATE cnc::runtime)
+    endif()
+    if(TARGET cnc::simulation)
+        target_link_libraries(cnc_libft_smoke PRIVATE cnc::simulation)
+    endif()
     target_compile_definitions(cnc_libft_smoke PRIVATE
         CNC_PROJECT_VERSION="${PROJECT_VERSION}"
     )

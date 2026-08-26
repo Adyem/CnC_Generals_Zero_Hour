@@ -1373,7 +1373,7 @@ The CMake migration is complete when:
 - configure/build/test/install/package workflows are reproducible through presets;
 - the `.dsw/.dsp` files are no longer consulted by active builds and can move to an archival directory.
 
-### 13.18 First implemented slice on `libft-engine-migration`
+### 13.18 First implemented slices on `libft-engine-migration`
 
 The implementation branch now contains the configure/build skeleton described above:
 
@@ -1386,7 +1386,19 @@ tests/smoke/libft_smoke.cpp            # type/error/checked-arithmetic smoke tes
 
 This deliberately builds only Libft `Basic` (excluding `basic_locale_compare.cpp`, which links `System_utils`) and the smoke executable. It does not claim to build SAGE, the renderer, or the game yet. The smoke slice was compiled and executed with Clang in this environment; the installed environment did not contain the `cmake` executable, so CMake configure/build itself remains to be run on a machine with CMake 3.20+ and Ninja or another supported generator.
 
-The next implementation step is to add a maintained Libft CMake target (or a temporary explicit adapter) for the transitive `Errno`, `System_utils`, `Time`, `File`, and `Game` modules, then replace this smoke executable with a headless Libft world test. Do not expand the manifest to every Libft `.cpp` file until each module's platform and third-party dependencies are represented as CMake targets.
+The branch now also contains the first Libft-native engine layers:
+
+```text
+engine/runtime/include/CncRuntime/Types.hpp
+engine/runtime/include/CncRuntime/Runtime.hpp
+engine/runtime/src/Runtime.cpp
+engine/simulation/include/CncSimulation/World.hpp
+engine/simulation/src/World.cpp
+```
+
+`cnc::Runtime` owns the first composition-root lifecycle and exposes Libft type/error conventions. `cnc::DeterministicWorld` is intentionally a generic scaffold rather than a Generals rules module: it provides stable 64-bit entity IDs, insertion-sequenced commands, fixed tick advancement, checked signed arithmetic, lifecycle error returns, and a canonical state hash. It is the seam where Libft `Game` facilities will be integrated next; it does not yet model factions, units, or SAGE behavior.
+
+The next implementation step is to add maintained Libft CMake targets (or temporary explicit adapters) for the transitive `Errno`, `System_utils`, `Time`, `File`, and `Game` modules, then replace this scaffold's storage with Libft `Game` registries and typed systems. Do not expand the manifest to every Libft `.cpp` file until each module's platform and third-party dependencies are represented as CMake targets.
 
 ## 14. Engine replacement phases
 
