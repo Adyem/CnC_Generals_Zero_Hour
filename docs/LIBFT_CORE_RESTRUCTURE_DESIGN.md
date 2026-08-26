@@ -1803,7 +1803,16 @@ pointers to the runtime, simulation, game, renderer, app, and test targets.
 MSVC fails clearly when this option is requested rather than silently ignoring
 it; the CI matrix can select a Clang job for sanitizer coverage.
 
-The next implementation step is to add maintained Libft CMake targets (or temporary explicit adapters) for the transitive `Errno`, `System_utils`, `Time`, `File`, and `Game` modules, then replace this scaffold's storage with Libft `Game` registries and typed systems. Do not expand the manifest to every Libft `.cpp` file until each module's platform and third-party dependencies are represented as CMake targets.
+The CMake migration now has maintained explicit targets/manifests for the
+portable Basic slice and the opt-in Time, File, and Game slices. `Errno` is
+consumed as a header contract, while `System_utils`, PThread, Compatibility,
+Lua, and other transitive dependencies remain capability gates rather than
+being silently bundled. The next implementation step is a narrow Libft Game
+adapter around one deterministic service (event scheduling or world replay),
+followed by replacing this scaffold's corresponding subsystem only after a
+parity test passes. Do not expand the manifest to every Libft `.cpp` file until
+each module's platform and third-party dependencies are represented as CMake
+targets.
 An opt-in `CNC_BUILD_LIBFT_FILE` target now provides the explicit File source
 manifest and include graph. It is deliberately OFF by default because File
 still depends on Libft CMA, PThread, Observability, and C++ utility targets;
@@ -1831,6 +1840,13 @@ reintroduce the exact portability failure the migration is avoiding. Once those
 dependencies have platform-selected CMake targets, this manifest is the single
 place to enable Game and the game-owned adapters can consume only the specific
 Libft services they need.
+The first such adapter is `cnc::LibftEventSchedulerAdapter`, built only when
+`CNC_BUILD_LIBFT_GAME=ON`. It wraps Libft's lifecycle-managed
+`game_event_scheduler` behind the engine's `Error`/`ft_bool` conventions and
+exposes only initialization, shutdown, queue depth, and backend identity. It
+is intentionally not wired into the default session yet: the adapter becomes
+the replacement for `SystemRegistry` only after an event-order parity fixture
+proves that Libft scheduling preserves the authoritative tick contract.
 
 ## 14. Engine replacement phases
 

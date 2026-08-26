@@ -95,6 +95,18 @@ if(CNC_BUILD_LIBFT_GAME)
         message(FATAL_ERROR "CNC_BUILD_LIBFT_GAME requires CNC_BUILD_LIBFT_BASIC=ON")
     endif()
     include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibftGame.cmake")
+
+    add_library(cnc_libft_game_adapter STATIC
+        "${CMAKE_CURRENT_SOURCE_DIR}/engine/game/src/LibftEventSchedulerAdapter.cpp")
+    add_library(cnc::libft_game_adapter ALIAS cnc_libft_game_adapter)
+    target_compile_features(cnc_libft_game_adapter PUBLIC cxx_std_17)
+    target_compile_definitions(cnc_libft_game_adapter PRIVATE LIBFT_INTERNAL_HEADERS)
+    target_include_directories(cnc_libft_game_adapter PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/engine/game/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/engine/runtime/include>)
+    target_link_libraries(cnc_libft_game_adapter PUBLIC libft::game)
+    cnc_enable_native_warnings(cnc_libft_game_adapter)
+    cnc_enable_native_sanitizers(cnc_libft_game_adapter)
 endif()
 
 if(CNC_BUILD_RUNTIME)
@@ -411,6 +423,13 @@ if(TARGET cnc_game_session)
         LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
     install(DIRECTORY engine/game/include/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+endif()
+if(TARGET cnc_libft_game_adapter)
+    set_target_properties(cnc_libft_game_adapter PROPERTIES EXPORT_NAME libft_game_adapter)
+    install(TARGETS cnc_libft_game_adapter EXPORT cncTargets
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 endif()
 if(TARGET cnc_render)
     set_target_properties(cnc_render PROPERTIES EXPORT_NAME render)
