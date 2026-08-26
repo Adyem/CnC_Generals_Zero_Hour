@@ -1613,6 +1613,9 @@ and UI code from treating runtime startup as proof that rules data is ready.
 `validate_game_data()` exposes the catalog’s complete cross-reference pass at
 the session boundary, so launchers can reject malformed faction/general/power
 graphs before submitting simulation commands.
+Both `install_default_data()` and `load_data_manifest()` now invoke this gate
+before returning success, making validation part of startup rather than an
+optional caller convention.
 Each backend contract also exposes a stable `backend_name()` identifier. The
 headless launcher prints the active runtime/world/renderer/network adapters,
 which makes accidental reintroduction of a legacy or partially initialized

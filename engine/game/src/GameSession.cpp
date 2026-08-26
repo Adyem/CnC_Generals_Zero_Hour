@@ -57,8 +57,10 @@ Error GameSession::install_default_data() noexcept
     if (error != FT_ERR_SUCCESS) return error;
     error = _general_roster.initialize(&_catalog);
     if (error != FT_ERR_SUCCESS) return error;
-    return _player_state.initialize(&_catalog, &_science_ledger,
-                                    &_special_power_ledger, &_general_roster);
+    error = _player_state.initialize(&_catalog, &_science_ledger,
+                                     &_special_power_ledger, &_general_roster);
+    if (error != FT_ERR_SUCCESS) return error;
+    return validate_game_data();
 }
 
 Error GameSession::load_data_manifest(const char *path) noexcept
@@ -73,8 +75,10 @@ Error GameSession::load_data_manifest(const char *path) noexcept
     if (error != FT_ERR_SUCCESS) return error;
     error = _general_roster.initialize(&_catalog);
     if (error != FT_ERR_SUCCESS) return error;
-    return _player_state.initialize(&_catalog, &_science_ledger,
-                                    &_special_power_ledger, &_general_roster);
+    error = _player_state.initialize(&_catalog, &_science_ledger,
+                                     &_special_power_ledger, &_general_roster);
+    if (error != FT_ERR_SUCCESS) return error;
+    return validate_game_data();
 }
 
 Error GameSession::submit_world_delta(EntityId entity, int64_t delta) noexcept
