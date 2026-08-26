@@ -1404,6 +1404,10 @@ engine/simulation/src/DefinitionRegistry.cpp
 `SimulationWorld` is the backend-neutral interface exposed by `GameSession`, so
 the deterministic implementation can later be replaced by Libft Game world
 storage while command, tick, and hash contracts remain stable.
+`DeterministicWorld::advance_one_tick()` applies commands transactionally using
+a shadow state: cumulative integer overflow or tick exhaustion leaves the live
+world and pending command queue unchanged. This is required for deterministic
+replay and gives a future Libft Game backend an explicit atomic-tick contract.
 `Runtime::set_monotonic_clock` provides the corresponding time seam: Libft Time
 can supply `time_monotonic` through a function pointer before startup, while
 tests can inject a deterministic clock. The default remains the portable

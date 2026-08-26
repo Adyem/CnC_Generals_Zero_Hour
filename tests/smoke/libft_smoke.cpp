@@ -80,6 +80,10 @@ int main()
     if (world.read_value(entity, &value) != FT_ERR_SUCCESS || value != 42 ||
         world.tick().value != 1U || world.canonical_state_hash() == 0U)
         return 10;
+    if (world.queue_delta(entity, INT64_MAX) != FT_ERR_SUCCESS ||
+        world.advance_one_tick() != FT_ERR_OUT_OF_RANGE ||
+        world.read_value(entity, &value) != FT_ERR_SUCCESS || value != 42)
+        return 34;
     if (world.shutdown() != FT_ERR_SUCCESS)
         return 11;
 

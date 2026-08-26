@@ -92,9 +92,22 @@ Error DeterministicWorld::advance_one_tick() noexcept
         {
             return left.sequence < right.sequence;
         });
+    // Preflight against a shadow copy before mutating live state. This handles
+    // cumulative overflow across multiple commands and keeps the tick atomic.
+    std::vector<EntityState> projected;
+    try { projected = _entities; }
+    catch (...) { return FT_ERR_NO_MEMORY; }
     for (const WorldCommand &command : _pending_commands)
     {
-        EntityState *const entity = find_entity(command.entity);
+        EntityState *entity = nullptr;
+        for (EntityState &candidate : projected)
+        {
+            if (candidate.id.value == command.entity.value)
+            {
+                entity = &candidate;
+                break;
+            }
+        }
         if (entity == nullptr || entity->alive != FT_TRUE)
             continue;
         if ((command.delta > 0 &&
@@ -104,9 +117,15 @@ Error DeterministicWorld::advance_one_tick() noexcept
             return FT_ERR_OUT_OF_RANGE;
         entity->value += command.delta;
     }
-    _pending_commands.clear();
+    for (const WorldCommand &command : _pending_commands)
+    {
+        EntityState *const entity = find_entity(command.entity);
+        if (entity != nullptr && entity->alive == FT_TRUE)
+    }
     if (_tick == std::numeric_limits<SimulationTickValue>::max())
         return FT_ERR_OUT_OF_RANGE;
+    _entities.swap(projected);
+    _pending_commands.clear();
     ++_tick;
     return FT_ERR_SUCCESS;
 }
