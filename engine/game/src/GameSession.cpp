@@ -151,6 +151,19 @@ zero_hour::SpecialPowerLedger &GameSession::special_power_ledger() noexcept
 }
 zero_hour::GeneralRoster &GameSession::general_roster() noexcept { return _general_roster; }
 void GameSession::clear_replay_history() noexcept { _replay_history.clear(); }
+Error GameSession::verify_replay(const std::vector<ReplayRecord> &expected) const noexcept
+{
+    if (_initialized != FT_TRUE) return FT_ERR_INVALID_STATE;
+    if (expected.size() != _replay_history.size()) return FT_ERR_CONFIGURATION;
+    for (std::size_t index = 0U; index < _replay_history.size(); ++index)
+    {
+        const ReplayRecord &actual = _replay_history[index];
+        const ReplayRecord &reference = expected[index];
+        if (actual.tick.value != reference.tick.value || actual.state_hash != reference.state_hash)
+            return FT_ERR_CONFIGURATION;
+    }
+    return FT_ERR_SUCCESS;
+}
 const std::vector<GameSession::ReplayRecord> &GameSession::replay_history() const noexcept
 {
     return _replay_history;

@@ -44,6 +44,7 @@ public:
     Error advance_one_tick() noexcept;
     Error shutdown() noexcept;
     void clear_replay_history() noexcept;
+    Error verify_replay(const std::vector<ReplayRecord> &expected) const noexcept;
     Bool is_initialized() const noexcept;
     Runtime &runtime() noexcept;
     DeterministicWorld &world() noexcept;

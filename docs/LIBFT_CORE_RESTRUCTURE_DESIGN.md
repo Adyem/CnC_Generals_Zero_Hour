@@ -1578,6 +1578,10 @@ simulation tick and canonical state hash are stored in a session-owned history
 that can be cleared or consumed by future Libft replay/file adapters. Capture
 happens after presentation systems complete, so failed ticks are never reported
 as successful replay frames.
+`verify_replay` compares an expected sequence against the captured tick/hash
+records and returns `FT_ERR_CONFIGURATION` on the first divergence. This gives
+the future Libft replay/file adapter a deterministic acceptance gate before
+playback or network synchronization is attempted.
 
 The session also owns the first input boundary: `submit_world_delta` accepts a
 validated entity command, assigns a monotonically increasing sequence number,
