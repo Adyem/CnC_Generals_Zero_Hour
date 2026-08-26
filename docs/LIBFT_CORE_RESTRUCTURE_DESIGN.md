@@ -1686,7 +1686,11 @@ authoritative fields, and never expose pointers into world storage. A future
 Libft `Storage` serializer or GPGR presentation adapter can consume this copy;
 the world remains free to replace its internal container without invalidating
 readers. Snapshot export failures return `FT_ERR_NO_MEMORY` and leave the
-caller-owned vector empty.
+caller-owned vector empty. `GameSession` now exports a snapshot after its
+simulation/presentation systems run, opens a renderer frame, presents the copy,
+and closes the frame. The renderer therefore consumes presentation data rather
+than reading `SimulationWorld` storage; a future GPGR implementation can replace
+`HeadlessRenderer` without changing authoritative tick code.
 
 The active-source exclusion audit is implemented in
 `cmake/ValidateMigrationSources.cmake`, exposed as the

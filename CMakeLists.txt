@@ -195,7 +195,7 @@ if(CNC_BUILD_RENDERER)
     target_include_directories(cnc_render PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/engine/render/include>
         $<INSTALL_INTERFACE:include>)
-    target_link_libraries(cnc_render PUBLIC cnc::runtime)
+    target_link_libraries(cnc_render PUBLIC cnc::runtime cnc::simulation)
     cnc_enable_native_warnings(cnc_render)
     cnc_enable_native_sanitizers(cnc_render)
 endif()

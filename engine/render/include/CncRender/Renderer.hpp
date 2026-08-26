@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "CncRuntime/Types.hpp"
+#include "CncSimulation/World.hpp"
 
 namespace cnc
 {
@@ -25,6 +26,7 @@ public:
     virtual const char *backend_name() const noexcept = 0;
     virtual Error begin_frame() noexcept = 0;
     virtual Error submit(const RenderCommand &command) noexcept = 0;
+    virtual Error present_snapshot(const std::vector<WorldSnapshotEntry> &snapshot) noexcept = 0;
     virtual Error end_frame() noexcept = 0;
     virtual Error shutdown() noexcept = 0;
     virtual Bool is_initialized() const noexcept = 0;
@@ -39,6 +41,7 @@ public:
     const char *backend_name() const noexcept override;
     Error begin_frame() noexcept override;
     Error submit(const RenderCommand &command) noexcept override;
+    Error present_snapshot(const std::vector<WorldSnapshotEntry> &snapshot) noexcept override;
     Error end_frame() noexcept override;
     Error shutdown() noexcept override;
     Bool is_initialized() const noexcept override;
@@ -47,6 +50,7 @@ public:
 
 private:
     std::vector<RenderCommand> _commands;
+    std::vector<WorldSnapshotEntry> _last_snapshot;
     uint64_t _frame_count = 0U;
     Bool _initialized = FT_FALSE;
     Bool _frame_open = FT_FALSE;

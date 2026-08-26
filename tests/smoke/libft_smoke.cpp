@@ -323,6 +323,7 @@ int main()
     cnc::HeadlessRenderer renderer;
     if (renderer.initialize() != FT_ERR_SUCCESS ||
         renderer.begin_frame() != FT_ERR_SUCCESS ||
+        renderer.present_snapshot(snapshot) != FT_ERR_SUCCESS ||
         renderer.submit(cnc::RenderCommand{1U, 0, 0, 64U, 64U}) != FT_ERR_SUCCESS ||
         renderer.submitted_command_count() != static_cast<cnc::Size>(1U) ||
         renderer.end_frame() != FT_ERR_SUCCESS || renderer.frame_count() != 1U ||
