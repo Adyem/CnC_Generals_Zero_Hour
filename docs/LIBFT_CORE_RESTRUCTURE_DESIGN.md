@@ -1611,6 +1611,9 @@ It scans only `engine/`, `games/`, and `tests/` (not the archival `GeneralsMD/`
 tree) and fails on SafeDisk, copy-protection, or GameSpy references. This keeps
 retired middleware out of new code while the legacy inventory tracks what still
 must be removed when the optional reference target is dismantled.
+The same audit rejects native-width spellings (`unsigned int`, `unsigned long`,
+and `long long`) in active sources; fixed-width `<cstdint>` types or Libft
+aliases are required for new systems.
 
 Native migration targets now share `cmake/CompilerWarnings.cmake`. On MSVC it
 enables `/W4` and `/permissive-`; on GCC/Clang it enables `-Wall`, `-Wextra`,
