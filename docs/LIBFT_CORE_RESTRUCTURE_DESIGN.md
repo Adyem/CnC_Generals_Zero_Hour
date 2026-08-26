@@ -1446,6 +1446,11 @@ session (a populated catalog returns `FT_ERR_ALREADY_EXISTS`) so live rules
 cannot change under a running simulation. A future Libft File adapter can feed
 the same API without moving ownership into Libft.
 
+Command sequencing is also bounded: the session refuses a new command when
+its 64-bit insertion sequence reaches `UINT64_MAX`, returning
+`FT_ERR_OUT_OF_RANGE` instead of wrapping and silently changing deterministic
+ordering.
+
 Catalog validation also follows references between records: factions must point
 to an existing science, and generals must point to an existing faction and
 special power. The invalid fixture

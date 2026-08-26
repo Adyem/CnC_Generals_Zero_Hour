@@ -3,6 +3,7 @@
 #include "errno.hpp"
 
 #include <algorithm>
+#include <limits>
 
 namespace cnc
 {
@@ -74,6 +75,8 @@ Error GameSession::submit_world_delta(EntityId entity, int64_t delta) noexcept
 {
     if (_initialized != FT_TRUE) return FT_ERR_INVALID_STATE;
     if (!entity.is_valid()) return FT_ERR_INVALID_ARGUMENT;
+    if (_next_command_sequence == std::numeric_limits<uint64_t>::max())
+        return FT_ERR_OUT_OF_RANGE;
     try
     {
         _commands.push_back(WorldDeltaCommand{entity, delta, _next_command_sequence++});
