@@ -141,7 +141,7 @@ Error GameSession::shutdown() noexcept
 
 Bool GameSession::is_initialized() const noexcept { return _initialized; }
 Runtime &GameSession::runtime() noexcept { return _runtime; }
-DeterministicWorld &GameSession::world() noexcept { return _world; }
+SimulationWorld &GameSession::world() noexcept { return _world; }
 SystemRegistry &GameSession::systems() noexcept { return _systems; }
 const zero_hour::Catalog &GameSession::catalog() const noexcept { return _catalog; }
 zero_hour::ScienceLedger &GameSession::science_ledger() noexcept { return _science_ledger; }

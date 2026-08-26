@@ -47,7 +47,7 @@ public:
     Error verify_replay(const std::vector<ReplayRecord> &expected) const noexcept;
     Bool is_initialized() const noexcept;
     Runtime &runtime() noexcept;
-    DeterministicWorld &world() noexcept;
+    SimulationWorld &world() noexcept;
     SystemRegistry &systems() noexcept;
     const zero_hour::Catalog &catalog() const noexcept;
     zero_hour::ScienceLedger &science_ledger() noexcept;

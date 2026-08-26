@@ -1401,6 +1401,9 @@ engine/simulation/src/DefinitionRegistry.cpp
 ```
 
 `cnc::Runtime` owns the first composition-root lifecycle and exposes Libft type/error conventions. `cnc::DeterministicWorld` is intentionally a generic scaffold rather than a Generals rules module: it provides stable 64-bit entity IDs, insertion-sequenced commands, fixed tick advancement, checked signed arithmetic, lifecycle error returns, and a canonical state hash. It is the seam where Libft `Game` facilities will be integrated next; it does not yet model factions, units, or SAGE behavior.
+`SimulationWorld` is the backend-neutral interface exposed by `GameSession`, so
+the deterministic implementation can later be replaced by Libft Game world
+storage while command, tick, and hash contracts remain stable.
 
 `cnc::SystemRegistry` is the next generic seam. It registers callbacks by phase, explicit signed order, and registration sequence, then propagates the first non-success `FT_ERR_*` result. It deliberately has no knowledge of Generals systems; the future Zero Hour module will register its own science, production, combat, and victory systems through this interface.
 
