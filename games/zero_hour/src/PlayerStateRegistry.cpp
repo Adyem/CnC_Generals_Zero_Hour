@@ -204,6 +204,7 @@ void PlayerStateRegistry::rebind_generals(GeneralRoster *generals) noexcept
     _generals = generals;
 }
 void PlayerStateRegistry::rebind_powers(SpecialPowerLedger *powers) noexcept { _powers = powers; }
+void PlayerStateRegistry::rebind_science(ScienceLedger *science) noexcept { _science = science; }
 
 cnc::Error PlayerStateRegistry::shutdown() noexcept
 {

@@ -39,6 +39,7 @@ public:
     void swap(PlayerStateRegistry &other) noexcept;
     void rebind_generals(GeneralRoster *generals) noexcept;
     void rebind_powers(SpecialPowerLedger *powers) noexcept;
+    void rebind_science(ScienceLedger *science) noexcept;
     cnc::Error shutdown() noexcept;
 
 private:
