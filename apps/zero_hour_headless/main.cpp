@@ -8,6 +8,13 @@
 
 int main(int argc, char **argv)
 {
+    if (argc == 2 && std::string(argv[1]) == "--help")
+    {
+        std::cout << "usage: cnc_zero_hour_headless [--manifest <path>]\n"
+                  << "backend: libft-basic + deterministic offline core\n"
+                  << "renderer: headless; multiplayer: disabled\n";
+        return 0;
+    }
     cnc::GameSession session;
     if (session.initialize() != FT_ERR_SUCCESS)
         return 1;

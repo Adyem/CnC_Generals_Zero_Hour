@@ -1497,6 +1497,8 @@ prints the resulting tick/hash/frame counters. CMake registers it as
 independent of SAGE, DirectX, SafeDisk, GameSpy, and multiplayer.
 With `--manifest <path>` it exercises the same game-owned manifest loader used
 by staged assets; without arguments it uses built-in defaults.
+`--help` reports the active backend profile so launchers can distinguish this
+offline/headless migration build from a future networked or GPGR-enabled one.
 
 The root CMake file now installs only declared native targets and their public
 headers under standard `GNUInstallDirs` locations; it never copies the legacy
