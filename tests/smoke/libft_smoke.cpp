@@ -560,7 +560,7 @@ int main()
                                           2U, &session_points) != FT_ERR_SUCCESS ||
         session_points != 1U)
         return 23;
-    cnc::SimulationTick saved_power_ready;
+    cnc::SimulationTick power_ready;
     if (session.special_power_ledger().activate(cnc::DefinitionId{1U},
                                                 cnc::SimulationTick{0U},
                                                 &power_ready) != FT_ERR_SUCCESS ||
@@ -619,10 +619,10 @@ int main()
     if (session.production().enqueue(session_entity, cnc::DefinitionId{1U},
                                      session.world().tick(), cnc::SimulationTick{10U}) != FT_ERR_SUCCESS)
         return 59;
-    cnc::SimulationTick power_ready;
+    cnc::SimulationTick session_saved_power_ready;
     if (session.player_states().find(cnc::PlayerId{1U})->purchase_science(cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
         session.player_states().find(cnc::PlayerId{1U})->activate_power(
-            cnc::DefinitionId{1U}, session.world().tick(), &saved_power_ready) != FT_ERR_SUCCESS)
+            cnc::DefinitionId{1U}, session.world().tick(), &session_saved_power_ready) != FT_ERR_SUCCESS)
         return 60;
     if (session.save_snapshot(&saved_session) != FT_ERR_SUCCESS ||
         session.player_states().find(cnc::PlayerId{1U})->set_science_points(2U) != FT_ERR_SUCCESS ||
