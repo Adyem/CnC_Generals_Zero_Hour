@@ -129,21 +129,34 @@ int main()
     if (manifest_catalog.shutdown() != FT_ERR_SUCCESS)
         return 19;
 
+    zero_hour::Catalog invalid_catalog;
+#ifdef CNC_ZERO_HOUR_INVALID_MANIFEST_PATH
+    const char *const invalid_manifest_path = CNC_ZERO_HOUR_INVALID_MANIFEST_PATH;
+#else
+    const char *const invalid_manifest_path = "tests/fixtures/zero_hour_invalid_manifest.csv";
+#endif
+    cnc::ValidationReport invalid_report;
+    if (invalid_catalog.initialize() != FT_ERR_SUCCESS ||
+        invalid_catalog.load_manifest(invalid_manifest_path) != FT_ERR_CONFIGURATION ||
+        invalid_catalog.validate(invalid_report) != FT_ERR_CONFIGURATION ||
+        invalid_report.issue_count == 0U || invalid_catalog.shutdown() != FT_ERR_SUCCESS)
+        return 20;
+
     cnc::GameSession session;
     if (session.initialize() != FT_ERR_SUCCESS ||
         session.install_default_data() != FT_ERR_SUCCESS ||
         session.catalog().definition_count() != static_cast<cnc::Size>(4U))
-        return 20;
+        return 21;
     cnc::EntityId session_entity;
     if (session.world().create_entity(&session_entity) != FT_ERR_SUCCESS ||
         session.submit_world_delta(session_entity, 5) != FT_ERR_SUCCESS ||
         session.advance_one_tick() != FT_ERR_SUCCESS)
-        return 21;
+        return 22;
     int64_t session_value = 0;
     if (session.world().read_value(session_entity, &session_value) != FT_ERR_SUCCESS ||
         session_value != 5 || session.world().tick().value != 1U ||
         session.shutdown() != FT_ERR_SUCCESS || session.is_initialized() == FT_TRUE)
-        return 22;
+        return 23;
 
     cnc::HeadlessRenderer renderer;
     if (renderer.initialize() != FT_ERR_SUCCESS ||

@@ -186,7 +186,20 @@ cnc::Error Catalog::shutdown() noexcept
 cnc::Error Catalog::validate(cnc::ValidationReport &report) const noexcept
 {
     if (!_initialized) return FT_ERR_INVALID_STATE;
-    return _registry.validate_all(report);
+    const cnc::Error error = _registry.validate_all(report);
+    if (error != FT_ERR_SUCCESS) return error;
+    for (uint64_t id = 1U; id <= _registry.definition_count(); ++id)
+    {
+        const auto *faction = find_faction(cnc::DefinitionId{id});
+        if (faction != nullptr && find_science(faction->starting_science) == nullptr)
+            ++report.issue_count;
+        const auto *general = find_general(cnc::DefinitionId{id});
+        if (general != nullptr &&
+            (find_faction(general->faction) == nullptr ||
+             find_special_power(general->signature_power) == nullptr))
+            ++report.issue_count;
+    }
+    return report.issue_count == 0U ? FT_ERR_SUCCESS : FT_ERR_CONFIGURATION;
 }
 
 const ScienceDefinition *Catalog::find_science(cnc::DefinitionId id) const noexcept

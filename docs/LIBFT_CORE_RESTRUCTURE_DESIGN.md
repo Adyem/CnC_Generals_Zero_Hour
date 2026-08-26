@@ -1434,6 +1434,13 @@ smoke test. This is an interim game-owned loader; once Libft File is portable it
 should replace the stream I/O while preserving this grammar and ownership
 boundary.
 
+Catalog validation also follows references between records: factions must point
+to an existing science, and generals must point to an existing faction and
+special power. The invalid fixture
+`tests/fixtures/zero_hour_invalid_manifest.csv` proves that a syntactically
+valid but semantically broken manifest returns `FT_ERR_CONFIGURATION` instead
+of entering a match.
+
 The presentation seam now has a portable `cnc::HeadlessRenderer` in
 `engine/render`. It models initialize/begin/submit/end/shutdown and validates
 resource IDs and dimensions while retaining frame/command counters for tests.
