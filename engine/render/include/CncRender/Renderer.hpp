@@ -17,17 +17,31 @@ struct RenderCommand
     uint32_t height = 0U;
 };
 
-class HeadlessRenderer final
+class Renderer
 {
 public:
-    Error initialize() noexcept;
-    Error begin_frame() noexcept;
-    Error submit(const RenderCommand &command) noexcept;
-    Error end_frame() noexcept;
-    Error shutdown() noexcept;
-    Bool is_initialized() const noexcept;
-    uint64_t frame_count() const noexcept;
-    Size submitted_command_count() const noexcept;
+    virtual ~Renderer() noexcept = default;
+    virtual Error initialize() noexcept = 0;
+    virtual Error begin_frame() noexcept = 0;
+    virtual Error submit(const RenderCommand &command) noexcept = 0;
+    virtual Error end_frame() noexcept = 0;
+    virtual Error shutdown() noexcept = 0;
+    virtual Bool is_initialized() const noexcept = 0;
+    virtual uint64_t frame_count() const noexcept = 0;
+    virtual Size submitted_command_count() const noexcept = 0;
+};
+
+class HeadlessRenderer final : public Renderer
+{
+public:
+    Error initialize() noexcept override;
+    Error begin_frame() noexcept override;
+    Error submit(const RenderCommand &command) noexcept override;
+    Error end_frame() noexcept override;
+    Error shutdown() noexcept override;
+    Bool is_initialized() const noexcept override;
+    uint64_t frame_count() const noexcept override;
+    Size submitted_command_count() const noexcept override;
 
 private:
     std::vector<RenderCommand> _commands;

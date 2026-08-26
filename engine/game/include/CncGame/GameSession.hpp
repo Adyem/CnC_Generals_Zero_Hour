@@ -54,7 +54,7 @@ public:
     zero_hour::SpecialPowerLedger &special_power_ledger() noexcept;
     zero_hour::GeneralRoster &general_roster() noexcept;
     const std::vector<ReplayRecord> &replay_history() const noexcept;
-    HeadlessRenderer &renderer() noexcept;
+    Renderer &renderer() noexcept;
     NetworkSession &network() noexcept;
 
 private:

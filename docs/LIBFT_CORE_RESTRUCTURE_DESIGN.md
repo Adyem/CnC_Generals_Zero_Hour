@@ -1493,6 +1493,9 @@ The target is deliberately backend-free: a future GPGR renderer can implement
 the same command contract, and an offscreen backend can verify parity without a
 display. The smoke test exercises one complete frame. No DirectX, X11, or GPGR
 source is linked until the renderer/resource API is expanded in its own target.
+`Renderer` is the backend-neutral interface exposed by `GameSession`; the
+headless implementation is the current adapter and GPGR can later implement
+the same lifecycle and command contract.
 
 The first end-to-end product target is `cnc_zero_hour_headless` under
 `apps/zero_hour_headless`. It initializes `GameSession`, installs the game-owned
