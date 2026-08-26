@@ -1507,6 +1507,8 @@ owned.
 Faction changes after selection and commander replacement are rejected with
 `FT_ERR_INVALID_OPERATION`; a new session is required so purchased science and
 cooldown state cannot silently carry across incompatible player identities.
+The smoke suite exercises the commander-replacement rejection and the valid
+signature-power path, keeping these ownership and transition rules executable.
 
 The presentation seam now has a portable `cnc::HeadlessRenderer` in
 `engine/render`. It models initialize/begin/submit/end/shutdown and validates

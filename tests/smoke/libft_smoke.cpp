@@ -212,6 +212,7 @@ int main()
         return 25;
     zero_hour::PlayerState &player = manifest_session.player_state();
     cnc::EntityId player_entity;
+    cnc::EntityId replacement_entity;
     cnc::SimulationTick player_power_ready;
     if (player.set_faction(cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
         player.set_science_points(2U) != FT_ERR_SUCCESS ||
@@ -219,6 +220,8 @@ int main()
         player.science_points() != 1U ||
         manifest_session.world().create_entity(&player_entity) != FT_ERR_SUCCESS ||
         player.assign_general(player_entity, cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
+        manifest_session.world().create_entity(&replacement_entity) != FT_ERR_SUCCESS ||
+        player.assign_general(replacement_entity, cnc::DefinitionId{1U}) != FT_ERR_INVALID_OPERATION ||
         player.activate_power(cnc::DefinitionId{1U}, cnc::SimulationTick{0U},
                               &player_power_ready) != FT_ERR_SUCCESS ||
         player_power_ready.value != 60U ||
