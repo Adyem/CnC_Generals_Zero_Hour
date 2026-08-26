@@ -8,6 +8,7 @@
 #include "CncSimulation/World.hpp"
 #include "ZeroHourData/Catalog.hpp"
 #include "ZeroHourData/ScienceLedger.hpp"
+#include "ZeroHourData/SpecialPowerLedger.hpp"
 #include "CncRender/Renderer.hpp"
 #include "CncNetwork/NetworkSession.hpp"
 
@@ -46,6 +47,7 @@ public:
     SystemRegistry &systems() noexcept;
     const zero_hour::Catalog &catalog() const noexcept;
     zero_hour::ScienceLedger &science_ledger() noexcept;
+    zero_hour::SpecialPowerLedger &special_power_ledger() noexcept;
     const std::vector<ReplayRecord> &replay_history() const noexcept;
     HeadlessRenderer &renderer() noexcept;
     OfflineNetworkSession &network() noexcept;
@@ -56,6 +58,7 @@ private:
     SystemRegistry _systems;
     zero_hour::Catalog _catalog;
     zero_hour::ScienceLedger _science_ledger;
+    zero_hour::SpecialPowerLedger _special_power_ledger;
     HeadlessRenderer _renderer;
     OfflineNetworkSession _network;
     std::vector<WorldDeltaCommand> _commands;

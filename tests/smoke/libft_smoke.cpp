@@ -179,18 +179,29 @@ int main()
                                           2U, &session_points) != FT_ERR_SUCCESS ||
         session_points != 1U)
         return 23;
+    cnc::SimulationTick power_ready;
+    if (session.special_power_ledger().activate(cnc::DefinitionId{1U},
+                                                cnc::SimulationTick{0U},
+                                                &power_ready) != FT_ERR_SUCCESS ||
+        power_ready.value != 60U ||
+        session.special_power_ledger().is_ready(cnc::DefinitionId{1U},
+                                                cnc::SimulationTick{1U}) ||
+        session.special_power_ledger().activate(cnc::DefinitionId{1U},
+                                                cnc::SimulationTick{1U},
+                                                &power_ready) != FT_ERR_INVALID_OPERATION)
+        return 24;
     cnc::EntityId session_entity;
     if (session.world().create_entity(&session_entity) != FT_ERR_SUCCESS ||
         session.submit_world_delta(session_entity, 5) != FT_ERR_SUCCESS ||
         session.advance_one_tick() != FT_ERR_SUCCESS)
-        return 24;
+        return 25;
     int64_t session_value = 0;
     if (session.world().read_value(session_entity, &session_value) != FT_ERR_SUCCESS ||
         session_value != 5 || session.world().tick().value != 1U ||
         session.replay_history().size() != 1U ||
         session.replay_history()[0].state_hash != session.world().canonical_state_hash() ||
         session.shutdown() != FT_ERR_SUCCESS || session.is_initialized() == FT_TRUE)
-        return 25;
+        return 26;
 
     cnc::HeadlessRenderer renderer;
     if (renderer.initialize() != FT_ERR_SUCCESS ||

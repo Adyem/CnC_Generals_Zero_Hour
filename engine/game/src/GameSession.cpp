@@ -50,7 +50,9 @@ Error GameSession::install_default_data() noexcept
     if (_initialized != FT_TRUE) return FT_ERR_INVALID_STATE;
     Error error = _catalog.install_default_definitions();
     if (error != FT_ERR_SUCCESS) return error;
-    return _science_ledger.initialize(&_catalog);
+    error = _science_ledger.initialize(&_catalog);
+    if (error != FT_ERR_SUCCESS) return error;
+    return _special_power_ledger.initialize(&_catalog);
 }
 
 Error GameSession::submit_world_delta(EntityId entity, int64_t delta) noexcept
@@ -110,6 +112,7 @@ Error GameSession::shutdown() noexcept
     (void)_renderer.shutdown();
     (void)_network.shutdown();
     (void)_science_ledger.shutdown();
+    (void)_special_power_ledger.shutdown();
     (void)_catalog.shutdown();
     (void)_world.shutdown();
     const Error error = _runtime.shutdown();
@@ -123,6 +126,10 @@ DeterministicWorld &GameSession::world() noexcept { return _world; }
 SystemRegistry &GameSession::systems() noexcept { return _systems; }
 const zero_hour::Catalog &GameSession::catalog() const noexcept { return _catalog; }
 zero_hour::ScienceLedger &GameSession::science_ledger() noexcept { return _science_ledger; }
+zero_hour::SpecialPowerLedger &GameSession::special_power_ledger() noexcept
+{
+    return _special_power_ledger;
+}
 void GameSession::clear_replay_history() noexcept { _replay_history.clear(); }
 const std::vector<GameSession::ReplayRecord> &GameSession::replay_history() const noexcept
 {

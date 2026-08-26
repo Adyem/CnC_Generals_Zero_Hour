@@ -1458,6 +1458,11 @@ can therefore access `session.science_ledger()` through the same composition
 root used for world commands, renderer state, and the offline network
 capability.
 
+`zero_hour::SpecialPowerLedger` now provides the matching game-owned cooldown
+rule seam. It validates power IDs through the catalog, computes fixed-tick
+ready times with overflow checks, rejects activation while cooling down, and is
+lifecycle-managed by `GameSession` alongside `ScienceLedger`.
+
 The presentation seam now has a portable `cnc::HeadlessRenderer` in
 `engine/render`. It models initialize/begin/submit/end/shutdown and validates
 resource IDs and dimensions while retaining frame/command counters for tests.
