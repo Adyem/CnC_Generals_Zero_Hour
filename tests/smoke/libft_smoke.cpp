@@ -477,6 +477,7 @@ int main()
     if (session.has_game_data() != FT_TRUE)
         return 29;
     zero_hour::PlayerStateRegistry player_states;
+    uint64_t player_state_hash = 0U;
     if (player_states.initialize(&session.catalog(), &session.science_ledger(),
                                  &session.special_power_ledger(), &session.general_roster()) !=
             FT_ERR_SUCCESS ||
@@ -484,7 +485,9 @@ int main()
         player_states.create(cnc::PlayerId{2U}) != FT_ERR_SUCCESS ||
         player_states.size() != static_cast<cnc::Size>(2U) ||
         player_states.find(cnc::PlayerId{1U}) == nullptr ||
+        ((player_state_hash = player_states.canonical_state_hash()) == 0U) ||
         player_states.find(cnc::PlayerId{1U})->set_faction(cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
+        player_states.canonical_state_hash() == player_state_hash ||
         player_states.remove(cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
         player_states.find(cnc::PlayerId{1U}) != nullptr ||
         player_states.remove(cnc::PlayerId{2U}) != FT_ERR_SUCCESS ||

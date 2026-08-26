@@ -511,6 +511,10 @@ relationships, while this table owns faction selection, science progression,
 general assignment, and special-power permissions. Returned `PlayerState*`
 handles are valid only until the next registry create/remove (the vector may
 reallocate), so callers should reacquire handles at phase boundaries.
+Its canonical hash contribution includes each player identity, selected
+faction, and science-point total, so replay/desync checks detect game-state
+divergence even before the full game-owned progression snapshot schema is
+implemented.
 `GameSession::create_player` and `remove_player` are the composition-root
 entry points: they update the generic `PlayerRegistry` and the game-owned
 state table as one operation, rolling back the identity if game-state creation

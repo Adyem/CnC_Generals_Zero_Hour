@@ -412,6 +412,7 @@ uint64_t GameSession::canonical_state_hash() const noexcept
     mix(_spatial.canonical_state_hash());
     mix(_combat.canonical_state_hash());
     mix(_visibility.canonical_state_hash());
+    mix(_player_states.canonical_state_hash());
     return hash;
 }
 Bool GameSession::has_game_data() const noexcept

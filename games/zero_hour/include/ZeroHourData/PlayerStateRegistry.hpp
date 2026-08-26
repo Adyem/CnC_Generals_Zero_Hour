@@ -22,6 +22,7 @@ public:
     PlayerState *find(cnc::PlayerId player) noexcept;
     const PlayerState *find(cnc::PlayerId player) const noexcept;
     cnc::Size size() const noexcept;
+    uint64_t canonical_state_hash() const noexcept;
     cnc::Error shutdown() noexcept;
 
 private:
