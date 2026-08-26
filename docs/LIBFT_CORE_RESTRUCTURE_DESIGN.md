@@ -1590,6 +1590,9 @@ startup initializes the offline network capability and renderer after world/data
 initialization, and shutdown tears them down before the catalog/world/runtime.
 Callers therefore receive one lifecycle-managed backend graph; the offline app
 uses `session.renderer()` and cannot accidentally bypass the configured session.
+`GameSession::has_game_data()` distinguishes an initialized backend graph from
+a session whose game-owned catalog has not yet been loaded, preventing launch
+and UI code from treating runtime startup as proof that rules data is ready.
 
 `GameSession` now captures a replay record after every successful tick: the
 simulation tick and canonical state hash are stored in a session-owned history

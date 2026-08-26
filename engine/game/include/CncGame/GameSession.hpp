@@ -46,6 +46,7 @@ public:
     void clear_replay_history() noexcept;
     Error verify_replay(const std::vector<ReplayRecord> &expected) const noexcept;
     Bool is_initialized() const noexcept;
+    Bool has_game_data() const noexcept;
     Runtime &runtime() noexcept;
     SimulationWorld &world() noexcept;
     SystemRegistry &systems() noexcept;

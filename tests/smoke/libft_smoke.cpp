@@ -197,6 +197,8 @@ int main()
         session.catalog().definition_count() != static_cast<cnc::Size>(4U) ||
         session.science_ledger().purchase_count() != static_cast<cnc::Size>(0U))
         return 22;
+    if (session.has_game_data() != FT_TRUE)
+        return 29;
     cnc::GameSession manifest_session;
 #ifdef CNC_ZERO_HOUR_MANIFEST_PATH
     const char *const session_manifest_path = CNC_ZERO_HOUR_MANIFEST_PATH;

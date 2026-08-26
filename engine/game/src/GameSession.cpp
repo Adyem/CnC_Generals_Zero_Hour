@@ -140,6 +140,10 @@ Error GameSession::shutdown() noexcept
 }
 
 Bool GameSession::is_initialized() const noexcept { return _initialized; }
+Bool GameSession::has_game_data() const noexcept
+{
+    return (_initialized == FT_TRUE && _catalog.definition_count() != 0U) ? FT_TRUE : FT_FALSE;
+}
 Runtime &GameSession::runtime() noexcept { return _runtime; }
 SimulationWorld &GameSession::world() noexcept { return _world; }
 SystemRegistry &GameSession::systems() noexcept { return _systems; }
