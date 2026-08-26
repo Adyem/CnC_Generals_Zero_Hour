@@ -150,6 +150,7 @@ int main()
     cnc::PlayerId owner_id;
     cnc::TeamId team_id;
     cnc::Bool teammates = FT_FALSE;
+    cnc::Bool allied = FT_FALSE;
     std::vector<cnc::EntityId> owned_entities;
     if (players.initialize() != FT_ERR_SUCCESS ||
         players.create_player(cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
@@ -166,6 +167,8 @@ int main()
         players.are_teammates(cnc::PlayerId{1U}, cnc::PlayerId{2U}, &teammates) != FT_ERR_SUCCESS ||
         teammates != FT_TRUE || players.team_of(cnc::PlayerId{1U}, &team_id) != FT_ERR_SUCCESS ||
         team_id.value != 7U ||
+        players.is_allied(cnc::PlayerId{1U}, cnc::PlayerId{2U}, &allied) != FT_ERR_SUCCESS ||
+        allied != FT_TRUE ||
         players.set_owner(cnc::EntityId{42U}, cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
         players.owner(cnc::EntityId{42U}, nullptr) != FT_ERR_INVALID_POINTER ||
         players.owner(cnc::EntityId{42U}, &owner_id) != FT_ERR_SUCCESS || owner_id.value != 1U ||

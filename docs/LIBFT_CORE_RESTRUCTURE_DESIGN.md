@@ -1730,7 +1730,8 @@ The generic `PlayerRegistry` is the first engine-side player/team primitive. It
 owns stable `PlayerId` identities and symmetric neutral/allied/hostile
 relationships, deterministic team membership, and entity ownership/transfer,
 including deterministic owned-entity queries and cleanup of related edges when a
-player or team is removed. Zero Hour
+player or team is removed. It also exposes an `is_allied` query that combines
+explicit allied diplomacy with shared-team membership. Zero Hour
 continues to own faction selection, generals, sciences, economy, diplomacy
 rules, and victory semantics; those systems can reference this registry without
 moving game data into Libft or the engine scaffold.

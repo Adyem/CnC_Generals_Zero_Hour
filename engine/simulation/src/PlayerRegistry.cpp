@@ -316,6 +316,22 @@ Error PlayerRegistry::relationship(PlayerId first, PlayerId second,
     return FT_ERR_SUCCESS;
 }
 
+Error PlayerRegistry::is_allied(PlayerId first, PlayerId second,
+                                 Bool *result_out) const noexcept
+{
+    if (result_out == nullptr) return FT_ERR_INVALID_POINTER;
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    Diplomacy value = Diplomacy::neutral;
+    const Error relationship_error = relationship(first, second, &value);
+    if (relationship_error != FT_ERR_SUCCESS) return relationship_error;
+    if (value == Diplomacy::allied)
+    {
+        *result_out = FT_TRUE;
+        return FT_ERR_SUCCESS;
+    }
+    return are_teammates(first, second, result_out);
+}
+
 Size PlayerRegistry::player_count() const noexcept
 {
     return static_cast<Size>(_players.size());

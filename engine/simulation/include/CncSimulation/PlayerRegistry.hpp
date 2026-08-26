@@ -45,6 +45,7 @@ public:
                            Diplomacy relationship) noexcept;
     Error relationship(PlayerId first, PlayerId second,
                        Diplomacy *relationship_out) const noexcept;
+    Error is_allied(PlayerId first, PlayerId second, Bool *result_out) const noexcept;
     Error set_owner(EntityId entity, PlayerId owner) noexcept;
     Error clear_owner(EntityId entity) noexcept;
     Error owner(EntityId entity, PlayerId *owner_out) const noexcept;
