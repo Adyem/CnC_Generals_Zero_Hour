@@ -193,6 +193,18 @@ int main()
         players.shutdown() != FT_ERR_SUCCESS)
         return 44;
 
+    cnc::PlayerRegistry atomic_registry;
+    if (atomic_registry.initialize() != FT_ERR_SUCCESS ||
+        atomic_registry.import_snapshot(registry_snapshot) != FT_ERR_SUCCESS)
+        return 46;
+    cnc::PlayerRegistrySnapshot malformed_registry = registry_snapshot;
+    std::swap(malformed_registry.players[0], malformed_registry.players[1]);
+    if (atomic_registry.import_snapshot(malformed_registry) != FT_ERR_CONFIGURATION ||
+        atomic_registry.player_count() != static_cast<cnc::Size>(2U) ||
+        atomic_registry.owner(cnc::EntityId{42U}, &owner_id) != FT_ERR_SUCCESS ||
+        owner_id.value != 2U || atomic_registry.shutdown() != FT_ERR_SUCCESS)
+        return 47;
+
     cnc::SystemRegistry systems;
     std::vector<uint64_t> execution_ticks;
     if (systems.add(cnc::SystemPhase::simulation, 20, "late", record_system,

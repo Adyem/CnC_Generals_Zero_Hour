@@ -1,5 +1,7 @@
 #include "CncSimulation/PlayerRegistry.hpp"
 
+#include <algorithm>
+
 #include "errno.hpp"
 
 namespace cnc
@@ -248,6 +250,31 @@ Error PlayerRegistry::export_snapshot(PlayerRegistrySnapshot *snapshot_out) cons
         snapshot_out->team_memberships = _team_memberships;
         snapshot_out->relationships = _relationships;
         snapshot_out->ownership = _ownership;
+        std::sort(snapshot_out->players.begin(), snapshot_out->players.end(),
+                  [](PlayerId first, PlayerId second) noexcept { return first.value < second.value; });
+        std::sort(snapshot_out->teams.begin(), snapshot_out->teams.end(),
+                  [](TeamId first, TeamId second) noexcept { return first.value < second.value; });
+        std::sort(snapshot_out->team_memberships.begin(), snapshot_out->team_memberships.end(),
+                  [](const TeamMembership &first, const TeamMembership &second) noexcept
+                  {
+                      return first.player.value == second.player.value
+                                 ? first.team.value < second.team.value
+                                 : first.player.value < second.player.value;
+                  });
+        std::sort(snapshot_out->relationships.begin(), snapshot_out->relationships.end(),
+                  [](const PlayerRelationship &first, const PlayerRelationship &second) noexcept
+                  {
+                      return first.first.value == second.first.value
+                                 ? first.second.value < second.second.value
+                                 : first.first.value < second.first.value;
+                  });
+        std::sort(snapshot_out->ownership.begin(), snapshot_out->ownership.end(),
+                  [](const PlayerOwnership &first, const PlayerOwnership &second) noexcept
+                  {
+                      return first.entity.value == second.entity.value
+                                 ? first.owner.value < second.owner.value
+                                 : first.entity.value < second.entity.value;
+                  });
     }
     catch (...)
     {
@@ -291,10 +318,27 @@ Error PlayerRegistry::import_snapshot(const PlayerRegistrySnapshot &snapshot) no
             if (!team_exists) return FT_ERR_CONFIGURATION;
         }
         for (ft_size_t index = 0U; index < snapshot.team_memberships.size(); ++index)
-            for (ft_size_t next = index + 1U; next < snapshot.team_memberships.size(); ++next)
-                if (snapshot.team_memberships[index].player.value ==
-                    snapshot.team_memberships[next].player.value)
-                    return FT_ERR_CONFIGURATION;
+        {
+            if (index != 0U &&
+                (snapshot.team_memberships[index - 1U].player.value >
+                     snapshot.team_memberships[index].player.value ||
+                 (snapshot.team_memberships[index - 1U].player.value ==
+                      snapshot.team_memberships[index].player.value &&
+                  snapshot.team_memberships[index - 1U].team.value >=
+                      snapshot.team_memberships[index].team.value)))
+                return FT_ERR_CONFIGURATION;
+        }
+        for (ft_size_t index = 0U; index < snapshot.relationships.size(); ++index)
+        {
+            if (index != 0U &&
+                (snapshot.relationships[index - 1U].first.value >
+                     snapshot.relationships[index].first.value ||
+                 (snapshot.relationships[index - 1U].first.value ==
+                      snapshot.relationships[index].first.value &&
+                  snapshot.relationships[index - 1U].second.value >=
+                      snapshot.relationships[index].second.value)))
+                return FT_ERR_CONFIGURATION;
+        }
         for (const PlayerRelationship &relationship_value : snapshot.relationships)
         {
             if (!relationship_value.first.is_valid() || !relationship_value.second.is_valid() ||
@@ -309,9 +353,14 @@ Error PlayerRegistry::import_snapshot(const PlayerRegistrySnapshot &snapshot) no
             if (!ownership_value.entity.is_valid() || !ownership_value.owner.is_valid() ||
                 !has_player(ownership_value.owner)) return FT_ERR_CONFIGURATION;
         for (ft_size_t index = 0U; index < snapshot.ownership.size(); ++index)
-            for (ft_size_t next = index + 1U; next < snapshot.ownership.size(); ++next)
-                if (snapshot.ownership[index].entity.value == snapshot.ownership[next].entity.value)
-                    return FT_ERR_CONFIGURATION;
+            if (index != 0U &&
+                (snapshot.ownership[index - 1U].entity.value >
+                     snapshot.ownership[index].entity.value ||
+                 (snapshot.ownership[index - 1U].entity.value ==
+                      snapshot.ownership[index].entity.value &&
+                  snapshot.ownership[index - 1U].owner.value >=
+                      snapshot.ownership[index].owner.value)))
+                return FT_ERR_CONFIGURATION;
         for (const PlayerRelationship &relationship_value : snapshot.relationships)
         {
             bool reverse_found = false;
