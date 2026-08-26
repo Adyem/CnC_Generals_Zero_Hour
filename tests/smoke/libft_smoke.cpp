@@ -13,6 +13,7 @@
 #include "CncSimulation/PlayerRegistryCodec.hpp"
 #include "CncSimulation/PlayerRegistry.hpp"
 #include "CncSimulation/SpatialIndex.hpp"
+#include "CncSimulation/LocomotionQueue.hpp"
 #include "CncSimulation/SystemRegistry.hpp"
 #include "CncSimulation/DefinitionRegistry.hpp"
 #include "ZeroHourData/Catalog.hpp"
@@ -243,6 +244,29 @@ int main()
         spatial_entities.size() != 1U || spatial_entities[0].value != 3U ||
         spatial.shutdown() != FT_ERR_SUCCESS)
         return 50;
+
+    cnc::SpatialIndex locomotion_spatial;
+    cnc::LocomotionQueue locomotion;
+    if (locomotion_spatial.initialize() != FT_ERR_SUCCESS ||
+        locomotion_spatial.set_position(cnc::EntityId{1U}, 0, 0, 1U) != FT_ERR_SUCCESS ||
+        locomotion.initialize() != FT_ERR_SUCCESS ||
+        locomotion.queue_move(cnc::EntityId{1U}, 3, 4) != FT_ERR_SUCCESS ||
+        locomotion.apply(&locomotion_spatial) != FT_ERR_SUCCESS ||
+        locomotion_spatial.position(cnc::EntityId{1U}, &spatial_position) != FT_ERR_SUCCESS ||
+        spatial_position.x != 3 || spatial_position.y != 4 ||
+        locomotion.queue_move(cnc::EntityId{99U}, 1, 1) != FT_ERR_SUCCESS ||
+        locomotion.apply(&locomotion_spatial) != FT_ERR_NOT_FOUND ||
+        locomotion.pending_count() != static_cast<cnc::Size>(1U) ||
+        locomotion_spatial.position(cnc::EntityId{1U}, &spatial_position) != FT_ERR_SUCCESS ||
+        spatial_position.x != 3 || spatial_position.y != 4 ||
+        locomotion.discard() != FT_ERR_SUCCESS ||
+        locomotion_spatial.set_position(cnc::EntityId{1U}, INT64_MAX, 0, 1U) != FT_ERR_SUCCESS ||
+        locomotion.queue_move(cnc::EntityId{1U}, 1, 0) != FT_ERR_SUCCESS ||
+        locomotion.apply(&locomotion_spatial) != FT_ERR_OUT_OF_RANGE ||
+        locomotion_spatial.position(cnc::EntityId{1U}, &spatial_position) != FT_ERR_SUCCESS ||
+        spatial_position.x != INT64_MAX || locomotion.shutdown() != FT_ERR_SUCCESS ||
+        locomotion_spatial.shutdown() != FT_ERR_SUCCESS)
+        return 51;
 
     cnc::SystemRegistry systems;
     std::vector<uint64_t> execution_ticks;

@@ -513,6 +513,14 @@ effects, while the engine provides only deterministic broad-phase selection.
 Overflow-sensitive distance math is intentionally deferred until the map
 coordinate and cell-size contract is fixed; box queries avoid multiplying
 coordinates and are the safe first primitive for locomotion and targeting.
+`cnc::LocomotionQueue` is the first consumer of that seam. It queues typed
+coordinate deltas with monotonic sequence numbers, copies and orders requests,
+validates every entity and checked coordinate addition, then commits the whole
+projected position set in one `SpatialIndex::import_snapshot` call. Failed
+requests—including coordinate overflow or a missing entity—leave both the
+index and the pending queue unchanged, which is the required transaction rule
+before Zero Hour adds terrain costs, pathfinding, formations, and blocked-path
+recovery.
 
 ### 7.4 State, snapshot, and replay design
 
