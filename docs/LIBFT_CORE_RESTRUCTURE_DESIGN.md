@@ -1659,7 +1659,7 @@ boundary (pseudo-code):
 ```cpp
 auto expected = replay_file.read_records();
 if (session.verify_replay(expected) != FT_ERR_SUCCESS) {
-    log_desync(session.world().tick(), session.world().canonical_state_hash());
+    log_desync(session.world().tick(), session.canonical_state_hash());
     return FT_ERR_CONFIGURATION; // do not start multiplayer or mutate state
 }
 ```

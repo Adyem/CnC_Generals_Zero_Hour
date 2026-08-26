@@ -54,6 +54,7 @@ public:
     Error shutdown() noexcept;
     void clear_replay_history() noexcept;
     Error verify_replay(const std::vector<ReplayRecord> &expected) const noexcept;
+    uint64_t canonical_state_hash() const noexcept;
     Bool is_initialized() const noexcept;
     Bool has_game_data() const noexcept;
     Error validate_game_data() const noexcept;

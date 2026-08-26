@@ -82,6 +82,7 @@ public:
     Error export_snapshot(PlayerRegistrySnapshot *snapshot_out) const noexcept;
     Error import_snapshot(const PlayerRegistrySnapshot &snapshot) noexcept;
     void swap(PlayerRegistry &other) noexcept;
+    uint64_t canonical_state_hash() const noexcept;
     Bool contains(PlayerId id) const noexcept;
     Size player_count() const noexcept;
     Error shutdown() noexcept;

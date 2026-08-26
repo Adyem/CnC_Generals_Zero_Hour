@@ -201,7 +201,7 @@ Error GameSession::advance_one_tick() noexcept
     if (error != FT_ERR_SUCCESS) return error;
     try
     {
-        _replay_history.push_back(ReplayRecord{_world.tick(), _world.canonical_state_hash()});
+        _replay_history.push_back(ReplayRecord{_world.tick(), canonical_state_hash()});
     }
     catch (...)
     {
@@ -275,6 +275,21 @@ Error GameSession::shutdown() noexcept
 }
 
 Bool GameSession::is_initialized() const noexcept { return _initialized; }
+uint64_t GameSession::canonical_state_hash() const noexcept
+{
+    uint64_t hash = 1469598103934665603ULL;
+    const auto mix = [&hash](uint64_t value)
+    {
+        for (uint32_t index = 0U; index < 8U; ++index)
+        {
+            hash ^= (value >> (index * 8U)) & 0xFFU;
+            hash *= 1099511628211ULL;
+        }
+    };
+    mix(_world.canonical_state_hash());
+    mix(_players.canonical_state_hash());
+    return hash;
+}
 Bool GameSession::has_game_data() const noexcept
 {
     return (_initialized == FT_TRUE && _catalog.definition_count() != 0U) ? FT_TRUE : FT_FALSE;

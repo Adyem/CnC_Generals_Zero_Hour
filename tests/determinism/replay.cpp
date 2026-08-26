@@ -13,14 +13,16 @@ bool run_stream(const std::vector<int64_t> &deltas,
         session.install_default_data() != FT_ERR_SUCCESS)
         return false;
     cnc::EntityId entity;
-    if (session.world().create_entity(&entity) != FT_ERR_SUCCESS)
+    if (session.players().create_player(cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
+        session.world().create_entity(&entity) != FT_ERR_SUCCESS ||
+        session.players().set_owner(entity, cnc::PlayerId{1U}) != FT_ERR_SUCCESS)
         return false;
     for (const int64_t delta : deltas)
     {
         if (session.submit_world_delta(entity, delta) != FT_ERR_SUCCESS ||
             session.advance_one_tick() != FT_ERR_SUCCESS)
             return false;
-        hashes->push_back(session.world().canonical_state_hash());
+        hashes->push_back(session.canonical_state_hash());
     }
     return session.shutdown() == FT_ERR_SUCCESS;
 }

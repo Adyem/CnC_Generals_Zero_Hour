@@ -411,7 +411,7 @@ int main()
     if (session.world().read_value(session_entity, &session_value) != FT_ERR_SUCCESS ||
         session_value != 5 || session.world().tick().value != 1U ||
         session.replay_history().size() != 1U ||
-        session.replay_history()[0].state_hash != session.world().canonical_state_hash() ||
+        session.replay_history()[0].state_hash != session.canonical_state_hash() ||
         session.verify_replay(session.replay_history()) != FT_ERR_SUCCESS ||
         session.phase() != cnc::GameSession::Phase::running)
         return 27;

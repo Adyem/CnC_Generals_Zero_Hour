@@ -401,6 +401,41 @@ void PlayerRegistry::swap(PlayerRegistry &other) noexcept
     other._initialized = initialized;
 }
 
+uint64_t PlayerRegistry::canonical_state_hash() const noexcept
+{
+    if (_initialized != FT_TRUE) return 0U;
+    PlayerRegistrySnapshot snapshot;
+    if (export_snapshot(&snapshot) != FT_ERR_SUCCESS) return 0U;
+    uint64_t hash = 1469598103934665603ULL;
+    const auto mix = [&hash](uint64_t value)
+    {
+        for (uint32_t index = 0U; index < 8U; ++index)
+        {
+            hash ^= (value >> (index * 8U)) & 0xFFU;
+            hash *= 1099511628211ULL;
+        }
+    };
+    for (const PlayerId player : snapshot.players) mix(player.value);
+    for (const TeamId team : snapshot.teams) mix(team.value);
+    for (const TeamMembership &membership : snapshot.team_memberships)
+    {
+        mix(membership.player.value);
+        mix(membership.team.value);
+    }
+    for (const PlayerRelationship &relationship : snapshot.relationships)
+    {
+        mix(relationship.first.value);
+        mix(relationship.second.value);
+        mix(static_cast<uint64_t>(relationship.value));
+    }
+    for (const PlayerOwnership &ownership : snapshot.ownership)
+    {
+        mix(ownership.entity.value);
+        mix(ownership.owner.value);
+    }
+    return hash;
+}
+
 PlayerRegistry::RelationshipEntry *PlayerRegistry::find_relationship(
     PlayerId first, PlayerId second) noexcept
 {
