@@ -10,6 +10,7 @@
 #include "CncSimulation/SystemRegistry.hpp"
 #include "CncSimulation/DefinitionRegistry.hpp"
 #include "ZeroHourData/Catalog.hpp"
+#include "ZeroHourData/PlayerState.hpp"
 #include "ZeroHourData/ScienceLedger.hpp"
 #include "CncGame/GameSession.hpp"
 #include "CncRender/Renderer.hpp"
@@ -207,9 +208,21 @@ int main()
 #endif
     if (manifest_session.initialize() != FT_ERR_SUCCESS ||
         manifest_session.load_data_manifest(session_manifest_path) != FT_ERR_SUCCESS ||
-        manifest_session.catalog().definition_count() != static_cast<cnc::Size>(4U) ||
-        manifest_session.shutdown() != FT_ERR_SUCCESS)
+        manifest_session.catalog().definition_count() != static_cast<cnc::Size>(4U))
         return 25;
+    zero_hour::PlayerState player;
+    cnc::EntityId player_entity;
+    if (player.initialize(&manifest_session.catalog(), &manifest_session.science_ledger(),
+                          &manifest_session.special_power_ledger(),
+                          &manifest_session.general_roster()) != FT_ERR_SUCCESS ||
+        player.set_faction(cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
+        player.set_science_points(2U) != FT_ERR_SUCCESS ||
+        player.purchase_science(cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
+        player.science_points() != 1U ||
+        manifest_session.world().create_entity(&player_entity) != FT_ERR_SUCCESS ||
+        player.assign_general(player_entity, cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
+        player.shutdown() != FT_ERR_SUCCESS || manifest_session.shutdown() != FT_ERR_SUCCESS)
+        return 30;
     uint32_t session_points = 0U;
     if (session.science_ledger().purchase(cnc::DefinitionId{1U}, cnc::DefinitionId{1U},
                                           2U, &session_points) != FT_ERR_SUCCESS ||

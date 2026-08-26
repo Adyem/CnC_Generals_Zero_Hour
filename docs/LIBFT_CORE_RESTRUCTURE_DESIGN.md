@@ -1492,6 +1492,11 @@ game-owned general definitions. Duplicate or unknown assignments return
 `FT_ERR_*` errors, while the world itself remains ignorant of factions and
 generals. The roster is also owned and reset by `GameSession`, establishing the
 pattern for unit, faction, and player-component bindings.
+`zero_hour::PlayerState` composes those game-owned systems into a player-facing
+vertical slice: faction selection gates science purchases and general
+assignment, while special-power activation remains tick-based. It is owned by
+the game module and references Libft-backed ledgers rather than moving any
+Generals rules into Libft.
 
 The presentation seam now has a portable `cnc::HeadlessRenderer` in
 `engine/render`. It models initialize/begin/submit/end/shutdown and validates
