@@ -62,6 +62,13 @@ Error GameSession::initialize() noexcept
         (void)_runtime.shutdown();
         return error;
     }
+    error = _production.initialize();
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)_visibility.shutdown(); (void)_combat.shutdown(); (void)_spatial.shutdown();
+        (void)_players.shutdown(); (void)_catalog.shutdown(); (void)_world.shutdown(); (void)_runtime.shutdown();
+        return error;
+    }
     error = _network.initialize();
     if (error != FT_ERR_SUCCESS)
     {
@@ -70,6 +77,7 @@ Error GameSession::initialize() noexcept
         (void)_spatial.shutdown();
         (void)_combat.shutdown();
         (void)_visibility.shutdown();
+        (void)_production.shutdown();
         (void)_world.shutdown();
         (void)_runtime.shutdown();
         return error;
@@ -82,6 +90,7 @@ Error GameSession::initialize() noexcept
         (void)_spatial.shutdown();
         (void)_combat.shutdown();
         (void)_visibility.shutdown();
+        (void)_production.shutdown();
         (void)_catalog.shutdown();
         (void)_world.shutdown();
         (void)_runtime.shutdown();
@@ -488,6 +497,7 @@ Error GameSession::shutdown() noexcept
     (void)_spatial.shutdown();
     (void)_combat.shutdown();
     (void)_visibility.shutdown();
+    (void)_production.shutdown();
     (void)_catalog.shutdown();
     (void)_world.shutdown();
     const Error error = _runtime.shutdown();
@@ -513,6 +523,7 @@ uint64_t GameSession::canonical_state_hash() const noexcept
     mix(_spatial.canonical_state_hash());
     mix(_combat.canonical_state_hash());
     mix(_visibility.canonical_state_hash());
+    mix(static_cast<uint64_t>(_production.pending_count()));
     mix(_player_states.canonical_state_hash());
     return hash;
 }
@@ -561,6 +572,7 @@ Error GameSession::remove_player(PlayerId player) noexcept
 SpatialIndex &GameSession::spatial() noexcept { return _spatial; }
 CombatRegistry &GameSession::combat() noexcept { return _combat; }
 VisibilityRegistry &GameSession::visibility() noexcept { return _visibility; }
+ProductionQueue &GameSession::production() noexcept { return _production; }
 const zero_hour::Catalog &GameSession::catalog() const noexcept { return _catalog; }
 zero_hour::ScienceLedger &GameSession::science_ledger() noexcept { return _science_ledger; }
 zero_hour::SpecialPowerLedger &GameSession::special_power_ledger() noexcept

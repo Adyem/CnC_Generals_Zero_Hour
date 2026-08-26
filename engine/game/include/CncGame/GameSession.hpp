@@ -12,6 +12,7 @@
 #include "CncSimulation/SpatialIndex.hpp"
 #include "CncSimulation/CombatRegistry.hpp"
 #include "CncSimulation/VisibilityRegistry.hpp"
+#include "CncSimulation/ProductionQueue.hpp"
 #include "CncGame/SessionSnapshotCodec.hpp"
 #include "ZeroHourData/Catalog.hpp"
 #include "ZeroHourData/ScienceLedger.hpp"
@@ -72,6 +73,7 @@ public:
     SpatialIndex &spatial() noexcept;
     CombatRegistry &combat() noexcept;
     VisibilityRegistry &visibility() noexcept;
+    ProductionQueue &production() noexcept;
     const zero_hour::Catalog &catalog() const noexcept;
     zero_hour::ScienceLedger &science_ledger() noexcept;
     zero_hour::SpecialPowerLedger &special_power_ledger() noexcept;
@@ -90,6 +92,7 @@ private:
     SpatialIndex _spatial;
     CombatRegistry _combat;
     VisibilityRegistry _visibility;
+    ProductionQueue _production;
     zero_hour::Catalog _catalog;
     zero_hour::ScienceLedger _science_ledger;
     zero_hour::SpecialPowerLedger _special_power_ledger;

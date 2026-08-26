@@ -555,6 +555,9 @@ The queue now also exposes a bounded snapshot and codec for producer, opaque
 definition, ready tick, and monotonic sequence fields. It is ready for session
 composition; wiring factory ownership and completion effects into the game
 session remains the next gameplay step.
+The queue is now owned by `GameSession` for lifecycle and canonical-state
+hashing, so pending production contributes to replay divergence detection even
+before factory completion effects are wired in.
 `cnc::VisibilityRegistry` is the generic fog/shroud seam: it associates a
 player and entity with `hidden`, `explored`, or `visible`, returns visible
 entities in stable ID order, and supports deterministic cleanup when players
