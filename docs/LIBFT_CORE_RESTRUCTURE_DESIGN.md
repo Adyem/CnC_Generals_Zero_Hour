@@ -1639,6 +1639,11 @@ MSVC fails clearly when this option is requested rather than silently ignoring
 it; the CI matrix can select a Clang job for sanitizer coverage.
 
 The next implementation step is to add maintained Libft CMake targets (or temporary explicit adapters) for the transitive `Errno`, `System_utils`, `Time`, `File`, and `Game` modules, then replace this scaffold's storage with Libft `Game` registries and typed systems. Do not expand the manifest to every Libft `.cpp` file until each module's platform and third-party dependencies are represented as CMake targets.
+An opt-in `CNC_BUILD_LIBFT_FILE` target now provides the explicit File source
+manifest and include graph. It is deliberately OFF by default because File
+still depends on Libft CMA, PThread, Observability, and C++ utility targets;
+enabling it is the next dependency-integration checkpoint, not a silent partial
+replacement of the standard-library reader.
 
 The first dependency probe is represented by `cmake/LibftTime.cmake`. It has an
 explicit source manifest and a `libft::time` target, but `CNC_BUILD_LIBFT_TIME`

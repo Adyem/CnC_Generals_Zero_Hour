@@ -13,6 +13,7 @@ include(CTest)
 
 option(CNC_BUILD_LIBFT_BASIC "Build the Libft Basic module" ON)
 option(CNC_BUILD_LIBFT_TIME "Build the Libft Time module (requires PThread/Compatibility)" OFF)
+option(CNC_BUILD_LIBFT_FILE "Build the Libft File module (requires utility graph)" OFF)
 option(CNC_BUILD_LIBFT_GAME "Build the Libft Game module (requires full transitive graph)" OFF)
 option(CNC_BUILD_RUNTIME "Build the Libft-native runtime composition root" ON)
 option(CNC_BUILD_SIMULATION "Build the deterministic headless world scaffold" ON)
@@ -80,6 +81,13 @@ if(CNC_BUILD_LIBFT_TIME)
         message(FATAL_ERROR "CNC_BUILD_LIBFT_TIME requires CNC_BUILD_LIBFT_BASIC=ON")
     endif()
     include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibftTime.cmake")
+endif()
+
+if(CNC_BUILD_LIBFT_FILE)
+    if(NOT TARGET libft::basic)
+        message(FATAL_ERROR "CNC_BUILD_LIBFT_FILE requires CNC_BUILD_LIBFT_BASIC=ON")
+    endif()
+    include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibftFile.cmake")
 endif()
 
 if(CNC_BUILD_LIBFT_GAME)
@@ -345,6 +353,15 @@ if(TARGET libft_game)
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
     install(DIRECTORY external/libft/Modules/Game/ DESTINATION
         "${CMAKE_INSTALL_INCLUDEDIR}/libft/Game" FILES_MATCHING PATTERN "*.hpp")
+endif()
+if(TARGET libft_file)
+    set_target_properties(libft_file PROPERTIES EXPORT_NAME file)
+    install(TARGETS libft_file EXPORT cncTargets
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    install(DIRECTORY external/libft/Modules/File/ DESTINATION
+        "${CMAKE_INSTALL_INCLUDEDIR}/libft/File" FILES_MATCHING PATTERN "*.hpp")
 endif()
 if(TARGET cnc_runtime)
     set_target_properties(cnc_runtime PROPERTIES EXPORT_NAME runtime)
