@@ -9,6 +9,7 @@
 #include "CncSimulation/SystemRegistry.hpp"
 #include "CncSimulation/DefinitionRegistry.hpp"
 #include "ZeroHourData/Catalog.hpp"
+#include "ZeroHourData/ScienceLedger.hpp"
 #include "CncGame/GameSession.hpp"
 #include "CncRender/Renderer.hpp"
 #include "CncNetwork/NetworkSession.hpp"
@@ -117,6 +118,21 @@ int main()
         catalog.shutdown() != FT_ERR_SUCCESS)
         return 17;
 
+    zero_hour::Catalog rules_catalog;
+    zero_hour::ScienceLedger ledger;
+    uint32_t remaining_points = 0U;
+    if (rules_catalog.initialize() != FT_ERR_SUCCESS ||
+        rules_catalog.install_default_definitions() != FT_ERR_SUCCESS ||
+        ledger.initialize(&rules_catalog) != FT_ERR_SUCCESS ||
+        ledger.purchase(cnc::DefinitionId{1U}, cnc::DefinitionId{1U}, 5U,
+                        &remaining_points) != FT_ERR_SUCCESS ||
+        remaining_points != 4U || !ledger.is_purchased(cnc::DefinitionId{1U}) ||
+        ledger.purchase_count() != static_cast<cnc::Size>(1U) ||
+        ledger.purchase(cnc::DefinitionId{1U}, cnc::DefinitionId{1U}, 5U,
+                        &remaining_points) != FT_ERR_ALREADY_EXISTS ||
+        ledger.shutdown() != FT_ERR_SUCCESS || rules_catalog.shutdown() != FT_ERR_SUCCESS)
+        return 18;
+
     zero_hour::Catalog manifest_catalog;
 #ifdef CNC_ZERO_HOUR_MANIFEST_PATH
     const char *const manifest_path = CNC_ZERO_HOUR_MANIFEST_PATH;
@@ -126,9 +142,9 @@ int main()
     if (manifest_catalog.initialize() != FT_ERR_SUCCESS ||
         manifest_catalog.load_manifest(manifest_path) != FT_ERR_SUCCESS ||
         manifest_catalog.definition_count() != static_cast<cnc::Size>(4U))
-        return 18;
-    if (manifest_catalog.shutdown() != FT_ERR_SUCCESS)
         return 19;
+    if (manifest_catalog.shutdown() != FT_ERR_SUCCESS)
+        return 20;
 
     zero_hour::Catalog text_catalog;
     if (text_catalog.initialize() != FT_ERR_SUCCESS ||
@@ -137,7 +153,7 @@ int main()
             FT_ERR_SUCCESS ||
         text_catalog.definition_count() != static_cast<cnc::Size>(4U) ||
         text_catalog.shutdown() != FT_ERR_SUCCESS)
-        return 20;
+        return 21;
 
     zero_hour::Catalog invalid_catalog;
 #ifdef CNC_ZERO_HOUR_INVALID_MANIFEST_PATH

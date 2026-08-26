@@ -1446,6 +1446,12 @@ special power. The invalid fixture
 valid but semantically broken manifest returns `FT_ERR_CONFIGURATION` instead
 of entering a match.
 
+`zero_hour::ScienceLedger` is the first concrete game-rule system. It consumes
+the catalog through typed lookups, enforces available-point and duplicate
+purchase rules, tracks purchased science IDs, and reports failures with Libft
+`FT_ERR_*` results. Its state is game-owned and deterministic; Libft remains
+responsible only for the generic registry/data lifetime beneath it.
+
 The presentation seam now has a portable `cnc::HeadlessRenderer` in
 `engine/render`. It models initialize/begin/submit/end/shutdown and validates
 resource IDs and dimensions while retaining frame/command counters for tests.
