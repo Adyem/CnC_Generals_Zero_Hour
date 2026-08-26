@@ -1497,6 +1497,9 @@ vertical slice: faction selection gates science purchases and general
 assignment, while special-power activation remains tick-based. It is owned by
 the game module and references Libft-backed ledgers rather than moving any
 Generals rules into Libft.
+`GameSession` now owns and initializes this object after its ledgers, exposing
+`player_state()` as the single game-rule composition surface and destroying it
+before the ledgers during shutdown.
 
 The presentation seam now has a portable `cnc::HeadlessRenderer` in
 `engine/render`. It models initialize/begin/submit/end/shutdown and validates

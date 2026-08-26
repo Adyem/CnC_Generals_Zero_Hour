@@ -55,7 +55,10 @@ Error GameSession::install_default_data() noexcept
     if (error != FT_ERR_SUCCESS) return error;
     error = _special_power_ledger.initialize(&_catalog);
     if (error != FT_ERR_SUCCESS) return error;
-    return _general_roster.initialize(&_catalog);
+    error = _general_roster.initialize(&_catalog);
+    if (error != FT_ERR_SUCCESS) return error;
+    return _player_state.initialize(&_catalog, &_science_ledger,
+                                    &_special_power_ledger, &_general_roster);
 }
 
 Error GameSession::load_data_manifest(const char *path) noexcept
@@ -68,7 +71,10 @@ Error GameSession::load_data_manifest(const char *path) noexcept
     if (error != FT_ERR_SUCCESS) return error;
     error = _special_power_ledger.initialize(&_catalog);
     if (error != FT_ERR_SUCCESS) return error;
-    return _general_roster.initialize(&_catalog);
+    error = _general_roster.initialize(&_catalog);
+    if (error != FT_ERR_SUCCESS) return error;
+    return _player_state.initialize(&_catalog, &_science_ledger,
+                                    &_special_power_ledger, &_general_roster);
 }
 
 Error GameSession::submit_world_delta(EntityId entity, int64_t delta) noexcept
@@ -130,6 +136,7 @@ Error GameSession::shutdown() noexcept
     (void)_renderer.shutdown();
     (void)_network.shutdown();
     (void)_science_ledger.shutdown();
+    (void)_player_state.shutdown();
     (void)_special_power_ledger.shutdown();
     (void)_general_roster.shutdown();
     (void)_catalog.shutdown();
@@ -154,6 +161,7 @@ zero_hour::SpecialPowerLedger &GameSession::special_power_ledger() noexcept
     return _special_power_ledger;
 }
 zero_hour::GeneralRoster &GameSession::general_roster() noexcept { return _general_roster; }
+zero_hour::PlayerState &GameSession::player_state() noexcept { return _player_state; }
 void GameSession::clear_replay_history() noexcept { _replay_history.clear(); }
 Error GameSession::verify_replay(const std::vector<ReplayRecord> &expected) const noexcept
 {

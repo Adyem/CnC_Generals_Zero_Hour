@@ -10,6 +10,7 @@
 #include "ZeroHourData/ScienceLedger.hpp"
 #include "ZeroHourData/SpecialPowerLedger.hpp"
 #include "ZeroHourData/GeneralRoster.hpp"
+#include "ZeroHourData/PlayerState.hpp"
 #include "CncRender/Renderer.hpp"
 #include "CncNetwork/NetworkSession.hpp"
 
@@ -54,6 +55,7 @@ public:
     zero_hour::ScienceLedger &science_ledger() noexcept;
     zero_hour::SpecialPowerLedger &special_power_ledger() noexcept;
     zero_hour::GeneralRoster &general_roster() noexcept;
+    zero_hour::PlayerState &player_state() noexcept;
     const std::vector<ReplayRecord> &replay_history() const noexcept;
     Renderer &renderer() noexcept;
     NetworkSession &network() noexcept;
@@ -66,6 +68,7 @@ private:
     zero_hour::ScienceLedger _science_ledger;
     zero_hour::SpecialPowerLedger _special_power_ledger;
     zero_hour::GeneralRoster _general_roster;
+    zero_hour::PlayerState _player_state;
     HeadlessRenderer _renderer;
     OfflineNetworkSession _network;
     std::vector<WorldDeltaCommand> _commands;
