@@ -12,6 +12,7 @@
 #include "CncSimulation/CommandCodec.hpp"
 #include "CncSimulation/PlayerRegistryCodec.hpp"
 #include "CncSimulation/PlayerRegistry.hpp"
+#include "CncSimulation/SpatialIndex.hpp"
 #include "CncSimulation/SystemRegistry.hpp"
 #include "CncSimulation/DefinitionRegistry.hpp"
 #include "ZeroHourData/Catalog.hpp"
@@ -225,6 +226,23 @@ int main()
         atomic_registry.owner(cnc::EntityId{42U}, &owner_id) != FT_ERR_SUCCESS ||
         owner_id.value != 2U || atomic_registry.shutdown() != FT_ERR_SUCCESS)
         return 47;
+
+    cnc::SpatialIndex spatial;
+    std::vector<cnc::EntityId> spatial_entities;
+    cnc::SpatialPosition spatial_position;
+    if (spatial.initialize() != FT_ERR_SUCCESS ||
+        spatial.set_position(cnc::EntityId{9U}, 10, 20, 1U) != FT_ERR_SUCCESS ||
+        spatial.set_position(cnc::EntityId{3U}, 0, 0, 1U) != FT_ERR_SUCCESS ||
+        spatial.set_position(cnc::EntityId{7U}, 5, 5, 2U) != FT_ERR_SUCCESS ||
+        spatial.query_box(-1, -1, 11, 21, 1U, &spatial_entities) != FT_ERR_SUCCESS ||
+        spatial_entities.size() != 2U || spatial_entities[0].value != 3U ||
+        spatial_entities[1].value != 9U ||
+        spatial.position(cnc::EntityId{9U}, &spatial_position) != FT_ERR_SUCCESS ||
+        spatial_position.x != 10 || spatial.remove(cnc::EntityId{9U}) != FT_ERR_SUCCESS ||
+        spatial.query_box(-1, -1, 11, 21, 1U, &spatial_entities) != FT_ERR_SUCCESS ||
+        spatial_entities.size() != 1U || spatial_entities[0].value != 3U ||
+        spatial.shutdown() != FT_ERR_SUCCESS)
+        return 50;
 
     cnc::SystemRegistry systems;
     std::vector<uint64_t> execution_ticks;

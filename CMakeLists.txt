@@ -140,6 +140,7 @@ if(CNC_BUILD_SIMULATION)
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/SnapshotCodec.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/CommandCodec.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/PlayerRegistryCodec.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/SpatialIndex.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/PlayerRegistry.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/SystemRegistry.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/engine/simulation/src/DefinitionRegistry.cpp"

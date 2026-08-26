@@ -504,6 +504,16 @@ Libft `Game` needs reusable, data-agnostic interfaces for the following concepts
 
 The Generals/Zero Hour module then composes those interfaces into command sets, sciences, special powers, factions, generals, and named INI modules. None of those concrete definitions becomes a Libft header or source file.
 
+The first Phase 7 spatial seam is `cnc::SpatialIndex`. It stores fixed-width
+`int64_t` world coordinates and a numeric collision/query layer, supports
+position replacement and removal, and returns query results sorted by stable
+`EntityId` rather than insertion order. It is deliberately data-agnostic:
+Zero Hour decides whether a layer means terrain, ground units, air units, or
+effects, while the engine provides only deterministic broad-phase selection.
+Overflow-sensitive distance math is intentionally deferred until the map
+coordinate and cell-size contract is fixed; box queries avoid multiplying
+coordinates and are the safe first primitive for locomotion and targeting.
+
 ### 7.4 State, snapshot, and replay design
 
 Replace `Snapshot`/`Xfer` with a Libft-native, schema-versioned state system:
