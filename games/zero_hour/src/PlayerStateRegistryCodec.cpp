@@ -32,9 +32,13 @@ cnc::Error PlayerStateRegistryCodec::encode(const PlayerStateRegistry::Snapshot 
     {
         bytes_out->clear(); bytes_out->reserve(static_cast<std::vector<uint8_t>::size_type>(wire_size));
         append_u32(*bytes_out, wire_schema_version); append_u32(*bytes_out, static_cast<uint32_t>(count));
+        cnc::PlayerId previous;
         for (const PlayerStateRegistry::SnapshotEntry &entry : snapshot.entries)
         {
-            if (!entry.player.is_valid()) { bytes_out->clear(); return FT_ERR_INVALID_ARGUMENT; }
+            if (!entry.player.is_valid() ||
+                (previous.is_valid() && previous.value >= entry.player.value))
+            { bytes_out->clear(); return FT_ERR_INVALID_ARGUMENT; }
+            previous = entry.player;
             append_u32(*bytes_out, entry.player.value); append_u64(*bytes_out, entry.faction.value);
             append_u64(*bytes_out, entry.commander.value); append_u64(*bytes_out, entry.general.value);
             append_u32(*bytes_out, entry.science_points); append_u32(*bytes_out, 0U);
