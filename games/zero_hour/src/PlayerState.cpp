@@ -26,6 +26,8 @@ cnc::Error PlayerState::set_faction(cnc::DefinitionId faction) noexcept
 {
     if (!_initialized) return FT_ERR_INVALID_STATE;
     if (_catalog->find_faction(faction) == nullptr) return FT_ERR_NOT_FOUND;
+    if (_faction.value != 0U && _faction.value != faction.value)
+        return FT_ERR_INVALID_OPERATION;
     _faction = faction;
     return FT_ERR_SUCCESS;
 }
@@ -51,6 +53,8 @@ cnc::Error PlayerState::assign_general(cnc::EntityId entity, cnc::DefinitionId g
     const GeneralDefinition *definition = _catalog->find_general(general);
     if (definition == nullptr) return FT_ERR_NOT_FOUND;
     if (definition->faction.value != _faction.value) return FT_ERR_PERMISSION_DENIED;
+    if (_commander.is_valid() && _commander.value != entity.value)
+        return FT_ERR_INVALID_OPERATION;
     const cnc::Error error = _generals->assign(entity, general);
     if (error == FT_ERR_SUCCESS) _commander = entity;
     return error;

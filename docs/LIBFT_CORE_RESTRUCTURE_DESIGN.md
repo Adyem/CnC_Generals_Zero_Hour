@@ -1504,6 +1504,9 @@ Player state also binds the commander entity to its selected general and
 validates that activated powers are the general's declared signature power;
 generic ledgers provide storage and cooldowns, while this rule remains game
 owned.
+Faction changes after selection and commander replacement are rejected with
+`FT_ERR_INVALID_OPERATION`; a new session is required so purchased science and
+cooldown state cannot silently carry across incompatible player identities.
 
 The presentation seam now has a portable `cnc::HeadlessRenderer` in
 `engine/render`. It models initialize/begin/submit/end/shutdown and validates
