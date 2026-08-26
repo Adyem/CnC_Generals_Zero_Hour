@@ -616,8 +616,12 @@ int main()
         session.player_states().find(cnc::PlayerId{1U})->assign_general(
             session_entity, cnc::DefinitionId{1U}) != FT_ERR_SUCCESS)
         return 38;
+    if (session.production().enqueue(session_entity, cnc::DefinitionId{1U},
+                                     session.world().tick(), cnc::SimulationTick{10U}) != FT_ERR_SUCCESS)
+        return 59;
     if (session.save_snapshot(&saved_session) != FT_ERR_SUCCESS ||
         session.player_states().find(cnc::PlayerId{1U})->set_science_points(2U) != FT_ERR_SUCCESS ||
+        session.production().discard() != FT_ERR_SUCCESS ||
         session.combat().queue_damage(session_entity, 25) != FT_ERR_SUCCESS ||
         session.combat().apply() != FT_ERR_SUCCESS ||
         session.submit_world_delta(session_entity, 10) != FT_ERR_SUCCESS ||
@@ -638,6 +642,7 @@ int main()
         session.player_states().find(cnc::PlayerId{1U})->faction().value != 1U ||
         session.player_states().find(cnc::PlayerId{1U})->commander().value != session_entity.value ||
         session.player_states().find(cnc::PlayerId{1U})->science_points() != 7U ||
+        session.production().pending_count() != static_cast<cnc::Size>(1U) ||
         session.world().tick().value != 1U ||
         !session.replay_history().empty())
         return 39;
