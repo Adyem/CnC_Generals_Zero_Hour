@@ -521,6 +521,12 @@ requests—including coordinate overflow or a missing entity—leave both the
 index and the pending queue unchanged, which is the required transaction rule
 before Zero Hour adds terrain costs, pathfinding, formations, and blocked-path
 recovery.
+`cnc::CombatRegistry` is the corresponding generic targeting/damage seam. It
+stores fixed-width current/maximum health, validates damage type and amount,
+orders requests by sequence, clamps lethal damage to zero, and commits a
+projected health set only after every target is found. Weapon definitions,
+armor tables, splash rules, statuses, and destruction events remain game-owned;
+the registry supplies the deterministic state transition those rules can call.
 
 ### 7.4 State, snapshot, and replay design
 

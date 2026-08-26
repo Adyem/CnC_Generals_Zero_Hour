@@ -14,6 +14,7 @@
 #include "CncSimulation/PlayerRegistry.hpp"
 #include "CncSimulation/SpatialIndex.hpp"
 #include "CncSimulation/LocomotionQueue.hpp"
+#include "CncSimulation/CombatRegistry.hpp"
 #include "CncSimulation/SystemRegistry.hpp"
 #include "CncSimulation/DefinitionRegistry.hpp"
 #include "ZeroHourData/Catalog.hpp"
@@ -267,6 +268,21 @@ int main()
         spatial_position.x != INT64_MAX || locomotion.shutdown() != FT_ERR_SUCCESS ||
         locomotion_spatial.shutdown() != FT_ERR_SUCCESS)
         return 51;
+
+    cnc::CombatRegistry combat;
+    cnc::HealthState health;
+    if (combat.initialize() != FT_ERR_SUCCESS ||
+        combat.register_health(cnc::EntityId{11U}, 100) != FT_ERR_SUCCESS ||
+        combat.queue_damage(cnc::EntityId{11U}, 30, cnc::DamageType::physical) != FT_ERR_SUCCESS ||
+        combat.queue_damage(cnc::EntityId{11U}, 80, cnc::DamageType::fire) != FT_ERR_SUCCESS ||
+        combat.apply() != FT_ERR_SUCCESS ||
+        combat.health(cnc::EntityId{11U}, &health) != FT_ERR_SUCCESS ||
+        health.current != 0 || health.alive != FT_FALSE || combat.pending_count() != 0U ||
+        combat.queue_damage(cnc::EntityId{99U}, 1) != FT_ERR_SUCCESS ||
+        combat.apply() != FT_ERR_NOT_FOUND || combat.health(cnc::EntityId{11U}, &health) != FT_ERR_SUCCESS ||
+        health.current != 0 || health.alive != FT_FALSE || combat.pending_count() != 1U ||
+        combat.discard() != FT_ERR_SUCCESS || combat.shutdown() != FT_ERR_SUCCESS)
+        return 52;
 
     cnc::SystemRegistry systems;
     std::vector<uint64_t> execution_ticks;
