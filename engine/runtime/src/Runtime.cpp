@@ -19,12 +19,25 @@ Error Runtime::shutdown() noexcept
     return FT_ERR_SUCCESS;
 }
 
+Error Runtime::set_monotonic_clock(MonotonicClock clock) noexcept
+{
+    if (_initialized == FT_TRUE) return FT_ERR_ALREADY_INITIALISED;
+    if (clock == nullptr) return FT_ERR_INVALID_POINTER;
+    _monotonic_clock = clock;
+    return FT_ERR_SUCCESS;
+}
+
 Bool Runtime::is_initialized() const noexcept
 {
     return _initialized;
 }
 
 uint64_t Runtime::monotonic_milliseconds() const noexcept
+{
+    return _monotonic_clock();
+}
+
+uint64_t Runtime::default_monotonic_clock() noexcept
 {
     const std::chrono::steady_clock::time_point now =
         std::chrono::steady_clock::now();

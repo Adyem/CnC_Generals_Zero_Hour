@@ -1404,6 +1404,10 @@ engine/simulation/src/DefinitionRegistry.cpp
 `SimulationWorld` is the backend-neutral interface exposed by `GameSession`, so
 the deterministic implementation can later be replaced by Libft Game world
 storage while command, tick, and hash contracts remain stable.
+`Runtime::set_monotonic_clock` provides the corresponding time seam: Libft Time
+can supply `time_monotonic` through a function pointer before startup, while
+tests can inject a deterministic clock. The default remains the portable
+standard-library clock until the Libft Time dependency graph is enabled.
 
 `cnc::SystemRegistry` is the next generic seam. It registers callbacks by phase, explicit signed order, and registration sequence, then propagates the first non-success `FT_ERR_*` result. It deliberately has no knowledge of Generals systems; the future Zero Hour module will register its own science, production, combat, and victory systems through this interface.
 

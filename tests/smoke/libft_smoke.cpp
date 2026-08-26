@@ -31,6 +31,8 @@ cnc::Error manifest_reader(const char *, std::string &contents, void *context) n
     contents = *static_cast<const std::string *>(context);
     return FT_ERR_SUCCESS;
 }
+
+uint64_t fixed_clock() noexcept { return 123456U; }
 }
 
 int main()
@@ -46,6 +48,9 @@ int main()
         return 2;
 
     cnc::Runtime runtime;
+    if (runtime.set_monotonic_clock(&fixed_clock) != FT_ERR_SUCCESS ||
+        runtime.set_monotonic_clock(nullptr) != FT_ERR_INVALID_POINTER)
+        return 3;
     if (runtime.initialize() != FT_ERR_SUCCESS || runtime.is_initialized() != FT_TRUE)
         return 3;
 
@@ -55,7 +60,7 @@ int main()
         return 4;
 
     const uint64_t before = runtime.monotonic_milliseconds();
-    if (before == 0U)
+    if (before != 123456U)
         return 5;
     if (runtime.shutdown() != FT_ERR_SUCCESS || runtime.is_initialized() != FT_FALSE)
         return 6;
