@@ -1725,6 +1725,13 @@ offline network backend continues returning `FT_ERR_INVALID_OPERATION`.
 frames. `OfflineNetworkSession` rejects it unconditionally, making an attempted
 multiplayer path observable and safe while the eventual Libft Networking
 implementation can encode and transmit the same canonical frame.
+
+The generic `PlayerRegistry` is the first engine-side player/team primitive. It
+owns stable `PlayerId` identities and symmetric neutral/allied/hostile
+relationships, including deterministic removal of related edges. Zero Hour
+continues to own faction selection, generals, sciences, economy, diplomacy
+rules, and victory semantics; those systems can reference this registry without
+moving game data into Libft or the engine scaffold.
 Frame ingestion is transactional: the session validates every referenced live
 entity and builds a projected command queue before swapping it in. If any
 record is rejected, or queue allocation fails, no earlier record from that

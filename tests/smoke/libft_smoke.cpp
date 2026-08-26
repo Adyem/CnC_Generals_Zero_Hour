@@ -9,6 +9,7 @@
 #include "CncSimulation/World.hpp"
 #include "CncSimulation/SnapshotCodec.hpp"
 #include "CncSimulation/CommandCodec.hpp"
+#include "CncSimulation/PlayerRegistry.hpp"
 #include "CncSimulation/SystemRegistry.hpp"
 #include "CncSimulation/DefinitionRegistry.hpp"
 #include "ZeroHourData/Catalog.hpp"
@@ -143,6 +144,20 @@ int main()
         return 35;
     if (world.shutdown() != FT_ERR_SUCCESS)
         return 11;
+
+    cnc::PlayerRegistry players;
+    cnc::Diplomacy diplomacy = cnc::Diplomacy::hostile;
+    if (players.initialize() != FT_ERR_SUCCESS ||
+        players.create_player(cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
+        players.create_player(cnc::PlayerId{2U}) != FT_ERR_SUCCESS ||
+        players.set_relationship(cnc::PlayerId{1U}, cnc::PlayerId{2U},
+                                 cnc::Diplomacy::allied) != FT_ERR_SUCCESS ||
+        players.relationship(cnc::PlayerId{2U}, cnc::PlayerId{1U}, &diplomacy) != FT_ERR_SUCCESS ||
+        diplomacy != cnc::Diplomacy::allied || players.player_count() != static_cast<cnc::Size>(2U) ||
+        players.remove_player(cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
+        players.relationship(cnc::PlayerId{2U}, cnc::PlayerId{1U}, &diplomacy) != FT_ERR_NOT_FOUND ||
+        players.shutdown() != FT_ERR_SUCCESS)
+        return 44;
 
     cnc::SystemRegistry systems;
     std::vector<uint64_t> execution_ticks;
