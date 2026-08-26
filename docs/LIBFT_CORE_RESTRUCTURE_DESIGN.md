@@ -1648,6 +1648,19 @@ records and returns `FT_ERR_CONFIGURATION` on the first divergence. This gives
 the future Libft replay/file adapter a deterministic acceptance gate before
 playback or network synchronization is attempted.
 
+The smoke test also exercises the failure path by flipping one recorded hash;
+the expected result is `FT_ERR_CONFIGURATION`, while the session remains
+usable until its normal shutdown. A replay reader should follow the same
+boundary (pseudo-code):
+
+```cpp
+auto expected = replay_file.read_records();
+if (session.verify_replay(expected) != FT_ERR_SUCCESS) {
+    log_desync(session.world().tick(), session.world().canonical_state_hash());
+    return FT_ERR_CONFIGURATION; // do not start multiplayer or mutate state
+}
+```
+
 The session also owns the first input boundary: `submit_world_delta` accepts a
 validated entity command, assigns a monotonically increasing sequence number,
 and stores it until the next tick. Commands are stably sorted and dispatched to

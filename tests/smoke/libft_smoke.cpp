@@ -285,9 +285,18 @@ int main()
         session.replay_history().size() != 1U ||
         session.replay_history()[0].state_hash != session.world().canonical_state_hash() ||
         session.verify_replay(session.replay_history()) != FT_ERR_SUCCESS ||
-        session.phase() != cnc::GameSession::Phase::running ||
-        session.shutdown() != FT_ERR_SUCCESS || session.is_initialized() == FT_TRUE)
+        session.phase() != cnc::GameSession::Phase::running)
         return 27;
+
+    cnc::GameSession::ReplayRecord divergent_record = session.replay_history().empty()
+        ? cnc::GameSession::ReplayRecord{}
+        : session.replay_history()[0];
+    divergent_record.state_hash ^= static_cast<uint64_t>(1U);
+    std::vector<cnc::GameSession::ReplayRecord> divergent_replay{divergent_record};
+    if (session.verify_replay(divergent_replay) != FT_ERR_CONFIGURATION)
+        return 28;
+    if (session.shutdown() != FT_ERR_SUCCESS || session.is_initialized() == FT_TRUE)
+        return 29;
 
     cnc::GameSession retry_session;
     cnc::EntityId retry_entity;
