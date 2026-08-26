@@ -1496,6 +1496,12 @@ third-party Libft archive or the obsolete SAGE reference. The conversion checks
 are intentional: they expose accidental narrowing while the codebase moves to
 Libft fixed-width aliases and explicit `FT_ERR_*` result handling.
 
+`CNC_ENABLE_SANITIZERS` is available for native targets. With a Clang/GCC
+generator it adds AddressSanitizer and UndefinedBehaviorSanitizer plus frame
+pointers to the runtime, simulation, game, renderer, app, and test targets.
+MSVC fails clearly when this option is requested rather than silently ignoring
+it; the CI matrix can select a Clang job for sanitizer coverage.
+
 The next implementation step is to add maintained Libft CMake targets (or temporary explicit adapters) for the transitive `Errno`, `System_utils`, `Time`, `File`, and `Game` modules, then replace this scaffold's storage with Libft `Game` registries and typed systems. Do not expand the manifest to every Libft `.cpp` file until each module's platform and third-party dependencies are represented as CMake targets.
 
 The first dependency probe is represented by `cmake/LibftTime.cmake`. It has an
