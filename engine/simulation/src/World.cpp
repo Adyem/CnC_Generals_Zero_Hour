@@ -150,6 +150,26 @@ Error DeterministicWorld::read_value(EntityId entity_id, int64_t *value_out) con
     return FT_ERR_SUCCESS;
 }
 
+Error DeterministicWorld::export_snapshot(
+    std::vector<WorldSnapshotEntry> *snapshot_out) const noexcept
+{
+    if (snapshot_out == nullptr) return FT_ERR_INVALID_POINTER;
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    try
+    {
+        snapshot_out->clear();
+        snapshot_out->reserve(_entities.size());
+        for (const EntityState &entity : _entities)
+            snapshot_out->push_back(WorldSnapshotEntry{entity.id, entity.value, entity.alive});
+    }
+    catch (...)
+    {
+        snapshot_out->clear();
+        return FT_ERR_NO_MEMORY;
+    }
+    return FT_ERR_SUCCESS;
+}
+
 uint64_t DeterministicWorld::canonical_state_hash() const noexcept
 {
     uint64_t hash = 1469598103934665603ULL;

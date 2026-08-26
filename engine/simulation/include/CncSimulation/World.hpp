@@ -15,6 +15,13 @@ struct WorldCommand
     uint64_t sequence = 0U;
 };
 
+struct WorldSnapshotEntry
+{
+    EntityId entity;
+    int64_t value = 0;
+    Bool alive = FT_TRUE;
+};
+
 class SimulationWorld
 {
 public:
@@ -29,6 +36,7 @@ public:
     virtual Error advance_one_tick() noexcept = 0;
     virtual SimulationTick tick() const noexcept = 0;
     virtual Error read_value(EntityId entity_id, int64_t *value_out) const noexcept = 0;
+    virtual Error export_snapshot(std::vector<WorldSnapshotEntry> *snapshot_out) const noexcept = 0;
     virtual uint64_t canonical_state_hash() const noexcept = 0;
 };
 
@@ -51,6 +59,7 @@ public:
 
     SimulationTick tick() const noexcept override;
     Error read_value(EntityId entity_id, int64_t *value_out) const noexcept override;
+    Error export_snapshot(std::vector<WorldSnapshotEntry> *snapshot_out) const noexcept override;
     uint64_t canonical_state_hash() const noexcept override;
 
 private:
