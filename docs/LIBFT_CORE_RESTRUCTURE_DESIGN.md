@@ -1856,6 +1856,12 @@ are currently persisted; commander/general bindings and purchased/active power
 state remain a follow-up payload because their roster and cooldown ownership
 need the same swap-safe contract. A malformed player-state record or allocation
 failure therefore cannot replace only part of a player's authoritative data.
+Commander persistence must not be added by calling `PlayerState::assign_general`
+while loading into a temporary player registry: that API writes the shared live
+`GeneralRoster`. The implementation sequence is therefore to give
+`GeneralRoster` its own validated snapshot and `swap`, stage that roster beside
+the player-state registry, and commit both together; only then should commander
+and selected-general fields be added to the wire record.
 Frame ingestion is transactional: the session validates every referenced live
 entity and builds a projected command queue before swapping it in. If any
 record is rejected, or queue allocation fails, no earlier record from that
