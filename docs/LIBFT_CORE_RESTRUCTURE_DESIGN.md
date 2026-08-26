@@ -1680,13 +1680,14 @@ is exposed as the `cnc_determinism_replay` CMake target and the
 `determinism.replay` CTest case. This should remain a blocking test as concrete
 faction, economy, combat, and map systems replace the scaffold.
 
-The simulation boundary now also exports an owned `WorldSnapshotEntry` vector.
-Entries are copied in deterministic entity order, contain only fixed-width
-authoritative fields, and never expose pointers into world storage. A future
-Libft `Storage` serializer or GPGR presentation adapter can consume this copy;
-the world remains free to replace its internal container without invalidating
-readers. Snapshot export failures return `FT_ERR_NO_MEMORY` and leave the
-caller-owned vector empty. `GameSession` now exports a snapshot after its
+The simulation boundary now also exports an owned, schema-versioned
+`WorldSnapshot` containing `WorldSnapshotEntry` records. Entries are copied in
+deterministic entity order, contain only fixed-width authoritative fields, and
+never expose pointers into world storage. A future Libft `Storage` serializer or
+GPGR presentation adapter can consume this copy; the world remains free to
+replace its internal container without invalidating readers. Snapshot export
+failures return `FT_ERR_NO_MEMORY` and leave the caller-owned entries empty.
+`GameSession` now exports a snapshot after its
 simulation/presentation systems run, opens a renderer frame, presents the copy,
 and closes the frame. The renderer therefore consumes presentation data rather
 than reading `SimulationWorld` storage; a future GPGR implementation can replace

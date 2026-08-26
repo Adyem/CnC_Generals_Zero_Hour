@@ -92,10 +92,11 @@ int main()
     if (world.read_value(entity, &value) != FT_ERR_SUCCESS || value != 42 ||
         world.tick().value != 1U || world.canonical_state_hash() == 0U)
         return 10;
-    std::vector<cnc::WorldSnapshotEntry> snapshot;
-    if (world.export_snapshot(&snapshot) != FT_ERR_SUCCESS || snapshot.size() != 1U ||
-        snapshot[0].entity.value != entity.value || snapshot[0].value != 42 ||
-        snapshot[0].alive != FT_TRUE)
+    cnc::WorldSnapshot snapshot;
+    if (world.export_snapshot(&snapshot) != FT_ERR_SUCCESS ||
+        snapshot.schema_version != 1U || snapshot.tick.value != 1U ||
+        snapshot.entries.size() != 1U || snapshot.entries[0].entity.value != entity.value ||
+        snapshot.entries[0].value != 42 || snapshot.entries[0].alive != FT_TRUE)
         return 33;
     if (world.queue_delta(entity, INT64_MAX) != FT_ERR_SUCCESS ||
         world.advance_one_tick() != FT_ERR_OUT_OF_RANGE ||

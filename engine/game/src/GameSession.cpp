@@ -140,7 +140,7 @@ Error GameSession::advance_one_tick() noexcept
     if (error != FT_ERR_SUCCESS) return error;
     error = _systems.run(SystemPhase::presentation, _world.tick());
     if (error != FT_ERR_SUCCESS) return error;
-    std::vector<WorldSnapshotEntry> snapshot;
+    WorldSnapshot snapshot;
     error = _world.export_snapshot(&snapshot);
     if (error != FT_ERR_SUCCESS) return error;
     error = _renderer.begin_frame();

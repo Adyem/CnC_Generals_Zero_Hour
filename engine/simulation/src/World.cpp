@@ -150,21 +150,21 @@ Error DeterministicWorld::read_value(EntityId entity_id, int64_t *value_out) con
     return FT_ERR_SUCCESS;
 }
 
-Error DeterministicWorld::export_snapshot(
-    std::vector<WorldSnapshotEntry> *snapshot_out) const noexcept
+Error DeterministicWorld::export_snapshot(WorldSnapshot *snapshot_out) const noexcept
 {
     if (snapshot_out == nullptr) return FT_ERR_INVALID_POINTER;
     if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
     try
     {
-        snapshot_out->clear();
-        snapshot_out->reserve(_entities.size());
+        snapshot_out->tick = tick();
+        snapshot_out->entries.clear();
+        snapshot_out->entries.reserve(_entities.size());
         for (const EntityState &entity : _entities)
-            snapshot_out->push_back(WorldSnapshotEntry{entity.id, entity.value, entity.alive});
+            snapshot_out->entries.push_back(WorldSnapshotEntry{entity.id, entity.value, entity.alive});
     }
     catch (...)
     {
-        snapshot_out->clear();
+        snapshot_out->entries.clear();
         return FT_ERR_NO_MEMORY;
     }
     return FT_ERR_SUCCESS;

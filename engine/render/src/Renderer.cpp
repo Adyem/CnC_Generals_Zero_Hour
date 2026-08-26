@@ -22,7 +22,7 @@ Error HeadlessRenderer::begin_frame() noexcept
     if (_initialized != FT_TRUE) return FT_ERR_INVALID_STATE;
     if (_frame_open == FT_TRUE) return FT_ERR_INVALID_OPERATION;
     _commands.clear();
-    _last_snapshot.clear();
+    _last_snapshot.entries.clear();
     _frame_open = FT_TRUE;
     return FT_ERR_SUCCESS;
 }
@@ -45,7 +45,7 @@ Error HeadlessRenderer::submit(const RenderCommand &command) noexcept
 }
 
 Error HeadlessRenderer::present_snapshot(
-    const std::vector<WorldSnapshotEntry> &snapshot) noexcept
+    const WorldSnapshot &snapshot) noexcept
 {
     if (_initialized != FT_TRUE || _frame_open != FT_TRUE)
         return FT_ERR_INVALID_STATE;
@@ -55,7 +55,7 @@ Error HeadlessRenderer::present_snapshot(
     }
     catch (...)
     {
-        _last_snapshot.clear();
+        _last_snapshot.entries.clear();
         return FT_ERR_NO_MEMORY;
     }
     return FT_ERR_SUCCESS;
@@ -73,7 +73,7 @@ Error HeadlessRenderer::end_frame() noexcept
 Error HeadlessRenderer::shutdown() noexcept
 {
     _commands.clear();
-    _last_snapshot.clear();
+    _last_snapshot.entries.clear();
     _frame_open = FT_FALSE;
     _initialized = FT_FALSE;
     return FT_ERR_SUCCESS;
