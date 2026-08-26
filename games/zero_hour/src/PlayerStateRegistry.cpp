@@ -167,20 +167,21 @@ cnc::Error PlayerStateRegistry::import_snapshot(const Snapshot &snapshot) noexce
             Entry entry{record.player, PlayerState{}};
             cnc::Error error = entry.state.initialize(_catalog, _science, _powers, _generals);
             if (error != FT_ERR_SUCCESS) { discard(); return error; }
+            restored.push_back(std::move(entry));
+            PlayerState &restored_state = restored.back().state;
             if (record.faction.value != 0U)
             {
-                error = entry.state.set_faction(record.faction);
+                error = restored_state.set_faction(record.faction);
                 if (error != FT_ERR_SUCCESS) { discard(); return error; }
             }
             if (record.commander.is_valid())
             {
                 if (record.general.value == 0U ||
-                    entry.state.assign_general(record.commander, record.general) != FT_ERR_SUCCESS)
+                    restored_state.assign_general(record.commander, record.general) != FT_ERR_SUCCESS)
                 { discard(); return FT_ERR_CONFIGURATION; }
             }
-            error = entry.state.set_science_points(record.science_points);
+            error = restored_state.set_science_points(record.science_points);
             if (error != FT_ERR_SUCCESS) { discard(); return error; }
-            restored.push_back(std::move(entry));
         }
     }
     catch (...)
