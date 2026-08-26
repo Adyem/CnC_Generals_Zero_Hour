@@ -1521,6 +1521,9 @@ configures and builds it against the installed prefix with
 `find_package(CnCGeneralsZeroHour CONFIG REQUIRED)`, proving exported targets,
 headers, and transitive links work after installation rather than only inside
 the repository build.
+Install rules declare archive, shared-library, and runtime destinations for
+each native target so the same exported package layout works with static or
+shared toolchains on all supported platforms.
 
 Configure-time build metadata now replaces the legacy `versionUpdate.exe` and
 `buildVersionUpdate.exe` mutation flow. CMake generates
