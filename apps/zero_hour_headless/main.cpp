@@ -24,6 +24,7 @@ int main()
 
     std::cout << "zero_hour_headless tick=" << session.world().tick().value
               << " hash=" << session.world().canonical_state_hash()
-              << " frame=" << session.renderer().frame_count() << "\n";
+              << " frame=" << session.renderer().frame_count()
+              << " replay_records=" << session.replay_history().size() << "\n";
     return session.shutdown() == FT_ERR_SUCCESS ? 0 : 4;
 }

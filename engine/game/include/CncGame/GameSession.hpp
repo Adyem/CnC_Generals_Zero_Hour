@@ -22,6 +22,11 @@ public:
         int64_t delta = 0;
         uint64_t sequence = 0U;
     };
+    struct ReplayRecord
+    {
+        SimulationTick tick;
+        uint64_t state_hash = 0U;
+    };
 
     GameSession() noexcept = default;
     ~GameSession() noexcept;
@@ -33,11 +38,13 @@ public:
     Error submit_world_delta(EntityId entity, int64_t delta) noexcept;
     Error advance_one_tick() noexcept;
     Error shutdown() noexcept;
+    void clear_replay_history() noexcept;
     Bool is_initialized() const noexcept;
     Runtime &runtime() noexcept;
     DeterministicWorld &world() noexcept;
     SystemRegistry &systems() noexcept;
     const zero_hour::Catalog &catalog() const noexcept;
+    const std::vector<ReplayRecord> &replay_history() const noexcept;
     HeadlessRenderer &renderer() noexcept;
     OfflineNetworkSession &network() noexcept;
 
@@ -50,6 +57,7 @@ private:
     OfflineNetworkSession _network;
     std::vector<WorldDeltaCommand> _commands;
     uint64_t _next_command_sequence = 0U;
+    std::vector<ReplayRecord> _replay_history;
     Bool _initialized = FT_FALSE;
 };
 

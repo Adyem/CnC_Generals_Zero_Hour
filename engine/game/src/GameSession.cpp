@@ -41,6 +41,7 @@ Error GameSession::initialize() noexcept
         return error;
     }
     _initialized = FT_TRUE;
+    _replay_history.clear();
     return FT_ERR_SUCCESS;
 }
 
@@ -84,7 +85,17 @@ Error GameSession::advance_one_tick() noexcept
     if (error != FT_ERR_SUCCESS) return error;
     error = _systems.run(SystemPhase::simulation, _world.tick());
     if (error != FT_ERR_SUCCESS) return error;
-    return _systems.run(SystemPhase::presentation, _world.tick());
+    error = _systems.run(SystemPhase::presentation, _world.tick());
+    if (error != FT_ERR_SUCCESS) return error;
+    try
+    {
+        _replay_history.push_back(ReplayRecord{_world.tick(), _world.canonical_state_hash()});
+    }
+    catch (...)
+    {
+        return FT_ERR_NO_MEMORY;
+    }
+    return FT_ERR_SUCCESS;
 }
 
 Error GameSession::shutdown() noexcept
@@ -93,6 +104,7 @@ Error GameSession::shutdown() noexcept
     (void)_systems.clear();
     _commands.clear();
     _next_command_sequence = 0U;
+    _replay_history.clear();
     (void)_renderer.shutdown();
     (void)_network.shutdown();
     (void)_catalog.shutdown();
@@ -107,6 +119,11 @@ Runtime &GameSession::runtime() noexcept { return _runtime; }
 DeterministicWorld &GameSession::world() noexcept { return _world; }
 SystemRegistry &GameSession::systems() noexcept { return _systems; }
 const zero_hour::Catalog &GameSession::catalog() const noexcept { return _catalog; }
+void GameSession::clear_replay_history() noexcept { _replay_history.clear(); }
+const std::vector<GameSession::ReplayRecord> &GameSession::replay_history() const noexcept
+{
+    return _replay_history;
+}
 HeadlessRenderer &GameSession::renderer() noexcept { return _renderer; }
 OfflineNetworkSession &GameSession::network() noexcept { return _network; }
 

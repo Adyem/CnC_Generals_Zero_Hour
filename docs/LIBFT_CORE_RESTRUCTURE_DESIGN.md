@@ -1495,6 +1495,12 @@ initialization, and shutdown tears them down before the catalog/world/runtime.
 Callers therefore receive one lifecycle-managed backend graph; the offline app
 uses `session.renderer()` and cannot accidentally bypass the configured session.
 
+`GameSession` now captures a replay record after every successful tick: the
+simulation tick and canonical state hash are stored in a session-owned history
+that can be cleared or consumed by future Libft replay/file adapters. Capture
+happens after presentation systems complete, so failed ticks are never reported
+as successful replay frames.
+
 The session also owns the first input boundary: `submit_world_delta` accepts a
 validated entity command, assigns a monotonically increasing sequence number,
 and stores it until the next tick. Commands are stably sorted and dispatched to
