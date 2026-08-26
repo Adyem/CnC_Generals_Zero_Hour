@@ -1449,6 +1449,14 @@ is exposed as the `cnc_determinism_replay` CMake target and the
 `determinism.replay` CTest case. This should remain a blocking test as concrete
 faction, economy, combat, and map systems replace the scaffold.
 
+The active-source exclusion audit is implemented in
+`cmake/ValidateMigrationSources.cmake`, exposed as the
+`cnc_validate_migration_sources` target and `migration.exclusions` CTest case.
+It scans only `engine/`, `games/`, and `tests/` (not the archival `GeneralsMD/`
+tree) and fails on SafeDisk, copy-protection, or GameSpy references. This keeps
+retired middleware out of new code while the legacy inventory tracks what still
+must be removed when the optional reference target is dismantled.
+
 The next implementation step is to add maintained Libft CMake targets (or temporary explicit adapters) for the transitive `Errno`, `System_utils`, `Time`, `File`, and `Game` modules, then replace this scaffold's storage with Libft `Game` registries and typed systems. Do not expand the manifest to every Libft `.cpp` file until each module's platform and third-party dependencies are represented as CMake targets.
 
 The first dependency probe is represented by `cmake/LibftTime.cmake`. It has an

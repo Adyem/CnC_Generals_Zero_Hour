@@ -15,6 +15,7 @@ option(CNC_BUILD_SIMULATION "Build the deterministic headless world scaffold" ON
 option(CNC_BUILD_GAME_DATA "Build the game-owned Zero Hour definition catalog" ON)
 option(CNC_BUILD_GAME_SESSION "Build the headless game composition root" ON)
 option(CNC_BUILD_DETERMINISM_TEST "Build the deterministic replay test" ON)
+option(CNC_BUILD_MIGRATION_AUDIT "Build the SafeDisk/GameSpy exclusion audit" ON)
 option(CNC_BUILD_SMOKE_TEST "Build the portable Libft integration smoke test" ON)
 option(CNC_BUILD_LEGACY_REFERENCE "Expose the legacy SAGE reference target (not implemented)" OFF)
 option(CNC_ENABLE_MULTIPLAYER "Enable the replacement multiplayer stack (not implemented)" OFF)
@@ -130,6 +131,21 @@ if(CNC_BUILD_DETERMINISM_TEST)
     if(BUILD_TESTING)
         add_test(NAME determinism.replay COMMAND cnc_determinism_replay)
         set_tests_properties(determinism.replay PROPERTIES LABELS "determinism;unit")
+    endif()
+endif()
+
+if(CNC_BUILD_MIGRATION_AUDIT)
+    add_custom_target(cnc_validate_migration_sources
+        COMMAND ${CMAKE_COMMAND}
+            -DCNC_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ValidateMigrationSources.cmake"
+        VERBATIM)
+    if(BUILD_TESTING)
+        add_test(NAME migration.exclusions
+            COMMAND ${CMAKE_COMMAND}
+                -DCNC_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+                -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ValidateMigrationSources.cmake")
+        set_tests_properties(migration.exclusions PROPERTIES LABELS "unit;integration-offline")
     endif()
 endif()
 
