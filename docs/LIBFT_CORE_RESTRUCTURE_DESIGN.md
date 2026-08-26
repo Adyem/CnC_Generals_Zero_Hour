@@ -527,6 +527,12 @@ orders requests by sequence, clamps lethal damage to zero, and commits a
 projected health set only after every target is found. Weapon definitions,
 armor tables, splash rules, statuses, and destruction events remain game-owned;
 the registry supplies the deterministic state transition those rules can call.
+`cnc::ProductionQueue` is the next generic ownership/economy seam. Orders carry
+only an opaque `DefinitionId`, producer `EntityId`, fixed-width ready tick, and
+sequence; Zero Hour supplies costs, prerequisites, build placement, and the
+definition-to-unit factory. Enqueue checks tick overflow, while completion
+copies and orders pending work before swapping completed/remaining sets, so a
+failed allocation cannot remove only part of a production queue.
 
 ### 7.4 State, snapshot, and replay design
 

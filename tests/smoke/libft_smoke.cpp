@@ -15,6 +15,7 @@
 #include "CncSimulation/SpatialIndex.hpp"
 #include "CncSimulation/LocomotionQueue.hpp"
 #include "CncSimulation/CombatRegistry.hpp"
+#include "CncSimulation/ProductionQueue.hpp"
 #include "CncSimulation/SystemRegistry.hpp"
 #include "CncSimulation/DefinitionRegistry.hpp"
 #include "ZeroHourData/Catalog.hpp"
@@ -283,6 +284,21 @@ int main()
         health.current != 0 || health.alive != FT_FALSE || combat.pending_count() != 1U ||
         combat.discard() != FT_ERR_SUCCESS || combat.shutdown() != FT_ERR_SUCCESS)
         return 52;
+
+    cnc::ProductionQueue production;
+    std::vector<cnc::ProductionOrder> completed_orders;
+    if (production.initialize() != FT_ERR_SUCCESS ||
+        production.enqueue(cnc::EntityId{11U}, cnc::DefinitionId{7U},
+                           cnc::SimulationTick{10U}, cnc::SimulationTick{5U}) != FT_ERR_SUCCESS ||
+        production.enqueue(cnc::EntityId{11U}, cnc::DefinitionId{8U},
+                           cnc::SimulationTick{10U}, cnc::SimulationTick{2U}) != FT_ERR_SUCCESS ||
+        production.collect_ready(cnc::SimulationTick{12U}, &completed_orders) != FT_ERR_SUCCESS ||
+        completed_orders.size() != 1U || completed_orders[0].definition.value != 8U ||
+        production.pending_count() != static_cast<cnc::Size>(1U) ||
+        production.collect_ready(cnc::SimulationTick{15U}, &completed_orders) != FT_ERR_SUCCESS ||
+        completed_orders.size() != 1U || completed_orders[0].definition.value != 7U ||
+        production.pending_count() != 0U || production.shutdown() != FT_ERR_SUCCESS)
+        return 53;
 
     cnc::SystemRegistry systems;
     std::vector<uint64_t> execution_ticks;
