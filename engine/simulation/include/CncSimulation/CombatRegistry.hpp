@@ -32,6 +32,12 @@ struct DamageRequest
     uint64_t sequence = 0U;
 };
 
+struct CombatRegistrySnapshot
+{
+    uint32_t schema_version = 1U;
+    std::vector<HealthState> health;
+};
+
 class CombatRegistry final
 {
 public:
@@ -45,6 +51,9 @@ public:
                        DamageType type = DamageType::generic) noexcept;
     Error apply() noexcept;
     Error discard() noexcept;
+    Error export_snapshot(CombatRegistrySnapshot *snapshot_out) const noexcept;
+    Error import_snapshot(const CombatRegistrySnapshot &snapshot) noexcept;
+    void swap(CombatRegistry &other) noexcept;
     uint64_t canonical_state_hash() const noexcept;
     Size pending_count() const noexcept;
 

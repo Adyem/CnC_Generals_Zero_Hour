@@ -1799,6 +1799,12 @@ in a temporary `SpatialIndex` alongside players before the world is committed,
 so an entity cannot restore successfully while its query position is silently
 lost. This is still generic coordinate/layer state; Zero Hour remains the
 owner of terrain costs, locomotion rules, and targeting semantics.
+It now carries the generic combat-health payload as well. `GameSession` stages
+health records in a temporary `CombatRegistry` before committing the snapshot,
+and the canonical session hash includes those records. This keeps a restored
+unit's entity, position, owner, and health as one coherent state boundary;
+damage requests themselves remain transient and are never serialized midway
+through application.
 Frame ingestion is transactional: the session validates every referenced live
 entity and builds a projected command queue before swapping it in. If any
 record is rejected, or queue allocation fails, no earlier record from that

@@ -41,12 +41,23 @@ Error GameSession::initialize() noexcept
         (void)_runtime.shutdown();
         return error;
     }
+    error = _combat.initialize();
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)_spatial.shutdown();
+        (void)_players.shutdown();
+        (void)_catalog.shutdown();
+        (void)_world.shutdown();
+        (void)_runtime.shutdown();
+        return error;
+    }
     error = _network.initialize();
     if (error != FT_ERR_SUCCESS)
     {
         (void)_catalog.shutdown();
         (void)_players.shutdown();
         (void)_spatial.shutdown();
+        (void)_combat.shutdown();
         (void)_world.shutdown();
         (void)_runtime.shutdown();
         return error;
@@ -57,6 +68,7 @@ Error GameSession::initialize() noexcept
         (void)_network.shutdown();
         (void)_players.shutdown();
         (void)_spatial.shutdown();
+        (void)_combat.shutdown();
         (void)_catalog.shutdown();
         (void)_world.shutdown();
         (void)_runtime.shutdown();
@@ -234,6 +246,8 @@ Error GameSession::save_snapshot(std::vector<uint8_t> *bytes_out) const noexcept
     if (error != FT_ERR_SUCCESS) return error;
     error = _spatial.export_snapshot(&snapshot.spatial);
     if (error != FT_ERR_SUCCESS) return error;
+    error = _combat.export_snapshot(&snapshot.combat);
+    if (error != FT_ERR_SUCCESS) return error;
     return SessionSnapshotCodec::encode(snapshot, bytes_out);
 }
 
@@ -268,17 +282,36 @@ Error GameSession::load_snapshot(const uint8_t *bytes, Size byte_count) noexcept
         (void)projected_players.shutdown();
         return error;
     }
-    error = _world.import_snapshot(snapshot.world);
+    CombatRegistry projected_combat;
+    error = projected_combat.initialize();
     if (error != FT_ERR_SUCCESS)
     {
         (void)projected_spatial.shutdown();
         (void)projected_players.shutdown();
         return error;
     }
+    error = projected_combat.import_snapshot(snapshot.combat);
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)projected_combat.shutdown();
+        (void)projected_spatial.shutdown();
+        (void)projected_players.shutdown();
+        return error;
+    }
+    error = _world.import_snapshot(snapshot.world);
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)projected_spatial.shutdown();
+        (void)projected_combat.shutdown();
+        (void)projected_players.shutdown();
+        return error;
+    }
     _players.swap(projected_players);
     _spatial.swap(projected_spatial);
+    _combat.swap(projected_combat);
     (void)projected_players.shutdown();
     (void)projected_spatial.shutdown();
+    (void)projected_combat.shutdown();
     _commands.clear();
     _next_command_sequence = 0U;
     _replay_history.clear();
@@ -301,6 +334,7 @@ Error GameSession::shutdown() noexcept
     (void)_general_roster.shutdown();
     (void)_players.shutdown();
     (void)_spatial.shutdown();
+    (void)_combat.shutdown();
     (void)_catalog.shutdown();
     (void)_world.shutdown();
     const Error error = _runtime.shutdown();
@@ -324,6 +358,7 @@ uint64_t GameSession::canonical_state_hash() const noexcept
     mix(_world.canonical_state_hash());
     mix(_players.canonical_state_hash());
     mix(_spatial.canonical_state_hash());
+    mix(_combat.canonical_state_hash());
     return hash;
 }
 Bool GameSession::has_game_data() const noexcept
@@ -343,6 +378,7 @@ SimulationWorld &GameSession::world() noexcept { return _world; }
 SystemRegistry &GameSession::systems() noexcept { return _systems; }
 PlayerRegistry &GameSession::players() noexcept { return _players; }
 SpatialIndex &GameSession::spatial() noexcept { return _spatial; }
+CombatRegistry &GameSession::combat() noexcept { return _combat; }
 const zero_hour::Catalog &GameSession::catalog() const noexcept { return _catalog; }
 zero_hour::ScienceLedger &GameSession::science_ledger() noexcept { return _science_ledger; }
 zero_hour::SpecialPowerLedger &GameSession::special_power_ledger() noexcept

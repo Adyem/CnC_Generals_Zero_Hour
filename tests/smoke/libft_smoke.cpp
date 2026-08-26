@@ -463,6 +463,7 @@ int main()
     if (session.world().create_entity(&session_entity) != FT_ERR_SUCCESS ||
         session.players().set_owner(session_entity, cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
         session.spatial().set_position(session_entity, 100, 200, 1U) != FT_ERR_SUCCESS ||
+        session.combat().register_health(session_entity, 100) != FT_ERR_SUCCESS ||
         session.submit_world_delta(session_entity, 5) != FT_ERR_SUCCESS ||
         session.advance_one_tick() != FT_ERR_SUCCESS)
         return 26;
@@ -486,7 +487,10 @@ int main()
     int64_t restored_value = 0;
     cnc::PlayerId restored_owner;
     cnc::SpatialPosition restored_position;
+    cnc::HealthState restored_health;
     if (session.save_snapshot(&saved_session) != FT_ERR_SUCCESS ||
+        session.combat().queue_damage(session_entity, 25) != FT_ERR_SUCCESS ||
+        session.combat().apply() != FT_ERR_SUCCESS ||
         session.submit_world_delta(session_entity, 10) != FT_ERR_SUCCESS ||
         session.advance_one_tick() != FT_ERR_SUCCESS ||
         session.load_snapshot(saved_session.data(),
@@ -496,6 +500,8 @@ int main()
         restored_owner.value != 1U ||
         session.spatial().position(session_entity, &restored_position) != FT_ERR_SUCCESS ||
         restored_position.x != 100 || restored_position.y != 200 ||
+        session.combat().health(session_entity, &restored_health) != FT_ERR_SUCCESS ||
+        restored_health.current != 100 ||
         session.world().tick().value != 1U ||
         !session.replay_history().empty())
         return 39;

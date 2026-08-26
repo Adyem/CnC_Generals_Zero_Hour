@@ -136,6 +136,66 @@ Error CombatRegistry::discard() noexcept
     return FT_ERR_SUCCESS;
 }
 
+Error CombatRegistry::export_snapshot(CombatRegistrySnapshot *snapshot_out) const noexcept
+{
+    if (snapshot_out == nullptr) return FT_ERR_INVALID_POINTER;
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    try
+    {
+        snapshot_out->schema_version = 1U;
+        snapshot_out->health = _health;
+        std::sort(snapshot_out->health.begin(), snapshot_out->health.end(),
+                  [](const HealthState &first, const HealthState &second) noexcept
+                  { return first.entity.value < second.entity.value; });
+    }
+    catch (...)
+    {
+        snapshot_out->health.clear();
+        return FT_ERR_NO_MEMORY;
+    }
+    return FT_ERR_SUCCESS;
+}
+
+Error CombatRegistry::import_snapshot(const CombatRegistrySnapshot &snapshot) noexcept
+{
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    if (snapshot.schema_version != 1U || snapshot.health.size() > (1U << 20U))
+        return FT_ERR_CONFIGURATION;
+    std::vector<HealthState> restored;
+    try
+    {
+        restored.reserve(snapshot.health.size());
+        for (ft_size_t index = 0U; index < snapshot.health.size(); ++index)
+        {
+            const HealthState &state = snapshot.health[index];
+            if (!state.entity.is_valid() || state.maximum <= 0 || state.current < 0 ||
+                state.current > state.maximum ||
+                state.alive != (state.current > 0 ? FT_TRUE : FT_FALSE) ||
+                (index != 0U && snapshot.health[index - 1U].entity.value >= state.entity.value))
+                return FT_ERR_CONFIGURATION;
+            restored.push_back(state);
+        }
+    }
+    catch (...)
+    {
+        return FT_ERR_NO_MEMORY;
+    }
+    _health.swap(restored);
+    return FT_ERR_SUCCESS;
+}
+
+void CombatRegistry::swap(CombatRegistry &other) noexcept
+{
+    _health.swap(other._health);
+    _requests.swap(other._requests);
+    const uint64_t sequence = _next_sequence;
+    _next_sequence = other._next_sequence;
+    other._next_sequence = sequence;
+    const Bool initialized = _initialized;
+    _initialized = other._initialized;
+    other._initialized = initialized;
+}
+
 uint64_t CombatRegistry::canonical_state_hash() const noexcept
 {
     if (_initialized != FT_TRUE) return 0U;
