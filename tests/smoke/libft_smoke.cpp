@@ -8,6 +8,7 @@
 #include "CncSimulation/World.hpp"
 #include "CncSimulation/SystemRegistry.hpp"
 #include "CncSimulation/DefinitionRegistry.hpp"
+#include "ZeroHourData/Catalog.hpp"
 
 namespace
 {
@@ -92,6 +93,18 @@ int main()
         found != definition || definitions.definition_count() != static_cast<cnc::Size>(1U) ||
         definitions.clear() != FT_ERR_SUCCESS)
         return 15;
+
+    zero_hour::Catalog catalog;
+    if (catalog.initialize() != FT_ERR_SUCCESS ||
+        catalog.install_default_definitions() != FT_ERR_SUCCESS ||
+        catalog.definition_count() != static_cast<cnc::Size>(2U))
+        return 16;
+    const auto *science = catalog.find_science(cnc::DefinitionId{1U});
+    const auto *faction = catalog.find_faction(cnc::DefinitionId{1U});
+    if (science == nullptr || science->purchase_cost != 1U || faction == nullptr ||
+        faction->starting_science.value != science->id.value ||
+        catalog.shutdown() != FT_ERR_SUCCESS)
+        return 17;
 
     std::cout << "libft smoke ok (" << CNC_PROJECT_VERSION << ")\n";
     return 0;

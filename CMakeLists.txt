@@ -11,6 +11,7 @@ include(CTest)
 option(CNC_BUILD_LIBFT_BASIC "Build the Libft Basic module" ON)
 option(CNC_BUILD_RUNTIME "Build the Libft-native runtime composition root" ON)
 option(CNC_BUILD_SIMULATION "Build the deterministic headless world scaffold" ON)
+option(CNC_BUILD_GAME_DATA "Build the game-owned Zero Hour definition catalog" ON)
 option(CNC_BUILD_SMOKE_TEST "Build the portable Libft integration smoke test" ON)
 option(CNC_BUILD_LEGACY_REFERENCE "Expose the legacy SAGE reference target (not implemented)" OFF)
 option(CNC_ENABLE_MULTIPLAYER "Enable the replacement multiplayer stack (not implemented)" OFF)
@@ -79,6 +80,20 @@ if(CNC_BUILD_SIMULATION)
     target_link_libraries(cnc_simulation PUBLIC cnc::runtime)
 endif()
 
+if(CNC_BUILD_GAME_DATA)
+    if(NOT TARGET cnc::simulation)
+        message(FATAL_ERROR "CNC_BUILD_GAME_DATA requires CNC_BUILD_SIMULATION=ON")
+    endif()
+    add_library(cnc_zero_hour_data STATIC
+        "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/src/Catalog.cpp"
+    )
+    add_library(cnc::zero_hour_data ALIAS cnc_zero_hour_data)
+    target_compile_features(cnc_zero_hour_data PUBLIC cxx_std_17)
+    target_include_directories(cnc_zero_hour_data PUBLIC
+        "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/include")
+    target_link_libraries(cnc_zero_hour_data PUBLIC cnc::simulation)
+endif()
+
 if(CNC_BUILD_SMOKE_TEST)
     if(NOT TARGET libft::basic)
         message(FATAL_ERROR "CNC_BUILD_SMOKE_TEST requires CNC_BUILD_LIBFT_BASIC=ON")
@@ -94,6 +109,9 @@ if(CNC_BUILD_SMOKE_TEST)
     endif()
     if(TARGET cnc::simulation)
         target_link_libraries(cnc_libft_smoke PRIVATE cnc::simulation)
+    endif()
+    if(TARGET cnc::zero_hour_data)
+        target_link_libraries(cnc_libft_smoke PRIVATE cnc::zero_hour_data)
     endif()
     target_compile_definitions(cnc_libft_smoke PRIVATE
         CNC_PROJECT_VERSION="${PROJECT_VERSION}"

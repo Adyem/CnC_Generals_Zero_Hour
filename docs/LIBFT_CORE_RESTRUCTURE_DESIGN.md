@@ -1406,6 +1406,22 @@ engine/simulation/src/DefinitionRegistry.cpp
 
 `cnc::DefinitionRegistry` now provides the corresponding data-hosting seam. Libft owns type/content-ID uniqueness, opaque lifetime through an explicit destroy callback, lookup, and validation dispatch; a game target owns the concrete definition structs and typed wrappers. The current smoke test registers a synthetic definition, looks it up, and verifies cleanup. This is intentionally not a Generals catalog yet.
 
+The first concrete game-owned adapter is now present under `games/zero_hour`:
+
+```text
+games/zero_hour/include/ZeroHourData/Catalog.hpp
+games/zero_hour/src/Catalog.cpp
+```
+
+`zero_hour::Catalog` registers faction and science type descriptors, allocates the
+concrete records, installs a minimal default dataset, and exposes typed lookup
+functions. The registry destroys the records, so ownership remains explicit and
+the Libft-facing layer never needs to know what a faction or science means. The
+smoke test exercises initialization, registration, typed lookup, and shutdown.
+This pattern is the template for adding generals, powers, units, and rules data;
+it should be extended with real asset IDs and loaders rather than moving those
+records into Libft.
+
 The next implementation step is to add maintained Libft CMake targets (or temporary explicit adapters) for the transitive `Errno`, `System_utils`, `Time`, `File`, and `Game` modules, then replace this scaffold's storage with Libft `Game` registries and typed systems. Do not expand the manifest to every Libft `.cpp` file until each module's platform and third-party dependencies are represented as CMake targets.
 
 ## 14. Engine replacement phases
