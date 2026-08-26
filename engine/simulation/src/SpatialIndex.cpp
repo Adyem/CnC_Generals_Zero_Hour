@@ -98,6 +98,60 @@ Error SpatialIndex::position(EntityId entity, SpatialPosition *position_out) con
     return FT_ERR_NOT_FOUND;
 }
 
+Error SpatialIndex::export_snapshot(SpatialIndexSnapshot *snapshot_out) const noexcept
+{
+    if (snapshot_out == nullptr) return FT_ERR_INVALID_POINTER;
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    try
+    {
+        snapshot_out->schema_version = 1U;
+        snapshot_out->entries = _entries;
+        std::sort(snapshot_out->entries.begin(), snapshot_out->entries.end(),
+                  [](const SpatialPosition &first, const SpatialPosition &second) noexcept
+                  { return first.entity.value < second.entity.value; });
+    }
+    catch (...)
+    {
+        snapshot_out->entries.clear();
+        return FT_ERR_NO_MEMORY;
+    }
+    return FT_ERR_SUCCESS;
+}
+
+Error SpatialIndex::import_snapshot(const SpatialIndexSnapshot &snapshot) noexcept
+{
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    if (snapshot.schema_version != 1U || snapshot.entries.size() > (1U << 20U))
+        return FT_ERR_CONFIGURATION;
+    std::vector<SpatialPosition> restored;
+    try
+    {
+        restored.reserve(snapshot.entries.size());
+        for (ft_size_t index = 0U; index < snapshot.entries.size(); ++index)
+        {
+            const SpatialPosition &entry = snapshot.entries[index];
+            if (!entry.entity.is_valid() ||
+                (index != 0U && snapshot.entries[index - 1U].entity.value >= entry.entity.value))
+                return FT_ERR_CONFIGURATION;
+            restored.push_back(entry);
+        }
+    }
+    catch (...)
+    {
+        return FT_ERR_NO_MEMORY;
+    }
+    _entries.swap(restored);
+    return FT_ERR_SUCCESS;
+}
+
+void SpatialIndex::swap(SpatialIndex &other) noexcept
+{
+    _entries.swap(other._entries);
+    const Bool initialized = _initialized;
+    _initialized = other._initialized;
+    other._initialized = initialized;
+}
+
 uint64_t SpatialIndex::canonical_state_hash() const noexcept
 {
     if (_initialized != FT_TRUE) return 0U;

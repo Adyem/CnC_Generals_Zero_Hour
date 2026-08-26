@@ -422,6 +422,7 @@ int main()
     cnc::EntityId session_entity;
     if (session.world().create_entity(&session_entity) != FT_ERR_SUCCESS ||
         session.players().set_owner(session_entity, cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
+        session.spatial().set_position(session_entity, 100, 200, 1U) != FT_ERR_SUCCESS ||
         session.submit_world_delta(session_entity, 5) != FT_ERR_SUCCESS ||
         session.advance_one_tick() != FT_ERR_SUCCESS)
         return 26;
@@ -444,6 +445,7 @@ int main()
     std::vector<uint8_t> saved_session;
     int64_t restored_value = 0;
     cnc::PlayerId restored_owner;
+    cnc::SpatialPosition restored_position;
     if (session.save_snapshot(&saved_session) != FT_ERR_SUCCESS ||
         session.submit_world_delta(session_entity, 10) != FT_ERR_SUCCESS ||
         session.advance_one_tick() != FT_ERR_SUCCESS ||
@@ -451,7 +453,10 @@ int main()
                               static_cast<cnc::Size>(saved_session.size())) != FT_ERR_SUCCESS ||
         session.world().read_value(session_entity, &restored_value) != FT_ERR_SUCCESS ||
         restored_value != 5 || session.players().owner(session_entity, &restored_owner) != FT_ERR_SUCCESS ||
-        restored_owner.value != 1U || session.world().tick().value != 1U ||
+        restored_owner.value != 1U ||
+        session.spatial().position(session_entity, &restored_position) != FT_ERR_SUCCESS ||
+        restored_position.x != 100 || restored_position.y != 200 ||
+        session.world().tick().value != 1U ||
         !session.replay_history().empty())
         return 39;
     cnc::WorldCommandFrame session_frame;

@@ -18,6 +18,12 @@ struct SpatialPosition
     uint32_t layer = 0U;
 };
 
+struct SpatialIndexSnapshot
+{
+    uint32_t schema_version = 1U;
+    std::vector<SpatialPosition> entries;
+};
+
 class SpatialIndex final
 {
 public:
@@ -30,6 +36,9 @@ public:
                     WorldCoordinate max_x, WorldCoordinate max_y,
                     uint32_t layer, std::vector<EntityId> *entities_out) const noexcept;
     Error position(EntityId entity, SpatialPosition *position_out) const noexcept;
+    Error export_snapshot(SpatialIndexSnapshot *snapshot_out) const noexcept;
+    Error import_snapshot(const SpatialIndexSnapshot &snapshot) noexcept;
+    void swap(SpatialIndex &other) noexcept;
     uint64_t canonical_state_hash() const noexcept;
     Size size() const noexcept;
 

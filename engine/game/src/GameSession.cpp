@@ -32,11 +32,21 @@ Error GameSession::initialize() noexcept
         (void)_runtime.shutdown();
         return error;
     }
+    error = _spatial.initialize();
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)_players.shutdown();
+        (void)_catalog.shutdown();
+        (void)_world.shutdown();
+        (void)_runtime.shutdown();
+        return error;
+    }
     error = _network.initialize();
     if (error != FT_ERR_SUCCESS)
     {
         (void)_catalog.shutdown();
         (void)_players.shutdown();
+        (void)_spatial.shutdown();
         (void)_world.shutdown();
         (void)_runtime.shutdown();
         return error;
@@ -46,6 +56,7 @@ Error GameSession::initialize() noexcept
     {
         (void)_network.shutdown();
         (void)_players.shutdown();
+        (void)_spatial.shutdown();
         (void)_catalog.shutdown();
         (void)_world.shutdown();
         (void)_runtime.shutdown();
@@ -221,6 +232,8 @@ Error GameSession::save_snapshot(std::vector<uint8_t> *bytes_out) const noexcept
     if (error != FT_ERR_SUCCESS) return error;
     error = _players.export_snapshot(&snapshot.players);
     if (error != FT_ERR_SUCCESS) return error;
+    error = _spatial.export_snapshot(&snapshot.spatial);
+    if (error != FT_ERR_SUCCESS) return error;
     return SessionSnapshotCodec::encode(snapshot, bytes_out);
 }
 
@@ -241,10 +254,31 @@ Error GameSession::load_snapshot(const uint8_t *bytes, Size byte_count) noexcept
         (void)projected_players.shutdown();
         return error;
     }
+    SpatialIndex projected_spatial;
+    error = projected_spatial.initialize();
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)projected_players.shutdown();
+        return error;
+    }
+    error = projected_spatial.import_snapshot(snapshot.spatial);
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)projected_spatial.shutdown();
+        (void)projected_players.shutdown();
+        return error;
+    }
     error = _world.import_snapshot(snapshot.world);
-    if (error != FT_ERR_SUCCESS) return error;
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)projected_spatial.shutdown();
+        (void)projected_players.shutdown();
+        return error;
+    }
     _players.swap(projected_players);
+    _spatial.swap(projected_spatial);
     (void)projected_players.shutdown();
+    (void)projected_spatial.shutdown();
     _commands.clear();
     _next_command_sequence = 0U;
     _replay_history.clear();
@@ -266,6 +300,7 @@ Error GameSession::shutdown() noexcept
     (void)_special_power_ledger.shutdown();
     (void)_general_roster.shutdown();
     (void)_players.shutdown();
+    (void)_spatial.shutdown();
     (void)_catalog.shutdown();
     (void)_world.shutdown();
     const Error error = _runtime.shutdown();
@@ -288,6 +323,7 @@ uint64_t GameSession::canonical_state_hash() const noexcept
     };
     mix(_world.canonical_state_hash());
     mix(_players.canonical_state_hash());
+    mix(_spatial.canonical_state_hash());
     return hash;
 }
 Bool GameSession::has_game_data() const noexcept
@@ -306,6 +342,7 @@ Runtime &GameSession::runtime() noexcept { return _runtime; }
 SimulationWorld &GameSession::world() noexcept { return _world; }
 SystemRegistry &GameSession::systems() noexcept { return _systems; }
 PlayerRegistry &GameSession::players() noexcept { return _players; }
+SpatialIndex &GameSession::spatial() noexcept { return _spatial; }
 const zero_hour::Catalog &GameSession::catalog() const noexcept { return _catalog; }
 zero_hour::ScienceLedger &GameSession::science_ledger() noexcept { return _science_ledger; }
 zero_hour::SpecialPowerLedger &GameSession::special_power_ledger() noexcept

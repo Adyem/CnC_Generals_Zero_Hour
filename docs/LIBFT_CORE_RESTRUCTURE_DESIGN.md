@@ -1780,6 +1780,11 @@ through its own validator. `GameSession::load_snapshot` validates the registry
 into a temporary `PlayerRegistry`, imports the world through its atomic path,
 then swaps the validated registry; a failed registry decode or world import
 cannot leave the session with mismatched ownership and entity state.
+The envelope now also carries the spatial-index payload. Positions are staged
+in a temporary `SpatialIndex` alongside players before the world is committed,
+so an entity cannot restore successfully while its query position is silently
+lost. This is still generic coordinate/layer state; Zero Hour remains the
+owner of terrain costs, locomotion rules, and targeting semantics.
 Frame ingestion is transactional: the session validates every referenced live
 entity and builds a projected command queue before swapping it in. If any
 record is rejected, or queue allocation fails, no earlier record from that

@@ -5,6 +5,7 @@
 
 #include "CncSimulation/PlayerRegistry.hpp"
 #include "CncSimulation/SnapshotCodec.hpp"
+#include "CncSimulation/SpatialIndex.hpp"
 
 namespace cnc
 {
@@ -14,6 +15,7 @@ struct SessionSnapshot
     uint32_t schema_version = 1U;
     WorldSnapshot world;
     PlayerRegistrySnapshot players;
+    SpatialIndexSnapshot spatial;
 };
 
 class SessionSnapshotCodec final
