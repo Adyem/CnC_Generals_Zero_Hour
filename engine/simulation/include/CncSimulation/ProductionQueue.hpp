@@ -20,6 +20,7 @@ struct ProductionOrder
 class ProductionQueue final
 {
 public:
+    struct Snapshot { uint32_t schema_version = 1U; std::vector<ProductionOrder> orders; uint64_t next_sequence = 0U; };
     Error initialize() noexcept;
     Error shutdown() noexcept;
     Error enqueue(EntityId producer, DefinitionId definition,
@@ -29,6 +30,9 @@ public:
                         std::vector<ProductionOrder> *completed_out) noexcept;
     Error discard() noexcept;
     Size pending_count() const noexcept;
+    Error export_snapshot(Snapshot *snapshot_out) const noexcept;
+    Error import_snapshot(const Snapshot &snapshot) noexcept;
+    void swap(ProductionQueue &other) noexcept;
 
 private:
     std::vector<ProductionOrder> _orders;

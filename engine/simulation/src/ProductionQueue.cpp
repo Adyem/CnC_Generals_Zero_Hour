@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <utility>
 
 #include "errno.hpp"
 
@@ -96,5 +97,31 @@ Size ProductionQueue::pending_count() const noexcept
 {
     return static_cast<Size>(_orders.size());
 }
+
+Error ProductionQueue::export_snapshot(Snapshot *out) const noexcept
+{
+    if (out == nullptr) return FT_ERR_INVALID_POINTER;
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    try { out->schema_version=1U; out->orders=_orders; out->next_sequence=_next_sequence; }
+    catch (...) { out->orders.clear(); return FT_ERR_NO_MEMORY; }
+    return FT_ERR_SUCCESS;
+}
+Error ProductionQueue::import_snapshot(const Snapshot &snapshot) noexcept
+{
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    if (snapshot.schema_version != 1U || snapshot.orders.size() > (1U<<20U)) return FT_ERR_CONFIGURATION;
+    std::vector<ProductionOrder> restored;
+    try {
+        restored.reserve(snapshot.orders.size());
+        for (Size i=0U;i<snapshot.orders.size();++i) {
+            const ProductionOrder &o=snapshot.orders[i];
+            if (!o.producer.is_valid() || o.definition.value==0U ||
+                (i!=0U && snapshot.orders[i-1U].sequence>=o.sequence)) return FT_ERR_CONFIGURATION;
+            restored.push_back(o);
+        }
+    } catch (...) { return FT_ERR_NO_MEMORY; }
+    _orders.swap(restored); _next_sequence=snapshot.next_sequence; return FT_ERR_SUCCESS;
+}
+void ProductionQueue::swap(ProductionQueue &other) noexcept { _orders.swap(other._orders); std::swap(_next_sequence,other._next_sequence); std::swap(_initialized,other._initialized); }
 
 }
