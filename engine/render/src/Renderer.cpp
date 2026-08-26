@@ -5,6 +5,11 @@
 namespace cnc
 {
 
+const char *HeadlessRenderer::backend_name() const noexcept
+{
+    return "headless";
+}
+
 Error HeadlessRenderer::initialize() noexcept
 {
     if (_initialized == FT_TRUE) return FT_ERR_ALREADY_INITIALISED;

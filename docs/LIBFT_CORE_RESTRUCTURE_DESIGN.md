@@ -1593,6 +1593,10 @@ uses `session.renderer()` and cannot accidentally bypass the configured session.
 `GameSession::has_game_data()` distinguishes an initialized backend graph from
 a session whose game-owned catalog has not yet been loaded, preventing launch
 and UI code from treating runtime startup as proof that rules data is ready.
+Each backend contract also exposes a stable `backend_name()` identifier. The
+headless launcher prints the active runtime/world/renderer/network adapters,
+which makes accidental reintroduction of a legacy or partially initialized
+backend visible in diagnostics and CI logs.
 
 `GameSession` now captures a replay record after every successful tick: the
 simulation tick and canonical state hash are stored in a session-owned history

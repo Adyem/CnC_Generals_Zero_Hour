@@ -45,6 +45,10 @@ int main(int argc, char **argv)
 
     std::cout << "zero_hour_headless version=" << CNC_BUILD_PROJECT_VERSION
               << " commit=" << CNC_BUILD_GIT_COMMIT
+              << " runtime=" << session.runtime().backend_name()
+              << " world=" << session.world().backend_name()
+              << " renderer=" << session.renderer().backend_name()
+              << " network=" << session.network().backend_name()
               << " tick=" << session.world().tick().value
               << " hash=" << session.world().canonical_state_hash()
               << " frame=" << session.renderer().frame_count()

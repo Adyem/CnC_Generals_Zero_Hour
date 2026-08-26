@@ -32,6 +32,8 @@ Bool Runtime::is_initialized() const noexcept
     return _initialized;
 }
 
+const char *Runtime::backend_name() const noexcept { return "runtime-clock"; }
+
 uint64_t Runtime::monotonic_milliseconds() const noexcept
 {
     return _monotonic_clock();

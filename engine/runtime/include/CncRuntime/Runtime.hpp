@@ -20,6 +20,7 @@ public:
     Error set_monotonic_clock(MonotonicClock clock) noexcept;
 
     Bool is_initialized() const noexcept;
+    const char *backend_name() const noexcept;
     uint64_t monotonic_milliseconds() const noexcept;
 
     Error checked_add_size(Size left, Size right, Size *result) const noexcept;

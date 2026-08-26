@@ -6,6 +6,11 @@
 namespace cnc
 {
 
+const char *DeterministicWorld::backend_name() const noexcept
+{
+    return "deterministic-scaffold";
+}
+
 Error DeterministicWorld::initialize() noexcept
 {
     if (_initialized == FT_TRUE)

@@ -20,6 +20,7 @@ class SimulationWorld
 public:
     virtual ~SimulationWorld() noexcept = default;
     virtual Error initialize() noexcept = 0;
+    virtual const char *backend_name() const noexcept = 0;
     virtual Error shutdown() noexcept = 0;
     virtual Error create_entity(EntityId *entity_id_out) noexcept = 0;
     virtual Error destroy_entity(EntityId entity_id) noexcept = 0;
@@ -38,6 +39,7 @@ public:
     DeterministicWorld &operator=(const DeterministicWorld &) = delete;
 
     Error initialize() noexcept override;
+    const char *backend_name() const noexcept override;
     Error shutdown() noexcept override;
 
     Error create_entity(EntityId *entity_id_out) noexcept override;

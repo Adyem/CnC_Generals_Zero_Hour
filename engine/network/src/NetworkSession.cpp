@@ -5,6 +5,11 @@
 namespace cnc
 {
 
+const char *OfflineNetworkSession::backend_name() const noexcept
+{
+    return "offline-disabled";
+}
+
 Error OfflineNetworkSession::initialize() noexcept { return FT_ERR_SUCCESS; }
 
 Error OfflineNetworkSession::connect(const char *endpoint) noexcept

@@ -22,6 +22,7 @@ class Renderer
 public:
     virtual ~Renderer() noexcept = default;
     virtual Error initialize() noexcept = 0;
+    virtual const char *backend_name() const noexcept = 0;
     virtual Error begin_frame() noexcept = 0;
     virtual Error submit(const RenderCommand &command) noexcept = 0;
     virtual Error end_frame() noexcept = 0;
@@ -35,6 +36,7 @@ class HeadlessRenderer final : public Renderer
 {
 public:
     Error initialize() noexcept override;
+    const char *backend_name() const noexcept override;
     Error begin_frame() noexcept override;
     Error submit(const RenderCommand &command) noexcept override;
     Error end_frame() noexcept override;
