@@ -1469,6 +1469,11 @@ ASan/UBSan. The Libft submodule URL is HTTPS so hosted runners do not require a
 developer SSH key; the pinned branch/commit remains controlled by the
 submodule metadata.
 
+The sanitizer job uses the checked-in `ci-sanitizers` configure/build/test
+presets rather than inline cache overrides. Its binary directory is isolated
+from `dev-headless`, so local and CI runs cannot mix instrumented and normal
+objects.
+
 `cnc::GameSession` now acts as the headless composition root. Its startup order
 is Runtime -> DeterministicWorld -> Zero Hour Catalog; shutdown reverses that
 order and clears scheduled systems. A tick runs ingest systems, advances the

@@ -35,6 +35,18 @@
         "CNC_ENABLE_MULTIPLAYER": "OFF",
         "BUILD_TESTING": "ON"
       }
+    },
+    {
+      "name": "ci-sanitizers",
+      "displayName": "Clang sanitizer CI",
+      "inherits": "dev-headless",
+      "description": "Ubuntu Clang configuration with ASan/UBSan and warnings-as-errors.",
+      "binaryDir": "${sourceDir}/out/build/ci-sanitizers",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CNC_ENABLE_SANITIZERS": "ON",
+        "CNC_WARNINGS_AS_ERRORS": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -45,6 +57,10 @@
     {
       "name": "release-offline",
       "configurePreset": "release-offline"
+    },
+    {
+      "name": "ci-sanitizers",
+      "configurePreset": "ci-sanitizers"
     }
   ],
   "testPresets": [
@@ -58,6 +74,13 @@
     {
       "name": "release-offline",
       "configurePreset": "release-offline",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-sanitizers",
+      "configurePreset": "ci-sanitizers",
       "output": {
         "outputOnFailure": true
       }

@@ -35,12 +35,8 @@ jobs:
       - name: Install Clang and Ninja
         run: sudo apt-get update && sudo apt-get install --yes clang ninja-build
       - name: Configure
-        run: >-
-          cmake --preset dev-headless
-          -DCMAKE_CXX_COMPILER=clang++
-          -DCNC_ENABLE_SANITIZERS=ON
-          -DCNC_WARNINGS_AS_ERRORS=ON
+        run: cmake --preset ci-sanitizers
       - name: Build
-        run: cmake --build --preset dev-headless
+        run: cmake --build --preset ci-sanitizers
       - name: Test
-        run: ctest --preset dev-headless
+        run: ctest --preset ci-sanitizers
