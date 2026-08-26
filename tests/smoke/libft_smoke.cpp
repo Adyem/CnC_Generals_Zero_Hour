@@ -520,6 +520,8 @@ int main()
             static_cast<cnc::Size>(production_bytes.size()), &decoded_production) != FT_ERR_SUCCESS ||
         decoded_production.orders.size() != static_cast<cnc::Size>(1U) ||
         decoded_production.orders[0].ready_at.value != 5U ||
+        (production_snapshot.next_sequence = 0U,
+         cnc::ProductionQueueCodec::encode(production_snapshot, &production_bytes) != FT_ERR_INVALID_ARGUMENT) ||
         snapshot_production.shutdown() != FT_ERR_SUCCESS)
         return 58;
     if (session.validate_game_data() != FT_ERR_SUCCESS)
