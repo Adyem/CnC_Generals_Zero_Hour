@@ -203,6 +203,7 @@ void PlayerStateRegistry::rebind_generals(GeneralRoster *generals) noexcept
 {
     _generals = generals;
 }
+void PlayerStateRegistry::rebind_powers(SpecialPowerLedger *powers) noexcept { _powers = powers; }
 
 cnc::Error PlayerStateRegistry::shutdown() noexcept
 {

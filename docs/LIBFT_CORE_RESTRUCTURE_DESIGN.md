@@ -1830,7 +1830,7 @@ encodes the five generic record groups as bounded little-endian arrays and
 rejects schema, length, count, and enum violations during decode. A session
 save can therefore compose the world codec and registry codec without making
 the codec aware of Generals factions, sciences, generals, powers, or assets.
-`SessionSnapshotCodec` now provides that composition: a version-five envelope
+`SessionSnapshotCodec` now provides that composition: a version-six envelope
 contains world, generic registry, game-owned Zero Hour player-state, spatial,
 combat, and visibility payloads, each decoded through its own validator.
 `GameSession::load_snapshot` validates the registry
@@ -1856,6 +1856,9 @@ are currently persisted; commander/general bindings and purchased/active power
 state remain a follow-up payload because their roster and cooldown ownership
 need the same swap-safe contract. A malformed player-state record or allocation
 failure therefore cannot replace only part of a player's authoritative data.
+Special-power cooldowns now use the same pattern: the global power ledger is
+serialized as a bounded payload, validated against the game catalog, staged
+before player states, and swapped before their backend pointer is rebound.
 Commander persistence must not be added by calling `PlayerState::assign_general`
 while loading into a temporary player registry: that API writes the shared live
 `GeneralRoster`. The implementation sequence is therefore to give

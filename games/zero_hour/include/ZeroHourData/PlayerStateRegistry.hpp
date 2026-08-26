@@ -38,6 +38,7 @@ public:
     cnc::Error import_snapshot(const Snapshot &snapshot) noexcept;
     void swap(PlayerStateRegistry &other) noexcept;
     void rebind_generals(GeneralRoster *generals) noexcept;
+    void rebind_powers(SpecialPowerLedger *powers) noexcept;
     cnc::Error shutdown() noexcept;
 
 private:
