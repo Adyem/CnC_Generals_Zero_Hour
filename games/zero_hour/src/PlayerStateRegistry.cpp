@@ -199,6 +199,11 @@ void PlayerStateRegistry::swap(PlayerStateRegistry &other) noexcept
     other._initialized = initialized;
 }
 
+void PlayerStateRegistry::rebind_generals(GeneralRoster *generals) noexcept
+{
+    _generals = generals;
+}
+
 cnc::Error PlayerStateRegistry::shutdown() noexcept
 {
     if (!_initialized) return FT_ERR_SUCCESS;

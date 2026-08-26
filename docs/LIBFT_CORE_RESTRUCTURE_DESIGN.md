@@ -1862,6 +1862,9 @@ while loading into a temporary player registry: that API writes the shared live
 `GeneralRoster` its own validated snapshot and `swap`, stage that roster beside
 the player-state registry, and commit both together; only then should commander
 and selected-general fields be added to the wire record.
+The first part of that seam is now present: `GeneralRoster` has a sorted,
+validated snapshot contract and a fixed-width codec. It remains outside the
+session envelope until the paired staging and commit path is wired.
 Frame ingestion is transactional: the session validates every referenced live
 entity and builds a projected command queue before swapping it in. If any
 record is rejected, or queue allocation fails, no earlier record from that

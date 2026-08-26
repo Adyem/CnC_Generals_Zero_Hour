@@ -37,6 +37,7 @@ public:
     cnc::Error export_snapshot(Snapshot *snapshot_out) const noexcept;
     cnc::Error import_snapshot(const Snapshot &snapshot) noexcept;
     void swap(PlayerStateRegistry &other) noexcept;
+    void rebind_generals(GeneralRoster *generals) noexcept;
     cnc::Error shutdown() noexcept;
 
 private:
