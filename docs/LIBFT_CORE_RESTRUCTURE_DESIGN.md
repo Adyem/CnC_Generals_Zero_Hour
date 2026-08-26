@@ -1716,6 +1716,11 @@ invalid IDs, and applies the same one-million-command bound as snapshots.
 Offline submission remains local and multiplayer remains disabled; a future
 Libft Networking adapter can carry these bytes without exposing `World` or
 `GameSession` internals.
+`GameSession::submit_command_frame` now provides that ingress seam: it decodes
+the frame, requires its tick to match the current authoritative tick, and feeds
+validated records through the same local command queue used by offline input.
+It intentionally does not open a socket or bypass command validation; the
+offline network backend continues returning `FT_ERR_INVALID_OPERATION`.
 
 The active-source exclusion audit is implemented in
 `cmake/ValidateMigrationSources.cmake`, exposed as the

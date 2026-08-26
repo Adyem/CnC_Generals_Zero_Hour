@@ -349,6 +349,17 @@ int main()
         restored_value != 5 || session.world().tick().value != 1U ||
         !session.replay_history().empty())
         return 39;
+    cnc::WorldCommandFrame session_frame;
+    session_frame.tick = session.world().tick();
+    session_frame.commands.push_back(cnc::WorldCommand{session_entity, 3, 0U});
+    std::vector<uint8_t> session_command_bytes;
+    if (cnc::WorldCommandCodec::encode(session_frame, &session_command_bytes) != FT_ERR_SUCCESS ||
+        session.submit_command_frame(
+            session_command_bytes.data(), static_cast<cnc::Size>(session_command_bytes.size())) !=
+            FT_ERR_SUCCESS || session.advance_one_tick() != FT_ERR_SUCCESS ||
+        session.world().read_value(session_entity, &restored_value) != FT_ERR_SUCCESS ||
+        restored_value != 8)
+        return 42;
     if (session.shutdown() != FT_ERR_SUCCESS || session.is_initialized() == FT_TRUE)
         return 29;
 

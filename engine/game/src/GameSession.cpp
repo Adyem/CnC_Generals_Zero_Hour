@@ -105,6 +105,23 @@ Error GameSession::submit_world_delta(EntityId entity, int64_t delta) noexcept
     return FT_ERR_SUCCESS;
 }
 
+Error GameSession::submit_command_frame(const uint8_t *bytes, Size byte_count) noexcept
+{
+    if (_initialized != FT_TRUE ||
+        (_phase != Phase::data_ready && _phase != Phase::running))
+        return FT_ERR_INVALID_STATE;
+    WorldCommandFrame frame;
+    const Error decode_error = WorldCommandCodec::decode(bytes, byte_count, &frame);
+    if (decode_error != FT_ERR_SUCCESS) return decode_error;
+    if (frame.tick.value != _world.tick().value) return FT_ERR_INVALID_OPERATION;
+    for (const WorldCommand &command : frame.commands)
+    {
+        const Error error = submit_world_delta(command.entity, command.delta);
+        if (error != FT_ERR_SUCCESS) return error;
+    }
+    return FT_ERR_SUCCESS;
+}
+
 Error GameSession::advance_one_tick() noexcept
 {
     if (_initialized != FT_TRUE ||

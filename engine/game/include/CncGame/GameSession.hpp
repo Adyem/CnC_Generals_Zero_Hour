@@ -44,6 +44,7 @@ public:
     // Loads game-owned definitions; the Libft core remains data-agnostic.
     Error load_data_manifest(const char *path) noexcept;
     Error submit_world_delta(EntityId entity, int64_t delta) noexcept;
+    Error submit_command_frame(const uint8_t *bytes, Size byte_count) noexcept;
     Error advance_one_tick() noexcept;
     Error save_snapshot(std::vector<uint8_t> *bytes_out) const noexcept;
     Error load_snapshot(const uint8_t *bytes, Size byte_count) noexcept;
