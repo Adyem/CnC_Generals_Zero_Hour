@@ -1740,6 +1740,25 @@ for persistence. Import validates sorted identities, valid team memberships,
 symmetric relationship records, and unique entity owners before swapping any
 state, so restoring player relationships has the same failure-atomic contract
 as world snapshots.
+The required implementation shape is deliberately two-phase:
+
+```text
+import_registry(snapshot):
+    validate schema, sorted IDs, memberships, owners, and both relationship directions
+    projected_players       = copy(snapshot.players)
+    projected_teams         = copy(snapshot.teams)
+    projected_memberships   = copy(snapshot.team_memberships)
+    projected_relationships = copy(snapshot.relationships)
+    projected_ownership     = copy(snapshot.ownership)
+    swap all projected vectors into the registry together
+```
+
+Validation and allocation happen before the first swap. A malformed snapshot
+or `FT_ERR_NO_MEMORY` therefore leaves every authoritative vector unchanged;
+callers must never update one relationship direction or one owner in place and
+then report an error. Exports sort copies into the same canonical order so two
+equivalent registries produce identical persistence bytes without reordering
+the live simulation state.
 Frame ingestion is transactional: the session validates every referenced live
 entity and builds a projected command queue before swapping it in. If any
 record is rejected, or queue allocation fails, no earlier record from that
