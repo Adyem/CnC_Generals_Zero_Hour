@@ -511,6 +511,12 @@ relationships, while this table owns faction selection, science progression,
 general assignment, and special-power permissions. Returned `PlayerState*`
 handles are valid only until the next registry create/remove (the vector may
 reallocate), so callers should reacquire handles at phase boundaries.
+`GameSession::create_player` and `remove_player` are the composition-root
+entry points: they update the generic `PlayerRegistry` and the game-owned
+state table as one operation, rolling back the identity if game-state creation
+fails. Migration code may still use the lower-level registries explicitly, but
+new gameplay/UI paths should use these session methods to avoid orphaned
+faction or progression state.
 
 The first Phase 7 spatial seam is `cnc::SpatialIndex`. It stores fixed-width
 `int64_t` world coordinates and a numeric collision/query layer, supports

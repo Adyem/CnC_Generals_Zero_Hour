@@ -18,6 +18,7 @@
 #include "ZeroHourData/SpecialPowerLedger.hpp"
 #include "ZeroHourData/GeneralRoster.hpp"
 #include "ZeroHourData/PlayerState.hpp"
+#include "ZeroHourData/PlayerStateRegistry.hpp"
 #include "CncRender/Renderer.hpp"
 #include "CncNetwork/NetworkSession.hpp"
 
@@ -66,6 +67,8 @@ public:
     SimulationWorld &world() noexcept;
     SystemRegistry &systems() noexcept;
     PlayerRegistry &players() noexcept;
+    Error create_player(PlayerId player) noexcept;
+    Error remove_player(PlayerId player) noexcept;
     SpatialIndex &spatial() noexcept;
     CombatRegistry &combat() noexcept;
     VisibilityRegistry &visibility() noexcept;
@@ -74,6 +77,7 @@ public:
     zero_hour::SpecialPowerLedger &special_power_ledger() noexcept;
     zero_hour::GeneralRoster &general_roster() noexcept;
     zero_hour::PlayerState &player_state() noexcept;
+    zero_hour::PlayerStateRegistry &player_states() noexcept;
     const std::vector<ReplayRecord> &replay_history() const noexcept;
     Renderer &renderer() noexcept;
     NetworkSession &network() noexcept;
@@ -91,6 +95,7 @@ private:
     zero_hour::SpecialPowerLedger _special_power_ledger;
     zero_hour::GeneralRoster _general_roster;
     zero_hour::PlayerState _player_state;
+    zero_hour::PlayerStateRegistry _player_states;
     HeadlessRenderer _renderer;
     OfflineNetworkSession _network;
     std::vector<WorldDeltaCommand> _commands;

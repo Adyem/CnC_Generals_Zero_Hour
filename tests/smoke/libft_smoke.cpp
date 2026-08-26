@@ -469,8 +469,10 @@ int main()
         session.install_default_data() != FT_ERR_SUCCESS ||
         session.catalog().definition_count() != static_cast<cnc::Size>(4U) ||
         session.science_ledger().purchase_count() != static_cast<cnc::Size>(0U) ||
-        session.players().create_player(cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
-        session.players().player_count() != static_cast<cnc::Size>(1U))
+        session.create_player(cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
+        session.players().player_count() != static_cast<cnc::Size>(1U) ||
+        session.player_states().size() != static_cast<cnc::Size>(1U) ||
+        session.player_states().find(cnc::PlayerId{1U}) == nullptr)
         return 22;
     if (session.has_game_data() != FT_TRUE)
         return 29;

@@ -107,6 +107,13 @@ Error GameSession::install_default_data() noexcept
     error = _player_state.initialize(&_catalog, &_science_ledger,
                                      &_special_power_ledger, &_general_roster);
     if (error != FT_ERR_SUCCESS) return error;
+    error = _player_states.initialize(&_catalog, &_science_ledger,
+                                      &_special_power_ledger, &_general_roster);
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)_player_state.shutdown();
+        return error;
+    }
     error = validate_game_data();
     if (error == FT_ERR_SUCCESS) _phase = Phase::data_ready;
     return error;
@@ -127,6 +134,13 @@ Error GameSession::load_data_manifest(const char *path) noexcept
     error = _player_state.initialize(&_catalog, &_science_ledger,
                                      &_special_power_ledger, &_general_roster);
     if (error != FT_ERR_SUCCESS) return error;
+    error = _player_states.initialize(&_catalog, &_science_ledger,
+                                      &_special_power_ledger, &_general_roster);
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)_player_state.shutdown();
+        return error;
+    }
     error = validate_game_data();
     if (error == FT_ERR_SUCCESS) _phase = Phase::data_ready;
     return error;
@@ -366,6 +380,7 @@ Error GameSession::shutdown() noexcept
     (void)_network.shutdown();
     (void)_science_ledger.shutdown();
     (void)_player_state.shutdown();
+    (void)_player_states.shutdown();
     (void)_special_power_ledger.shutdown();
     (void)_general_roster.shutdown();
     (void)_players.shutdown();
@@ -415,6 +430,32 @@ Runtime &GameSession::runtime() noexcept { return _runtime; }
 SimulationWorld &GameSession::world() noexcept { return _world; }
 SystemRegistry &GameSession::systems() noexcept { return _systems; }
 PlayerRegistry &GameSession::players() noexcept { return _players; }
+Error GameSession::create_player(PlayerId player) noexcept
+{
+    if (_initialized != FT_TRUE ||
+        (_phase != Phase::data_ready && _phase != Phase::running))
+        return FT_ERR_INVALID_STATE;
+    Error error = _players.create_player(player);
+    if (error != FT_ERR_SUCCESS) return error;
+    error = _player_states.create(player);
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)_players.remove_player(player);
+        return error;
+    }
+    return FT_ERR_SUCCESS;
+}
+Error GameSession::remove_player(PlayerId player) noexcept
+{
+    if (_initialized != FT_TRUE ||
+        (_phase != Phase::data_ready && _phase != Phase::running))
+        return FT_ERR_INVALID_STATE;
+    if (_players.contains(player) != FT_TRUE) return FT_ERR_NOT_FOUND;
+    Error error = _player_states.remove(player);
+    if (error != FT_ERR_SUCCESS) return error;
+    error = _players.remove_player(player);
+    return error;
+}
 SpatialIndex &GameSession::spatial() noexcept { return _spatial; }
 CombatRegistry &GameSession::combat() noexcept { return _combat; }
 VisibilityRegistry &GameSession::visibility() noexcept { return _visibility; }
@@ -426,6 +467,7 @@ zero_hour::SpecialPowerLedger &GameSession::special_power_ledger() noexcept
 }
 zero_hour::GeneralRoster &GameSession::general_roster() noexcept { return _general_roster; }
 zero_hour::PlayerState &GameSession::player_state() noexcept { return _player_state; }
+zero_hour::PlayerStateRegistry &GameSession::player_states() noexcept { return _player_states; }
 void GameSession::clear_replay_history() noexcept { _replay_history.clear(); }
 Error GameSession::verify_replay(const std::vector<ReplayRecord> &expected) const noexcept
 {
