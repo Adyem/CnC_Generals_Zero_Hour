@@ -17,16 +17,13 @@ int main()
         session.advance_one_tick() != FT_ERR_SUCCESS)
         return 2;
 
-    cnc::HeadlessRenderer renderer;
-    if (renderer.initialize() != FT_ERR_SUCCESS ||
-        renderer.begin_frame() != FT_ERR_SUCCESS ||
-        renderer.submit(cnc::RenderCommand{1U, 0, 0, 1U, 1U}) != FT_ERR_SUCCESS ||
-        renderer.end_frame() != FT_ERR_SUCCESS)
+    if (session.renderer().begin_frame() != FT_ERR_SUCCESS ||
+        session.renderer().submit(cnc::RenderCommand{1U, 0, 0, 1U, 1U}) != FT_ERR_SUCCESS ||
+        session.renderer().end_frame() != FT_ERR_SUCCESS)
         return 3;
 
     std::cout << "zero_hour_headless tick=" << session.world().tick().value
               << " hash=" << session.world().canonical_state_hash()
-              << " frame=" << renderer.frame_count() << "\n";
-    (void)renderer.shutdown();
+              << " frame=" << session.renderer().frame_count() << "\n";
     return session.shutdown() == FT_ERR_SUCCESS ? 0 : 4;
 }

@@ -1489,6 +1489,12 @@ production, combat, renderer, and networking modules one explicit lifecycle
 without embedding Generals rules in Libft. `engine/game` is exposed as the
 `cnc::game_session` CMake target and is covered by the smoke executable.
 
+The composition root now owns the renderer and network capabilities as well:
+startup initializes the offline network capability and renderer after world/data
+initialization, and shutdown tears them down before the catalog/world/runtime.
+Callers therefore receive one lifecycle-managed backend graph; the offline app
+uses `session.renderer()` and cannot accidentally bypass the configured session.
+
 The session also owns the first input boundary: `submit_world_delta` accepts a
 validated entity command, assigns a monotonically increasing sequence number,
 and stores it until the next tick. Commands are stably sorted and dispatched to

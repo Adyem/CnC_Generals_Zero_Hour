@@ -23,6 +23,23 @@ Error GameSession::initialize() noexcept
         (void)_runtime.shutdown();
         return error;
     }
+    error = _network.initialize();
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)_catalog.shutdown();
+        (void)_world.shutdown();
+        (void)_runtime.shutdown();
+        return error;
+    }
+    error = _renderer.initialize();
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)_network.shutdown();
+        (void)_catalog.shutdown();
+        (void)_world.shutdown();
+        (void)_runtime.shutdown();
+        return error;
+    }
     _initialized = FT_TRUE;
     return FT_ERR_SUCCESS;
 }
@@ -76,6 +93,8 @@ Error GameSession::shutdown() noexcept
     (void)_systems.clear();
     _commands.clear();
     _next_command_sequence = 0U;
+    (void)_renderer.shutdown();
+    (void)_network.shutdown();
     (void)_catalog.shutdown();
     (void)_world.shutdown();
     const Error error = _runtime.shutdown();
@@ -88,5 +107,7 @@ Runtime &GameSession::runtime() noexcept { return _runtime; }
 DeterministicWorld &GameSession::world() noexcept { return _world; }
 SystemRegistry &GameSession::systems() noexcept { return _systems; }
 const zero_hour::Catalog &GameSession::catalog() const noexcept { return _catalog; }
+HeadlessRenderer &GameSession::renderer() noexcept { return _renderer; }
+OfflineNetworkSession &GameSession::network() noexcept { return _network; }
 
 }

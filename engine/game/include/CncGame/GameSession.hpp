@@ -7,6 +7,8 @@
 #include "CncSimulation/SystemRegistry.hpp"
 #include "CncSimulation/World.hpp"
 #include "ZeroHourData/Catalog.hpp"
+#include "CncRender/Renderer.hpp"
+#include "CncNetwork/NetworkSession.hpp"
 
 namespace cnc
 {
@@ -36,12 +38,16 @@ public:
     DeterministicWorld &world() noexcept;
     SystemRegistry &systems() noexcept;
     const zero_hour::Catalog &catalog() const noexcept;
+    HeadlessRenderer &renderer() noexcept;
+    OfflineNetworkSession &network() noexcept;
 
 private:
     Runtime _runtime;
     DeterministicWorld _world;
     SystemRegistry _systems;
     zero_hour::Catalog _catalog;
+    HeadlessRenderer _renderer;
+    OfflineNetworkSession _network;
     std::vector<WorldDeltaCommand> _commands;
     uint64_t _next_command_sequence = 0U;
     Bool _initialized = FT_FALSE;
