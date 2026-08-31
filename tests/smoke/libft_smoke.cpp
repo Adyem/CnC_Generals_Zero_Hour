@@ -466,6 +466,19 @@ int main()
         text_catalog.shutdown() != FT_ERR_SUCCESS)
         return 21;
 
+    zero_hour::Catalog production_catalog;
+    if (production_catalog.initialize() != FT_ERR_SUCCESS ||
+        production_catalog.load_manifest_text(
+            "SCIENCE,1,1,0\nFACTION,1,1\nGENERAL,1,1,1\nPOWER,1,60,1\n"
+            "UNIT,1,1,30\nFACTORY,1,1,3\n") != FT_ERR_SUCCESS ||
+        production_catalog.find_unit(cnc::DefinitionId{1U}) == nullptr ||
+        production_catalog.find_factory(cnc::DefinitionId{1U}) == nullptr ||
+        production_catalog.find_unit(cnc::DefinitionId{1U})->build_ticks != 30U ||
+        production_catalog.find_factory(cnc::DefinitionId{1U})->queue_capacity != 3U ||
+        production_catalog.definition_count() != static_cast<cnc::Size>(6U) ||
+        production_catalog.shutdown() != FT_ERR_SUCCESS)
+        return 62;
+
     std::string callback_manifest =
         "SCIENCE,1,1,0\nFACTION,1,1\nGENERAL,1,1,1\nPOWER,1,60,1\n";
     zero_hour::Catalog callback_catalog;
