@@ -48,6 +48,23 @@ cnc::Error manifest_reader(const char *, std::string &contents, void *context) n
     return FT_ERR_SUCCESS;
 }
 
+int production_queue_snapshot_test() noexcept
+{
+    cnc::ProductionQueue queue;
+    if (queue.initialize() != FT_ERR_SUCCESS ||
+        queue.enqueue(cnc::EntityId{1U}, cnc::DefinitionId{1U},
+                      cnc::SimulationTick{0U}, cnc::SimulationTick{4U}) != FT_ERR_SUCCESS)
+        return 1;
+    const uint64_t first_hash = queue.canonical_state_hash();
+    if (first_hash == 0U ||
+        queue.enqueue(cnc::EntityId{2U}, cnc::DefinitionId{1U},
+                      cnc::SimulationTick{0U}, cnc::SimulationTick{4U}) != FT_ERR_SUCCESS ||
+        queue.canonical_state_hash() == first_hash ||
+        queue.shutdown() != FT_ERR_SUCCESS)
+        return 2;
+    return 0;
+}
+
 uint64_t fixed_clock() noexcept { return 123456U; }
 
 cnc::Error fail_once(void *user_data, cnc::SystemPhase,
@@ -65,6 +82,8 @@ cnc::Error fail_once(void *user_data, cnc::SystemPhase,
 
 int main()
 {
+    if (production_queue_snapshot_test() != 0)
+        return 61;
     const char *const text = "Command & Conquer";
     if (ft_strlen_size_t(text) != static_cast<ft_size_t>(17U))
         return 1;
