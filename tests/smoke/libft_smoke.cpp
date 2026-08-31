@@ -653,7 +653,14 @@ int main()
         session.combat().queue_damage(session_entity, 25) != FT_ERR_SUCCESS ||
         session.combat().apply() != FT_ERR_SUCCESS ||
         session.submit_world_delta(session_entity, 10) != FT_ERR_SUCCESS ||
-        session.advance_one_tick() != FT_ERR_SUCCESS ||
+        session.advance_one_tick() != FT_ERR_SUCCESS)
+        return 39;
+    const uint64_t pre_invalid_load_hash = session.canonical_state_hash();
+    std::vector<uint8_t> invalid_session = saved_session;
+    invalid_session[0] ^= 0xFFU;
+    if (session.load_snapshot(invalid_session.data(),
+                              static_cast<cnc::Size>(invalid_session.size())) != FT_ERR_CONFIGURATION ||
+        session.canonical_state_hash() != pre_invalid_load_hash ||
         session.load_snapshot(saved_session.data(),
                               static_cast<cnc::Size>(saved_session.size())) != FT_ERR_SUCCESS ||
         session.world().read_value(session_entity, &restored_value) != FT_ERR_SUCCESS ||
