@@ -555,6 +555,9 @@ The queue now also exposes a bounded snapshot and codec for producer, opaque
 definition, ready tick, and monotonic sequence fields. It is ready for session
 composition; wiring factory ownership and completion effects into the game
 session remains the next gameplay step.
+The game catalog now has optional `UNIT` and `FACTORY` records. Their faction
+and build/queue fields stay game-owned; the generic production queue continues
+to carry only opaque definition IDs.
 The snapshot invariant is that every persisted sequence is strictly less than
 `next_sequence`; import enforces this before swapping queue storage. The codec
 encoder is scheduled for a readability rewrite so it enforces the same rule at

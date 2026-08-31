@@ -38,6 +38,8 @@ void destroy_science(void *raw) noexcept { delete static_cast<ScienceDefinition 
 void destroy_faction(void *raw) noexcept { delete static_cast<FactionDefinition *>(raw); }
 void destroy_general(void *raw) noexcept { delete static_cast<GeneralDefinition *>(raw); }
 void destroy_special_power(void *raw) noexcept { delete static_cast<SpecialPowerDefinition *>(raw); }
+void destroy_unit(void *raw) noexcept { delete static_cast<UnitDefinition *>(raw); }
+void destroy_factory(void *raw) noexcept { delete static_cast<FactoryDefinition *>(raw); }
 cnc::Error read_manifest_std(const char *path, std::string &contents, void *) noexcept
 {
     if (path == nullptr) return FT_ERR_INVALID_POINTER;
@@ -54,6 +56,8 @@ cnc::Error read_manifest_std(const char *path, std::string &contents, void *) no
 }
 cnc::Error validate_general(const void *raw, cnc::ValidationReport &report) noexcept;
 cnc::Error validate_special_power(const void *raw, cnc::ValidationReport &report) noexcept;
+cnc::Error validate_unit(const void *raw, cnc::ValidationReport &report) noexcept;
+cnc::Error validate_factory(const void *raw, cnc::ValidationReport &report) noexcept;
 
 cnc::Error register_types(cnc::DefinitionRegistry &registry) noexcept
 {
@@ -61,7 +65,9 @@ cnc::Error register_types(cnc::DefinitionRegistry &registry) noexcept
     const cnc::DefinitionTypeDescriptor faction{Catalog::faction_type, "zero_hour.faction", &validate_faction, &destroy_faction};
     const cnc::DefinitionTypeDescriptor general{Catalog::general_type, "zero_hour.general", &validate_general, &destroy_general};
     const cnc::DefinitionTypeDescriptor power{Catalog::special_power_type, "zero_hour.special_power", &validate_special_power, &destroy_special_power};
-    const cnc::DefinitionTypeDescriptor descriptors[] = {science, faction, general, power};
+    const cnc::DefinitionTypeDescriptor unit{Catalog::unit_type, "zero_hour.unit", &validate_unit, &destroy_unit};
+    const cnc::DefinitionTypeDescriptor factory{Catalog::factory_type, "zero_hour.factory", &validate_factory, &destroy_factory};
+    const cnc::DefinitionTypeDescriptor descriptors[] = {science, faction, general, power, unit, factory};
     for (const auto &descriptor : descriptors)
     {
         const cnc::Error error = registry.register_type(descriptor);
@@ -95,6 +101,8 @@ cnc::Error validate_special_power(const void *raw, cnc::ValidationReport &report
     if (value.id.value == 0U || value.recharge_ticks == 0U) ++report.issue_count;
     return FT_ERR_SUCCESS;
 }
+cnc::Error validate_unit(const void *raw, cnc::ValidationReport &report) noexcept { if (raw == nullptr) return FT_ERR_INVALID_POINTER; const auto &v = *static_cast<const UnitDefinition *>(raw); if (v.id.value == 0U || v.faction.value == 0U || v.build_ticks == 0U) ++report.issue_count; return FT_ERR_SUCCESS; }
+cnc::Error validate_factory(const void *raw, cnc::ValidationReport &report) noexcept { if (raw == nullptr) return FT_ERR_INVALID_POINTER; const auto &v = *static_cast<const FactoryDefinition *>(raw); if (v.id.value == 0U || v.faction.value == 0U || v.queue_capacity == 0U) ++report.issue_count; return FT_ERR_SUCCESS; }
 }
 
 Catalog::~Catalog() noexcept { (void)shutdown(); }
@@ -169,6 +177,10 @@ cnc::Error Catalog::load_manifest_text(const char *text) noexcept
             record = new (std::nothrow) GeneralDefinition{id, cnc::DefinitionId{values[1]}, cnc::DefinitionId{values[2]}}, type = general_type;
         else if (fields[0] == "POWER" && fields.size() == 4U && values[1] <= std::numeric_limits<uint32_t>::max() && values[2] <= std::numeric_limits<uint32_t>::max())
             record = new (std::nothrow) SpecialPowerDefinition{id, static_cast<uint32_t>(values[1]), static_cast<uint32_t>(values[2])}, type = special_power_type;
+        else if (fields[0] == "UNIT" && fields.size() == 4U && values[2] <= std::numeric_limits<uint32_t>::max())
+            record = new (std::nothrow) UnitDefinition{id, cnc::DefinitionId{values[1]}, static_cast<uint32_t>(values[2])}, type = unit_type;
+        else if (fields[0] == "FACTORY" && fields.size() == 4U && values[2] <= std::numeric_limits<uint32_t>::max())
+            record = new (std::nothrow) FactoryDefinition{id, cnc::DefinitionId{values[1]}, static_cast<uint32_t>(values[2])}, type = factory_type;
         else return FT_ERR_INVALID_ARGUMENT;
         if (record == nullptr) return FT_ERR_NO_MEMORY;
         const cnc::Error error = _registry.register_definition(type, id, record);
@@ -177,7 +189,9 @@ cnc::Error Catalog::load_manifest_text(const char *text) noexcept
             if (type.value == science_type.value) destroy_science(record);
             else if (type.value == faction_type.value) destroy_faction(record);
             else if (type.value == general_type.value) destroy_general(record);
-            else destroy_special_power(record);
+            else if (type.value == special_power_type.value) destroy_special_power(record);
+            else if (type.value == unit_type.value) destroy_unit(record);
+            else destroy_factory(record);
             return error;
         }
     }
@@ -235,6 +249,10 @@ cnc::Error Catalog::validate(cnc::ValidationReport &report) const noexcept
             (find_faction(general->faction) == nullptr ||
              find_special_power(general->signature_power) == nullptr))
             ++report.issue_count;
+        const auto *unit = find_unit(cnc::DefinitionId{id});
+        if (unit != nullptr && find_faction(unit->faction) == nullptr) ++report.issue_count;
+        const auto *factory = find_factory(cnc::DefinitionId{id});
+        if (factory != nullptr && find_faction(factory->faction) == nullptr) ++report.issue_count;
     }
     return report.issue_count == 0U ? FT_ERR_SUCCESS : FT_ERR_CONFIGURATION;
 }
@@ -266,6 +284,11 @@ const SpecialPowerDefinition *Catalog::find_special_power(cnc::DefinitionId id) 
     if (_registry.find_definition(special_power_type, id, &raw) != FT_ERR_SUCCESS) return nullptr;
     return static_cast<const SpecialPowerDefinition *>(raw);
 }
+
+const UnitDefinition *Catalog::find_unit(cnc::DefinitionId id) const noexcept
+{ const void *raw = nullptr; if (_registry.find_definition(unit_type, id, &raw) != FT_ERR_SUCCESS) return nullptr; return static_cast<const UnitDefinition *>(raw); }
+const FactoryDefinition *Catalog::find_factory(cnc::DefinitionId id) const noexcept
+{ const void *raw = nullptr; if (_registry.find_definition(factory_type, id, &raw) != FT_ERR_SUCCESS) return nullptr; return static_cast<const FactoryDefinition *>(raw); }
 
 cnc::Size Catalog::definition_count() const noexcept { return _registry.definition_count(); }
 }

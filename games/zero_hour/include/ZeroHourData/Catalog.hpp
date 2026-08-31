@@ -36,6 +36,8 @@ struct SpecialPowerDefinition
     uint32_t recharge_ticks = 0U;
     uint32_t energy_cost = 0U;
 };
+struct UnitDefinition { cnc::DefinitionId id; cnc::DefinitionId faction; uint32_t build_ticks = 0U; };
+struct FactoryDefinition { cnc::DefinitionId id; cnc::DefinitionId faction; uint32_t queue_capacity = 1U; };
 
 class Catalog final
 {
@@ -46,6 +48,8 @@ public:
     static constexpr cnc::DefinitionType faction_type{0x5A484641U};
     static constexpr cnc::DefinitionType general_type{0x5A484745U};
     static constexpr cnc::DefinitionType special_power_type{0x5A485350U};
+    static constexpr cnc::DefinitionType unit_type{0x5A48554EU};
+    static constexpr cnc::DefinitionType factory_type{0x5A484354U};
 
     Catalog() noexcept = default;
     ~Catalog() noexcept;
@@ -64,6 +68,8 @@ public:
     const FactionDefinition *find_faction(cnc::DefinitionId id) const noexcept;
     const GeneralDefinition *find_general(cnc::DefinitionId id) const noexcept;
     const SpecialPowerDefinition *find_special_power(cnc::DefinitionId id) const noexcept;
+    const UnitDefinition *find_unit(cnc::DefinitionId id) const noexcept;
+    const FactoryDefinition *find_factory(cnc::DefinitionId id) const noexcept;
     cnc::Size definition_count() const noexcept;
 
 private:
