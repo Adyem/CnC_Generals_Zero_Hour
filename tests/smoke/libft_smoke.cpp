@@ -190,6 +190,10 @@ int main()
                                  cnc::Diplomacy::hostile) != FT_ERR_SUCCESS ||
         players.set_relationship(cnc::PlayerId{1U}, cnc::PlayerId{2U},
                                  cnc::Diplomacy::allied) != FT_ERR_SUCCESS ||
+        players.set_relationship(cnc::PlayerId{0U}, cnc::PlayerId{2U},
+                                 cnc::Diplomacy::hostile) != FT_ERR_INVALID_ARGUMENT ||
+        players.relationship(cnc::PlayerId{1U}, cnc::PlayerId{2U}, &diplomacy) != FT_ERR_SUCCESS ||
+        diplomacy != cnc::Diplomacy::allied ||
         players.relationship(cnc::PlayerId{2U}, cnc::PlayerId{1U}, &diplomacy) != FT_ERR_SUCCESS ||
         diplomacy != cnc::Diplomacy::allied || players.player_count() != static_cast<cnc::Size>(2U) ||
         players.create_team(cnc::TeamId{7U}) != FT_ERR_SUCCESS ||
