@@ -568,6 +568,21 @@ before factory completion effects are wired in.
 `GameSession::collect_ready_production` is the typed handoff for the game layer:
 it collects orders at the authoritative world tick, while Zero Hour decides
 placement, prerequisites, unit creation, and factory-specific effects.
+
+```cpp
+std::vector<cnc::ProductionOrder> completed;
+if (session.collect_ready_production(&completed) != FT_ERR_SUCCESS)
+    return; // no partial factory commit
+for (const cnc::ProductionOrder &order : completed) {
+    const auto *unit = catalog.find_unit(order.definition);
+    if (unit == nullptr || !factory_can_place(order.producer, *unit))
+        continue; // game-owned rejection/refund policy
+    spawn_unit(order.producer, *unit);
+}
+```
+
+The queue never calls `spawn_unit` and never interprets faction, cost, map
+placement, or balance data; those remain explicit Zero Hour responsibilities.
 `cnc::VisibilityRegistry` is the generic fog/shroud seam: it associates a
 player and entity with `hidden`, `explored`, or `visible`, returns visible
 entities in stable ID order, and supports deterministic cleanup when players
