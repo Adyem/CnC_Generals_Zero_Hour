@@ -565,6 +565,9 @@ the transport boundary rather than relying on a caller to have imported first.
 The queue is now owned by `GameSession` for lifecycle and canonical-state
 hashing, so pending production contributes to replay divergence detection even
 before factory completion effects are wired in.
+`GameSession::collect_ready_production` is the typed handoff for the game layer:
+it collects orders at the authoritative world tick, while Zero Hour decides
+placement, prerequisites, unit creation, and factory-specific effects.
 `cnc::VisibilityRegistry` is the generic fog/shroud seam: it associates a
 player and entity with `hidden`, `explored`, or `visible`, returns visible
 entities in stable ID order, and supports deterministic cleanup when players
