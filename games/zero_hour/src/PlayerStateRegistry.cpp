@@ -109,6 +109,10 @@ uint64_t PlayerStateRegistry::canonical_state_hash() const noexcept
         mix(entry->player.value);
         mix(entry->state.faction().value);
         mix(entry->state.commander().value);
+        cnc::DefinitionId general;
+        if (entry->state.commander().is_valid() &&
+            _generals->find(entry->state.commander(), &general) == FT_ERR_SUCCESS)
+            mix(general.value);
         mix(entry->state.science_points());
     }
     return hash;
