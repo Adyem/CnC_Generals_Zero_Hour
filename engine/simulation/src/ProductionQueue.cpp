@@ -97,6 +97,21 @@ Size ProductionQueue::pending_count() const noexcept
 {
     return static_cast<Size>(_orders.size());
 }
+uint64_t ProductionQueue::canonical_state_hash() const noexcept
+{
+    if (_initialized != FT_TRUE) return 0U;
+    uint64_t hash = 1469598103934665603ULL;
+    const auto mix = [&hash](uint64_t value) noexcept { for (uint32_t i=0U;i<8U;++i) { hash ^= (value >> (i*8U)) & 0xFFU; hash *= 1099511628211ULL; } };
+    mix(_next_sequence);
+    try
+    {
+        std::vector<ProductionOrder> ordered = _orders;
+        std::stable_sort(ordered.begin(), ordered.end(), [](const ProductionOrder&a,const ProductionOrder&b) noexcept{return a.sequence<b.sequence;});
+        for (const ProductionOrder &o : ordered) { mix(o.producer.value); mix(o.definition.value); mix(o.ready_at.value); mix(o.sequence); }
+    }
+    catch (...) { return 0U; }
+    return hash;
+}
 
 Error ProductionQueue::export_snapshot(Snapshot *out) const noexcept
 {

@@ -538,7 +538,7 @@ uint64_t GameSession::canonical_state_hash() const noexcept
     mix(_spatial.canonical_state_hash());
     mix(_combat.canonical_state_hash());
     mix(_visibility.canonical_state_hash());
-    mix(static_cast<uint64_t>(_production.pending_count()));
+    mix(_production.canonical_state_hash());
     mix(_player_states.canonical_state_hash());
     return hash;
 }

@@ -30,6 +30,7 @@ public:
                         std::vector<ProductionOrder> *completed_out) noexcept;
     Error discard() noexcept;
     Size pending_count() const noexcept;
+    uint64_t canonical_state_hash() const noexcept;
     Error export_snapshot(Snapshot *snapshot_out) const noexcept;
     Error import_snapshot(const Snapshot &snapshot) noexcept;
     void swap(ProductionQueue &other) noexcept;
