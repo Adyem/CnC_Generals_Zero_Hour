@@ -646,6 +646,7 @@ int main()
     cnc::SpatialPosition restored_position;
     cnc::HealthState restored_health;
     cnc::VisibilityState restored_visibility;
+    std::vector<cnc::ProductionOrder> ready_production;
     if (session.player_states().find(cnc::PlayerId{1U}) == nullptr ||
         session.player_states().find(cnc::PlayerId{1U})->set_faction(cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
         session.player_states().find(cnc::PlayerId{1U})->set_science_points(7U) != FT_ERR_SUCCESS ||
@@ -691,6 +692,8 @@ int main()
         session.player_states().find(cnc::PlayerId{1U})->commander().value != session_entity.value ||
         !session.science_ledger().is_purchased(cnc::DefinitionId{1U}) ||
         session.special_power_ledger().is_ready(cnc::DefinitionId{1U}, session.world().tick()) ||
+        session.collect_ready_production(&ready_production) != FT_ERR_SUCCESS ||
+        !ready_production.empty() ||
         session.production().pending_count() != static_cast<cnc::Size>(1U) ||
         session.world().tick().value != 1U ||
         !session.replay_history().empty())
