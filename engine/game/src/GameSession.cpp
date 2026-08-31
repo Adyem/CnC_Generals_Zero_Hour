@@ -494,6 +494,14 @@ Error GameSession::load_snapshot(const uint8_t *bytes, Size byte_count) noexcept
     return FT_ERR_SUCCESS;
 }
 
+Error GameSession::collect_ready_production(std::vector<ProductionOrder> *completed_out) noexcept
+{
+    if (_initialized != FT_TRUE ||
+        (_phase != Phase::data_ready && _phase != Phase::running))
+        return FT_ERR_INVALID_STATE;
+    return _production.collect_ready(_world.tick(), completed_out);
+}
+
 Error GameSession::shutdown() noexcept
 {
     if (_initialized != FT_TRUE) return FT_ERR_SUCCESS;
