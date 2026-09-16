@@ -572,6 +572,14 @@ Error GameSession::bind_factory(EntityId entity, DefinitionId factory) noexcept
     return _factories.bind(entity, factory);
 }
 
+Error GameSession::unbind_factory(EntityId entity) noexcept
+{
+    if (_initialized != FT_TRUE ||
+        (_phase != Phase::data_ready && _phase != Phase::running))
+        return FT_ERR_INVALID_STATE;
+    return _factories.unbind(entity);
+}
+
 Error GameSession::shutdown() noexcept
 {
     if (_initialized != FT_TRUE) return FT_ERR_SUCCESS;

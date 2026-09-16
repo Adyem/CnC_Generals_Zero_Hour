@@ -663,6 +663,7 @@ int main()
         player.activate_power(cnc::DefinitionId{1U}, cnc::SimulationTick{0U},
                               &player_power_ready) != FT_ERR_SUCCESS ||
         player_power_ready.value != 60U ||
+        manifest_session.unbind_factory(second_factory_entity) != FT_ERR_SUCCESS ||
         manifest_session.shutdown() != FT_ERR_SUCCESS)
         return 30;
     uint32_t session_points = 0U;
