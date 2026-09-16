@@ -77,6 +77,7 @@ public:
     PlayerRegistry &players() noexcept;
     Error create_player(PlayerId player) noexcept;
     Error remove_player(PlayerId player) noexcept;
+    Error destroy_entity(EntityId entity) noexcept;
     SpatialIndex &spatial() noexcept;
     CombatRegistry &combat() noexcept;
     VisibilityRegistry &visibility() noexcept;

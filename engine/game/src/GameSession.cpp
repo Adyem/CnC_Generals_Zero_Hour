@@ -672,6 +672,19 @@ Error GameSession::remove_player(PlayerId player) noexcept
     error = _players.remove_player(player);
     return error;
 }
+Error GameSession::destroy_entity(EntityId entity) noexcept
+{
+    if (_initialized != FT_TRUE ||
+        (_phase != Phase::data_ready && _phase != Phase::running))
+        return FT_ERR_INVALID_STATE;
+    const Error error = _world.destroy_entity(entity);
+    if (error != FT_ERR_SUCCESS) return error;
+    (void)_factories.unbind(entity);
+    (void)_spatial.remove(entity);
+    (void)_combat.remove(entity);
+    (void)_visibility.remove_entity(entity);
+    return FT_ERR_SUCCESS;
+}
 SpatialIndex &GameSession::spatial() noexcept { return _spatial; }
 CombatRegistry &GameSession::combat() noexcept { return _combat; }
 VisibilityRegistry &GameSession::visibility() noexcept { return _visibility; }
