@@ -565,9 +565,13 @@ the generic queue is touched. Bindings are sorted by stable entity ID and are
 installed through a projected swap; capacity is evaluated per producer using
 the queue's stable producer count, so orders at one factory do not consume
 another factory's slots. Factory bindings are intentionally not part of
-Libft's generic production records. `GameSession`
-now owns the registry lifecycle, exposes explicit factory binding, includes its
-canonical hash, and exports/imports the schema-9 factory section transactionally.
+Libft's generic production records. `GameSession` now owns the factory
+registry lifecycle, exposes explicit factory binding, includes its canonical
+hash, and exports/imports the schema-9 factory section transactionally.
+`zero_hour::UnitRegistry` provides the matching entity-to-unit binding for
+spawned units, with catalog validation, stable ordering, snapshot import/export,
+and canonical hashing. Both registries remain game-owned; Libft receives only
+opaque IDs and generic entity handles.
 The player-aware overload additionally checks generic ownership before queueing,
 so command ingress cannot produce units through another player's factory.
 Its entity-destruction seam also removes spatial, combat, visibility, and

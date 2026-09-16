@@ -24,6 +24,7 @@
 #include "ZeroHourData/Catalog.hpp"
 #include "ZeroHourData/FactoryRegistry.hpp"
 #include "ZeroHourData/FactoryRegistryCodec.hpp"
+#include "ZeroHourData/UnitRegistry.hpp"
 #include "ZeroHourData/PlayerState.hpp"
 #include "ZeroHourData/PlayerStateRegistry.hpp"
 #include "ZeroHourData/PlayerStateRegistryCodec.hpp"
@@ -492,9 +493,14 @@ int main()
         production_catalog.find_factory(cnc::DefinitionId{1U}) == nullptr ||
         production_catalog.find_unit(cnc::DefinitionId{1U})->build_ticks != 30U ||
         production_catalog.find_factory(cnc::DefinitionId{1U})->queue_capacity != 3U ||
-        production_catalog.definition_count() != static_cast<cnc::Size>(7U) ||
-        production_catalog.shutdown() != FT_ERR_SUCCESS)
+        production_catalog.definition_count() != static_cast<cnc::Size>(7U))
         return 62;
+    zero_hour::UnitRegistry units;
+    if (units.initialize(&production_catalog) != FT_ERR_SUCCESS ||
+        units.bind(cnc::EntityId{20U}, cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
+        units.find(cnc::EntityId{20U}) == nullptr || units.size() != static_cast<cnc::Size>(1U) ||
+        units.shutdown() != FT_ERR_SUCCESS || production_catalog.shutdown() != FT_ERR_SUCCESS)
+        return 71;
 
     zero_hour::Catalog factory_catalog;
     zero_hour::FactoryRegistry factories;
