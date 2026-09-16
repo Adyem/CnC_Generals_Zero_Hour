@@ -16,6 +16,7 @@ public:
     struct Snapshot { uint32_t schema_version = 1U; std::vector<SnapshotEntry> bindings; };
     cnc::Error initialize(const Catalog *catalog) noexcept;
     cnc::Error assign(cnc::EntityId entity, cnc::DefinitionId general) noexcept;
+    cnc::Error unassign(cnc::EntityId entity) noexcept;
     cnc::Error find(cnc::EntityId entity, cnc::DefinitionId *general_out) const noexcept;
     cnc::Size size() const noexcept;
     cnc::Error export_snapshot(Snapshot *snapshot_out) const noexcept;

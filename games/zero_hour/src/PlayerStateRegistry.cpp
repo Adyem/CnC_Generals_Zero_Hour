@@ -70,6 +70,22 @@ PlayerState *PlayerStateRegistry::find(cnc::PlayerId player) noexcept
     return nullptr;
 }
 
+cnc::Error PlayerStateRegistry::clear_commander(cnc::EntityId entity) noexcept
+{
+    if (!_initialized) return FT_ERR_INVALID_STATE;
+    if (!entity.is_valid()) return FT_ERR_INVALID_ARGUMENT;
+    for (Entry &entry : _entries)
+    {
+        if (entry.state.commander().value == entity.value)
+        {
+            const cnc::Error error = entry.state.clear_commander(entity);
+            if (error == FT_ERR_SUCCESS) return error;
+            if (error != FT_ERR_NOT_FOUND) return error;
+        }
+    }
+    return FT_ERR_NOT_FOUND;
+}
+
 const PlayerState *PlayerStateRegistry::find(cnc::PlayerId player) const noexcept
 {
     for (const Entry &entry : _entries)

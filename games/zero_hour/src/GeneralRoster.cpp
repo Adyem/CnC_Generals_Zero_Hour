@@ -52,6 +52,21 @@ cnc::Error GeneralRoster::find(cnc::EntityId entity,
     return FT_ERR_NOT_FOUND;
 }
 
+cnc::Error GeneralRoster::unassign(cnc::EntityId entity) noexcept
+{
+    if (!_initialized) return FT_ERR_INVALID_STATE;
+    if (!entity.is_valid()) return FT_ERR_INVALID_ARGUMENT;
+    for (auto iterator = _bindings.begin(); iterator != _bindings.end(); ++iterator)
+    {
+        if (iterator->entity.value == entity.value)
+        {
+            _bindings.erase(iterator);
+            return FT_ERR_SUCCESS;
+        }
+    }
+    return FT_ERR_NOT_FOUND;
+}
+
 cnc::Size GeneralRoster::size() const noexcept
 {
     return static_cast<cnc::Size>(_bindings.size());

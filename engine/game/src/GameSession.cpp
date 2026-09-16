@@ -717,6 +717,8 @@ Error GameSession::destroy_entity(EntityId entity) noexcept
     if (error != FT_ERR_SUCCESS) return error;
     (void)_players.clear_owner(entity);
     (void)_production.cancel_producer(entity);
+    (void)_player_state.clear_commander(entity);
+    (void)_player_states.clear_commander(entity);
     (void)_factories.unbind(entity);
     (void)_spatial.remove(entity);
     (void)_combat.remove(entity);

@@ -60,6 +60,17 @@ cnc::Error PlayerState::assign_general(cnc::EntityId entity, cnc::DefinitionId g
     return error;
 }
 
+cnc::Error PlayerState::clear_commander(cnc::EntityId entity) noexcept
+{
+    if (!_initialized) return FT_ERR_INVALID_STATE;
+    if (!entity.is_valid()) return FT_ERR_INVALID_ARGUMENT;
+    if (_commander.value != entity.value) return FT_ERR_NOT_FOUND;
+    const cnc::Error error = _generals->unassign(entity);
+    if (error != FT_ERR_SUCCESS && error != FT_ERR_NOT_FOUND) return error;
+    _commander = cnc::EntityId{};
+    return FT_ERR_SUCCESS;
+}
+
 cnc::Error PlayerState::activate_power(cnc::DefinitionId power, cnc::SimulationTick now,
                                        cnc::SimulationTick *ready_at) noexcept
 {

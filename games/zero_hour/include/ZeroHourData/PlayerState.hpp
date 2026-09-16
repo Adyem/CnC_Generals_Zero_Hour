@@ -20,6 +20,7 @@ public:
     cnc::Error set_science_points(uint32_t points) noexcept;
     cnc::Error purchase_science(cnc::DefinitionId science) noexcept;
     cnc::Error assign_general(cnc::EntityId entity, cnc::DefinitionId general) noexcept;
+    cnc::Error clear_commander(cnc::EntityId entity) noexcept;
     cnc::Error activate_power(cnc::DefinitionId power, cnc::SimulationTick now,
                               cnc::SimulationTick *ready_at) noexcept;
     cnc::DefinitionId faction() const noexcept;

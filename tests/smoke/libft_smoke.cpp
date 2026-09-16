@@ -711,6 +711,8 @@ int main()
         manifest_session.factories().find(second_factory_entity) != nullptr ||
         manifest_session.players().owner(second_factory_entity, &destroyed_owner) != FT_ERR_NOT_FOUND ||
         manifest_session.production().pending_count_for(second_factory_entity) != 0U ||
+        manifest_session.destroy_entity(player_entity) != FT_ERR_SUCCESS ||
+        player.commander().is_valid() ||
         manifest_session.shutdown() != FT_ERR_SUCCESS)
         return 30;
     uint32_t session_points = 0U;

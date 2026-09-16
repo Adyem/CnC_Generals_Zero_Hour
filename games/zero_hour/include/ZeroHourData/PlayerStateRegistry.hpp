@@ -34,6 +34,7 @@ public:
     cnc::Error remove(cnc::PlayerId player) noexcept;
     PlayerState *find(cnc::PlayerId player) noexcept;
     const PlayerState *find(cnc::PlayerId player) const noexcept;
+    cnc::Error clear_commander(cnc::EntityId entity) noexcept;
     cnc::Size size() const noexcept;
     uint64_t canonical_state_hash() const noexcept;
     cnc::Error export_snapshot(Snapshot *snapshot_out) const noexcept;
