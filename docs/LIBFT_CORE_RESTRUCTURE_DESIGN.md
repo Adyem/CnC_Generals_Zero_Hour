@@ -565,8 +565,10 @@ the generic queue is touched. Bindings are sorted by stable entity ID and are
 installed through a projected swap, preserving the same failure-atomic rule as
 the simulation registries. Factory bindings are intentionally not part of
 Libft's generic production records; session snapshot integration is the next
-step before factories become authoritative in a running match. The registry
-already exposes versioned in-memory snapshot export/import and a canonical
+step before factories become authoritative in a running match. `GameSession`
+now owns the registry lifecycle, exposes explicit factory binding, includes its
+canonical hash, and exports/imports the schema-9 factory section transactionally.
+The registry already exposes versioned in-memory snapshot export/import and a canonical
 hash, with invalid definitions rejected before the live binding set changes.
 `FactoryRegistryCodec` now provides a bounded fixed-width wire payload for that
 snapshot, enforcing stable entity ordering and rejecting malformed lengths or
