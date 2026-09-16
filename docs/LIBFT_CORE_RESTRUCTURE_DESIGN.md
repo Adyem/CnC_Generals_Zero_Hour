@@ -601,6 +601,9 @@ removes the successfully handled sequence IDs in one validated swap. A failed
 spawn, placement, or allocation can therefore leave the production queue intact
 for deterministic retry; the legacy collect helper remains for callers whose
 completion policy is already infallible.
+`commit_ready_unit_production` adds the game-owned validation pass for a
+completion batch: every sequence must be ready, resolve to a catalog unit, and
+reference a bound factory before the generic queue acknowledges any sequence.
 `GameSession::enqueue_unit_production` is the corresponding ingress helper: it
 looks up a game-owned `UnitDefinition`, derives its checked build duration, and
 passes only the opaque unit ID and tick data to Libft's queue.

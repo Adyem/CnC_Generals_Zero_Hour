@@ -60,6 +60,7 @@ public:
     Error collect_ready_production(std::vector<ProductionOrder> *completed_out) noexcept;
     Error peek_ready_production(std::vector<ProductionOrder> *ready_out) const noexcept;
     Error commit_ready_production(const std::vector<uint64_t> &sequences) noexcept;
+    Error commit_ready_unit_production(const std::vector<uint64_t> &sequences) noexcept;
     Error enqueue_unit_production(EntityId producer, DefinitionId unit) noexcept;
     Error enqueue_unit_production(PlayerId player, EntityId producer,
                                   DefinitionId unit) noexcept;

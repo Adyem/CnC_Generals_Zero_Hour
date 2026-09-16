@@ -547,6 +547,28 @@ Error GameSession::commit_ready_production(const std::vector<uint64_t> &sequence
     return _production.commit_ready(_world.tick(), sequences);
 }
 
+Error GameSession::commit_ready_unit_production(
+    const std::vector<uint64_t> &sequences) noexcept
+{
+    if (_initialized != FT_TRUE ||
+        (_phase != Phase::data_ready && _phase != Phase::running))
+        return FT_ERR_INVALID_STATE;
+    std::vector<ProductionOrder> ready;
+    Error error = _production.peek_ready(_world.tick(), &ready);
+    if (error != FT_ERR_SUCCESS) return error;
+    for (const uint64_t sequence : sequences)
+    {
+        auto order = std::find_if(ready.begin(), ready.end(),
+                                  [sequence](const ProductionOrder &candidate) noexcept
+                                  { return candidate.sequence == sequence; });
+        if (order == ready.end()) return FT_ERR_NOT_FOUND;
+        if (_catalog.find_unit(order->definition) == nullptr ||
+            _factories.find(order->producer) == nullptr)
+            return FT_ERR_NOT_FOUND;
+    }
+    return _production.commit_ready(_world.tick(), sequences);
+}
+
 Error GameSession::enqueue_unit_production(EntityId producer, DefinitionId unit) noexcept
 {
     if (_initialized != FT_TRUE ||
