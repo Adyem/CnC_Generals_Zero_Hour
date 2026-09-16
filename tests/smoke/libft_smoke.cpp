@@ -717,10 +717,10 @@ int main()
         manifest_session.commit_ready_unit_production(
             std::vector<uint64_t>{completion_snapshot.orders.back().sequence}) != FT_ERR_SUCCESS ||
         manifest_session.production().pending_count_for(completion_factory_entity) != 0U ||
-        manifest_session.units().bind(completion_factory_entity, cnc::DefinitionId{1U}) !=
+        manifest_session.bind_unit(completion_factory_entity, cnc::DefinitionId{1U}) !=
             FT_ERR_SUCCESS ||
         manifest_session.save_snapshot(&unit_session_snapshot) != FT_ERR_SUCCESS ||
-        manifest_session.units().unbind(completion_factory_entity) != FT_ERR_SUCCESS ||
+        manifest_session.unbind_unit(completion_factory_entity) != FT_ERR_SUCCESS ||
         manifest_session.load_snapshot(unit_session_snapshot.data(),
             static_cast<cnc::Size>(unit_session_snapshot.size())) != FT_ERR_SUCCESS ||
         manifest_session.units().find(completion_factory_entity) == nullptr ||

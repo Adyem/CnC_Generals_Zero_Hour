@@ -642,6 +642,22 @@ Error GameSession::unbind_factory(EntityId entity) noexcept
     return _factories.unbind(entity);
 }
 
+Error GameSession::bind_unit(EntityId entity, DefinitionId unit) noexcept
+{
+    if (_initialized != FT_TRUE ||
+        (_phase != Phase::data_ready && _phase != Phase::running))
+        return FT_ERR_INVALID_STATE;
+    return _units.bind(entity, unit);
+}
+
+Error GameSession::unbind_unit(EntityId entity) noexcept
+{
+    if (_initialized != FT_TRUE ||
+        (_phase != Phase::data_ready && _phase != Phase::running))
+        return FT_ERR_INVALID_STATE;
+    return _units.unbind(entity);
+}
+
 Error GameSession::shutdown() noexcept
 {
     if (_initialized != FT_TRUE) return FT_ERR_SUCCESS;

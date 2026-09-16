@@ -67,6 +67,8 @@ public:
                                   DefinitionId unit) noexcept;
     Error bind_factory(EntityId entity, DefinitionId factory) noexcept;
     Error unbind_factory(EntityId entity) noexcept;
+    Error bind_unit(EntityId entity, DefinitionId unit) noexcept;
+    Error unbind_unit(EntityId entity) noexcept;
     Error shutdown() noexcept;
     void clear_replay_history() noexcept;
     Error verify_replay(const std::vector<ReplayRecord> &expected) const noexcept;
