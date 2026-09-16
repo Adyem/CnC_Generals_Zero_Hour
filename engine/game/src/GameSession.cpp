@@ -502,6 +502,18 @@ Error GameSession::collect_ready_production(std::vector<ProductionOrder> *comple
     return _production.collect_ready(_world.tick(), completed_out);
 }
 
+Error GameSession::enqueue_unit_production(EntityId producer, DefinitionId unit) noexcept
+{
+    if (_initialized != FT_TRUE ||
+        (_phase != Phase::data_ready && _phase != Phase::running))
+        return FT_ERR_INVALID_STATE;
+    if (!producer.is_valid()) return FT_ERR_INVALID_ARGUMENT;
+    const zero_hour::UnitDefinition *definition = _catalog.find_unit(unit);
+    if (definition == nullptr) return FT_ERR_NOT_FOUND;
+    return _production.enqueue(producer, unit, _world.tick(),
+                               SimulationTick{definition->build_ticks});
+}
+
 Error GameSession::shutdown() noexcept
 {
     if (_initialized != FT_TRUE) return FT_ERR_SUCCESS;

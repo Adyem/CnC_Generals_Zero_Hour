@@ -57,6 +57,7 @@ public:
     Error save_snapshot(std::vector<uint8_t> *bytes_out) const noexcept;
     Error load_snapshot(const uint8_t *bytes, Size byte_count) noexcept;
     Error collect_ready_production(std::vector<ProductionOrder> *completed_out) noexcept;
+    Error enqueue_unit_production(EntityId producer, DefinitionId unit) noexcept;
     Error shutdown() noexcept;
     void clear_replay_history() noexcept;
     Error verify_replay(const std::vector<ReplayRecord> &expected) const noexcept;

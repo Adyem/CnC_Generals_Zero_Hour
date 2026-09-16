@@ -568,6 +568,9 @@ before factory completion effects are wired in.
 `GameSession::collect_ready_production` is the typed handoff for the game layer:
 it collects orders at the authoritative world tick, while Zero Hour decides
 placement, prerequisites, unit creation, and factory-specific effects.
+`GameSession::enqueue_unit_production` is the corresponding ingress helper: it
+looks up a game-owned `UnitDefinition`, derives its checked build duration, and
+passes only the opaque unit ID and tick data to Libft's queue.
 
 ```cpp
 std::vector<cnc::ProductionOrder> completed;
