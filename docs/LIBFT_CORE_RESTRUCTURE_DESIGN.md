@@ -562,8 +562,9 @@ to carry only opaque definition IDs.
 producer entity and a factory definition. It validates that a requested unit
 exists, belongs to the same faction, and fits the factory queue capacity before
 the generic queue is touched. Bindings are sorted by stable entity ID and are
-installed through a projected swap, preserving the same failure-atomic rule as
-the simulation registries. Factory bindings are intentionally not part of
+installed through a projected swap; capacity is evaluated per producer using
+the queue's stable producer count, so orders at one factory do not consume
+another factory's slots. Factory bindings are intentionally not part of
 Libft's generic production records. `GameSession`
 now owns the registry lifecycle, exposes explicit factory binding, includes its
 canonical hash, and exports/imports the schema-9 factory section transactionally.
