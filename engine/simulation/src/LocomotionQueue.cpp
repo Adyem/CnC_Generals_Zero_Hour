@@ -32,8 +32,10 @@ Error LocomotionQueue::queue_move(EntityId entity, WorldCoordinate delta_x,
     if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
     if (!entity.is_valid()) return FT_ERR_INVALID_ARGUMENT;
     if (_next_sequence == std::numeric_limits<uint64_t>::max()) return FT_ERR_OUT_OF_RANGE;
-    try { _requests.push_back(LocomotionRequest{entity, delta_x, delta_y, _next_sequence++}); }
+    const uint64_t sequence = _next_sequence;
+    try { _requests.push_back(LocomotionRequest{entity, delta_x, delta_y, sequence}); }
     catch (...) { return FT_ERR_NO_MEMORY; }
+    ++_next_sequence;
     return FT_ERR_SUCCESS;
 }
 

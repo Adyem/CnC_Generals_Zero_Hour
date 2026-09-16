@@ -83,8 +83,10 @@ Error CombatRegistry::queue_damage(EntityId target, int64_t amount,
         static_cast<uint8_t>(type) > static_cast<uint8_t>(DamageType::fire))
         return FT_ERR_INVALID_ARGUMENT;
     if (_next_sequence == std::numeric_limits<uint64_t>::max()) return FT_ERR_OUT_OF_RANGE;
-    try { _requests.push_back(DamageRequest{target, amount, type, _next_sequence++}); }
+    const uint64_t sequence = _next_sequence;
+    try { _requests.push_back(DamageRequest{target, amount, type, sequence}); }
     catch (...) { return FT_ERR_NO_MEMORY; }
+    ++_next_sequence;
     return FT_ERR_SUCCESS;
 }
 

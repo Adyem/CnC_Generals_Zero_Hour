@@ -1,6 +1,7 @@
 #include "CncSimulation/SystemRegistry.hpp"
 
 #include <algorithm>
+#include <limits>
 
 namespace cnc
 {
@@ -10,15 +11,19 @@ Error SystemRegistry::add(SystemPhase phase, int32_t order, const char *name,
 {
     if (name == nullptr || callback == nullptr)
         return FT_ERR_INVALID_ARGUMENT;
+    if (_next_sequence == std::numeric_limits<uint64_t>::max())
+        return FT_ERR_OUT_OF_RANGE;
+    const uint64_t sequence = _next_sequence;
     try
     {
-        _entries.push_back(Entry{phase, order, _next_sequence++, name,
+        _entries.push_back(Entry{phase, order, sequence, name,
                                  callback, user_data});
     }
     catch (...)
     {
         return FT_ERR_NO_MEMORY;
     }
+    ++_next_sequence;
     std::stable_sort(_entries.begin(), _entries.end(),
         [](const Entry &left, const Entry &right)
         {
