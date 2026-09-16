@@ -185,6 +185,7 @@ if(CNC_BUILD_GAME_DATA)
         "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/src/Catalog.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/src/FactoryRegistry.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/src/UnitRegistry.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/src/UnitRegistryCodec.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/src/FactoryRegistryCodec.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/src/ScienceLedger.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/src/SpecialPowerLedger.cpp"

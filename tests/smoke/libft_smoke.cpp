@@ -25,6 +25,7 @@
 #include "ZeroHourData/FactoryRegistry.hpp"
 #include "ZeroHourData/FactoryRegistryCodec.hpp"
 #include "ZeroHourData/UnitRegistry.hpp"
+#include "ZeroHourData/UnitRegistryCodec.hpp"
 #include "ZeroHourData/PlayerState.hpp"
 #include "ZeroHourData/PlayerStateRegistry.hpp"
 #include "ZeroHourData/PlayerStateRegistryCodec.hpp"
@@ -496,9 +497,17 @@ int main()
         production_catalog.definition_count() != static_cast<cnc::Size>(7U))
         return 62;
     zero_hour::UnitRegistry units;
+    zero_hour::UnitRegistry::Snapshot unit_snapshot;
+    std::vector<uint8_t> unit_bytes;
+    zero_hour::UnitRegistry::Snapshot decoded_unit_snapshot;
     if (units.initialize(&production_catalog) != FT_ERR_SUCCESS ||
         units.bind(cnc::EntityId{20U}, cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
         units.find(cnc::EntityId{20U}) == nullptr || units.size() != static_cast<cnc::Size>(1U) ||
+        units.export_snapshot(&unit_snapshot) != FT_ERR_SUCCESS ||
+        zero_hour::UnitRegistryCodec::encode(unit_snapshot, &unit_bytes) != FT_ERR_SUCCESS ||
+        zero_hour::UnitRegistryCodec::decode(unit_bytes.data(),
+            static_cast<cnc::Size>(unit_bytes.size()), &decoded_unit_snapshot) != FT_ERR_SUCCESS ||
+        decoded_unit_snapshot.bindings.size() != static_cast<cnc::Size>(1U) ||
         units.shutdown() != FT_ERR_SUCCESS || production_catalog.shutdown() != FT_ERR_SUCCESS)
         return 71;
 
