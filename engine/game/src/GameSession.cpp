@@ -650,6 +650,19 @@ Error GameSession::bind_unit(EntityId entity, DefinitionId unit) noexcept
     return _units.bind(entity, unit);
 }
 
+Error GameSession::bind_unit(PlayerId player, EntityId entity, DefinitionId unit) noexcept
+{
+    if (_initialized != FT_TRUE ||
+        (_phase != Phase::data_ready && _phase != Phase::running))
+        return FT_ERR_INVALID_STATE;
+    if (!player.is_valid()) return FT_ERR_INVALID_ARGUMENT;
+    PlayerId owner;
+    const Error owner_error = _players.owner(entity, &owner);
+    if (owner_error != FT_ERR_SUCCESS) return owner_error;
+    if (owner.value != player.value) return FT_ERR_PERMISSION_DENIED;
+    return _units.bind(entity, unit);
+}
+
 Error GameSession::unbind_unit(EntityId entity) noexcept
 {
     if (_initialized != FT_TRUE ||

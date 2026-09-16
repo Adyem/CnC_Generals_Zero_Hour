@@ -575,7 +575,9 @@ fixed-width wire payload and rejects malformed ordering or lengths. Both registr
 opaque IDs and generic entity handles.
 `GameSession::bind_unit` and `unbind_unit` expose the unit binding lifecycle to
 the future spawn/placement systems without leaking registry mutation into the
-composition root's callers.
+composition root's callers. The owner-aware overload applies the same
+`PlayerRegistry` ownership check used by production commands before binding a
+spawned unit.
 The player-aware overload additionally checks generic ownership before queueing,
 so command ingress cannot produce units through another player's factory.
 Its entity-destruction seam also removes spatial, combat, visibility, and
