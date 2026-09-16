@@ -586,6 +586,9 @@ int main()
         player.purchase_science(cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
         player.science_points() != 1U ||
         manifest_session.world().create_entity(&player_entity) != FT_ERR_SUCCESS ||
+        manifest_session.enqueue_unit_production(player_entity, cnc::DefinitionId{1U}) !=
+            FT_ERR_SUCCESS ||
+        manifest_session.production().pending_count() != static_cast<cnc::Size>(1U) ||
         player.assign_general(player_entity, cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
         manifest_session.world().create_entity(&replacement_entity) != FT_ERR_SUCCESS ||
         player.assign_general(replacement_entity, cnc::DefinitionId{1U}) != FT_ERR_INVALID_OPERATION ||
