@@ -83,6 +83,7 @@ public:
     VisibilityRegistry &visibility() noexcept;
     ProductionQueue &production() noexcept;
     zero_hour::FactoryRegistry &factories() noexcept;
+    const zero_hour::FactoryRegistry &factories() const noexcept;
     const zero_hour::Catalog &catalog() const noexcept;
     zero_hour::ScienceLedger &science_ledger() noexcept;
     zero_hour::SpecialPowerLedger &special_power_ledger() noexcept;

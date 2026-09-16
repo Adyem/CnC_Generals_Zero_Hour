@@ -691,6 +691,7 @@ CombatRegistry &GameSession::combat() noexcept { return _combat; }
 VisibilityRegistry &GameSession::visibility() noexcept { return _visibility; }
 ProductionQueue &GameSession::production() noexcept { return _production; }
 zero_hour::FactoryRegistry &GameSession::factories() noexcept { return _factories; }
+const zero_hour::FactoryRegistry &GameSession::factories() const noexcept { return _factories; }
 const zero_hour::Catalog &GameSession::catalog() const noexcept { return _catalog; }
 zero_hour::ScienceLedger &GameSession::science_ledger() noexcept { return _science_ledger; }
 zero_hour::SpecialPowerLedger &GameSession::special_power_ledger() noexcept
