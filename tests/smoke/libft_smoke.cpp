@@ -503,7 +503,16 @@ int main()
         factories.validate_production(cnc::EntityId{10U}, cnc::DefinitionId{1U}, 0U) !=
             FT_ERR_SUCCESS ||
         factories.validate_production(cnc::EntityId{10U}, cnc::DefinitionId{1U}, 2U) !=
-            FT_ERR_OUT_OF_RANGE ||
+            FT_ERR_OUT_OF_RANGE)
+        return 64;
+    zero_hour::FactoryRegistry::Snapshot factory_snapshot;
+    if (factories.export_snapshot(&factory_snapshot) != FT_ERR_SUCCESS ||
+        factory_snapshot.bindings.size() != static_cast<cnc::Size>(1U))
+        return 65;
+    const uint64_t factory_hash = factories.canonical_state_hash();
+    factory_snapshot.bindings[0U].factory = cnc::DefinitionId{999U};
+    if (factories.import_snapshot(factory_snapshot) != FT_ERR_CONFIGURATION ||
+        factories.canonical_state_hash() != factory_hash ||
         factories.unbind(cnc::EntityId{10U}) != FT_ERR_SUCCESS ||
         factories.shutdown() != FT_ERR_SUCCESS ||
         factory_catalog.shutdown() != FT_ERR_SUCCESS)

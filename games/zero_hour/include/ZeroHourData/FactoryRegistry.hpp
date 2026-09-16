@@ -17,6 +17,11 @@ public:
         cnc::EntityId entity;
         cnc::DefinitionId factory;
     };
+    struct Snapshot
+    {
+        uint32_t schema_version = 1U;
+        std::vector<Binding> bindings;
+    };
 
     FactoryRegistry() noexcept = default;
     FactoryRegistry(const FactoryRegistry &) = delete;
@@ -30,6 +35,9 @@ public:
     cnc::Error validate_production(cnc::EntityId factory_entity,
                                    cnc::DefinitionId unit,
                                    cnc::Size pending_count) const noexcept;
+    cnc::Error export_snapshot(Snapshot *out) const noexcept;
+    cnc::Error import_snapshot(const Snapshot &snapshot) noexcept;
+    uint64_t canonical_state_hash() const noexcept;
     cnc::Size size() const noexcept;
 
 private:
