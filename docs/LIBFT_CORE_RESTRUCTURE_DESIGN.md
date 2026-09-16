@@ -568,6 +568,9 @@ Libft's generic production records; session snapshot integration is the next
 step before factories become authoritative in a running match. The registry
 already exposes versioned in-memory snapshot export/import and a canonical
 hash, with invalid definitions rejected before the live binding set changes.
+`FactoryRegistryCodec` now provides a bounded fixed-width wire payload for that
+snapshot, enforcing stable entity ordering and rejecting malformed lengths or
+duplicate IDs before decoded state is exposed.
 The snapshot invariant is that every persisted sequence is strictly less than
 `next_sequence`; import enforces this before swapping queue storage. The codec
 encoder is scheduled for a readability rewrite so it enforces the same rule at

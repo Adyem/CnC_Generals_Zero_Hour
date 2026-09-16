@@ -174,6 +174,7 @@ if(CNC_BUILD_GAME_DATA)
     add_library(cnc_zero_hour_data STATIC
         "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/src/Catalog.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/src/FactoryRegistry.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/src/FactoryRegistryCodec.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/src/ScienceLedger.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/src/SpecialPowerLedger.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/games/zero_hour/src/GeneralRoster.cpp"

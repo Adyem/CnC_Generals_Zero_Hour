@@ -23,6 +23,7 @@
 #include "CncSimulation/DefinitionRegistry.hpp"
 #include "ZeroHourData/Catalog.hpp"
 #include "ZeroHourData/FactoryRegistry.hpp"
+#include "ZeroHourData/FactoryRegistryCodec.hpp"
 #include "ZeroHourData/PlayerState.hpp"
 #include "ZeroHourData/PlayerStateRegistry.hpp"
 #include "ZeroHourData/PlayerStateRegistryCodec.hpp"
@@ -510,6 +511,13 @@ int main()
         factory_snapshot.bindings.size() != static_cast<cnc::Size>(1U))
         return 65;
     const uint64_t factory_hash = factories.canonical_state_hash();
+    std::vector<uint8_t> factory_bytes;
+    zero_hour::FactoryRegistry::Snapshot decoded_factory_snapshot;
+    if (zero_hour::FactoryRegistryCodec::encode(factory_snapshot, &factory_bytes) != FT_ERR_SUCCESS ||
+        zero_hour::FactoryRegistryCodec::decode(factory_bytes.data(),
+            static_cast<cnc::Size>(factory_bytes.size()), &decoded_factory_snapshot) != FT_ERR_SUCCESS ||
+        decoded_factory_snapshot.bindings.size() != static_cast<cnc::Size>(1U))
+        return 66;
     factory_snapshot.bindings[0U].factory = cnc::DefinitionId{999U};
     if (factories.import_snapshot(factory_snapshot) != FT_ERR_CONFIGURATION ||
         factories.canonical_state_hash() != factory_hash ||
