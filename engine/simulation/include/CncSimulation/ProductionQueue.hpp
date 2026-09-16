@@ -28,6 +28,10 @@ public:
     Error cancel(EntityId producer, uint64_t sequence) noexcept;
     Error collect_ready(SimulationTick now,
                         std::vector<ProductionOrder> *completed_out) noexcept;
+    Error peek_ready(SimulationTick now,
+                     std::vector<ProductionOrder> *ready_out) const noexcept;
+    Error commit_ready(SimulationTick now,
+                       const std::vector<uint64_t> &sequences) noexcept;
     Error discard() noexcept;
     Size pending_count() const noexcept;
     uint64_t canonical_state_hash() const noexcept;

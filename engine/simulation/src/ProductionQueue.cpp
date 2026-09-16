@@ -87,6 +87,56 @@ Error ProductionQueue::collect_ready(SimulationTick now,
     return FT_ERR_SUCCESS;
 }
 
+Error ProductionQueue::peek_ready(SimulationTick now,
+                                   std::vector<ProductionOrder> *ready_out) const noexcept
+{
+    if (ready_out == nullptr) return FT_ERR_INVALID_POINTER;
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    try
+    {
+        std::vector<ProductionOrder> ready;
+        ready.reserve(_orders.size());
+        for (const ProductionOrder &order : _orders)
+            if (order.ready_at.value <= now.value) ready.push_back(order);
+        std::stable_sort(ready.begin(), ready.end(),
+                         [](const ProductionOrder &first, const ProductionOrder &second)
+                         { return first.sequence < second.sequence; });
+        ready_out->swap(ready);
+    }
+    catch (...)
+    {
+        ready_out->clear();
+        return FT_ERR_NO_MEMORY;
+    }
+    return FT_ERR_SUCCESS;
+}
+
+Error ProductionQueue::commit_ready(SimulationTick now,
+                                     const std::vector<uint64_t> &sequences) noexcept
+{
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    if (sequences.empty()) return FT_ERR_SUCCESS;
+    try
+    {
+        std::vector<ProductionOrder> remaining = _orders;
+        for (const uint64_t sequence : sequences)
+        {
+            auto match = std::find_if(remaining.begin(), remaining.end(),
+                                       [sequence](const ProductionOrder &order)
+                                       { return order.sequence == sequence; });
+            if (match == remaining.end() || match->ready_at.value > now.value)
+                return FT_ERR_NOT_FOUND;
+            remaining.erase(match);
+        }
+        _orders.swap(remaining);
+    }
+    catch (...)
+    {
+        return FT_ERR_NO_MEMORY;
+    }
+    return FT_ERR_SUCCESS;
+}
+
 Error ProductionQueue::discard() noexcept
 {
     if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;

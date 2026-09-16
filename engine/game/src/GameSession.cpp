@@ -504,6 +504,22 @@ Error GameSession::collect_ready_production(std::vector<ProductionOrder> *comple
     return _production.collect_ready(_world.tick(), completed_out);
 }
 
+Error GameSession::peek_ready_production(std::vector<ProductionOrder> *ready_out) const noexcept
+{
+    if (_initialized != FT_TRUE ||
+        (_phase != Phase::data_ready && _phase != Phase::running))
+        return FT_ERR_INVALID_STATE;
+    return _production.peek_ready(_world.tick(), ready_out);
+}
+
+Error GameSession::commit_ready_production(const std::vector<uint64_t> &sequences) noexcept
+{
+    if (_initialized != FT_TRUE ||
+        (_phase != Phase::data_ready && _phase != Phase::running))
+        return FT_ERR_INVALID_STATE;
+    return _production.commit_ready(_world.tick(), sequences);
+}
+
 Error GameSession::enqueue_unit_production(EntityId producer, DefinitionId unit) noexcept
 {
     if (_initialized != FT_TRUE ||

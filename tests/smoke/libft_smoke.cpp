@@ -60,6 +60,13 @@ int production_queue_snapshot_test() noexcept
         first_snapshot.next_sequence != 1U ||
         first_snapshot.orders.size() != static_cast<cnc::Size>(1U))
         return 3;
+    std::vector<cnc::ProductionOrder> ready;
+    if (queue.peek_ready(cnc::SimulationTick{3U}, &ready) != FT_ERR_SUCCESS ||
+        !ready.empty() || queue.peek_ready(cnc::SimulationTick{4U}, &ready) != FT_ERR_SUCCESS ||
+        ready.size() != static_cast<cnc::Size>(1U) ||
+        queue.commit_ready(cnc::SimulationTick{3U}, std::vector<uint64_t>{0U}) != FT_ERR_NOT_FOUND ||
+        queue.pending_count() != static_cast<cnc::Size>(1U))
+        return 4;
     const uint64_t first_hash = queue.canonical_state_hash();
     if (first_hash == 0U ||
         queue.enqueue(cnc::EntityId{2U}, cnc::DefinitionId{1U},
