@@ -2019,7 +2019,8 @@ Libft services they need.
 `LibftEventSchedulerAdapter` is the first such narrow bridge: it owns the
 Libft `game_event_scheduler` lifecycle, exposes queue depth and a typed profile
 snapshot, and translates invalid lifecycle calls to project `FT_ERR_*` values.
-It remains opt-in until the Game target's PThread, Time, Lua, and Compatibility
+An opt-in `cnc_libft_game_adapter_smoke` CTest target now verifies that contract
+when the Game graph is enabled. It remains opt-in until the Game target's PThread, Time, Lua, and Compatibility
 dependencies have portable CMake targets.
 The first such adapter is `cnc::LibftEventSchedulerAdapter`, built only when
 `CNC_BUILD_LIBFT_GAME=ON`. It wraps Libft's lifecycle-managed

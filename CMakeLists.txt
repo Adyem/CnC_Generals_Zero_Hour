@@ -107,6 +107,16 @@ if(CNC_BUILD_LIBFT_GAME)
     target_link_libraries(cnc_libft_game_adapter PUBLIC libft::game)
     cnc_enable_native_warnings(cnc_libft_game_adapter)
     cnc_enable_native_sanitizers(cnc_libft_game_adapter)
+
+    if(CNC_BUILD_SMOKE_TEST)
+        add_executable(cnc_libft_game_adapter_smoke
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/smoke/libft_game_adapter_smoke.cpp")
+        target_compile_features(cnc_libft_game_adapter_smoke PRIVATE cxx_std_17)
+        target_link_libraries(cnc_libft_game_adapter_smoke PRIVATE cnc::libft_game_adapter)
+        cnc_enable_native_warnings(cnc_libft_game_adapter_smoke)
+        cnc_enable_native_sanitizers(cnc_libft_game_adapter_smoke)
+        add_test(NAME smoke.libft_game_adapter COMMAND cnc_libft_game_adapter_smoke)
+    endif()
 endif()
 
 if(CNC_BUILD_RUNTIME)
