@@ -514,6 +514,9 @@ int main()
         return 22;
     if (session.has_game_data() != FT_TRUE)
         return 29;
+    if (session.enqueue_unit_production(cnc::EntityId{1U}, cnc::DefinitionId{999U}) != FT_ERR_NOT_FOUND ||
+        session.production().pending_count() != 0U)
+        return 63;
     zero_hour::PlayerStateRegistry player_states;
     uint64_t player_state_hash = 0U;
     if (player_states.initialize(&session.catalog(), &session.science_ledger(),
