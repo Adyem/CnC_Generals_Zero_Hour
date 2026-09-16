@@ -18,6 +18,7 @@ uint64_t read_u64(const uint8_t *p) { uint64_t v=0U; for (uint32_t s=0U;s<64U;s+
 bool checked_size(cnc::Size count, cnc::Size *size_out) noexcept
 {
     if (size_out == nullptr || count > max_entries ||
+        count > static_cast<cnc::Size>(std::numeric_limits<uint32_t>::max()) ||
         count > (std::numeric_limits<cnc::Size>::max() - header_size) / record_size)
         return false;
     *size_out = header_size + count * record_size;
@@ -31,8 +32,9 @@ cnc::Error FactoryRegistryCodec::encode(const FactoryRegistry::Snapshot &snapsho
     if (bytes_out == nullptr) return FT_ERR_INVALID_POINTER;
     const cnc::Size count = static_cast<cnc::Size>(snapshot.bindings.size());
     cnc::Size total = 0U;
-    if (snapshot.schema_version != wire_schema_version || !checked_size(count, &total))
+    if (snapshot.schema_version != wire_schema_version)
         return FT_ERR_INVALID_ARGUMENT;
+    if (!checked_size(count, &total)) return FT_ERR_OUT_OF_RANGE;
     try
     {
         bytes_out->clear(); bytes_out->reserve(total);
