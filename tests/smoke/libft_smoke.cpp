@@ -640,6 +640,7 @@ int main()
     zero_hour::PlayerState &player = manifest_session.player_state();
     cnc::EntityId player_entity;
     cnc::EntityId second_factory_entity;
+    cnc::EntityId completion_factory_entity;
     cnc::PlayerId destroyed_owner;
     std::vector<uint8_t> factory_session_snapshot;
     cnc::EntityId replacement_entity;
@@ -686,6 +687,18 @@ int main()
         manifest_session.bind_factory(second_factory_entity, cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
         manifest_session.enqueue_unit_production(cnc::PlayerId{2U}, second_factory_entity,
                                                   cnc::DefinitionId{1U}) != FT_ERR_PERMISSION_DENIED ||
+        manifest_session.world().create_entity(&completion_factory_entity) != FT_ERR_SUCCESS ||
+        manifest_session.players().set_owner(completion_factory_entity, cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
+        manifest_session.bind_factory(completion_factory_entity, cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
+        manifest_session.production().enqueue(completion_factory_entity, cnc::DefinitionId{1U},
+            manifest_session.world().tick(), cnc::SimulationTick{0U}) != FT_ERR_SUCCESS)
+        return 70;
+    cnc::ProductionQueue::Snapshot completion_snapshot;
+    if (manifest_session.production().export_snapshot(&completion_snapshot) != FT_ERR_SUCCESS ||
+        completion_snapshot.orders.empty() ||
+        manifest_session.commit_ready_unit_production(
+            std::vector<uint64_t>{completion_snapshot.orders.back().sequence}) != FT_ERR_SUCCESS ||
+        manifest_session.production().pending_count_for(completion_factory_entity) != 0U ||
         player.assign_general(player_entity, cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
         manifest_session.world().create_entity(&replacement_entity) != FT_ERR_SUCCESS ||
         player.assign_general(replacement_entity, cnc::DefinitionId{1U}) != FT_ERR_INVALID_OPERATION ||
