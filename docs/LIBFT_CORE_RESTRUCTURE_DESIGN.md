@@ -571,6 +571,10 @@ hash, with invalid definitions rejected before the live binding set changes.
 `FactoryRegistryCodec` now provides a bounded fixed-width wire payload for that
 snapshot, enforcing stable entity ordering and rejecting malformed lengths or
 duplicate IDs before decoded state is exposed.
+The session snapshot envelope is now schema 9 and reserves a dedicated factory
+payload. `GameSession` must export/import its live registry into this field as
+the next integration step; an empty factory section is valid for sessions that
+have not yet bound producers.
 The snapshot invariant is that every persisted sequence is strictly less than
 `next_sequence`; import enforces this before swapping queue storage. The codec
 encoder is scheduled for a readability rewrite so it enforces the same rule at
