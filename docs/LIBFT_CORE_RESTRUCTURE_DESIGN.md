@@ -1524,6 +1524,12 @@ tests can inject a deterministic clock. The default remains the portable
 standard-library clock until the Libft Time dependency graph is enabled.
 
 `cnc::SystemRegistry` is the next generic seam. It registers callbacks by phase, explicit signed order, and registration sequence, then propagates the first non-success `FT_ERR_*` result. It deliberately has no knowledge of Generals systems; the future Zero Hour module will register its own science, production, combat, and victory systems through this interface.
+Registration is failure-atomic: entries are copied into a projected vector,
+sorted, and swapped into the live registry only after all allocations succeed.
+The same rule applies to every sequence-bearing ingress (world commands,
+session commands, locomotion, combat, and production): the sequence counter is
+advanced only after insertion succeeds. An `FT_ERR_NO_MEMORY` therefore cannot
+consume an ordering value or otherwise alter authoritative state.
 
 `cnc::DefinitionRegistry` now provides the corresponding data-hosting seam. Libft owns type/content-ID uniqueness, opaque lifetime through an explicit destroy callback, lookup, and validation dispatch; a game target owns the concrete definition structs and typed wrappers. The current smoke test registers a synthetic definition, looks it up, and verifies cleanup. This is intentionally not a Generals catalog yet.
 
