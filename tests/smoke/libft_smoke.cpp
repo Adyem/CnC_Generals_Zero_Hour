@@ -69,6 +69,9 @@ int production_queue_snapshot_test() noexcept
         queue.commit_ready(cnc::SimulationTick{3U}, std::vector<uint64_t>{0U}) != FT_ERR_NOT_FOUND ||
         queue.pending_count() != static_cast<cnc::Size>(1U))
         return 4;
+    if (queue.pending_count_for(cnc::EntityId{1U}) != static_cast<cnc::Size>(1U) ||
+        queue.pending_count_for(cnc::EntityId{99U}) != 0U)
+        return 5;
     const uint64_t first_hash = queue.canonical_state_hash();
     if (first_hash == 0U ||
         queue.enqueue(cnc::EntityId{2U}, cnc::DefinitionId{1U},

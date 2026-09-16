@@ -149,6 +149,14 @@ Size ProductionQueue::pending_count() const noexcept
 {
     return static_cast<Size>(_orders.size());
 }
+Size ProductionQueue::pending_count_for(EntityId producer) const noexcept
+{
+    if (_initialized != FT_TRUE || !producer.is_valid()) return 0U;
+    Size count = 0U;
+    for (const ProductionOrder &order : _orders)
+        if (order.producer.value == producer.value) ++count;
+    return count;
+}
 uint64_t ProductionQueue::canonical_state_hash() const noexcept
 {
     if (_initialized != FT_TRUE) return 0U;

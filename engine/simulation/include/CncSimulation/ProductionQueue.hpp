@@ -34,6 +34,7 @@ public:
                        const std::vector<uint64_t> &sequences) noexcept;
     Error discard() noexcept;
     Size pending_count() const noexcept;
+    Size pending_count_for(EntityId producer) const noexcept;
     uint64_t canonical_state_hash() const noexcept;
     Error export_snapshot(Snapshot *snapshot_out) const noexcept;
     Error import_snapshot(const Snapshot &snapshot) noexcept;

@@ -558,7 +558,7 @@ Error GameSession::enqueue_unit_production(EntityId producer, DefinitionId unit)
     const zero_hour::FactoryRegistry::Binding *factory = _factories.find(producer);
     if (factory == nullptr) return FT_ERR_NOT_FOUND;
     const Error factory_error = _factories.validate_production(
-        producer, unit, _production.pending_count());
+        producer, unit, _production.pending_count_for(producer));
     if (factory_error != FT_ERR_SUCCESS) return factory_error;
     return _production.enqueue(producer, unit, _world.tick(),
                                SimulationTick{definition->build_ticks});
