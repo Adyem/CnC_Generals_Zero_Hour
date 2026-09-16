@@ -518,6 +518,16 @@ int main()
             static_cast<cnc::Size>(factory_bytes.size()), &decoded_factory_snapshot) != FT_ERR_SUCCESS ||
         decoded_factory_snapshot.bindings.size() != static_cast<cnc::Size>(1U))
         return 66;
+    if (zero_hour::FactoryRegistryCodec::decode(factory_bytes.data(),
+            static_cast<cnc::Size>(factory_bytes.size() - 1U), &decoded_factory_snapshot) !=
+            FT_ERR_CONFIGURATION)
+        return 67;
+    factory_bytes.insert(factory_bytes.end(), 16U, 0U);
+    factory_bytes[4U] = 2U;
+    if (zero_hour::FactoryRegistryCodec::decode(factory_bytes.data(),
+            static_cast<cnc::Size>(factory_bytes.size()), &decoded_factory_snapshot) !=
+            FT_ERR_CONFIGURATION)
+        return 68;
     factory_snapshot.bindings[0U].factory = cnc::DefinitionId{999U};
     if (factories.import_snapshot(factory_snapshot) != FT_ERR_CONFIGURATION ||
         factories.canonical_state_hash() != factory_hash ||
