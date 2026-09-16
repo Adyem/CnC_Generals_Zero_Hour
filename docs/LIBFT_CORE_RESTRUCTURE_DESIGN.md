@@ -1583,7 +1583,8 @@ through its game-owned validator and returns a `ValidationReport`; malformed
 asset data can therefore be rejected before a match starts.
 
 `Catalog::load_manifest` provides the first asset-facing path. It accepts a
-deterministic CSV grammar (`SCIENCE`, `FACTION`, `GENERAL`, `POWER`), parses
+deterministic CSV grammar (`SCIENCE`, `FACTION`, `GENERAL`, `POWER`, `UNIT`,
+`FACTORY`), parses
 fixed-width numeric fields with range checks, rejects malformed or duplicate
 records, and validates the complete catalog before returning. The fixture at
 `tests/fixtures/zero_hour_manifest.csv` is copied by CMake and loaded by the
