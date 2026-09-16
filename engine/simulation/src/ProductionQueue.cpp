@@ -59,6 +59,18 @@ Error ProductionQueue::cancel(EntityId producer, uint64_t sequence) noexcept
     return FT_ERR_NOT_FOUND;
 }
 
+Error ProductionQueue::cancel_producer(EntityId producer) noexcept
+{
+    if (_initialized != FT_TRUE) return FT_ERR_NOT_INITIALISED;
+    if (!producer.is_valid()) return FT_ERR_INVALID_ARGUMENT;
+    const auto before = _orders.size();
+    _orders.erase(std::remove_if(_orders.begin(), _orders.end(),
+                                 [producer](const ProductionOrder &order) noexcept
+                                 { return order.producer.value == producer.value; }),
+                  _orders.end());
+    return _orders.size() == before ? FT_ERR_NOT_FOUND : FT_ERR_SUCCESS;
+}
+
 Error ProductionQueue::collect_ready(SimulationTick now,
                                      std::vector<ProductionOrder> *completed_out) noexcept
 {

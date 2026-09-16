@@ -26,6 +26,7 @@ public:
     Error enqueue(EntityId producer, DefinitionId definition,
                   SimulationTick now, SimulationTick duration) noexcept;
     Error cancel(EntityId producer, uint64_t sequence) noexcept;
+    Error cancel_producer(EntityId producer) noexcept;
     Error collect_ready(SimulationTick now,
                         std::vector<ProductionOrder> *completed_out) noexcept;
     Error peek_ready(SimulationTick now,

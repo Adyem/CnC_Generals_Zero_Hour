@@ -672,6 +672,7 @@ int main()
         player_power_ready.value != 60U ||
         manifest_session.destroy_entity(second_factory_entity) != FT_ERR_SUCCESS ||
         manifest_session.factories().find(second_factory_entity) != nullptr ||
+        manifest_session.production().pending_count_for(second_factory_entity) != 0U ||
         manifest_session.shutdown() != FT_ERR_SUCCESS)
         return 30;
     uint32_t session_points = 0U;
