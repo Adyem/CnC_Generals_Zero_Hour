@@ -487,12 +487,12 @@ int main()
     if (production_catalog.initialize() != FT_ERR_SUCCESS ||
         production_catalog.load_manifest_text(
             "SCIENCE,1,1,0\nFACTION,1,1\nGENERAL,1,1,1\nPOWER,1,60,1\n"
-            "UNIT,1,1,30\nFACTORY,1,1,3\n") != FT_ERR_SUCCESS ||
+            "UNIT,1,1,30\nUNIT,2,2,30\nFACTORY,1,1,3\n") != FT_ERR_SUCCESS ||
         production_catalog.find_unit(cnc::DefinitionId{1U}) == nullptr ||
         production_catalog.find_factory(cnc::DefinitionId{1U}) == nullptr ||
         production_catalog.find_unit(cnc::DefinitionId{1U})->build_ticks != 30U ||
         production_catalog.find_factory(cnc::DefinitionId{1U})->queue_capacity != 3U ||
-        production_catalog.definition_count() != static_cast<cnc::Size>(6U) ||
+        production_catalog.definition_count() != static_cast<cnc::Size>(7U) ||
         production_catalog.shutdown() != FT_ERR_SUCCESS)
         return 62;
 
@@ -501,11 +501,13 @@ int main()
     if (factory_catalog.initialize() != FT_ERR_SUCCESS ||
         factory_catalog.load_manifest_text(
             "SCIENCE,1,1,0\nFACTION,1,1\nGENERAL,1,1,1\nPOWER,1,60,1\n"
-            "UNIT,1,1,30\nFACTORY,1,1,2\n") != FT_ERR_SUCCESS ||
+            "UNIT,1,1,30\nUNIT,2,2,30\nFACTORY,1,1,2\n") != FT_ERR_SUCCESS ||
         factories.initialize(&factory_catalog) != FT_ERR_SUCCESS ||
         factories.bind(cnc::EntityId{10U}, cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
         factories.validate_production(cnc::EntityId{10U}, cnc::DefinitionId{1U}, 0U) !=
             FT_ERR_SUCCESS ||
+        factories.validate_production(cnc::EntityId{10U}, cnc::DefinitionId{2U}, 0U) !=
+            FT_ERR_INVALID_OPERATION ||
         factories.validate_production(cnc::EntityId{10U}, cnc::DefinitionId{1U}, 2U) !=
             FT_ERR_OUT_OF_RANGE)
         return 64;
