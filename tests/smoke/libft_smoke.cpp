@@ -639,6 +639,7 @@ int main()
         return 32;
     zero_hour::PlayerState &player = manifest_session.player_state();
     cnc::EntityId player_entity;
+    cnc::EntityId second_factory_entity;
     cnc::EntityId replacement_entity;
     cnc::SimulationTick player_power_ready;
     if (player.set_faction(cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
@@ -650,6 +651,12 @@ int main()
         manifest_session.enqueue_unit_production(player_entity, cnc::DefinitionId{1U}) !=
             FT_ERR_SUCCESS ||
         manifest_session.production().pending_count() != static_cast<cnc::Size>(1U) ||
+        manifest_session.world().create_entity(&second_factory_entity) != FT_ERR_SUCCESS ||
+        manifest_session.bind_factory(second_factory_entity, cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
+        manifest_session.enqueue_unit_production(second_factory_entity, cnc::DefinitionId{1U}) !=
+            FT_ERR_SUCCESS ||
+        manifest_session.production().pending_count_for(second_factory_entity) !=
+            static_cast<cnc::Size>(1U) ||
         player.assign_general(player_entity, cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
         manifest_session.world().create_entity(&replacement_entity) != FT_ERR_SUCCESS ||
         player.assign_general(replacement_entity, cnc::DefinitionId{1U}) != FT_ERR_INVALID_OPERATION ||
