@@ -37,6 +37,7 @@ public:
                                    cnc::Size pending_count) const noexcept;
     cnc::Error export_snapshot(Snapshot *out) const noexcept;
     cnc::Error import_snapshot(const Snapshot &snapshot) noexcept;
+    void swap(FactoryRegistry &other) noexcept;
     uint64_t canonical_state_hash() const noexcept;
     cnc::Size size() const noexcept;
 

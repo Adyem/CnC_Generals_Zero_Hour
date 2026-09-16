@@ -125,6 +125,13 @@ cnc::Error FactoryRegistry::import_snapshot(const Snapshot &snapshot) noexcept
     return FT_ERR_SUCCESS;
 }
 
+void FactoryRegistry::swap(FactoryRegistry &other) noexcept
+{
+    _bindings.swap(other._bindings);
+    std::swap(_catalog, other._catalog);
+    std::swap(_initialized, other._initialized);
+}
+
 uint64_t FactoryRegistry::canonical_state_hash() const noexcept
 {
     if (_initialized != FT_TRUE) return 0U;

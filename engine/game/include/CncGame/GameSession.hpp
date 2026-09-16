@@ -15,6 +15,7 @@
 #include "CncSimulation/ProductionQueue.hpp"
 #include "CncGame/SessionSnapshotCodec.hpp"
 #include "ZeroHourData/Catalog.hpp"
+#include "ZeroHourData/FactoryRegistry.hpp"
 #include "ZeroHourData/ScienceLedger.hpp"
 #include "ZeroHourData/SpecialPowerLedger.hpp"
 #include "ZeroHourData/GeneralRoster.hpp"
@@ -60,6 +61,7 @@ public:
     Error peek_ready_production(std::vector<ProductionOrder> *ready_out) const noexcept;
     Error commit_ready_production(const std::vector<uint64_t> &sequences) noexcept;
     Error enqueue_unit_production(EntityId producer, DefinitionId unit) noexcept;
+    Error bind_factory(EntityId entity, DefinitionId factory) noexcept;
     Error shutdown() noexcept;
     void clear_replay_history() noexcept;
     Error verify_replay(const std::vector<ReplayRecord> &expected) const noexcept;
@@ -78,6 +80,7 @@ public:
     CombatRegistry &combat() noexcept;
     VisibilityRegistry &visibility() noexcept;
     ProductionQueue &production() noexcept;
+    zero_hour::FactoryRegistry &factories() noexcept;
     const zero_hour::Catalog &catalog() const noexcept;
     zero_hour::ScienceLedger &science_ledger() noexcept;
     zero_hour::SpecialPowerLedger &special_power_ledger() noexcept;
@@ -97,6 +100,7 @@ private:
     CombatRegistry _combat;
     VisibilityRegistry _visibility;
     ProductionQueue _production;
+    zero_hour::FactoryRegistry _factories;
     zero_hour::Catalog _catalog;
     zero_hour::ScienceLedger _science_ledger;
     zero_hour::SpecialPowerLedger _special_power_ledger;
