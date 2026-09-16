@@ -679,6 +679,7 @@ Error GameSession::destroy_entity(EntityId entity) noexcept
         return FT_ERR_INVALID_STATE;
     const Error error = _world.destroy_entity(entity);
     if (error != FT_ERR_SUCCESS) return error;
+    (void)_players.clear_owner(entity);
     (void)_production.cancel_producer(entity);
     (void)_factories.unbind(entity);
     (void)_spatial.remove(entity);

@@ -572,7 +572,8 @@ Its entity-destruction seam also removes spatial, combat, visibility, and
 factory bindings after the world transition succeeds, preventing stale
 cross-system references. It also cancels all pending production orders for the
 destroyed producer before releasing its factory binding, so the generic queue
-cannot retain work addressed to a dead entity.
+cannot retain work addressed to a dead entity, and clears the generic player
+ownership record for that entity.
 The registry already exposes versioned in-memory snapshot export/import and a canonical
 hash, with invalid definitions rejected before the live binding set changes.
 `FactoryRegistryCodec` now provides a bounded fixed-width wire payload for that

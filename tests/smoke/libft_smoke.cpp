@@ -640,6 +640,7 @@ int main()
     zero_hour::PlayerState &player = manifest_session.player_state();
     cnc::EntityId player_entity;
     cnc::EntityId second_factory_entity;
+    cnc::PlayerId destroyed_owner;
     std::vector<uint8_t> factory_session_snapshot;
     cnc::EntityId replacement_entity;
     cnc::SimulationTick player_power_ready;
@@ -653,6 +654,7 @@ int main()
             FT_ERR_SUCCESS ||
         manifest_session.production().pending_count() != static_cast<cnc::Size>(1U) ||
         manifest_session.world().create_entity(&second_factory_entity) != FT_ERR_SUCCESS ||
+        manifest_session.players().set_owner(second_factory_entity, cnc::PlayerId{1U}) != FT_ERR_SUCCESS ||
         manifest_session.bind_factory(second_factory_entity, cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
         manifest_session.enqueue_unit_production(second_factory_entity, cnc::DefinitionId{1U}) !=
             FT_ERR_SUCCESS ||
@@ -685,6 +687,7 @@ int main()
         player_power_ready.value != 60U ||
         manifest_session.destroy_entity(second_factory_entity) != FT_ERR_SUCCESS ||
         manifest_session.factories().find(second_factory_entity) != nullptr ||
+        manifest_session.players().owner(second_factory_entity, &destroyed_owner) != FT_ERR_NOT_FOUND ||
         manifest_session.production().pending_count_for(second_factory_entity) != 0U ||
         manifest_session.shutdown() != FT_ERR_SUCCESS)
         return 30;
