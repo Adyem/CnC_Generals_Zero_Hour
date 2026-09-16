@@ -658,6 +658,12 @@ int main()
             FT_ERR_SUCCESS ||
         manifest_session.production().pending_count_for(second_factory_entity) !=
             static_cast<cnc::Size>(1U) ||
+        manifest_session.enqueue_unit_production(second_factory_entity, cnc::DefinitionId{1U}) !=
+            FT_ERR_SUCCESS ||
+        manifest_session.enqueue_unit_production(second_factory_entity, cnc::DefinitionId{1U}) !=
+            FT_ERR_OUT_OF_RANGE ||
+        manifest_session.production().pending_count_for(second_factory_entity) !=
+            static_cast<cnc::Size>(2U) ||
         manifest_session.save_snapshot(&factory_session_snapshot) != FT_ERR_SUCCESS ||
         manifest_session.unbind_factory(second_factory_entity) != FT_ERR_SUCCESS ||
         manifest_session.factories().find(second_factory_entity) != nullptr ||
