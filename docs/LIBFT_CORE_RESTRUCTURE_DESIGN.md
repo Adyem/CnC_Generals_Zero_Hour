@@ -584,10 +584,13 @@ ownership record for that entity. Commander/general bindings are cleared at the
 same boundary, preventing player state from retaining a destroyed commander.
 The registry already exposes versioned in-memory snapshot export/import and a canonical
 hash, with invalid definitions rejected before the live binding set changes.
+`GameSession` now owns this registry as well; unit bindings participate in the
+canonical hash and schema-10 snapshot envelope, and are removed with the entity
+lifecycle cleanup path.
 `FactoryRegistryCodec` now provides a bounded fixed-width wire payload for that
 snapshot, enforcing stable entity ordering and rejecting malformed lengths or
 duplicate IDs before decoded state is exposed.
-The session snapshot envelope is now schema 9 and reserves a dedicated factory
+The session snapshot envelope is now schema 10 and reserves dedicated factory
 payload. An empty factory section is valid for sessions that have not yet bound
 producers.
 The snapshot invariant is that every persisted sequence is strictly less than

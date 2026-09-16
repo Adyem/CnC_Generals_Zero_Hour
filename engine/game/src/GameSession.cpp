@@ -32,10 +32,16 @@ Error GameSession::initialize() noexcept
         (void)_runtime.shutdown();
         return error;
     }
-    error = _players.initialize();
+    error = _units.initialize(&_catalog);
     if (error != FT_ERR_SUCCESS)
     {
         (void)_factories.shutdown(); (void)_catalog.shutdown();
+        (void)_world.shutdown(); (void)_runtime.shutdown(); return error;
+    }
+    error = _players.initialize();
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)_units.shutdown(); (void)_factories.shutdown(); (void)_catalog.shutdown();
         (void)_world.shutdown();
         (void)_runtime.shutdown();
         return error;
@@ -44,7 +50,7 @@ Error GameSession::initialize() noexcept
     if (error != FT_ERR_SUCCESS)
     {
         (void)_players.shutdown();
-        (void)_factories.shutdown(); (void)_catalog.shutdown();
+        (void)_units.shutdown(); (void)_factories.shutdown(); (void)_catalog.shutdown();
         (void)_world.shutdown();
         (void)_runtime.shutdown();
         return error;
@@ -54,7 +60,7 @@ Error GameSession::initialize() noexcept
     {
         (void)_spatial.shutdown();
         (void)_players.shutdown();
-        (void)_factories.shutdown(); (void)_catalog.shutdown();
+        (void)_units.shutdown(); (void)_factories.shutdown(); (void)_catalog.shutdown();
         (void)_world.shutdown();
         (void)_runtime.shutdown();
         return error;
@@ -65,7 +71,7 @@ Error GameSession::initialize() noexcept
         (void)_combat.shutdown();
         (void)_spatial.shutdown();
         (void)_players.shutdown();
-        (void)_factories.shutdown(); (void)_catalog.shutdown();
+        (void)_units.shutdown(); (void)_factories.shutdown(); (void)_catalog.shutdown();
         (void)_world.shutdown();
         (void)_runtime.shutdown();
         return error;
@@ -74,13 +80,13 @@ Error GameSession::initialize() noexcept
     if (error != FT_ERR_SUCCESS)
     {
         (void)_visibility.shutdown(); (void)_combat.shutdown(); (void)_spatial.shutdown();
-        (void)_players.shutdown(); (void)_factories.shutdown(); (void)_catalog.shutdown(); (void)_world.shutdown(); (void)_runtime.shutdown();
+        (void)_players.shutdown(); (void)_units.shutdown(); (void)_factories.shutdown(); (void)_catalog.shutdown(); (void)_world.shutdown(); (void)_runtime.shutdown();
         return error;
     }
     error = _network.initialize();
     if (error != FT_ERR_SUCCESS)
     {
-        (void)_factories.shutdown(); (void)_catalog.shutdown();
+        (void)_units.shutdown(); (void)_factories.shutdown(); (void)_catalog.shutdown();
         (void)_players.shutdown();
         (void)_spatial.shutdown();
         (void)_combat.shutdown();
@@ -99,7 +105,7 @@ Error GameSession::initialize() noexcept
         (void)_combat.shutdown();
         (void)_visibility.shutdown();
         (void)_production.shutdown();
-        (void)_factories.shutdown(); (void)_catalog.shutdown();
+        (void)_units.shutdown(); (void)_factories.shutdown(); (void)_catalog.shutdown();
         (void)_world.shutdown();
         (void)_runtime.shutdown();
         return error;
@@ -302,6 +308,8 @@ Error GameSession::save_snapshot(std::vector<uint8_t> *bytes_out) const noexcept
     if (error != FT_ERR_SUCCESS) return error;
     error = _factories.export_snapshot(&snapshot.factories);
     if (error != FT_ERR_SUCCESS) return error;
+    error = _units.export_snapshot(&snapshot.units);
+    if (error != FT_ERR_SUCCESS) return error;
     error = _spatial.export_snapshot(&snapshot.spatial);
     if (error != FT_ERR_SUCCESS) return error;
     error = _combat.export_snapshot(&snapshot.combat);
@@ -394,6 +402,22 @@ Error GameSession::load_snapshot(const uint8_t *bytes, Size byte_count) noexcept
         (void)projected_factories.shutdown(); (void)projected_production.shutdown();
         (void)projected_science.shutdown(); (void)projected_powers.shutdown();
         (void)projected_generals.shutdown(); (void)projected_players.shutdown(); return error;
+    }
+    zero_hour::UnitRegistry projected_units;
+    error = projected_units.initialize(&_catalog);
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)projected_factories.shutdown(); (void)projected_production.shutdown();
+        (void)projected_science.shutdown(); (void)projected_powers.shutdown();
+        (void)projected_generals.shutdown(); (void)projected_players.shutdown(); return error;
+    }
+    error = projected_units.import_snapshot(snapshot.units);
+    if (error != FT_ERR_SUCCESS)
+    {
+        (void)projected_units.shutdown(); (void)projected_factories.shutdown();
+        (void)projected_production.shutdown(); (void)projected_science.shutdown();
+        (void)projected_powers.shutdown(); (void)projected_generals.shutdown();
+        (void)projected_players.shutdown(); return error;
     }
     zero_hour::PlayerStateRegistry projected_player_states;
     error = projected_player_states.initialize(&_catalog, &_science_ledger,
@@ -499,6 +523,7 @@ Error GameSession::load_snapshot(const uint8_t *bytes, Size byte_count) noexcept
     _science_ledger.swap(projected_science);
     _production.swap(projected_production);
     _factories.swap(projected_factories);
+    _units.swap(projected_units);
     _player_states.swap(projected_player_states);
     _player_states.rebind_generals(&_general_roster);
     _player_states.rebind_powers(&_special_power_ledger);
@@ -513,6 +538,7 @@ Error GameSession::load_snapshot(const uint8_t *bytes, Size byte_count) noexcept
     (void)projected_science.shutdown();
     (void)projected_production.shutdown();
     (void)projected_factories.shutdown();
+    (void)projected_units.shutdown();
     (void)projected_spatial.shutdown();
     (void)projected_combat.shutdown();
     (void)projected_visibility.shutdown();
@@ -636,6 +662,7 @@ Error GameSession::shutdown() noexcept
     (void)_visibility.shutdown();
     (void)_production.shutdown();
     (void)_factories.shutdown();
+    (void)_units.shutdown();
     (void)_catalog.shutdown();
     (void)_world.shutdown();
     const Error error = _runtime.shutdown();
@@ -663,6 +690,7 @@ uint64_t GameSession::canonical_state_hash() const noexcept
     mix(_visibility.canonical_state_hash());
     mix(_production.canonical_state_hash());
     mix(_factories.canonical_state_hash());
+    mix(_units.canonical_state_hash());
     mix(_player_states.canonical_state_hash());
     return hash;
 }
@@ -720,6 +748,7 @@ Error GameSession::destroy_entity(EntityId entity) noexcept
     (void)_player_state.clear_commander(entity);
     (void)_player_states.clear_commander(entity);
     (void)_factories.unbind(entity);
+    (void)_units.unbind(entity);
     (void)_spatial.remove(entity);
     (void)_combat.remove(entity);
     (void)_visibility.remove_entity(entity);
@@ -731,6 +760,8 @@ VisibilityRegistry &GameSession::visibility() noexcept { return _visibility; }
 ProductionQueue &GameSession::production() noexcept { return _production; }
 zero_hour::FactoryRegistry &GameSession::factories() noexcept { return _factories; }
 const zero_hour::FactoryRegistry &GameSession::factories() const noexcept { return _factories; }
+zero_hour::UnitRegistry &GameSession::units() noexcept { return _units; }
+const zero_hour::UnitRegistry &GameSession::units() const noexcept { return _units; }
 const zero_hour::Catalog &GameSession::catalog() const noexcept { return _catalog; }
 zero_hour::ScienceLedger &GameSession::science_ledger() noexcept { return _science_ledger; }
 zero_hour::SpecialPowerLedger &GameSession::special_power_ledger() noexcept

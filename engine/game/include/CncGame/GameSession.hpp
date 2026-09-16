@@ -16,6 +16,7 @@
 #include "CncGame/SessionSnapshotCodec.hpp"
 #include "ZeroHourData/Catalog.hpp"
 #include "ZeroHourData/FactoryRegistry.hpp"
+#include "ZeroHourData/UnitRegistry.hpp"
 #include "ZeroHourData/ScienceLedger.hpp"
 #include "ZeroHourData/SpecialPowerLedger.hpp"
 #include "ZeroHourData/GeneralRoster.hpp"
@@ -87,6 +88,8 @@ public:
     ProductionQueue &production() noexcept;
     zero_hour::FactoryRegistry &factories() noexcept;
     const zero_hour::FactoryRegistry &factories() const noexcept;
+    zero_hour::UnitRegistry &units() noexcept;
+    const zero_hour::UnitRegistry &units() const noexcept;
     const zero_hour::Catalog &catalog() const noexcept;
     zero_hour::ScienceLedger &science_ledger() noexcept;
     zero_hour::SpecialPowerLedger &special_power_ledger() noexcept;
@@ -107,6 +110,7 @@ private:
     VisibilityRegistry _visibility;
     ProductionQueue _production;
     zero_hour::FactoryRegistry _factories;
+    zero_hour::UnitRegistry _units;
     zero_hour::Catalog _catalog;
     zero_hour::ScienceLedger _science_ledger;
     zero_hour::SpecialPowerLedger _special_power_ledger;
