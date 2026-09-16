@@ -568,6 +568,8 @@ another factory's slots. Factory bindings are intentionally not part of
 Libft's generic production records. `GameSession`
 now owns the registry lifecycle, exposes explicit factory binding, includes its
 canonical hash, and exports/imports the schema-9 factory section transactionally.
+The player-aware overload additionally checks generic ownership before queueing,
+so command ingress cannot produce units through another player's factory.
 Its entity-destruction seam also removes spatial, combat, visibility, and
 factory bindings after the world transition succeeds, preventing stale
 cross-system references. It also cancels all pending production orders for the

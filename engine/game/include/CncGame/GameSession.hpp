@@ -61,6 +61,8 @@ public:
     Error peek_ready_production(std::vector<ProductionOrder> *ready_out) const noexcept;
     Error commit_ready_production(const std::vector<uint64_t> &sequences) noexcept;
     Error enqueue_unit_production(EntityId producer, DefinitionId unit) noexcept;
+    Error enqueue_unit_production(PlayerId player, EntityId producer,
+                                  DefinitionId unit) noexcept;
     Error bind_factory(EntityId entity, DefinitionId factory) noexcept;
     Error unbind_factory(EntityId entity) noexcept;
     Error shutdown() noexcept;
