@@ -14,17 +14,13 @@ Error SystemRegistry::add(SystemPhase phase, int32_t order, const char *name,
     if (_next_sequence == std::numeric_limits<uint64_t>::max())
         return FT_ERR_OUT_OF_RANGE;
     const uint64_t sequence = _next_sequence;
+    std::vector<Entry> projected;
     try
     {
-        _entries.push_back(Entry{phase, order, sequence, name,
-                                 callback, user_data});
-    }
-    catch (...)
-    {
-        return FT_ERR_NO_MEMORY;
-    }
-    ++_next_sequence;
-    std::stable_sort(_entries.begin(), _entries.end(),
+        projected = _entries;
+        projected.push_back(Entry{phase, order, sequence, name,
+                                  callback, user_data});
+        std::stable_sort(projected.begin(), projected.end(),
         [](const Entry &left, const Entry &right)
         {
             if (left.phase != right.phase)
@@ -34,6 +30,13 @@ Error SystemRegistry::add(SystemPhase phase, int32_t order, const char *name,
                 return left.order < right.order;
             return left.sequence < right.sequence;
         });
+    }
+    catch (...)
+    {
+        return FT_ERR_NO_MEMORY;
+    }
+    _entries.swap(projected);
+    ++_next_sequence;
     return FT_ERR_SUCCESS;
 }
 
