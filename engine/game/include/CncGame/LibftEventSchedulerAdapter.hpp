@@ -21,6 +21,7 @@ public:
     Error initialize() noexcept;
     Error shutdown() noexcept;
     ft_size_t pending_count() const noexcept;
+    Error snapshot_profile(t_event_scheduler_profile *profile_out) const noexcept;
     const char *backend_name() const noexcept;
 
 private:

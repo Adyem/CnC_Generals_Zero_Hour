@@ -2016,6 +2016,11 @@ reintroduce the exact portability failure the migration is avoiding. Once those
 dependencies have platform-selected CMake targets, this manifest is the single
 place to enable Game and the game-owned adapters can consume only the specific
 Libft services they need.
+`LibftEventSchedulerAdapter` is the first such narrow bridge: it owns the
+Libft `game_event_scheduler` lifecycle, exposes queue depth and a typed profile
+snapshot, and translates invalid lifecycle calls to project `FT_ERR_*` values.
+It remains opt-in until the Game target's PThread, Time, Lua, and Compatibility
+dependencies have portable CMake targets.
 The first such adapter is `cnc::LibftEventSchedulerAdapter`, built only when
 `CNC_BUILD_LIBFT_GAME=ON`. It wraps Libft's lifecycle-managed
 `game_event_scheduler` behind the engine's `Error`/`ft_bool` conventions and
