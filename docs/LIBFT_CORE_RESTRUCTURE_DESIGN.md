@@ -558,6 +558,14 @@ session remains the next gameplay step.
 The game catalog now has optional `UNIT` and `FACTORY` records. Their faction
 and build/queue fields stay game-owned; the generic production queue continues
 to carry only opaque definition IDs.
+`zero_hour::FactoryRegistry` now owns the game-specific binding between a live
+producer entity and a factory definition. It validates that a requested unit
+exists, belongs to the same faction, and fits the factory queue capacity before
+the generic queue is touched. Bindings are sorted by stable entity ID and are
+installed through a projected swap, preserving the same failure-atomic rule as
+the simulation registries. Factory bindings are intentionally not part of
+Libft's generic production records; session snapshot integration is the next
+step before factories become authoritative in a running match.
 The snapshot invariant is that every persisted sequence is strictly less than
 `next_sequence`; import enforces this before swapping queue storage. The codec
 encoder is scheduled for a readability rewrite so it enforces the same rule at
