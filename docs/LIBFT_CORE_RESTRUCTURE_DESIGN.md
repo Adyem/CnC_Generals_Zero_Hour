@@ -568,6 +568,13 @@ before factory completion effects are wired in.
 `GameSession::collect_ready_production` is the typed handoff for the game layer:
 it collects orders at the authoritative world tick, while Zero Hour decides
 placement, prerequisites, unit creation, and factory-specific effects.
+For failure-atomic completion, new callers should use the two-phase API:
+`peek_ready_production` copies ready orders without removing them, the game
+layer performs placement and unit creation, and `commit_ready_production`
+removes the successfully handled sequence IDs in one validated swap. A failed
+spawn, placement, or allocation can therefore leave the production queue intact
+for deterministic retry; the legacy collect helper remains for callers whose
+completion policy is already infallible.
 `GameSession::enqueue_unit_production` is the corresponding ingress helper: it
 looks up a game-owned `UnitDefinition`, derives its checked build duration, and
 passes only the opaque unit ID and tick data to Libft's queue.
