@@ -564,8 +564,7 @@ exists, belongs to the same faction, and fits the factory queue capacity before
 the generic queue is touched. Bindings are sorted by stable entity ID and are
 installed through a projected swap, preserving the same failure-atomic rule as
 the simulation registries. Factory bindings are intentionally not part of
-Libft's generic production records; session snapshot integration is the next
-step before factories become authoritative in a running match. `GameSession`
+Libft's generic production records. `GameSession`
 now owns the registry lifecycle, exposes explicit factory binding, includes its
 canonical hash, and exports/imports the schema-9 factory section transactionally.
 The registry already exposes versioned in-memory snapshot export/import and a canonical
@@ -574,9 +573,8 @@ hash, with invalid definitions rejected before the live binding set changes.
 snapshot, enforcing stable entity ordering and rejecting malformed lengths or
 duplicate IDs before decoded state is exposed.
 The session snapshot envelope is now schema 9 and reserves a dedicated factory
-payload. `GameSession` must export/import its live registry into this field as
-the next integration step; an empty factory section is valid for sessions that
-have not yet bound producers.
+payload. An empty factory section is valid for sessions that have not yet bound
+producers.
 The snapshot invariant is that every persisted sequence is strictly less than
 `next_sequence`; import enforces this before swapping queue storage. The codec
 encoder is scheduled for a readability rewrite so it enforces the same rule at

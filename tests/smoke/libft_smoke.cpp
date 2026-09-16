@@ -466,7 +466,7 @@ int main()
 #endif
     if (manifest_catalog.initialize() != FT_ERR_SUCCESS ||
         manifest_catalog.load_manifest(manifest_path) != FT_ERR_SUCCESS ||
-        manifest_catalog.definition_count() != static_cast<cnc::Size>(4U))
+        manifest_catalog.definition_count() != static_cast<cnc::Size>(6U))
         return 19;
     if (manifest_catalog.shutdown() != FT_ERR_SUCCESS)
         return 20;
@@ -630,7 +630,7 @@ int main()
 #endif
     if (manifest_session.initialize() != FT_ERR_SUCCESS ||
         manifest_session.load_data_manifest(session_manifest_path) != FT_ERR_SUCCESS ||
-        manifest_session.catalog().definition_count() != static_cast<cnc::Size>(4U))
+        manifest_session.catalog().definition_count() != static_cast<cnc::Size>(6U))
         return 25;
     if (manifest_session.validate_game_data() != FT_ERR_SUCCESS)
         return 32;
@@ -643,6 +643,7 @@ int main()
         player.purchase_science(cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
         player.science_points() != 1U ||
         manifest_session.world().create_entity(&player_entity) != FT_ERR_SUCCESS ||
+        manifest_session.bind_factory(player_entity, cnc::DefinitionId{1U}) != FT_ERR_SUCCESS ||
         manifest_session.enqueue_unit_production(player_entity, cnc::DefinitionId{1U}) !=
             FT_ERR_SUCCESS ||
         manifest_session.production().pending_count() != static_cast<cnc::Size>(1U) ||
