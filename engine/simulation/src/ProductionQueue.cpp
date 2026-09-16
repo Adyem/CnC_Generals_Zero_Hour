@@ -35,12 +35,14 @@ Error ProductionQueue::enqueue(EntityId producer, DefinitionId definition,
     if (duration.value > std::numeric_limits<SimulationTickValue>::max() - now.value)
         return FT_ERR_OUT_OF_RANGE;
     if (_next_sequence == std::numeric_limits<uint64_t>::max()) return FT_ERR_OUT_OF_RANGE;
+    const uint64_t sequence = _next_sequence;
     try
     {
-        _orders.push_back(ProductionOrder{
-            producer, definition, SimulationTick{now.value + duration.value}, _next_sequence++});
+        _orders.push_back(ProductionOrder{producer, definition,
+                                          SimulationTick{now.value + duration.value}, sequence});
     }
     catch (...) { return FT_ERR_NO_MEMORY; }
+    ++_next_sequence;
     return FT_ERR_SUCCESS;
 }
 

@@ -55,6 +55,11 @@ int production_queue_snapshot_test() noexcept
         queue.enqueue(cnc::EntityId{1U}, cnc::DefinitionId{1U},
                       cnc::SimulationTick{0U}, cnc::SimulationTick{4U}) != FT_ERR_SUCCESS)
         return 1;
+    cnc::ProductionQueue::Snapshot first_snapshot;
+    if (queue.export_snapshot(&first_snapshot) != FT_ERR_SUCCESS ||
+        first_snapshot.next_sequence != 1U ||
+        first_snapshot.orders.size() != static_cast<cnc::Size>(1U))
+        return 3;
     const uint64_t first_hash = queue.canonical_state_hash();
     if (first_hash == 0U ||
         queue.enqueue(cnc::EntityId{2U}, cnc::DefinitionId{1U},
